@@ -3,6 +3,7 @@ task create_alt_genome{
 
      command{
 		/pirs/src/pirs/./pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt
+		chmod 777 "alt.snp.lst" "alt.snp.fa"
      }
      runtime{
 		docker:"pirs"
@@ -20,6 +21,7 @@ task pedsim_files{
 	File R_script
 	command{
 		Rscript --vanilla ${R_script} ${snp_file} ${genome_size}  ${cmBymb}
+		chmod 777 "mapfile.map" "founderfile.gen" "sim.par" "inb.chrom"
 	}
 	runtime{
 		docker:"r-base:3.6.0"
@@ -34,24 +36,16 @@ task pedsim_files{
 
 task pedigreeSim{
 	File pedigreeSimJar
-	File mapfile
-	File founderfile
-	File parfile
-	File chromfile
-	
+	File map_file
+	File founder_file
+	File par_file
+	File chrom_file
 	command{
-		PATH=$PATH:${mapfile}
-		PATH=$PATH:${chromfile}
-		PATH=$PATH:${founderfile}
-		java -jar ${pedigreeSimJar} ${parfile}
-	}
-	runtime{
-		docker:"java"
+		java -jar ${pedigreeSimJar} ${par_file} 
 	}
 	output{
 		File genotypes_dat = "sim_inb_genotypes.dat"
 	}
-
 }
 
 workflow F2{
@@ -71,10 +65,10 @@ workflow F2{
 		 R_script=R_script
 	 }
 	  call pedigreeSim{
-	 	 input: mapfile = pedsim_files.mapfile,
-	 	 founderfile= pedsim_files.founderfile, 
-	 	 parfile=pedsim_files.parfile,
-	 	 chromfile=pedsim_files.chromfile,
+	 	 input: map_file = pedsim_files.mapfile,
+	 	 founder_file= pedsim_files.founderfile, 
+	 	 par_file=pedsim_files.parfile,
+	 	 chrom_file=pedsim_files.chromfile,
 	 	 pedigreeSimJar=pedigreeSim_jar
 	 }
 }
