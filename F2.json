@@ -1,0 +1,8 @@
+{
+  "F2.pedigreeSim_jar": "/home/cristiane/github/Errors_wdl/Workflows/pedigreeSim/PedigreeSim.jar",
+  "F2.R_script": "/home/cristiane/github/Errors_wdl/Workflows/pedsim_files/pedsim_files.R",
+  "F2.cmBymb": "4.63",
+  "F2.genome_size": "43.27",
+  "F2.ref": "/home/cristiane/github/Errors_wdl/Workflows/chr01.Osativa.fa"
+}
+
