@@ -20,12 +20,52 @@ task pedsim_files {
 	File snp_file
 	String genome_size
 	String cmBymb
-	File R_script
 
-	command {
-		Rscript --vanilla ${R_script} ${snp_file} ${genome_size}  ${cmBymb}
-		chmod 777 "mapfile.map" "founderfile.gen" "sim.par" "inb.chrom"
-	}
+	command <<<
+		R --vanilla --no-save <<RSCRIPT
+
+			snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
+			n.marker <- dim(snps)[1]
+			## Map file
+			# Marker names
+			marker1 <- "M"
+			marker2 <- 1:n.marker
+			marker2 <- sprintf("%03d", marker2)
+			marker <-paste0(marker1,marker2)
+			# Chromossome and position
+			tot = as.numeric("${genome_size}")*as.numeric("${cmBymb}")
+			# The markers will be equally distribuited. There will be one marker each
+			by = (tot)/(n.marker-1)
+			pos <- seq(from = 0, to = tot, by = by)
+			chr <- rep("C1",length(pos))
+			map_file <- data.frame(marker=marker, chromosome=chr, position= pos)
+			write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
+			# Using sn1ps simulated by pirs genome described in ref_oryza.snp.lst file. Looking markers at the position:
+			# P1_1 <- snps["V4"]
+			# P1_2 <- snps["V4"]
+			# P2_1 <- snps["V5"]
+			# P2_2 <- snps["V5"]
+			chr <- snps["V1"]
+			pos <- snps["V2"]
+			founder_file <- data.frame(marker=marker, P1_1=snps[["V4"]] , P1_2=snps[["V4"]], P2_1=snps[["V5"]], P2_2=snps[["V5"]])
+			write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
+
+			## Parameters file
+			parameter <- paste0("PLOIDY = 2
+								MAPFUNCTION = HALDANE
+								MISSING = NA
+								CHROMFILE = inb.chrom
+								POPTYPE = F2
+								POPSIZE = 150
+								MAPFILE = mapfile.map
+								FOUNDERFILE = founderfile.gen
+								OUTPUT = sim_inb")
+
+			write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
+			chrom <- data.frame("chromosome"= "C1", "length"= tot, "centromere"=tot/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
+			write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
+		RSCRIPT
+	>>>
 
 	runtime {
 		docker:"r-base:3.6.0"
@@ -62,7 +102,6 @@ workflow F2 {
 	File ref
 	String genome_size
 	String cmBymb
-	File R_script
 	File pedigreeSim_jar
 	
 	call create_alt_genome {
@@ -74,8 +113,7 @@ workflow F2 {
 		input:
 			snp_file = create_alt_genome.snps,
 			genome_size=genome_size,
-			cmBymb=cmBymb,
-			R_script=R_script
+			cmBymb=cmBymb
 	}
 
 	call pedigreeSim {
