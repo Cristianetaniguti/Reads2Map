@@ -64,7 +64,7 @@ task pedsim_files {
     >>>
 
     runtime {
-        docker:"r-base:3.6.0"
+        docker:"r-packages"
     }
     output {
         File mapfile="mapfile.map"
@@ -93,6 +93,46 @@ task pedigreeSim{
     }
 }
 
+task pedsim2vcf{
+    File genotypes_dat
+    File map_file
+    File chrom_file
+    File snp_file
+    String genome_size
+    String cmBymb
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+        
+        library(onemap)              
+        snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
+        n.marker <- dim(snps)[1]
+        tot = as.numeric("${genome_size}")*as.numeric("${cmBymb}")
+        # The markers will be equally distribuited. There will be one marker each
+        by = (tot)/(n.marker-1)
+        pos <- seq(from = 0, to = tot, by = by)
+        chr <- rep("C1",length(pos))
+
+        pedsim2vcf(inputfile = ${genotypes_dat}), 
+             map.file = ${map_file}), 
+             chrom.file = ${chrom_file},
+             out.file = "simu.vcf",
+             miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1", 
+             chr = chr, phase = TRUE)
+
+        RSCRIPT
+    >>>
+
+    runtime{
+        docker:"r-packages"
+    }
+
+    output{
+        File simu_vcf = "simu.vcf"
+    }
+
+}
+
 workflow F2 {
     
     File ref
@@ -119,5 +159,15 @@ workflow F2 {
             par_file=pedsim_files.parfile,
             chrom_file=pedsim_files.chromfile,
             pedigreeSimJar=pedigreeSim_jar
+    }
+
+    call pedsim2vcf{
+        input:
+        map_file = pedsim_files.mapfile,
+        chrom_file = pedsim_files.chromfile,
+        genotypes_dat = pedigreeSim.genotypes_dat,
+        snp_file = create_alt_genome.snps,
+        genome_size=genome_size,
+        cmBymb=cmBymb
     }
 }
