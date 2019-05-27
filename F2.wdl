@@ -113,9 +113,9 @@ task pedsim2vcf{
         pos <- seq(from = 0, to = tot, by = by)
         chr <- rep("C1",length(pos))
 
-        pedsim2vcf(inputfile = ${genotypes_dat}), 
-             map.file = ${map_file}), 
-             chrom.file = ${chrom_file},
+        pedsim2vcf(inputfile = "${genotypes_dat}", 
+             map.file = "${map_file}", 
+             chrom.file = "${chrom_file}",
              out.file = "simu.vcf",
              miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1", 
              chr = chr, phase = TRUE)
@@ -133,12 +133,38 @@ task pedsim2vcf{
 
 }
 
+# task sample_names{
+#      File simu_vcf
+#      command{
+#      grep -i "CHROM" simu.vcf | cut -f1,2,3,4,5,6,7,8,9 --complement > id_names
+#      tr -s '\t '  '\n'< id_names > id_names_lines
+#      }
+#      output{
+#          File sampleNames = "id_names_lines"
+#      }
+#  }
+
+task vcf2diploid{
+    String sampleName
+    File ref_genome
+    File simu_vcf
+
+    command{
+        java -jar vcf2diploid-master/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf} -outDir .
+    }
+    runtime{
+        docker:"java-vcf2diploid"
+    }
+}
+
 workflow F2 {
     
     File ref
     String genome_size
     String cmBymb
     File pedigreeSim_jar
+    File sampleNamesFile
+    Array[String] sampleNames = read_lines(sampleNamesFile)
     
     call create_alt_genome {
         input:
@@ -169,5 +195,14 @@ workflow F2 {
         snp_file = create_alt_genome.snps,
         genome_size=genome_size,
         cmBymb=cmBymb
+    }
+
+    scatter (sampleName in sampleNames) {
+        call vcf2diploid{
+            input: 
+            sampleName = sampleName,
+            ref_genome = ref,
+            simu_vcf= pedsim2vcf.simu_vcf
+        }
     }
 }
