@@ -111,7 +111,7 @@ task pedsim2vcf{
         # The markers will be equally distribuited. There will be one marker each
         by = (tot)/(n.marker-1)
         pos <- seq(from = 0, to = tot, by = by)
-        chr <- rep("C1",length(pos))
+        chr <- rep("Chr10",length(pos))
 
         pedsim2vcf(inputfile = "${genotypes_dat}", 
              map.file = "${map_file}", 
@@ -150,11 +150,15 @@ task vcf2diploid{
     File simu_vcf
 
     command{
-        java -jar vcf2diploid-master/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf} -outDir .
+        java -jar /vcf2diploid-master/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf}
     }
     runtime{
         docker:"java-vcf2diploid"
     }
+    # output{
+    #     File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
+    #     File paternal_genomes = "Chr10_${sampleName}_paternal.fa"
+    #}
 }
 
 workflow F2 {
