@@ -6,5 +6,3 @@ RUN apt-get update \
     && git clone --branch v2.0.2 https://github.com/galaxy001/pirs.git \
     && cd pirs \
     && make
-
-WORKDIR pirs/src/pirs/

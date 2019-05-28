@@ -1,7 +1,6 @@
 {
-  "F2.pedigreeSim_jar": "/home/taniguti/github/Cristianetaniguti/errors_workflow/pedigreeSim/PedigreeSim.jar",
   "F2.cmBymb": "4.63",
   "F2.genome_size": "43.27",
-  "F2.ref": "/home/taniguti/github/Cristianetaniguti/errors_workflow/sub.fa"
+  "F2.ref": "/home/taniguti/github/CristianeTaniguti/errors_workflow/test/sub.fa",
+  "F2.sampleNamesFile": "/home/taniguti/github/CristianeTaniguti/errors_workflow/test/sub_id_names_lines"
 }
-

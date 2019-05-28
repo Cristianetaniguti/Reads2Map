@@ -1,3 +1,11 @@
-docker build -t pirs create_alt_genome/
-docker build -t r-packages R-packages/
-docker build -t java-vcf2diploid vcf2diploid/
+cd .dockerfiles/java-in-the-cloud
+docker build -t java-in-the-cloud .
+cd -
+
+cd .dockerfiles/pIRS
+docker build -t pirs .
+cd -
+
+cd .dockerfiles/onemap
+docker build -t onemap .
+cd -
