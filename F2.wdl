@@ -1,19 +1,19 @@
 task create_alt_genome {
     File ref_genome
 
-     command {
+    command {
         /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt
         chmod 777 "alt.snp.lst" "alt.snp.fa"
-     }
+    }
 
-     runtime {
-        docker:"pirs"
-     }
+    runtime {
+        docker:"pirs:v1"
+    }
 
-     output {
+    output {
         File alt_fasta = "alt.snp.fa"
         File snps = "alt.snp.lst"
-     }
+    }
 }
 
 task pedsim_files {
@@ -64,7 +64,7 @@ task pedsim_files {
     >>>
 
     runtime {
-        docker:"r-packages"
+        docker:"onemap:v1"
     }
     output {
         File mapfile="mapfile.map"
@@ -75,7 +75,6 @@ task pedsim_files {
 }
 
 task pedigreeSim{
-    File pedigreeSimJar
     File map_file
     File founder_file
     File chrom_file
@@ -86,8 +85,13 @@ task pedigreeSim{
         sed -i 's+mapfile.map+${map_file}+g' ${par_file}
         sed -i 's+founderfile.gen+${founder_file}+g' ${par_file}
 
-        java -jar ${pedigreeSimJar} ${par_file} 
+        java -jar /usr/jars/PedigreeSim.jar ${par_file} 
     }
+
+    runtime {
+        docker:"java-in-the-cloud:v1"
+    }
+
     output {
         File genotypes_dat = "sim_inb_genotypes.dat"
     }
@@ -124,7 +128,7 @@ task pedsim2vcf{
     >>>
 
     runtime{
-        docker:"r-packages"
+        docker: "onemap:v1"
     }
 
     output{
@@ -150,10 +154,10 @@ task vcf2diploid{
     File simu_vcf
 
     command{
-        java -jar /vcf2diploid-master/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf}
+        java -jar /usr/jars/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf}
     }
     runtime{
-        docker:"java-vcf2diploid"
+        docker:"java-in-the-cloud:v1"
     }
     # output{
     #     File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
@@ -166,7 +170,6 @@ workflow F2 {
     File ref
     String genome_size
     String cmBymb
-    File pedigreeSim_jar
     File sampleNamesFile
     Array[String] sampleNames = read_lines(sampleNamesFile)
     
@@ -187,26 +190,25 @@ workflow F2 {
             map_file = pedsim_files.mapfile,
             founder_file= pedsim_files.founderfile, 
             par_file=pedsim_files.parfile,
-            chrom_file=pedsim_files.chromfile,
-            pedigreeSimJar=pedigreeSim_jar
+            chrom_file=pedsim_files.chromfile
     }
 
     call pedsim2vcf{
         input:
-        map_file = pedsim_files.mapfile,
-        chrom_file = pedsim_files.chromfile,
-        genotypes_dat = pedigreeSim.genotypes_dat,
-        snp_file = create_alt_genome.snps,
-        genome_size=genome_size,
-        cmBymb=cmBymb
+            map_file = pedsim_files.mapfile,
+            chrom_file = pedsim_files.chromfile,
+            genotypes_dat = pedigreeSim.genotypes_dat,
+            snp_file = create_alt_genome.snps,
+            genome_size=genome_size,
+            cmBymb=cmBymb
     }
 
     scatter (sampleName in sampleNames) {
         call vcf2diploid{
             input: 
-            sampleName = sampleName,
-            ref_genome = ref,
-            simu_vcf= pedsim2vcf.simu_vcf
+                sampleName = sampleName,
+                ref_genome = ref,
+                simu_vcf= pedsim2vcf.simu_vcf
         }
     }
 }
