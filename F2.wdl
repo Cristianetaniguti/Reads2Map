@@ -98,20 +98,14 @@ task pedsim2vcf{
     File map_file
     File chrom_file
     File snp_file
-    String genome_size
-    String cmBymb
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
         
         library(onemap)              
         snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
-        n.marker <- dim(snps)[1]
-        tot = as.numeric("${genome_size}")*as.numeric("${cmBymb}")
-        # The markers will be equally distribuited. There will be one marker each
-        by = (tot)/(n.marker-1)
-        pos <- seq(from = 0, to = tot, by = by)
-        chr <- rep("Chr10",length(pos))
+        pos <- snps[,3]
+        chr <- snps[,1]
 
         pedsim2vcf(inputfile = "${genotypes_dat}", 
              map.file = "${map_file}", 
@@ -155,10 +149,10 @@ task vcf2diploid{
     runtime{
         docker:"java-vcf2diploid"
     }
-    # output{
-    #     File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
-    #     File paternal_genomes = "Chr10_${sampleName}_paternal.fa"
-    #}
+    output{
+         File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
+         File paternal_genomes = "Chr10_${sampleName}_paternal.fa"
+    }
 }
 
 workflow F2 {
@@ -193,20 +187,18 @@ workflow F2 {
 
     call pedsim2vcf{
         input:
-        map_file = pedsim_files.mapfile,
-        chrom_file = pedsim_files.chromfile,
-        genotypes_dat = pedigreeSim.genotypes_dat,
-        snp_file = create_alt_genome.snps,
-        genome_size=genome_size,
-        cmBymb=cmBymb
+            map_file = pedsim_files.mapfile,
+            chrom_file = pedsim_files.chromfile,
+            genotypes_dat = pedigreeSim.genotypes_dat,
+            snp_file = create_alt_genome.snps
     }
 
     scatter (sampleName in sampleNames) {
         call vcf2diploid{
             input: 
-            sampleName = sampleName,
-            ref_genome = ref,
-            simu_vcf= pedsim2vcf.simu_vcf
+                sampleName = sampleName,
+                ref_genome = ref,
+                simu_vcf= pedsim2vcf.simu_vcf
         }
     }
 }
