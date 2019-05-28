@@ -7,7 +7,7 @@ task create_alt_genome {
     }
 
     runtime {
-        docker:"pirs"
+        docker:"pirs:v1"
     }
 
     output {
@@ -64,7 +64,7 @@ task pedsim_files {
     >>>
 
     runtime {
-        docker:"onemap"
+        docker:"onemap:v1"
     }
     output {
         File mapfile="mapfile.map"
@@ -89,7 +89,7 @@ task pedigreeSim{
     }
 
     runtime {
-        docker:"java-in-the-cloud"
+        docker:"java-in-the-cloud:v1"
     }
 
     output {
@@ -128,7 +128,7 @@ task pedsim2vcf{
     >>>
 
     runtime{
-        docker:"onemap"
+        docker: "onemap:v1"
     }
 
     output{
@@ -157,7 +157,7 @@ task vcf2diploid{
         java -jar /usr/jars/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf}
     }
     runtime{
-        docker:"java-in-the-cloud"
+        docker:"java-in-the-cloud:v1"
     }
     # output{
     #     File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
