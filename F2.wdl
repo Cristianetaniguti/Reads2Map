@@ -1,19 +1,18 @@
 task create_alt_genome {
     File ref_genome
 
-     command {
+    command {
         /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt
-        chmod 777 "alt.snp.lst" "alt.snp.fa"
-     }
+    }
 
-     runtime {
-        docker:"pirs"
-     }
+    runtime {
+        docker:"pirs-ddrad-cutadapt:v1"
+    }
 
-     output {
+    output {
         File alt_fasta = "alt.snp.fa"
         File snps = "alt.snp.lst"
-     }
+    }
 }
 
 task pedsim_files {
@@ -64,7 +63,7 @@ task pedsim_files {
     >>>
 
     runtime {
-        docker:"r-packages"
+        docker:"onemap:v1"
     }
     output {
         File mapfile="mapfile.map"
@@ -75,7 +74,6 @@ task pedsim_files {
 }
 
 task pedigreeSim{
-    File pedigreeSimJar
     File map_file
     File founder_file
     File chrom_file
@@ -86,8 +84,13 @@ task pedigreeSim{
         sed -i 's+mapfile.map+${map_file}+g' ${par_file}
         sed -i 's+founderfile.gen+${founder_file}+g' ${par_file}
 
-        java -jar ${pedigreeSimJar} ${par_file} 
+        java -jar /usr/jars/PedigreeSim.jar ${par_file}
     }
+
+    runtime {
+        docker:"java-in-the-cloud:v1"
+    }
+
     output {
         File genotypes_dat = "sim_inb_genotypes.dat"
     }
@@ -116,9 +119,9 @@ task pedsim2vcf{
 
         RSCRIPT
     >>>
-
+        
     runtime{
-        docker:"r-packages"
+        docker: "onemap:v1"
     }
 
     output{
@@ -144,14 +147,107 @@ task vcf2diploid{
     File simu_vcf
 
     command{
-        java -jar /vcf2diploid-master/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf}
+        java -jar /usr/jars/vcf2diploid.jar -id ${sampleName} -chr ${ref_genome} -vcf ${simu_vcf}
     }
     runtime{
-        docker:"java-vcf2diploid"
+        docker:"java-in-the-cloud:v1"
     }
     output{
          File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
          File paternal_genomes = "Chr10_${sampleName}_paternal.fa"
+    }
+}
+
+task create_frags{
+    String enzyme
+    String sampleName
+    File maternal_genomes
+    File paternal_genomes
+
+    command{
+        /ddRADseqTools/Package/rsitesearch.py \
+        --genfile=${maternal_genomes} \
+        --fragsfile=${sampleName}_maternal_fragments.fasta \
+        --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
+        --enzyme1=${enzyme} \
+        --enzyme2=${enzyme} \
+        --minfragsize=202 \
+        --maxfragsize=500 \
+        --fragstfile=${sampleName}_maternal_statistics.txt \
+        --fragstinterval=25 \
+        --plot=NO \
+        --verbose=YES \
+        --trace=NO
+
+        /ddRADseqTools/Package/rsitesearch.py \
+        --genfile=${paternal_genomes} \
+        --fragsfile=${sampleName}_paternal_fragments.fasta \
+        --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
+        --enzyme1=${enzyme} \
+        --enzyme2=${enzyme} \
+        --minfragsize=202 \
+        --maxfragsize=500 \
+        --fragstfile=${sampleName}_paternal_statistics.txt \
+        --fragstinterval=25 \
+        --plot=NO \
+        --verbose=YES \
+        --trace=NO
+
+        cutadapt -l 202 \
+        -o ${sampleName}_maternal_trim.fa \
+        ${sampleName}_maternal_fragments.fasta
+
+        cutadapt -l 202 \
+        -o ${sampleName}_paternal_trim.fa \
+        ${sampleName}_paternal_fragments.fasta
+    }
+    runtime{
+        docker:"pirs-ddrad-cutadapt:v1"
+    }
+    output{
+        File maternal_frags = "${sampleName}_maternal_fragments.fasta"
+        File paternal_frags = "${sampleName}_paternal_fragments.fasta"
+        File maternal_stats = "${sampleName}_maternal_statistics.txt"
+        File paternal_stats = "${sampleName}_paternal_statistics.txt"
+        File maternal_trim = "${sampleName}_maternal_trim.fa"
+        File paternal_trim = "${sampleName}_paternal_trim.fa"
+    }
+}
+
+task reads_simulations{
+    File maternal_trim
+    File paternal_trim
+    String sampleName
+
+    command{
+        /pirs/src/pirs/pirs simulate --diploid ${maternal_trim} ${paternal_trim} \
+        -l 100 -x 50 -m 150 -o ${sampleName}
+
+        /cleanFastq/fixFastq "${sampleName}_100_150_1.fq" "${sampleName}_100_150_1_fix.fq"
+        /cleanFastq/fixFastq "${sampleName}_100_150_2.fq" "${sampleName}_100_150_2_fix.fq"
+    }
+    runtime{
+        docker:"pirs-ddrad-cutadapt:v1"
+    }
+    output{
+        File reads1 = "${sampleName}_100_150_1_fix.fq"
+        File reads2 = "${sampleName}_100_150_2_fix.fq"
+    }
+}
+
+task alignment {
+    command{
+        bwa mem ${ref} ${reads1} ${reads2} > ${sampleName}.sam \
+        samtools view -bS ${sampleName}.sam > ${sampleName}.bam \
+        samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam \
+        samtools index ${sampleName}.sorted.bam
+    }
+    runtime{
+        docker:"bwa-samtools:v1"
+    }
+    output{
+        input:
+        File bam_file = "${sampleName}.sorted.bam"
     }
 }
 
@@ -160,9 +256,9 @@ workflow F2 {
     File ref
     String genome_size
     String cmBymb
-    File pedigreeSim_jar
     File sampleNamesFile
     Array[String] sampleNames = read_lines(sampleNamesFile)
+    String enzyme
     
     call create_alt_genome {
         input:
@@ -181,8 +277,7 @@ workflow F2 {
             map_file = pedsim_files.mapfile,
             founder_file= pedsim_files.founderfile, 
             par_file=pedsim_files.parfile,
-            chrom_file=pedsim_files.chromfile,
-            pedigreeSimJar=pedigreeSim_jar
+            chrom_file=pedsim_files.chromfile
     }
 
     call pedsim2vcf{
@@ -199,6 +294,21 @@ workflow F2 {
                 sampleName = sampleName,
                 ref_genome = ref,
                 simu_vcf= pedsim2vcf.simu_vcf
+        }
+
+        call create_frags{
+            input:
+                sampleName = sampleName,
+                enzyme = enzyme,
+                maternal_genomes= vcf2diploid.maternal_genomes,
+                paternal_genomes= vcf2diploid.paternal_genomes
+        }
+
+        call reads_simulations{
+            input:
+            sampleName = sampleName,
+            maternal_trim = create_frags.maternal_trim,
+            paternal_trim = create_frags.paternal_trim
         }
     }
 }
