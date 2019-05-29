@@ -1,4 +1,6 @@
-Alguma descrição
+## Linkage map simulation
+
+This workflow provides linkage map simulation using markers from RAD-seq methodology. The main goal of the workflow is to mesuare the impact of different error probabilities coming from SNP calling methodologies in the linkage map building in OneMap.
 
 ## Quickstart
 
