@@ -8,4 +8,5 @@ RUN apt-get update \
     && unzip master.zip \
     && cd vcf2diploid-master/ \
     && make \
-    && mv vcf2diploid.jar /usr/jars/
+    && mv vcf2diploid.jar /usr/jars/ 
+ 

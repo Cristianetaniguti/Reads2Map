@@ -235,19 +235,145 @@ task reads_simulations{
     }
 }
 
-task alignment {
+
+task index_ref {
+    File ref
+    String fastaName = basename(ref)
+
     command{
-        bwa mem ${ref} ${reads1} ${reads2} > ${sampleName}.sam \
-        samtools view -bS ${sampleName}.sam > ${sampleName}.bam \
-        samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam \
+        mv ${ref} ./${fastaName}
+
+	    bwa index ${fastaName}
+	    samtools faidx ${fastaName}
+    }
+    
+    runtime{
+	    docker:"bwa-samtools:v1"
+    }
+
+    output{
+        File geno_amb = "${fastaName}.amb"
+        File geno_ann = "${fastaName}.ann"
+        File geno_bwt = "${fastaName}.bwt"
+        File geno_pac = "${fastaName}.pac"
+        File geno_sa = "${fastaName}.sa"
+        File geno_fai = "${fastaName}.fai"
+    }      
+}
+
+task index_picard{
+    File ref
+    String fastaName = basename(ref)
+
+    command{
+        mv ${ref} ./${fastaName}
+        java -jar /gatk/picard.jar CreateSequenceDictionary \
+        R= ${fastaName} \
+        O= ${fastaName}.dict
+    }
+    runtime{
+        docker:"gatk-picard:v1"
+    }
+    output{
+        File geno_dict = "${fastaName}.dict"
+    }
+}
+
+task alignment {
+        String sampleName
+        File ref
+        File reads1
+        File reads2
+        File geno_amb
+        File geno_ann
+        File geno_bwt
+        File geno_pac
+        File geno_sa
+
+    command{
+        bwa mem ${ref} ${reads1} ${reads2} > ${sampleName}.sam 
+        samtools view -bS ${sampleName}.sam > ${sampleName}.bam 
+        samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam 
         samtools index ${sampleName}.sorted.bam
     }
     runtime{
         docker:"bwa-samtools:v1"
     }
     output{
-        input:
         File bam_file = "${sampleName}.sorted.bam"
+	    File bam_idx = "${sampleName}.sorted.bam.bai"
+    }
+}
+
+task add_labs{
+    String sampleName
+    File bam_file
+    File bam_idx
+
+    command{
+        mkdir tmp
+
+        java -jar /gatk/picard.jar AddOrReplaceReadGroups \
+        I= ${bam_file} \
+        O= ${sampleName}_rg.bam \
+        RGLB= lib-${sampleName} \
+        RGPL=illumina \
+        RGID=FLOWCELL1.LANE1.${sampleName} \
+        RGSM= ${sampleName} \
+        RGPU=FLOWCELL1.LANE1.${sampleName} \
+        TMP_DIR= tmp
+
+    }
+    runtime{
+        docker:"gatk-picard:v1"
+    }
+    output{
+        File bam_rg = "${sampleName}_rg.bam"
+    }
+}
+
+task samtools_idx {
+    File bam_rg
+    String bamName = basename(bam_rg)
+
+    command{
+        mv ${bam_rg} ./${bamName}
+        samtools index ${bamName}
+    }
+    runtime{
+        docker:"bwa-samtools:v1"
+    }
+    output{
+        File bam_rg_idx = "${bamName}.bai"
+    }
+}
+
+task HaplotypeCallerERC {
+
+    File ref
+    File geno_amb
+    File geno_ann
+    File geno_bwt
+    File geno_dict
+    File geno_fai
+    File geno_pac
+    File geno_sa
+    String sampleName
+    File bam_rg
+    File bam_rg_idx
+
+    command {
+         /gatk/gatk HaplotypeCaller \
+            -ERC GVCF \
+            -R ${ref} \
+            -I ${bam_rg} \
+            -O ${sampleName}_rawLikelihoods.g.vcf
+    }
+    runtime{
+        docker:"gatk-picard:v1"
+    }
+    output {
+        File GVCF = "${sampleName}_rawLikelihoods.g.vcf"
     }
 }
 
@@ -288,6 +414,16 @@ workflow F2 {
             snp_file = create_alt_genome.snps
     }
 
+    call index_ref{
+        input:
+	        ref = ref
+    }
+
+    call index_picard{
+        input:
+	        ref = ref
+    }
+ 
     scatter (sampleName in sampleNames) {
         call vcf2diploid{
             input: 
@@ -306,9 +442,49 @@ workflow F2 {
 
         call reads_simulations{
             input:
-            sampleName = sampleName,
-            maternal_trim = create_frags.maternal_trim,
-            paternal_trim = create_frags.paternal_trim
+		        sampleName = sampleName,
+            	maternal_trim = create_frags.maternal_trim,
+            	paternal_trim = create_frags.paternal_trim
+        }
+	
+	    call alignment {
+	        input:
+		        sampleName = sampleName,
+                reads1 = reads_simulations.reads1,
+                reads2 = reads_simulations.reads2,
+                ref = ref,
+                geno_amb = index_ref.geno_amb,
+     	        geno_ann = index_ref.geno_ann,
+                geno_bwt = index_ref.geno_bwt,
+                geno_pac = index_ref.geno_pac,
+                geno_sa	 = index_ref.geno_sa	 
+	    }
+
+        call add_labs{
+            input:
+                sampleName = sampleName,
+                bam_file=alignment.bam_file,
+                bam_idx = alignment.bam_idx
+        }
+
+        call samtools_idx{
+                input:
+                    bam_rg = add_labs.bam_rg
+        }
+
+        call HaplotypeCallerERC{
+            input:
+                sampleName = sampleName,
+                ref = ref,
+                geno_amb = index_ref.geno_amb,
+                geno_ann = index_ref.geno_ann,
+                geno_bwt = index_ref.geno_bwt,
+                geno_dict = index_picard.geno_dict,
+                geno_fai = index_ref.geno_fai,
+                geno_pac = index_ref.geno_pac,
+                geno_sa = index_ref.geno_sa,
+                bam_rg = add_labs.bam_rg,
+                bam_rg_idx = samtools_idx.bam_rg_idx
         }
     }
 }
