@@ -3,6 +3,8 @@
   "F2.genome_size": "43.27",
   "F2.ref": "/home/cristiane/github/errors_workflow/test/sub.fa",
   "F2.sampleNamesFile": "/home/cristiane/github/errors_workflow/test/sub_id_names_lines",
-  "F2.enzyme": "G*CWGC"
+  "F2.workspace_dir_name": "my_database",
+  "F2.enzyme": "G*CWGC",
+  "F2.output_vcf_filename": "family1.vcf"
 }
 

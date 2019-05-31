@@ -261,21 +261,22 @@ task index_ref {
     }      
 }
 
-task index_picard{
+task picard_idx{
     File ref
     String fastaName = basename(ref)
+    String fastaDict = sub(fastaName, '.fa','')
 
     command{
-        mv ${ref} ./${fastaName}
+        mv ${ref} ${fastaName}
         java -jar /gatk/picard.jar CreateSequenceDictionary \
         R= ${fastaName} \
-        O= ${fastaName}.dict
+        O= ${fastaDict}.dict
     }
     runtime{
         docker:"gatk-picard:v1"
     }
     output{
-        File geno_dict = "${fastaName}.dict"
+        File geno_dict = "${fastaDict}.dict"
     }
 }
 
@@ -289,9 +290,21 @@ task alignment {
         File geno_bwt
         File geno_pac
         File geno_sa
+        String fastaName = basename(ref)
+        String genoAMB = basename(geno_amb)
+        String genoANN = basename(geno_ann)
+        String genoBWT = basename(geno_bwt)
+        String genoPAC = basename(geno_pac)
+        String genoSA = basename(geno_sa)
 
     command{
-        bwa mem ${ref} ${reads1} ${reads2} > ${sampleName}.sam 
+        mv ${ref} ./${fastaName}
+        mv ${geno_amb} ./${genoAMB}
+        mv ${geno_ann} ./${genoANN}
+        mv ${geno_bwt} ./${genoBWT}
+        mv ${geno_pac} ./${genoPAC}
+        mv ${geno_sa} ./${genoSA}
+        bwa mem ${fastaName} ${reads1} ${reads2} > ${sampleName}.sam 
         samtools view -bS ${sampleName}.sam > ${sampleName}.bam 
         samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam 
         samtools index ${sampleName}.sorted.bam
@@ -348,25 +361,32 @@ task samtools_idx {
     }
 }
 
+
 task HaplotypeCallerERC {
 
     File ref
-    File geno_amb
-    File geno_ann
-    File geno_bwt
-    File geno_dict
     File geno_fai
-    File geno_pac
-    File geno_sa
     String sampleName
     File bam_rg
     File bam_rg_idx
+    File geno_dict
+    String fastaName = basename(ref)
+    String bamName = basename(bam_rg)
+    String fastaFai = basename(geno_fai)
+    String bamIdx = basename(bam_rg_idx)
+    String fastaDict = basename(geno_dict)
 
     command {
-         /gatk/gatk HaplotypeCaller \
+        mv ${geno_fai} ${fastaFai}
+        mv ${ref} ./${fastaName}
+        mv ${bam_rg} ./${bamName}
+        mv ${bam_rg_idx} ${bamIdx}
+        mv ${geno_dict} ${fastaDict}
+
+        /gatk/gatk HaplotypeCaller \
             -ERC GVCF \
-            -R ${ref} \
-            -I ${bam_rg} \
+            -R ${fastaName} \
+            -I ${bamName} \
             -O ${sampleName}_rawLikelihoods.g.vcf
     }
     runtime{
@@ -374,6 +394,63 @@ task HaplotypeCallerERC {
     }
     output {
         File GVCF = "${sampleName}_rawLikelihoods.g.vcf"
+        File GVCF_idx = "${sampleName}_rawLikelihoods.g.vcf.idx"
+    }
+}
+
+task create_gatk_database{
+    String workspace_dir_name
+    Array[File] GVCFs
+    Array[File] GVCFs_idx
+    
+    command{
+        /gatk/gatk  GenomicsDBImport \
+        --genomicsdb-workspace-path ${workspace_dir_name} \
+        -L Chr10 \
+        -V ${sep=" -V " GVCFs} 
+
+        tar -cf ${workspace_dir_name}.tar ${workspace_dir_name}
+    }
+    runtime{
+        docker:"gatk-picard:v1"
+    }
+    output{
+        File workspace_tar = "${workspace_dir_name}.tar"
+    }
+}
+
+task GenotypeGVCFs {
+    
+    File workspace_tar
+    String output_vcf_filename
+    File ref
+    File geno_fai
+    File geno_dict
+    String fastaName = basename(ref)
+    String fastaFai = basename(geno_fai)
+    String fastaDict = basename(geno_dict)
+
+    command{
+        mv ${ref} ${fastaName}
+        mv ${geno_fai} ${fastaFai}
+        mv ${geno_dict} ${fastaDict}
+
+        tar -xf ${workspace_tar}
+        WORKSPACE=$( basename ${workspace_tar} .tar)
+
+        /gatk/gatk  GenotypeGVCFs \
+        -R ${fastaName} \
+        -O ${output_vcf_filename} \
+        -G StandardAnnotation \
+        -V gendb://$WORKSPACE 
+    }
+
+    runtime {
+        docker: "gatk-picard:v1"
+    }
+    output {
+        File output_vcf = "${output_vcf_filename}"
+        File output_vcf_index = "${output_vcf_filename}.idx"
     }
 }
 
@@ -385,6 +462,8 @@ workflow F2 {
     File sampleNamesFile
     Array[String] sampleNames = read_lines(sampleNamesFile)
     String enzyme
+    String workspace_dir_name
+    String output_vcf_filename  
     
     call create_alt_genome {
         input:
@@ -419,9 +498,9 @@ workflow F2 {
 	        ref = ref
     }
 
-    call index_picard{
+    call picard_idx{
         input:
-	        ref = ref
+            ref=ref
     }
  
     scatter (sampleName in sampleNames) {
@@ -476,15 +555,26 @@ workflow F2 {
             input:
                 sampleName = sampleName,
                 ref = ref,
-                geno_amb = index_ref.geno_amb,
-                geno_ann = index_ref.geno_ann,
-                geno_bwt = index_ref.geno_bwt,
-                geno_dict = index_picard.geno_dict,
                 geno_fai = index_ref.geno_fai,
-                geno_pac = index_ref.geno_pac,
-                geno_sa = index_ref.geno_sa,
                 bam_rg = add_labs.bam_rg,
-                bam_rg_idx = samtools_idx.bam_rg_idx
-        }
+                bam_rg_idx = samtools_idx.bam_rg_idx,
+                geno_dict = picard_idx.geno_dict
+        }   
+    }
+    call create_gatk_database{
+        input:
+            GVCFs = HaplotypeCallerERC.GVCF,
+            GVCFs_idx = HaplotypeCallerERC.GVCF_idx,
+            workspace_dir_name = workspace_dir_name
+    }
+
+    call GenotypeGVCFs {
+        input:
+            workspace_tar=create_gatk_database.workspace_tar,
+            output_vcf_filename = output_vcf_filename,
+            ref = ref,
+            geno_fai = index_ref.geno_fai,
+            geno_dict = picard_idx.geno_dict
+
     }
 }

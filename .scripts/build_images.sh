@@ -17,3 +17,4 @@ cd -
 cd .dockerfiles/gatk-picard
 docker build -t gatk-picard:v1 .
 cd -
+
