@@ -235,7 +235,6 @@ task reads_simulations{
     }
 }
 
-
 task index_ref {
     File ref
     String fastaName = basename(ref)
@@ -361,7 +360,6 @@ task samtools_idx {
     }
 }
 
-
 task HaplotypeCallerERC {
 
     File ref
@@ -399,23 +397,23 @@ task HaplotypeCallerERC {
 }
 
 task create_gatk_database{
-    String workspace_dir_name
+    String path_gatkDatabase
     Array[File] GVCFs
     Array[File] GVCFs_idx
     
     command{
         /gatk/gatk  GenomicsDBImport \
-        --genomicsdb-workspace-path ${workspace_dir_name} \
+        --genomicsdb-workspace-path ${path_gatkDatabase} \
         -L Chr10 \
         -V ${sep=" -V " GVCFs} 
 
-        tar -cf ${workspace_dir_name}.tar ${workspace_dir_name}
+        tar -cf ${path_gatkDatabase}.tar ${path_gatkDatabase}
     }
     runtime{
         docker:"gatk-picard:v1"
     }
     output{
-        File workspace_tar = "${workspace_dir_name}.tar"
+        File workspace_tar = "${path_gatkDatabase}.tar"
     }
 }
 
@@ -454,6 +452,76 @@ task GenotypeGVCFs {
     }
 }
 
+task freebayes {
+    String freebayesVCFname
+    File ref
+    Array[File] bam_rg
+    command{
+        freebayes -f ${ref} ${sep=" " bam_rg} > ${freebayesVCFname}
+    }
+    runtime{
+        docker:"freebayes:v1"
+    }
+    output{
+        File freebayesVCF = "${freebayesVCFname}"
+    }
+}
+
+# process_radtags only discards by absense of cut site
+# task process_radtags{
+#     String sampleName
+#     File reads1
+#     File reads2
+#     String enzyme
+#     command{
+#         process_radtags -1 ${reads1} -2 ${reads2}  -o . -e ${enzyme} 
+#     }
+#     rumtime{
+#         docker:"stacks:v1"
+#     }
+#     output{
+#         File process_reads1 = "${sampleName}_100_150_1_fix.1.fq"
+#         File process_reads1 = "${sampleName}_100_150_2_fix.2.fq"
+#     }
+# }
+
+task create_popmapFile{
+    File sampleNamesFile
+    
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+        names <- read.table("${sampleNamesFile}", header = F)
+        mapnames <- paste0(t(names), '_rg')
+        mapdf <- data.frame(mapnames, rep(1, length(mapnames)))
+        write.table(mapdf, file = 'popmap.txt', sep = '\t', col.names = F, row.names = F, quote=F)
+
+        RSCRIPT
+    >>>
+
+    runtime{
+        docker:"onemap:v1"
+    }
+    output{
+        File popmapfile = "popmap.txt"
+    }
+}
+
+task ref_map {
+    Array[File] bam_rg
+    File popmapfile
+    
+    command{
+        cp ${sep=" " bam_rg} .
+        ls
+        ref_map.pl --samples . --popmap ${popmapfile} -o . -X "populations:--vcf"
+    }
+    runtime{
+        docker:"stacks:v1"
+    }
+    output{
+        File stacksVCF = stdout()
+    }
+}
 workflow F2 {
     
     File ref
@@ -462,9 +530,11 @@ workflow F2 {
     File sampleNamesFile
     Array[String] sampleNames = read_lines(sampleNamesFile)
     String enzyme
-    String workspace_dir_name
-    String output_vcf_filename  
-    
+    String path_gatkDatabase
+    String gatkVCFname
+    String freebayesVCFname  
+    String enzymeName
+
     call create_alt_genome {
         input:
             ref_genome=ref 
@@ -559,22 +629,39 @@ workflow F2 {
                 bam_rg = add_labs.bam_rg,
                 bam_rg_idx = samtools_idx.bam_rg_idx,
                 geno_dict = picard_idx.geno_dict
-        }   
+        }
     }
     call create_gatk_database{
         input:
             GVCFs = HaplotypeCallerERC.GVCF,
             GVCFs_idx = HaplotypeCallerERC.GVCF_idx,
-            workspace_dir_name = workspace_dir_name
+            path_gatkDatabase = path_gatkDatabase
     }
 
     call GenotypeGVCFs {
         input:
             workspace_tar=create_gatk_database.workspace_tar,
-            output_vcf_filename = output_vcf_filename,
+            output_vcf_filename = gatkVCFname,
             ref = ref,
             geno_fai = index_ref.geno_fai,
             geno_dict = picard_idx.geno_dict
+    }
 
+    call freebayes{
+         input:
+            ref = ref,
+            bam_rg = add_labs.bam_rg,
+            freebayesVCFname = freebayesVCFname
+    }
+    
+    call create_popmapFile{
+        input:
+            sampleNamesFile = sampleNamesFile
+    }
+
+    call ref_map{
+        input:
+            bam_rg = add_labs.bam_rg,
+            popmapfile = create_popmapFile.popmapfile
     }
 }

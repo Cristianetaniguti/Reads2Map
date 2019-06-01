@@ -18,3 +18,10 @@ cd .dockerfiles/gatk-picard
 docker build -t gatk-picard:v1 .
 cd -
 
+cd .dockerfiles/freebayes
+docker build -t freebayes:v1 .
+cd -
+
+cd .dockerfiles/stacks
+docker build -t stacks:v1 .
+cd -
