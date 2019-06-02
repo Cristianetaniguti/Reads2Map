@@ -166,40 +166,40 @@ task create_frags{
 
     command{
         /ddRADseqTools/Package/rsitesearch.py \
-        --genfile=${maternal_genomes} \
-        --fragsfile=${sampleName}_maternal_fragments.fasta \
-        --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
-        --enzyme1=${enzyme} \
-        --enzyme2=${enzyme} \
-        --minfragsize=202 \
-        --maxfragsize=500 \
-        --fragstfile=${sampleName}_maternal_statistics.txt \
-        --fragstinterval=25 \
-        --plot=NO \
-        --verbose=YES \
-        --trace=NO
+            --genfile=${maternal_genomes} \
+            --fragsfile=${sampleName}_maternal_fragments.fasta \
+            --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
+            --enzyme1=${enzyme} \
+            --enzyme2=${enzyme} \
+            --minfragsize=202 \
+            --maxfragsize=500 \
+            --fragstfile=${sampleName}_maternal_statistics.txt \
+            --fragstinterval=25 \
+            --plot=NO \
+            --verbose=YES \
+            --trace=NO
 
         /ddRADseqTools/Package/rsitesearch.py \
-        --genfile=${paternal_genomes} \
-        --fragsfile=${sampleName}_paternal_fragments.fasta \
-        --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
-        --enzyme1=${enzyme} \
-        --enzyme2=${enzyme} \
-        --minfragsize=202 \
-        --maxfragsize=500 \
-        --fragstfile=${sampleName}_paternal_statistics.txt \
-        --fragstinterval=25 \
-        --plot=NO \
-        --verbose=YES \
-        --trace=NO
+            --genfile=${paternal_genomes} \
+            --fragsfile=${sampleName}_paternal_fragments.fasta \
+            --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
+            --enzyme1=${enzyme} \
+            --enzyme2=${enzyme} \
+            --minfragsize=202 \
+            --maxfragsize=500 \
+            --fragstfile=${sampleName}_paternal_statistics.txt \
+            --fragstinterval=25 \
+            --plot=NO \
+            --verbose=YES \
+            --trace=NO
 
         cutadapt -l 202 \
-        -o ${sampleName}_maternal_trim.fa \
-        ${sampleName}_maternal_fragments.fasta
+            -o ${sampleName}_maternal_trim.fa \
+            ${sampleName}_maternal_fragments.fasta
 
         cutadapt -l 202 \
-        -o ${sampleName}_paternal_trim.fa \
-        ${sampleName}_paternal_fragments.fasta
+            -o ${sampleName}_paternal_trim.fa \
+            ${sampleName}_paternal_fragments.fasta
     }
     runtime{
         docker:"pirs-ddrad-cutadapt:v1"
@@ -220,8 +220,9 @@ task reads_simulations{
     String sampleName
 
     command{
-        /pirs/src/pirs/pirs simulate --diploid ${maternal_trim} ${paternal_trim} \
-        -l 100 -x 50 -m 150 -o ${sampleName}
+        /pirs/src/pirs/pirs simulate \
+            --diploid ${maternal_trim} ${paternal_trim} \
+            -l 100 -x 50 -m 150 -o ${sampleName}
 
         /cleanFastq/fixFastq "${sampleName}_100_150_1.fq" "${sampleName}_100_150_1_fix.fq"
         /cleanFastq/fixFastq "${sampleName}_100_150_2.fq" "${sampleName}_100_150_2_fix.fq"
@@ -235,50 +236,6 @@ task reads_simulations{
     }
 }
 
-task index_ref {
-    File ref
-    String fastaName = basename(ref)
-
-    command{
-        mv ${ref} ./${fastaName}
-
-	    bwa index ${fastaName}
-	    samtools faidx ${fastaName}
-    }
-    
-    runtime{
-	    docker:"bwa-samtools:v1"
-    }
-
-    output{
-        File geno_amb = "${fastaName}.amb"
-        File geno_ann = "${fastaName}.ann"
-        File geno_bwt = "${fastaName}.bwt"
-        File geno_pac = "${fastaName}.pac"
-        File geno_sa = "${fastaName}.sa"
-        File geno_fai = "${fastaName}.fai"
-    }      
-}
-
-task picard_idx{
-    File ref
-    String fastaName = basename(ref)
-    String fastaDict = sub(fastaName, '.fa','')
-
-    command{
-        mv ${ref} ${fastaName}
-        java -jar /gatk/picard.jar CreateSequenceDictionary \
-        R= ${fastaName} \
-        O= ${fastaDict}.dict
-    }
-    runtime{
-        docker:"gatk-picard:v1"
-    }
-    output{
-        File geno_dict = "${fastaDict}.dict"
-    }
-}
-
 task alignment {
         String sampleName
         File ref
@@ -289,23 +246,9 @@ task alignment {
         File geno_bwt
         File geno_pac
         File geno_sa
-        String fastaName = basename(ref)
-        String genoAMB = basename(geno_amb)
-        String genoANN = basename(geno_ann)
-        String genoBWT = basename(geno_bwt)
-        String genoPAC = basename(geno_pac)
-        String genoSA = basename(geno_sa)
 
     command{
-        mv ${ref} ./${fastaName}
-        mv ${geno_amb} ./${genoAMB}
-        mv ${geno_ann} ./${genoANN}
-        mv ${geno_bwt} ./${genoBWT}
-        mv ${geno_pac} ./${genoPAC}
-        mv ${geno_sa} ./${genoSA}
-        bwa mem ${fastaName} ${reads1} ${reads2} > ${sampleName}.sam 
-        samtools view -bS ${sampleName}.sam > ${sampleName}.bam 
-        samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam 
+        bwa mem ${ref} ${reads1} ${reads2} | samtools sort -o ${sampleName}.sorted.bam -
         samtools index ${sampleName}.sorted.bam
     }
     runtime{
@@ -324,41 +267,28 @@ task add_labs{
 
     command{
         mkdir tmp
-
         java -jar /gatk/picard.jar AddOrReplaceReadGroups \
-        I= ${bam_file} \
-        O= ${sampleName}_rg.bam \
-        RGLB= lib-${sampleName} \
-        RGPL=illumina \
-        RGID=FLOWCELL1.LANE1.${sampleName} \
-        RGSM= ${sampleName} \
-        RGPU=FLOWCELL1.LANE1.${sampleName} \
-        TMP_DIR= tmp
+            I=${bam_file} \
+            O=${sampleName}_rg.bam \
+            RGLB=lib-${sampleName} \
+            RGPL=illumina \
+            RGID=FLOWCELL1.LANE1.${sampleName} \
+            RGSM=${sampleName} \
+            RGPU=FLOWCELL1.LANE1.${sampleName} \
+            CREATE_INDEX=true \
+            TMP_DIR=tmp
 
+        mv ${sampleName}_rg.bai ${sampleName}_rg.bam.bai
     }
     runtime{
         docker:"gatk-picard:v1"
     }
     output{
         File bam_rg = "${sampleName}_rg.bam"
+        File bam_rg_index = "${sampleName}_rg.bam.bai"
     }
 }
 
-task samtools_idx {
-    File bam_rg
-    String bamName = basename(bam_rg)
-
-    command{
-        mv ${bam_rg} ./${bamName}
-        samtools index ${bamName}
-    }
-    runtime{
-        docker:"bwa-samtools:v1"
-    }
-    output{
-        File bam_rg_idx = "${bamName}.bai"
-    }
-}
 
 task HaplotypeCallerERC {
 
@@ -368,23 +298,12 @@ task HaplotypeCallerERC {
     File bam_rg
     File bam_rg_idx
     File geno_dict
-    String fastaName = basename(ref)
-    String bamName = basename(bam_rg)
-    String fastaFai = basename(geno_fai)
-    String bamIdx = basename(bam_rg_idx)
-    String fastaDict = basename(geno_dict)
 
     command {
-        mv ${geno_fai} ${fastaFai}
-        mv ${ref} ./${fastaName}
-        mv ${bam_rg} ./${bamName}
-        mv ${bam_rg_idx} ${bamIdx}
-        mv ${geno_dict} ${fastaDict}
-
         /gatk/gatk HaplotypeCaller \
             -ERC GVCF \
-            -R ${fastaName} \
-            -I ${bamName} \
+            -R ${ref} \
+            -I ${bam_rg} \
             -O ${sampleName}_rawLikelihoods.g.vcf
     }
     runtime{
@@ -396,23 +315,23 @@ task HaplotypeCallerERC {
     }
 }
 
-task create_gatk_database{
+task create_gatk_database {
     String path_gatkDatabase
     Array[File] GVCFs
     Array[File] GVCFs_idx
     
-    command{
-        /gatk/gatk  GenomicsDBImport \
-        --genomicsdb-workspace-path ${path_gatkDatabase} \
-        -L Chr10 \
-        -V ${sep=" -V " GVCFs} 
+    command {
+        /gatk/gatk GenomicsDBImport \
+            --genomicsdb-workspace-path ${path_gatkDatabase} \
+            -L Chr10 \
+            -V ${sep=" -V " GVCFs} 
 
         tar -cf ${path_gatkDatabase}.tar ${path_gatkDatabase}
     }
-    runtime{
+    runtime {
         docker:"gatk-picard:v1"
     }
-    output{
+    output {
         File workspace_tar = "${path_gatkDatabase}.tar"
     }
 }
@@ -424,23 +343,17 @@ task GenotypeGVCFs {
     File ref
     File geno_fai
     File geno_dict
-    String fastaName = basename(ref)
-    String fastaFai = basename(geno_fai)
-    String fastaDict = basename(geno_dict)
+
 
     command{
-        mv ${ref} ${fastaName}
-        mv ${geno_fai} ${fastaFai}
-        mv ${geno_dict} ${fastaDict}
-
         tar -xf ${workspace_tar}
         WORKSPACE=$( basename ${workspace_tar} .tar)
 
         /gatk/gatk  GenotypeGVCFs \
-        -R ${fastaName} \
-        -O ${output_vcf_filename} \
-        -G StandardAnnotation \
-        -V gendb://$WORKSPACE 
+            -R ${ref} \
+            -O ${output_vcf_filename} \
+            -G StandardAnnotation \
+            -V gendb://$WORKSPACE 
     }
 
     runtime {
@@ -512,7 +425,6 @@ task ref_map {
     
     command{
         cp ${sep=" " bam_rg} .
-        ls
         ref_map.pl --samples . --popmap ${popmapfile} -o . -X "populations:--vcf"
     }
     runtime{
@@ -524,7 +436,6 @@ task ref_map {
 }
 workflow F2 {
     
-    File ref
     String genome_size
     String cmBymb
     File sampleNamesFile
@@ -534,6 +445,15 @@ workflow F2 {
     String gatkVCFname
     String freebayesVCFname  
     String enzymeName
+
+    File ref
+    File ref_dict
+    File ref_amb
+    File ref_ann
+    File ref_bwt
+    File ref_pac
+    File ref_sa
+    File ref_fai
 
     call create_alt_genome {
         input:
@@ -561,16 +481,6 @@ workflow F2 {
             chrom_file = pedsim_files.chromfile,
             genotypes_dat = pedigreeSim.genotypes_dat,
             snp_file = create_alt_genome.snps
-    }
-
-    call index_ref{
-        input:
-	        ref = ref
-    }
-
-    call picard_idx{
-        input:
-            ref=ref
     }
  
     scatter (sampleName in sampleNames) {
@@ -602,11 +512,11 @@ workflow F2 {
                 reads1 = reads_simulations.reads1,
                 reads2 = reads_simulations.reads2,
                 ref = ref,
-                geno_amb = index_ref.geno_amb,
-     	        geno_ann = index_ref.geno_ann,
-                geno_bwt = index_ref.geno_bwt,
-                geno_pac = index_ref.geno_pac,
-                geno_sa	 = index_ref.geno_sa	 
+                geno_amb = ref_amb,
+     	        geno_ann = ref_ann,
+                geno_bwt = ref_bwt,
+                geno_pac = ref_pac,
+                geno_sa	 = ref_sa	 
 	    }
 
         call add_labs{
@@ -616,19 +526,14 @@ workflow F2 {
                 bam_idx = alignment.bam_idx
         }
 
-        call samtools_idx{
-                input:
-                    bam_rg = add_labs.bam_rg
-        }
-
         call HaplotypeCallerERC{
             input:
                 sampleName = sampleName,
                 ref = ref,
-                geno_fai = index_ref.geno_fai,
+                geno_fai = ref_fai,
                 bam_rg = add_labs.bam_rg,
-                bam_rg_idx = samtools_idx.bam_rg_idx,
-                geno_dict = picard_idx.geno_dict
+                bam_rg_idx = add_labs.bam_rg_index,
+                geno_dict = ref_dict
         }
     }
     call create_gatk_database{
@@ -643,8 +548,8 @@ workflow F2 {
             workspace_tar=create_gatk_database.workspace_tar,
             output_vcf_filename = gatkVCFname,
             ref = ref,
-            geno_fai = index_ref.geno_fai,
-            geno_dict = picard_idx.geno_dict
+            geno_fai = ref_fai,
+            geno_dict = ref_dict
     }
 
     call freebayes{
