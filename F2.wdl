@@ -569,4 +569,10 @@ workflow F2 {
             bam_rg = add_labs.bam_rg,
             popmapfile = create_popmapFile.popmapfile
     }
+
+    output {
+        File refmap = ref_map.stacksVCF
+        File freebayes_vcf = freebayes.freebayesVCF
+        File gatk_vcf = GenotypeGVCFs.output_vcf
+    }
 }
