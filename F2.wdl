@@ -17,7 +17,6 @@ task create_alt_genome {
 
 task pedsim_files {
     File snp_file
-    String genome_size
     String cmBymb
 
     command <<<
@@ -32,16 +31,11 @@ task pedsim_files {
             marker2 <- sprintf("%03d", marker2)
             marker <-paste0(marker1,marker2)
             # Chromossome and position
-            tot = as.numeric("${genome_size}")*as.numeric("${cmBymb}")
-            # The markers will be equally distribuited. There will be one marker each
-            by = (tot)/(n.marker-1)
-            pos <- seq(from = 0, to = tot, by = by)
-            chr <- rep("C1",length(pos))
-            map_file <- data.frame(marker=marker, chromosome=chr, position= pos)
+            pos.map <- (snps[,3]/1000000)*as.numeric("${cmBymb}")
+            chr <- rep("C1",length(pos.map))
+            map_file <- data.frame(marker=marker, chromosome=chr, position= pos.map)
             write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
             # Using sn1ps simulated by pirs genome described in ref_oryza.snp.lst file. Looking markers at the position:
-            chr <- snps["V1"]
-            pos <- snps["V2"]
             founder_file <- data.frame(marker=marker, P1_1=snps[["V4"]] , P1_2=snps[["V4"]], P2_1=snps[["V5"]], P2_2=snps[["V5"]])
             write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
 
@@ -57,7 +51,7 @@ task pedsim_files {
                                 OUTPUT = sim_inb")
 
             write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
-            chrom <- data.frame("chromosome"= "C1", "length"= tot, "centromere"=tot/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
+            chrom <- data.frame("chromosome"= "C1", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
             write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
         RSCRIPT
     >>>
@@ -248,7 +242,9 @@ task alignment {
         File geno_sa
 
     command{
-        bwa mem ${ref} ${reads1} ${reads2} | samtools sort -o ${sampleName}.sorted.bam -
+        bwa mem ${ref} ${reads1} ${reads2} > ${sampleName}.sam 
+        samtools view -bS ${sampleName}.sam > ${sampleName}.bam 
+        samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam 
         samtools index ${sampleName}.sorted.bam
     }
     runtime{
@@ -360,8 +356,8 @@ task GenotypeGVCFs {
         docker: "gatk-picard:v1"
     }
     output {
-        File output_vcf = "${output_vcf_filename}"
-        File output_vcf_index = "${output_vcf_filename}.idx"
+        File gatkVCF = "${output_vcf_filename}"
+        File gatkVCF_index = "${output_vcf_filename}.idx"
     }
 }
 
@@ -425,15 +421,75 @@ task ref_map {
     
     command{
         cp ${sep=" " bam_rg} .
-        ref_map.pl --samples . --popmap ${popmapfile} -o . -X "populations:--vcf"
+        ref_map.pl --samples . --popmap ${popmapfile} -o . -X "populations:--ordered-export --vcf "
     }
     runtime{
         docker:"stacks:v1"
     }
     output{
-        File stacksVCF = stdout()
+        File stacksVCF = "populations.snps.vcf"
     }
 }
+
+task aval_vcf{
+    File stacksVCF
+    File freebayesVCF
+    File gatkVCF
+    File snp_file
+    File map_file
+    Array[File] maternal_trim
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+        library(vcfR)
+        freebayes <- read.vcfR("${freebayesVCF}")
+        gatk <- read.vcfR("${gatkVCF}")
+        stacks <- read.vcfR("${stacksVCF}")
+        maternal <- strsplit(${sep=" ; " maternal_trim}, split=";")[[1]][1]
+        system(paste("grep '>'", maternal ,"> frags"))
+
+        frags <- read.table("frags", stringAsFactors=F)
+        start <- frags[,14]
+        end <- frags[,17]
+
+        snps <- read.table("${snp_file}", stringAsFactors = F)
+        real.pos <- snps[,3]
+
+        filt.idx <- vector()
+        for(i in 1:length(start))
+        filt.idx <- c(filt.idx,which(real.pos >= start[i] & real.pos <= end[i]))
+
+        snps.filt <- snps[filt.idx,]
+        filt.pos <- snps.filt[,3]
+
+        methods <- c("freebayes", "gatk", "stacks")
+        for(i in methods){
+            pos <- get(i)@fix[,2]
+            ref <- get(i)@fix[,4]
+            alt <- get(i)@fix[,5]
+            
+            nmk.filt <- length(filt.pos)
+            nmk.id <- length(pos)
+            
+            ok <- sum(filt.pos %in% pos)/length(filt.pos) # fração de marcadores identificados do total
+            falso.positivo <- sum(!(pos %in% filt.pos))/length(pos) # fração de falsos positivos
+            
+            result <- data.frame(nmk.filt, nmk.id, ok, falso.positivo)
+            
+            write.table(result, file= paste0(i,".txt"), quote=F, row.names=F, sep="\t")
+        }
+    >>>
+
+    runtime{
+        docker:"onemap:v1"
+    }
+    output{
+        File freebayes_aval1 = "freebayes.txt"
+        File gatk_aval1 = "gatk.txt"
+        File stacks_aval1 = "stacks.txt"
+    }
+}
+
 workflow F2 {
     
     String genome_size
@@ -463,7 +519,6 @@ workflow F2 {
     call pedsim_files {
         input:
             snp_file = create_alt_genome.snps,
-            genome_size=genome_size,
             cmBymb=cmBymb
     }
 
@@ -568,5 +623,15 @@ workflow F2 {
         input:
             bam_rg = add_labs.bam_rg,
             popmapfile = create_popmapFile.popmapfile
+    }
+    
+    call aval_vcf{
+        input:
+            stacksVCF = ref_map.stacksVCF,
+            freebayesVCF = freebayes.freebayesVCF,
+            gatkVCF = GenotypeGVCFs.gatkVCF,
+            snp_file = create_alt_genome.snps, 
+            map_file = pedsim_files.mapfile,
+            maternal_trim = create_frags.maternal_trim
     }
 }
