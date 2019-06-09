@@ -2,7 +2,7 @@ task create_alt_genome {
     File ref_genome
 
     command {
-        /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt
+        /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt
     }
 
     runtime {
@@ -10,60 +10,91 @@ task create_alt_genome {
     }
 
     output {
-        File alt_fasta = "alt.snp.fa"
+        File alt_fasta = "alt.snp.indel.fa"
+        File indels = "alt.indel.lst"
         File snps = "alt.snp.lst"
     }
 }
 
 task pedsim_files {
-    File snp_file
+    File snps
+    File indels
     String cmBymb
+    File ref
+    File ref_fai
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
+        snps <- read.table("${snps}", stringsAsFactors = FALSE)
+        indels <- read.table("${indels}", stringsAsFactors = FALSE)
+        pos.ref <- indels[,2]
+        sinal <- indels[,4]
 
-            snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
-            n.marker <- dim(snps)[1]
-            ## Map file
-            # Marker names
-            marker1 <- "M"
-            marker2 <- 1:n.marker
-            marker2 <- sprintf("%03d", marker2)
-            marker <-paste0(marker1,marker2)
-            # Chromossome and position
-            pos.map <- (snps[,3]/1000000)*as.numeric("${cmBymb}")
-            chr <- rep("C1",length(pos.map))
-            map_file <- data.frame(marker=marker, chromosome=chr, position= pos.map)
-            write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
-            # Using sn1ps simulated by pirs genome described in ref_oryza.snp.lst file. Looking markers at the position:
-            founder_file <- data.frame(marker=marker, P1_1=snps[["V4"]] , P1_2=snps[["V4"]], P2_1=snps[["V5"]], P2_2=snps[["V5"]])
-            write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
+        # Nos arquivos de saída do pirs nao consta a ultima base antes do polimorfismo
+        # Quanto se trata de indels negativos para a referencia, a posição anterior a apontada
+        # é a ultima base antes do polimorfismo
+        pos.ref[which(sinal=="-")] <- pos.ref[which(sinal=="-")] -1
 
-            ## Parameters file
-            parameter <- paste0("PLOIDY = 2
-                                MAPFUNCTION = HALDANE
-                                MISSING = NA
-                                CHROMFILE = inb.chrom
-                                POPTYPE = F2
-                                POPSIZE = 150
-                                MAPFILE = mapfile.map
-                                FOUNDERFILE = founderfile.gen
-                                OUTPUT = sim_inb")
+        # search last base before the indels (information needed by VCF)
+        command  <- c(paste("samtools faidx ${ref}"),paste0("Chr10:",pos.ref,"-",pos.ref))
+        bases <- system(paste0(command, collapse = " "), intern = T)
 
-            write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
-            chrom <- data.frame("chromosome"= "C1", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
-            write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
+        bases.bf <- matrix(bases, ncol=2, byrow = T)[,2]
+        alt <- bases.bf
+        tmp <- paste0(bases.bf[which(sinal=="+")], indels[,6][which(sinal=="+")])
+        alt[which(sinal=="+")] <- tmp
+        ref <- bases.bf
+        tmp <- paste0(bases.bf[which(sinal=="-")], indels[,6][which(sinal=="-")])
+        ref[which(sinal=="-")] <- tmp
+
+        # a posição no vcf e no mapa são em relação ao genoma de referência
+        tot.mks <- data.frame(chr = c(snps[,1], indels[,1]), pos = c(snps[,2], pos.ref),
+                            ref = c(snps[,4], ref), alt = c(snps[,5],alt), stringsAsFactors = F)
+
+
+        tot.mks <- tot.mks[order(tot.mks[,2]),]
+        write.table(tot.mks, file="tot_mks.txt")
+        n.marker <- dim(tot.mks)[1]
+        ## Map file
+        # Marker names
+        marker1 <- "M"
+        marker2 <- 1:n.marker
+        marker2 <- sprintf("%03d", marker2)
+        marker <-paste0(marker1,marker2)
+        # Chromossome and position
+        pos.map <- (tot.mks[,2]/1000000)*as.numeric("${cmBymb}")
+        map_file <- data.frame(marker=marker, chromosome=tot.mks[,1], position= pos.map)
+        write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
+
+        founder_file <- data.frame(marker=marker, P1_1=tot.mks[,3] , P1_2=tot.mks[,3], P2_1=tot.mks[,4], P2_2=tot.mks[,4])
+        write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
+
+        ## Parameters file
+        parameter <- paste0("PLOIDY = 2
+                                        MAPFUNCTION = HALDANE
+                                        MISSING = NA
+                                        CHROMFILE = inb.chrom
+                                        POPTYPE = F2
+                                        POPSIZE = 150
+                                        MAPFILE = mapfile.map
+                                        FOUNDERFILE = founderfile.gen
+                                        OUTPUT = sim_inb")
+
+        write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
+        chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
+        write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
         RSCRIPT
     >>>
 
     runtime {
-        docker:"onemap:v1"
+        docker:"r-samtools:v1"
     }
     output {
         File mapfile="mapfile.map"
         File founderfile = "founderfile.gen"
         File parfile = "sim.par"
         File chromfile = "inb.chrom"
+        File tot_mks = "tot_mks.txt"
     }
 }
 
@@ -94,15 +125,15 @@ task pedsim2vcf{
     File genotypes_dat
     File map_file
     File chrom_file
-    File snp_file
+    File tot_mks
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
         
         library(onemap)              
-        snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
-        pos <- snps[,3]
-        chr <- snps[,1]
+        mks <- read.table("${tot_mks}", stringsAsFactors = FALSE)
+        pos <- mks[,2]
+        chr <- mks[,1]
 
         pedsim2vcf(inputfile = "${genotypes_dat}", 
              map.file = "${map_file}", 
@@ -440,6 +471,7 @@ task aval_vcf{
     Array[File] maternal_trim
 
     command <<<
+        cp ${sep=" " maternal_trim} .
         R --vanilla --no-save <<RSCRIPT
         library(vcfR)
         freebayes <- read.vcfR("${freebayesVCF}")
@@ -518,8 +550,11 @@ workflow F2 {
 
     call pedsim_files {
         input:
-            snp_file = create_alt_genome.snps,
-            cmBymb=cmBymb
+            snps = create_alt_genome.snps,
+            indels=create_alt_genome.indels,
+            cmBymb=cmBymb,
+            ref = ref,
+            ref_fai = ref_fai
     }
 
     call pedigreeSim {
@@ -535,7 +570,7 @@ workflow F2 {
             map_file = pedsim_files.mapfile,
             chrom_file = pedsim_files.chromfile,
             genotypes_dat = pedigreeSim.genotypes_dat,
-            snp_file = create_alt_genome.snps
+            tot_mks = pedsim_files.tot_mks
     }
  
     scatter (sampleName in sampleNames) {
