@@ -1,8 +1,11 @@
+# Tenho genoma de referencia e vou criar o homologo dele
+# TODO: simular indel
 task create_alt_genome {
     File ref_genome
 
     command {
-        /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt
+        # taxa de snp: 0.001
+        /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt --random-seed 1515
     }
 
     runtime {
@@ -10,11 +13,14 @@ task create_alt_genome {
     }
 
     output {
-        File alt_fasta = "alt.snp.fa"
-        File snps = "alt.snp.lst"
+        File alt_fasta = "alt.snp.fa" # homologo com snps
+        File snps = "alt.snp.lst"  # onde criou os snps
     }
 }
 
+# Descreve quem sao os pais, com os polimorfismos definidos (lista anterior)
+# Output: simula uma progene (simula recombinacoes)
+# Aqui simula o mapa de ligacao
 task pedsim_files {
     File snp_file
     String genome_size
@@ -52,6 +58,7 @@ task pedsim_files {
                                 CHROMFILE = inb.chrom
                                 POPTYPE = F2
                                 POPSIZE = 150
+                                SEED = 8899
                                 MAPFILE = mapfile.map
                                 FOUNDERFILE = founderfile.gen
                                 OUTPUT = sim_inb")
@@ -73,6 +80,7 @@ task pedsim_files {
     }
 }
 
+# Apenas executa o programa com parametros acima
 task pedigreeSim{
     File map_file
     File founder_file
@@ -96,6 +104,7 @@ task pedigreeSim{
     }
 }
 
+# Script para transformar .dat em VCF
 task pedsim2vcf{
     File genotypes_dat
     File map_file
@@ -130,17 +139,8 @@ task pedsim2vcf{
 
 }
 
-# task sample_names{
-#      File simu_vcf
-#      command{
-#      grep -i "CHROM" simu.vcf | cut -f1,2,3,4,5,6,7,8,9 --complement > id_names
-#      tr -s '\t '  '\n'< id_names > id_names_lines
-#      }
-#      output{
-#          File sampleNames = "id_names_lines"
-#      }
-#  }
-
+# pega os polimorfismos do VCF e transfere para o genoma.
+# Lida bem com indels tb
 task vcf2diploid{
     String sampleName
     File ref_genome
@@ -153,11 +153,14 @@ task vcf2diploid{
         docker:"java-in-the-cloud:v1"
     }
     output{
-         File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
+         File maternal_genomes = "Chr10_${sampleName}_maternal.fa" # Cada fasta representa um cromossomo
          File paternal_genomes = "Chr10_${sampleName}_paternal.fa"
     }
 }
 
+# Tecnica usada para obter mapas. Recorta o genoma de acordo com
+# alguma enzima de restricao e sequencia X bases iniciais. Nesta task
+# foi definido 202 pb.
 task create_frags{
     String enzyme
     String sampleName
@@ -205,15 +208,22 @@ task create_frags{
         docker:"pirs-ddrad-cutadapt:v1"
     }
     output{
-        File maternal_frags = "${sampleName}_maternal_fragments.fasta"
+        File maternal_frags = "${sampleName}_maternal_fragments.fasta"  # fragmentos obtidos ao cortar com a enzima
         File paternal_frags = "${sampleName}_paternal_fragments.fasta"
         File maternal_stats = "${sampleName}_maternal_statistics.txt"
         File paternal_stats = "${sampleName}_paternal_statistics.txt"
-        File maternal_trim = "${sampleName}_maternal_trim.fa"
+        File maternal_trim = "${sampleName}_maternal_trim.fa"  # apos o trim pelo cutadapt (202 pb)
         File paternal_trim = "${sampleName}_paternal_trim.fa"
     }
 }
 
+# Utiliza os reads trim da task anterior para simular o sequenciamento Illumina
+# TODO: simular single end apenas
+# -l:
+# -x: profundidade do sequenciamento (devera ser parametrizavel)
+# -m:
+# fixFastq para acertar a qualidade. As vezes os ultimos reads
+# não apresentavam as respectivas qualidades.
 task reads_simulations{
     File maternal_trim
     File paternal_trim
@@ -222,9 +232,9 @@ task reads_simulations{
     command{
         /pirs/src/pirs/pirs simulate \
             --diploid ${maternal_trim} ${paternal_trim} \
-            -l 100 -x 50 -m 150 -o ${sampleName}
+            -l 100 -x 50 -m 150 -o ${sampleName} --random-seed 1515
 
-        /cleanFastq/fixFastq "${sampleName}_100_150_1.fq" "${sampleName}_100_150_1_fix.fq"
+        /cleanFastq/fixFastq "${sampleName}_100_150_1.fq" "${sampleName}_100_150_1_fix.fq" 
         /cleanFastq/fixFastq "${sampleName}_100_150_2.fq" "${sampleName}_100_150_2_fix.fq"
     }
     runtime{
@@ -248,11 +258,16 @@ task alignment {
         File geno_sa
 
     command{
-        bwa mem ${ref} ${reads1} ${reads2} | samtools sort -o ${sampleName}.sorted.bam -
-        samtools index ${sampleName}.sorted.bam
+        /usr/gitc/bwa mem ${ref} ${reads1} ${reads2} | \
+            java -jar /usr/gitc/picard.jar SortSam \
+                I=/dev/stdin \
+                O=${sampleName}.sorted.bam \
+                SORT_ORDER=coordinate \
+                CREATE_INDEX=true
+        mv ${sampleName}.sorted.bai ${sampleName}.sorted.bam.bai
     }
     runtime{
-        docker:"bwa-samtools:v1"
+        docker:"us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.3.3-1513176735"
     }
     output{
         File bam_file = "${sampleName}.sorted.bam"
@@ -398,6 +413,7 @@ task freebayes {
 #     }
 # }
 
+# apenas prepara arquivo
 task create_popmapFile{
     File sampleNamesFile
     
@@ -419,6 +435,7 @@ task create_popmapFile{
     }
 }
 
+# snp calling (analogo a gatk e freebayes)
 task ref_map {
     Array[File] bam_rg
     File popmapfile
@@ -434,6 +451,8 @@ task ref_map {
         File stacksVCF = stdout()
     }
 }
+
+
 workflow F2 {
     
     String genome_size
