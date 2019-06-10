@@ -2,7 +2,7 @@ task create_alt_genome {
     File ref_genome
 
     command {
-        /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0 -v 0 -o alt
+        /pirs/src/pirs/pirs diploid ${ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt
     }
 
     runtime {
@@ -10,66 +10,91 @@ task create_alt_genome {
     }
 
     output {
-        File alt_fasta = "alt.snp.fa"
+        File alt_fasta = "alt.snp.indel.fa"
+        File indels = "alt.indel.lst"
         File snps = "alt.snp.lst"
     }
 }
 
 task pedsim_files {
-    File snp_file
-    String genome_size
+    File snps
+    File indels
     String cmBymb
+    File ref
+    File ref_fai
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
+        snps <- read.table("${snps}", stringsAsFactors = FALSE)
+        indels <- read.table("${indels}", stringsAsFactors = FALSE)
+        pos.ref <- indels[,2]
+        sinal <- indels[,4]
 
-            snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
-            n.marker <- dim(snps)[1]
-            ## Map file
-            # Marker names
-            marker1 <- "M"
-            marker2 <- 1:n.marker
-            marker2 <- sprintf("%03d", marker2)
-            marker <-paste0(marker1,marker2)
-            # Chromossome and position
-            tot = as.numeric("${genome_size}")*as.numeric("${cmBymb}")
-            # The markers will be equally distribuited. There will be one marker each
-            by = (tot)/(n.marker-1)
-            pos <- seq(from = 0, to = tot, by = by)
-            chr <- rep("C1",length(pos))
-            map_file <- data.frame(marker=marker, chromosome=chr, position= pos)
-            write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
-            # Using sn1ps simulated by pirs genome described in ref_oryza.snp.lst file. Looking markers at the position:
-            chr <- snps["V1"]
-            pos <- snps["V2"]
-            founder_file <- data.frame(marker=marker, P1_1=snps[["V4"]] , P1_2=snps[["V4"]], P2_1=snps[["V5"]], P2_2=snps[["V5"]])
-            write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
+        # Nos arquivos de saída do pirs nao consta a ultima base antes do polimorfismo
+        # Quanto se trata de indels negativos para a referencia, a posição anterior a apontada
+        # é a ultima base antes do polimorfismo
+        pos.ref[which(sinal=="-")] <- pos.ref[which(sinal=="-")] -1
 
-            ## Parameters file
-            parameter <- paste0("PLOIDY = 2
-                                MAPFUNCTION = HALDANE
-                                MISSING = NA
-                                CHROMFILE = inb.chrom
-                                POPTYPE = F2
-                                POPSIZE = 150
-                                MAPFILE = mapfile.map
-                                FOUNDERFILE = founderfile.gen
-                                OUTPUT = sim_inb")
+        # search last base before the indels (information needed by VCF)
+        command  <- c(paste("samtools faidx ${ref}"),paste0("Chr10:",pos.ref,"-",pos.ref))
+        bases <- system(paste0(command, collapse = " "), intern = T)
 
-            write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
-            chrom <- data.frame("chromosome"= "C1", "length"= tot, "centromere"=tot/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
-            write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
+        bases.bf <- matrix(bases, ncol=2, byrow = T)[,2]
+        alt <- bases.bf
+        tmp <- paste0(bases.bf[which(sinal=="+")], indels[,6][which(sinal=="+")])
+        alt[which(sinal=="+")] <- tmp
+        ref <- bases.bf
+        tmp <- paste0(bases.bf[which(sinal=="-")], indels[,6][which(sinal=="-")])
+        ref[which(sinal=="-")] <- tmp
+
+        # a posição no vcf e no mapa são em relação ao genoma de referência
+        tot.mks <- data.frame(chr = c(snps[,1], indels[,1]), pos = c(snps[,2], pos.ref),
+                            ref = c(snps[,4], ref), alt = c(snps[,5],alt), stringsAsFactors = F)
+
+
+        tot.mks <- tot.mks[order(tot.mks[,2]),]
+        write.table(tot.mks, file="tot_mks.txt")
+        n.marker <- dim(tot.mks)[1]
+        ## Map file
+        # Marker names
+        marker1 <- "M"
+        marker2 <- 1:n.marker
+        marker2 <- sprintf("%03d", marker2)
+        marker <-paste0(marker1,marker2)
+        # Chromossome and position
+        pos.map <- (tot.mks[,2]/1000000)*as.numeric("${cmBymb}")
+        map_file <- data.frame(marker=marker, chromosome=tot.mks[,1], position= pos.map)
+        write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
+
+        founder_file <- data.frame(marker=marker, P1_1=tot.mks[,3] , P1_2=tot.mks[,3], P2_1=tot.mks[,4], P2_2=tot.mks[,4])
+        write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
+
+        ## Parameters file
+        parameter <- paste0("PLOIDY = 2
+                                        MAPFUNCTION = HALDANE
+                                        MISSING = NA
+                                        CHROMFILE = inb.chrom
+                                        POPTYPE = F2
+                                        POPSIZE = 150
+                                        MAPFILE = mapfile.map
+                                        FOUNDERFILE = founderfile.gen
+                                        OUTPUT = sim_inb")
+
+        write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
+        chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
+        write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
         RSCRIPT
     >>>
 
     runtime {
-        docker:"onemap:v1"
+        docker:"r-samtools:v1"
     }
     output {
         File mapfile="mapfile.map"
         File founderfile = "founderfile.gen"
         File parfile = "sim.par"
         File chromfile = "inb.chrom"
+        File tot_mks = "tot_mks.txt"
     }
 }
 
@@ -100,15 +125,15 @@ task pedsim2vcf{
     File genotypes_dat
     File map_file
     File chrom_file
-    File snp_file
+    File tot_mks
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
         
         library(onemap)              
-        snps <- read.table("${snp_file}", stringsAsFactors = FALSE)
-        pos <- snps[,3]
-        chr <- snps[,1]
+        mks <- read.table("${tot_mks}", stringsAsFactors = FALSE)
+        pos <- mks[,2]
+        chr <- mks[,1]
 
         pedsim2vcf(inputfile = "${genotypes_dat}", 
              map.file = "${map_file}", 
@@ -248,7 +273,9 @@ task alignment {
         File geno_sa
 
     command{
-        bwa mem ${ref} ${reads1} ${reads2} | samtools sort -o ${sampleName}.sorted.bam -
+        bwa mem ${ref} ${reads1} ${reads2} > ${sampleName}.sam 
+        samtools view -bS ${sampleName}.sam > ${sampleName}.bam 
+        samtools sort ${sampleName}.bam -o ${sampleName}.sorted.bam 
         samtools index ${sampleName}.sorted.bam
     }
     runtime{
@@ -360,8 +387,8 @@ task GenotypeGVCFs {
         docker: "gatk-picard:v1"
     }
     output {
-        File output_vcf = "${output_vcf_filename}"
-        File output_vcf_index = "${output_vcf_filename}.idx"
+        File gatkVCF = "${output_vcf_filename}"
+        File gatkVCF_index = "${output_vcf_filename}.idx"
     }
 }
 
@@ -370,7 +397,7 @@ task freebayes {
     File ref
     Array[File] bam_rg
     command{
-        freebayes -f ${ref} ${sep=" " bam_rg} > ${freebayesVCFname}
+        freebayes --genotype-qualities -f ${ref} ${sep=" " bam_rg} > ${freebayesVCFname}
     }
     runtime{
         docker:"freebayes:v1"
@@ -425,15 +452,122 @@ task ref_map {
     
     command{
         cp ${sep=" " bam_rg} .
-        ref_map.pl --samples . --popmap ${popmapfile} -o . -X "populations:--vcf"
+        ref_map.pl --samples . --popmap ${popmapfile} -o . -X "populations:--ordered-export --vcf "
     }
     runtime{
         docker:"stacks:v1"
     }
     output{
-        File stacksVCF = stdout()
+        File stacksVCF = "populations.snps.vcf"
     }
 }
+
+task aval_vcf{
+    File stacksVCF
+    File freebayesVCF
+    File gatkVCF
+    File tot_mks
+    File map_file
+    Array[File] maternal_trim
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+
+        system("cp ${sep=' ' maternal_trim} .")
+        library(vcfR)
+        freebayes <- read.vcfR("${freebayesVCF}")
+        gatk <- read.vcfR("${gatkVCF}")
+        stacks <- read.vcfR("${stacksVCF}")
+        maternal <- strsplit("${sep=' ; ' maternal_trim}", split=";")[[1]][1]
+        system(paste("grep '>'", maternal ,"> frags"))
+
+        frags <- read.table("frags", stringsAsFactors=F)
+        start <- frags[,14]
+        end <- start + 202
+
+        snps <- read.table("${tot_mks}", stringsAsFactors = F)
+        real.pos <- snps[,2]
+
+        filt.idx <- vector()
+        for(i in 1:length(start))
+        filt.idx <- c(filt.idx,which(real.pos >= start[i] & real.pos <= end[i]))
+
+        snps.filt <- snps[filt.idx,]
+        filt.pos <- snps.filt[,2]
+        ref.filt <- snps.filt[,3]
+        alt.filt <- snps.filt[,4]
+
+        methods <- c("freebayes", "gatk", "stacks")
+        for(i in methods){
+        # counting corrected identified markers
+        pos <- get(i)@fix[,2]
+        ref <- get(i)@fix[,4]
+        alt <- get(i)@fix[,5]
+        
+        nmk.filt <- length(filt.pos)
+        nmk.id <- length(pos)
+        
+        ok <- sum(filt.pos %in% pos) #  marcadores identificados do total
+        falso.positivo <- sum(!(pos %in% filt.pos)) # falsos positivos
+        ref.ok <- sum(ref.filt==ref[pos %in% filt.pos])
+        alt.ok <- sum(alt.filt==alt[pos %in% filt.pos]) 
+        
+        result <- data.frame(nmk.filt, nmk.id, ok, falso.positivo, ref.ok, alt.ok)
+        
+        write.table(result, file= paste0(i,".txt"), quote=F, row.names=F, sep="\t")
+        
+        # tables for mesure depth distribuition
+        if(dim(get(i)@gt)[1] != 0){
+            idx <- which(strsplit(get(i)@gt[1,1], split=":")[[1]] == "AD")
+            if(length(idx) != 0){
+            ref.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",1), 
+                                ncol = dim(get(i)@gt)[2]-1)
+            alt.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",2), 
+                                ncol =  dim(get(i)@gt)[2]-1)
+            colnames(ref.depth) <- colnames(alt.depth) <- colnames(get(i)@gt[,-1])
+            write.table(ref.depth, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
+            write.table(alt.depth, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
+            } else {
+                null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
+                write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
+                write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
+            }
+            # table for GQ 
+            idx <- which(strsplit(get(i)@gt[1,1], split=":")$FORMAT == "GQ")
+            if(length(idx)!=0){
+                GQ <- sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx)
+                write.table(GQ, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
+                } else {
+                    null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
+                    write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
+                }
+                
+            } else{
+                null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
+                write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
+                write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
+                write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
+            }
+        }
+        RSCRIPT
+    >>>
+
+    runtime{
+        docker:"onemap:v1"
+    }
+    output{
+        File freebayes_aval_vcf = "freebayes.txt"
+        File gatk_aval_vcf = "gatk.txt"
+        File stacks_aval_vcf = "stacks.txt"
+        File freebayes_ref_depth = "freebayes_ref_depth.txt"
+        File freebayes_alt_depth = "freebayes_alt_depth.txt"
+        File gatk_ref_depth = "gatk_ref_depth.txt"
+        File gatk_alt_depth = "gatk_alt_depth.txt"
+        File stacks_ref_depth = "stacks_ref_depth.txt"
+        File stacks_alt_depth = "stacks_alt_depth.txt"
+    }
+}
+
 workflow F2 {
     
     String genome_size
@@ -462,9 +596,11 @@ workflow F2 {
 
     call pedsim_files {
         input:
-            snp_file = create_alt_genome.snps,
-            genome_size=genome_size,
-            cmBymb=cmBymb
+            snps = create_alt_genome.snps,
+            indels=create_alt_genome.indels,
+            cmBymb=cmBymb,
+            ref = ref,
+            ref_fai = ref_fai
     }
 
     call pedigreeSim {
@@ -480,7 +616,7 @@ workflow F2 {
             map_file = pedsim_files.mapfile,
             chrom_file = pedsim_files.chromfile,
             genotypes_dat = pedigreeSim.genotypes_dat,
-            snp_file = create_alt_genome.snps
+            tot_mks = pedsim_files.tot_mks
     }
  
     scatter (sampleName in sampleNames) {
@@ -568,5 +704,15 @@ workflow F2 {
         input:
             bam_rg = add_labs.bam_rg,
             popmapfile = create_popmapFile.popmapfile
+    }
+    
+    call aval_vcf{
+        input:
+            stacksVCF = ref_map.stacksVCF,
+            freebayesVCF = freebayes.freebayesVCF,
+            gatkVCF = GenotypeGVCFs.gatkVCF,
+            tot_mks = pedsim_files.tot_mks, 
+            map_file = pedsim_files.mapfile,
+            maternal_trim = create_frags.maternal_trim
     }
 }
