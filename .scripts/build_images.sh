@@ -25,3 +25,7 @@ cd -
 cd .dockerfiles/stacks
 docker build -t stacks:v1 .
 cd -
+
+cd .dockerfiles/r-samtools
+docker build -t r-samtools:v1 .
+cd -
