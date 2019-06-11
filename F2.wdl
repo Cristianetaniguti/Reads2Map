@@ -452,7 +452,7 @@ task pedsim_files {
         marker2 <- sprintf("%03d", marker2)
         marker <-paste0(marker1,marker2)
         # Chromossome and position
-        pos.map <- (tot.mks[,2]/1000000)*as.numeric("~{cmBymb}")
+        pos.map <- (tot.mks[,2]/1000000) * ~{cmBymb}
         map_file <- data.frame(marker=marker, chromosome=tot.mks[,1], position= pos.map)
         write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
 
