@@ -14,6 +14,7 @@
     "name": "family1",
     "cmBymb": 4.63,
     "samples_names_file": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub_id_names_lines",
-    "enzyme":"G*CWGC"
+    "enzyme":"G*CWGC",
+    "seed": 1515
   }
 }

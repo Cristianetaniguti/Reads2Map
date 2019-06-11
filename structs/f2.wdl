@@ -14,6 +14,7 @@ struct ReferenceFasta {
 struct Family {
   String name
   Float cmBymb
+  Int seed
   File samples_names_file
   String enzyme
 }

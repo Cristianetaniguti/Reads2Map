@@ -1,14 +1,11 @@
 version 1.0
 
-import "./structs/f2_structs.wdl"
+import "./structs/f2.wdl"
 
 workflow F2 {
   input {
     ReferenceFasta references
-
     Family family
-
-
   }
 
   String path_gatkDatabase = "my_database"
@@ -17,6 +14,7 @@ workflow F2 {
   scatter (sampleName in sampleNames) {
     call reads_simulations {
       input:
+        seed=family.seed,
         maternal_trim = create_frags.maternal_trim,
         paternal_trim = create_frags.paternal_trim,
         sampleName = sampleName
@@ -70,6 +68,7 @@ workflow F2 {
 
   call pedsim_files {
     input:
+      seed=family.seed,
       snps = create_alt_genome.snps,
       indels = create_alt_genome.indels,
       cmBymb = family.cmBymb,
@@ -79,6 +78,7 @@ workflow F2 {
 
   call create_alt_genome {
     input:
+      seed=family.seed,
       ref_genome = references.ref_fasta
   }
 
@@ -149,6 +149,7 @@ workflow F2 {
   }
 }
 
+# GATK to generate gVCF with variants
 task HaplotypeCallerERC {
   input {
     File ref
@@ -179,11 +180,17 @@ task HaplotypeCallerERC {
 
 }
 
+
+# Simulates an Illumina sequencing experiment
+# TODO: produce single sample reads
+# Fix is required because in some cases pirs fails to
+# write nucleotide qualities in fastq file
 task reads_simulations {
   input {
     File maternal_trim
     File paternal_trim
     String sampleName
+    Int seed
   }
 
 
@@ -195,7 +202,7 @@ task reads_simulations {
 
         /pirs/src/pirs/pirs simulate \
             --diploid ~{maternal_trim} ~{paternal_trim} \
-            -l 100 -x 50 -m 150 -o ~{sampleName} --random-seed 1515
+            -l 100 -x 50 -m 150 -o ~{sampleName} --random-seed ~{seed}
 
         /cleanFastq/fixFastq "~{sampleName}_100_150_1.fq" "~{sampleName}_100_150_1_fix.fq" 
         /cleanFastq/fixFastq "~{sampleName}_100_150_2.fq" "~{sampleName}_100_150_2_fix.fq"
@@ -207,6 +214,7 @@ task reads_simulations {
 
 }
 
+# Variant calling using freebayes
 task freebayes {
   input {
     String freebayesVCFname
@@ -237,7 +245,6 @@ task pedigreeSim {
     File par_file
   }
 
-
   output {
     File genotypes_dat = "sim_inb_genotypes.dat"
   }
@@ -256,6 +263,7 @@ task pedigreeSim {
 
 }
 
+# Parse pedsim output (.dat) into VCF
 task pedsim2vcf {
   input {
     File genotypes_dat
@@ -263,7 +271,6 @@ task pedsim2vcf {
     File chrom_file
     File tot_mks
   }
-
 
   output {
     File simu_vcf = "simu.vcf"
@@ -293,6 +300,7 @@ task pedsim2vcf {
 
 }
 
+# Insert into a fasta sequence the variants present in a VCF file
 task vcf2diploid {
   input {
     String sampleName
@@ -316,6 +324,7 @@ task vcf2diploid {
 
 }
 
+# Add info to alignment header
 task add_labs {
   input {
     String sampleName
@@ -350,6 +359,7 @@ task add_labs {
   }
 }
 
+# Alignment using bwa mem
 task alignment {
   input {
     String sampleName
@@ -392,8 +402,8 @@ task pedsim_files {
     Float cmBymb
     File ref
     File ref_fai
+    Int seed
   }
-
 
   output {
     File mapfile = "mapfile.map"
@@ -455,7 +465,7 @@ task pedsim_files {
                                         MISSING = NA
                                         CHROMFILE = inb.chrom
                                         POPTYPE = F2
-                                        SEED = 8899
+                                        SEED = ~{seed}
                                         POPSIZE = 150
                                         MAPFILE = mapfile.map
                                         FOUNDERFILE = founderfile.gen
@@ -473,6 +483,7 @@ task pedsim_files {
 
 }
 
+# Variant calling on gVCF
 task GenotypeGVCFs {
   input {
     File workspace_tar
@@ -481,7 +492,6 @@ task GenotypeGVCFs {
     File geno_fai
     File geno_dict
   }
-
 
   output {
     File gatkVCF = "${output_vcf_filename}"
@@ -514,7 +524,6 @@ task aval_vcf {
     File map_file
     Array[File] maternal_trim
   }
-
 
   output {
     File freebayes_aval_vcf = "freebayes.txt"
@@ -616,6 +625,7 @@ task aval_vcf {
 
 }
 
+# SNP calling program
 task ref_map {
   input {
     Array[File] bam_rg
@@ -665,6 +675,9 @@ task create_gatk_database {
 
 }
 
+# Simulates RADseq experiment where certain enzyme is
+# used to fragment the sequence and then the first X
+# bases of each resulting fragment is sequenced.
 task create_frags {
   input {
     String enzyme
@@ -672,7 +685,6 @@ task create_frags {
     File maternal_genomes
     File paternal_genomes
   }
-
 
   output {
     File maternal_frags = "${sampleName}_maternal_fragments.fasta"
@@ -682,6 +694,7 @@ task create_frags {
     File maternal_trim = "${sampleName}_maternal_trim.fa"
     File paternal_trim = "${sampleName}_paternal_trim.fa"
   }
+
   command <<<
 
         /ddRADseqTools/Package/rsitesearch.py \
@@ -727,11 +740,13 @@ task create_frags {
 
 }
 
+# Creates homologous genome with some variation
+# specified with -s and -d
 task create_alt_genome {
   input {
+    Int seed
     File ref_genome
   }
-
 
   output {
     File alt_fasta = "alt.snp.indel.fa"
@@ -740,7 +755,7 @@ task create_alt_genome {
   }
   command <<<
 
-        /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed 1515
+        /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
     
   >>>
   runtime {
@@ -748,15 +763,17 @@ task create_alt_genome {
   }
 
 }
+
+# Creating input files
 task create_popmapFile {
   input {
     File sampleNamesFile
   }
 
-
   output {
     File popmapfile = "popmap.txt"
   }
+
   command <<<
 
         R --vanilla --no-save <<RSCRIPT
@@ -764,7 +781,6 @@ task create_popmapFile {
         mapnames <- paste0(t(names), '_rg')
         mapdf <- data.frame(mapnames, rep(1, length(mapnames)))
         write.table(mapdf, file = 'popmap.txt', sep = '\t', col.names = F, row.names = F, quote=F)
-
         RSCRIPT
     
   >>>
