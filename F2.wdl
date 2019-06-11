@@ -388,7 +388,7 @@ task GenotypeGVCFs {
         tar -xf ${workspace_tar}
         WORKSPACE=$( basename ${workspace_tar} .tar)
 
-        /gatk/gatk  GenotypeGVCFs \
+        /gatk/gatk GenotypeGVCFs \
             -R ${ref} \
             -O ${output_vcf_filename} \
             -G StandardAnnotation \
@@ -582,10 +582,6 @@ task aval_vcf{
     }
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> eaddaad6603dc9fae6993ee4534b8714d5c0082e
 workflow F2 {
     
     String genome_size
@@ -737,6 +733,6 @@ workflow F2 {
     output {
         File refmap = ref_map.stacksVCF
         File freebayes_vcf = freebayes.freebayesVCF
-        File gatk_vcf = GenotypeGVCFs.output_vcf
+        File gatk_vcf = GenotypeGVCFs.gatkVCF
     }
 }
