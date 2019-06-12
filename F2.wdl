@@ -10,6 +10,39 @@ workflow F2 {
 
   String path_gatkDatabase = "my_database"
   Array[String] sampleNames = read_lines(family.samples_names_file)
+    
+  call create_alt_genome {
+    input:
+    seed=family.seed,
+    ref_genome = references.ref_fasta
+  }
+
+  call pedsim_files {
+    input:
+      seed=family.seed,
+      snps = create_alt_genome.snps,
+      indels = create_alt_genome.indels,
+      cmBymb = family.cmBymb,
+      ref = references.ref_fasta,
+      ref_fai = references.ref_fasta_index
+  }
+
+  call pedigreeSim {
+    input:
+    map_file = pedsim_files.mapfile,
+    founder_file = pedsim_files.founderfile,
+    chrom_file = pedsim_files.chromfile,
+    par_file = pedsim_files.parfile
+  }
+
+  call pedsim2vcf {
+    input:
+      genotypes_dat = pedigreeSim.genotypes_dat,
+      map_file = pedsim_files.mapfile,
+      chrom_file = pedsim_files.chromfile,
+      tot_mks = pedsim_files.tot_mks
+  }
+
 
   scatter (sampleName in sampleNames) {
     call reads_simulations {
@@ -18,6 +51,21 @@ workflow F2 {
         maternal_trim = create_frags.maternal_trim,
         paternal_trim = create_frags.paternal_trim,
         sampleName = sampleName
+    }
+
+    call vcf2diploid {
+      input:
+        sampleName = sampleName,
+        ref_genome = references.ref_fasta,
+        simu_vcf = pedsim2vcf.simu_vcf
+    }
+
+    call create_frags {
+      input:
+        enzyme = family.enzyme,
+        sampleName = sampleName,
+        maternal_genomes = vcf2diploid.maternal_genomes,
+        paternal_genomes = vcf2diploid.paternal_genomes
     }
 
     call alignment {
@@ -33,6 +81,13 @@ workflow F2 {
         geno_sa = references.ref_sa
     }
 
+    call add_labs {
+      input:
+        sampleName = sampleName,
+        bam_file = alignment.bam_file,
+        bam_idx = alignment.bam_idx
+    }
+
     call HaplotypeCallerERC {
       input:
         ref = references.ref_fasta,
@@ -42,44 +97,6 @@ workflow F2 {
         bam_rg_idx = add_labs.bam_rg_index,
         geno_dict = references.ref_dict
     }
-
-    call vcf2diploid {
-      input:
-        sampleName = sampleName,
-        ref_genome = references.ref_fasta,
-        simu_vcf = pedsim2vcf.simu_vcf
-    }
-
-    call add_labs {
-      input:
-        sampleName = sampleName,
-        bam_file = alignment.bam_file,
-        bam_idx = alignment.bam_idx
-    }
-
-    call create_frags {
-      input:
-        enzyme = family.enzyme,
-        sampleName = sampleName,
-        maternal_genomes = vcf2diploid.maternal_genomes,
-        paternal_genomes = vcf2diploid.paternal_genomes
-    }
-  }
-
-  call pedsim_files {
-    input:
-      seed=family.seed,
-      snps = create_alt_genome.snps,
-      indels = create_alt_genome.indels,
-      cmBymb = family.cmBymb,
-      ref = references.ref_fasta,
-      ref_fai = references.ref_fasta_index
-  }
-
-  call create_alt_genome {
-    input:
-      seed=family.seed,
-      ref_genome = references.ref_fasta
   }
 
   call GenotypeGVCFs {
@@ -98,14 +115,6 @@ workflow F2 {
       GVCFs_idx = HaplotypeCallerERC.GVCF_idx
   }
 
-  call pedigreeSim {
-    input:
-      map_file = pedsim_files.mapfile,
-      founder_file = pedsim_files.founderfile,
-      chrom_file = pedsim_files.chromfile,
-      par_file = pedsim_files.parfile
-  }
-
   call freebayes {
     input:
       freebayesVCFname = family.name + "_freebayes.vcf",
@@ -116,14 +125,6 @@ workflow F2 {
   call create_popmapFile {
     input:
       sampleNamesFile = family.samples_names_file
-  }
-
-  call pedsim2vcf {
-    input:
-      genotypes_dat = pedigreeSim.genotypes_dat,
-      map_file = pedsim_files.mapfile,
-      chrom_file = pedsim_files.chromfile,
-      tot_mks = pedsim_files.tot_mks
   }
 
   call ref_map {
@@ -146,6 +147,15 @@ workflow F2 {
     File refmap = ref_map.stacksVCF
     File freebayes_vcf = freebayes.freebayesVCF
     File gatk_vcf = GenotypeGVCFs.gatkVCF
+    File freebayes_aval_vcf = aval_vcf.freebayes_aval_vcf
+    File gatk_aval_vcf = aval_vcf.gatk_aval_vcf
+    File stacks_aval_vcf = aval_vcf.stacks_aval_vcf
+    File freebayes_ref_depth = aval_vcf.freebayes_ref_depth
+    File freebayes_alt_depth = aval_vcf.freebayes_alt_depth
+    File gatk_ref_depth = aval_vcf.gatk_ref_depth
+    File gatk_alt_depth = aval_vcf.gatk_alt_depth
+    File stacks_ref_depth = aval_vcf.stacks_ref_depth
+    File stacks_alt_depth = aval_vcf.stacks_alt_depth
   }
 }
 

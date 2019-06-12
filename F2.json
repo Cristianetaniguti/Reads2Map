@@ -1,19 +1,19 @@
 {
   "F2.references": {
-    "ref_dict": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.dict",
-    "ref_fasta": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa",
-    "ref_fasta_index": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.fai",
-    "ref_sa": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.sa",
-    "ref_amb": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.amb",
-    "ref_bwt": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.bwt",
-    "ref_ann": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.ann",
-    "ref_pac": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.pac"
+    "ref_dict": "/home/cristiane/github/errors_workflow/test/sub.dict",
+    "ref_fasta": "/home/cristiane/github/errors_workflow/test/sub.fa",
+    "ref_fasta_index": "/home/cristiane/github/errors_workflow/test/sub.fa.fai",
+    "ref_sa": "/home/cristiane/github/errors_workflow/test/sub.fa.sa",
+    "ref_amb": "/home/cristiane/github/errors_workflow/test/sub.fa.amb",
+    "ref_bwt": "/home/cristiane/github/errors_workflow/test/sub.fa.bwt",
+    "ref_ann": "/home/cristiane/github/errors_workflow/test/sub.fa.ann",
+    "ref_pac": "/home/cristiane/github/errors_workflow/test/sub.fa.pac"
   },
 
   "F2.family": {
     "name": "family1",
     "cmBymb": 4.63,
-    "samples_names_file": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub_id_names_lines",
+    "samples_names_file": "/home/cristiane/github/errors_workflow/test/sub_id_names_lines",
     "enzyme":"G*CWGC",
     "seed": 1515
   }
