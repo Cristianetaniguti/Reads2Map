@@ -1,19 +1,20 @@
 {
-  "F2.freebayesVCFname": "family1_freebayes.vcf",
-  "F2.gatkVCFname": "family1_gatk.vcf",
-  "F2.cmBymb": "4.63",
-  "F2.genome_size": "43.27",
-  "F2.enzymeName": "apeKI",
-  "F2.ref": "/home/cristiane/github/errors_workflow/test/sub.fa",
-  "F2.ref_dict": "/home/cristiane/github/errors_workflow/test/sub.dict",
-  "F2.ref_amb": "/home/cristiane/github/errors_workflow/test/sub.fa.amb",
-  "F2.ref_ann": "/home/cristiane/github/errors_workflow/test/sub.fa.ann",
-  "F2.ref_bwt": "/home/cristiane/github/errors_workflow/test/sub.fa.bwt",
-  "F2.ref_pac": "/home/cristiane/github/errors_workflow/test/sub.fa.pac",
-  "F2.ref_sa": "/home/cristiane/github/errors_workflow/test/sub.fa.sa",
-  "F2.ref_fai": "/home/cristiane/github/errors_workflow/test/sub.fa.fai",
-  "F2.sampleNamesFile": "/home/cristiane/github/errors_workflow/test/sub_id_names_lines",
-  "F2.enzyme": "G*CWGC",
-  "F2.path_gatkDatabase": "my_database"
-}
+  "F2.references": {
+    "ref_dict": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.dict",
+    "ref_fasta": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa",
+    "ref_fasta_index": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.fai",
+    "ref_sa": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.sa",
+    "ref_amb": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.amb",
+    "ref_bwt": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.bwt",
+    "ref_ann": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.ann",
+    "ref_pac": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub.fa.pac"
+  },
 
+  "F2.family": {
+    "name": "family1",
+    "cmBymb": 4.63,
+    "samples_names_file": "/home/taniguti/github/Cristianetaniguti/errors_workflow/test/sub_id_names_lines",
+    "enzyme":"G*CWGC",
+    "seed": 1515
+  }
+}
