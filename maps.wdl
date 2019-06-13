@@ -26,12 +26,8 @@ task default {
     String methodName
   }
   output{
-    File gatk_filters = "gatk_filters.txt"
-    File freebayes_filters = "freebayes_filters.txt"
-    File stacks_filters = "stacks_filters.txt"
-    File gatk_map_df = "gatk_map_df.txt"
-    File freebayes_map_df = "freebayes_map_df.txt"
-    File stacks_map_df = "stacks_map_df.txt"
+    File filters = "~{methodName}_filters.txt"
+    File map_df = "~{methodName}_map_df.txt"
   }
   command <<<
 
@@ -40,12 +36,19 @@ task default {
         library(onemap)
         tot_mks <- read.table("~{tot_mks}")
 
+        if("~{methodName}" == "stacks"){
         df <- onemap_read_vcfR(vcfR.object=vcfRs[["~{methodName}"]], 
+                                cross="f2 intercross", 
+                                parent1="P1_rg", 
+                                parent2="P2_rg", 
+                                f1="F1_rg")
+        } else {
+          df <- onemap_read_vcfR(vcfR.object=vcfRs[["~{methodName}"]], 
                                 cross="f2 intercross", 
                                 parent1="P1", 
                                 parent2="P2", 
                                 f1="F1")
-
+        }
         ## Filters        
         n.mk <- df[[3]]
         segr <- test_segregation(df)
