@@ -11,7 +11,55 @@ workflow F2 {
   String path_gatkDatabase = "my_database"
   Array[String] sampleNames = read_lines(family.samples_names_file)
 
+  call create_alt_genome {
+    input:
+      seed=family.seed,
+      ref_genome = references.ref_fasta
+  }
+
+  call pedsim_files {
+    input:
+      seed=family.seed,
+      snps = create_alt_genome.snps,
+      indels = create_alt_genome.indels,
+      cmBymb = family.cmBymb,
+      ref = references.ref_fasta,
+      ref_fai = references.ref_fasta_index
+  }
+
+  call pedigreeSim {
+    input:
+      map_file = pedsim_files.mapfile,
+      founder_file = pedsim_files.founderfile,
+      chrom_file = pedsim_files.chromfile,
+      par_file = pedsim_files.parfile
+  }
+
+  call pedsim2vcf {
+    input:
+      genotypes_dat = pedigreeSim.genotypes_dat,
+      map_file = pedsim_files.mapfile,
+      chrom_file = pedsim_files.chromfile,
+      tot_mks = pedsim_files.tot_mks
+  }
+
   scatter (sampleName in sampleNames) {
+
+    call vcf2diploid {
+      input:
+        sampleName = sampleName,
+        ref_genome = references.ref_fasta,
+        simu_vcf = pedsim2vcf.simu_vcf
+    }
+
+    call create_frags {
+      input:
+        enzyme = family.enzyme,
+        sampleName = sampleName,
+        maternal_genomes = vcf2diploid.maternal_genomes,
+        paternal_genomes = vcf2diploid.paternal_genomes
+    }
+
     call reads_simulations {
       input:
         seed=family.seed,
@@ -43,52 +91,12 @@ workflow F2 {
         geno_dict = references.ref_dict
     }
 
-    call vcf2diploid {
-      input:
-        sampleName = sampleName,
-        ref_genome = references.ref_fasta,
-        simu_vcf = pedsim2vcf.simu_vcf
-    }
-
     call add_labs {
       input:
         sampleName = sampleName,
         bam_file = alignment.bam_file,
         bam_idx = alignment.bam_idx
     }
-
-    call create_frags {
-      input:
-        enzyme = family.enzyme,
-        sampleName = sampleName,
-        maternal_genomes = vcf2diploid.maternal_genomes,
-        paternal_genomes = vcf2diploid.paternal_genomes
-    }
-  }
-
-  call pedsim_files {
-    input:
-      seed=family.seed,
-      snps = create_alt_genome.snps,
-      indels = create_alt_genome.indels,
-      cmBymb = family.cmBymb,
-      ref = references.ref_fasta,
-      ref_fai = references.ref_fasta_index
-  }
-
-  call create_alt_genome {
-    input:
-      seed=family.seed,
-      ref_genome = references.ref_fasta
-  }
-
-  call GenotypeGVCFs {
-    input:
-      workspace_tar = create_gatk_database.workspace_tar,
-      output_vcf_filename = family.name + "_gatk.vcf",
-      ref = references.ref_fasta,
-      geno_fai = references.ref_fasta_index,
-      geno_dict = references.ref_dict
   }
 
   call create_gatk_database {
@@ -98,12 +106,13 @@ workflow F2 {
       GVCFs_idx = HaplotypeCallerERC.GVCF_idx
   }
 
-  call pedigreeSim {
+  call GenotypeGVCFs {
     input:
-      map_file = pedsim_files.mapfile,
-      founder_file = pedsim_files.founderfile,
-      chrom_file = pedsim_files.chromfile,
-      par_file = pedsim_files.parfile
+      workspace_tar = create_gatk_database.workspace_tar,
+      output_vcf_filename = family.name + "_gatk.vcf",
+      ref = references.ref_fasta,
+      geno_fai = references.ref_fasta_index,
+      geno_dict = references.ref_dict
   }
 
   call freebayes {
@@ -116,14 +125,6 @@ workflow F2 {
   call create_popmapFile {
     input:
       sampleNamesFile = family.samples_names_file
-  }
-
-  call pedsim2vcf {
-    input:
-      genotypes_dat = pedigreeSim.genotypes_dat,
-      map_file = pedsim_files.mapfile,
-      chrom_file = pedsim_files.chromfile,
-      tot_mks = pedsim_files.tot_mks
   }
 
   call ref_map {
