@@ -1,0 +1,46 @@
+digraph F2 {
+  compound=true;
+  "call freebayes" -> "call aval_vcf" 
+  "call vcf2diploid" -> "call create_frags" 
+  "call create_gatk_database" -> "call GenotypeGVCFs" 
+  "call GenotypeGVCFs" -> "call aval_vcf" 
+  "call add_labs" -> "call freebayes" 
+  "call alignment" -> "call add_labs" 
+  "call pedigreeSim" -> "call pedsim2vcf" 
+  "call create_frags" -> "call reads_simulations" 
+  "call pedsim_files" -> "call pedigreeSim" 
+  "call add_labs" -> "call ref_map" 
+  "call create_alt_genome" -> "call pedsim_files" 
+  "call create_popmapFile" -> "call ref_map" 
+  "call pedsim2vcf" -> "call vcf2diploid" 
+  "call pedsim2vcf" -> "scatter (sampleNames)" [lhead=cluster_0]
+  "call reads_simulations" -> "call alignment" 
+  "call ref_map" -> "call aval_vcf" 
+  "call add_labs" -> "call HaplotypeCallerERC" 
+  "call create_frags" -> "call aval_vcf" 
+  "call pedsim_files" -> "call aval_vcf" 
+  "call pedsim_files" -> "call pedsim2vcf" 
+  "call HaplotypeCallerERC" -> "call create_gatk_database" 
+  "call aval_vcf"
+  "call create_alt_genome"
+  "call pedsim_files"
+  "call freebayes"
+  "call GenotypeGVCFs"
+  "call pedigreeSim"
+  "call pedsim2vcf"
+  
+subgraph cluster_0 {
+  "call alignment"
+  "call add_labs"
+  "call vcf2diploid"
+  "call reads_simulations"
+  "call HaplotypeCallerERC"
+  "call create_frags"
+  "scatter (sampleNames)" [shape=plaintext]
+}
+      
+  "call ref_map"
+  "call create_popmapFile"
+  "call create_gatk_database"
+}
+
