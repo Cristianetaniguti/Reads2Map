@@ -10,6 +10,39 @@ workflow F2 {
 
   String path_gatkDatabase = "my_database"
   Array[String] sampleNames = read_lines(family.samples_names_file)
+    
+  call create_alt_genome {
+    input:
+    seed=family.seed,
+    ref_genome = references.ref_fasta
+  }
+
+  call pedsim_files {
+    input:
+      seed=family.seed,
+      snps = create_alt_genome.snps,
+      indels = create_alt_genome.indels,
+      cmBymb = family.cmBymb,
+      ref = references.ref_fasta,
+      ref_fai = references.ref_fasta_index
+  }
+
+  call pedigreeSim {
+    input:
+      map_file = pedsim_files.mapfile,
+      founder_file = pedsim_files.founderfile,
+      chrom_file = pedsim_files.chromfile,
+      par_file = pedsim_files.parfile
+  }
+
+  call pedsim2vcf {
+    input:
+      genotypes_dat = pedigreeSim.genotypes_dat,
+      map_file = pedsim_files.mapfile,
+      chrom_file = pedsim_files.chromfile,
+      tot_mks = pedsim_files.tot_mks
+  }
+
 
   call create_alt_genome {
     input:
@@ -68,6 +101,21 @@ workflow F2 {
         sampleName = sampleName
     }
 
+    call vcf2diploid {
+      input:
+        sampleName = sampleName,
+        ref_genome = references.ref_fasta,
+        simu_vcf = pedsim2vcf.simu_vcf
+    }
+
+    call create_frags {
+      input:
+        enzyme = family.enzyme,
+        sampleName = sampleName,
+        maternal_genomes = vcf2diploid.maternal_genomes,
+        paternal_genomes = vcf2diploid.paternal_genomes
+    }
+
     call alignment {
       input:
         sampleName = sampleName,
@@ -81,6 +129,13 @@ workflow F2 {
         geno_sa = references.ref_sa
     }
 
+    call add_labs {
+      input:
+        sampleName = sampleName,
+        bam_file = alignment.bam_file,
+        bam_idx = alignment.bam_idx
+    }
+
     call HaplotypeCallerERC {
       input:
         ref = references.ref_fasta,
@@ -89,13 +144,6 @@ workflow F2 {
         bam_rg = add_labs.bam_rg,
         bam_rg_idx = add_labs.bam_rg_index,
         geno_dict = references.ref_dict
-    }
-
-    call add_labs {
-      input:
-        sampleName = sampleName,
-        bam_file = alignment.bam_file,
-        bam_idx = alignment.bam_idx
     }
   }
 
@@ -144,10 +192,195 @@ workflow F2 {
   }
 
   output {
-    File refmap = ref_map.stacksVCF
+    File stacks_vcf = ref_map.stacksVCF
     File freebayes_vcf = freebayes.freebayesVCF
     File gatk_vcf = GenotypeGVCFs.gatkVCF
+    File freebayes_aval_vcf = aval_vcf.freebayes_aval_vcf
+    File gatk_aval_vcf = aval_vcf.gatk_aval_vcf
+    File stacks_aval_vcf = aval_vcf.stacks_aval_vcf
+    File freebayes_ref_depth = aval_vcf.freebayes_ref_depth
+    File freebayes_alt_depth = aval_vcf.freebayes_alt_depth
+    File gatk_ref_depth = aval_vcf.gatk_ref_depth
+    File gatk_alt_depth = aval_vcf.gatk_alt_depth
+    File stacks_ref_depth = aval_vcf.stacks_ref_depth
+    File stacks_alt_depth = aval_vcf.stacks_alt_depth
+    File vcfRs = aval_vcf.vcfRs
+    File tot_mks = pedsim_files.tot_mks
   }
+}
+
+# Creates homologous genome with some variation
+# specified with -s and -d
+task create_alt_genome {
+  input {
+    Int seed
+    File ref_genome
+  }
+
+  output {
+    File alt_fasta = "alt.snp.indel.fa"
+    File indels = "alt.indel.lst"
+    File snps = "alt.snp.lst"
+  }
+  command <<<
+
+        /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
+    
+  >>>
+  runtime {
+    docker: "pirs-ddrad-cutadapt:v1"
+  }
+
+}
+
+task pedsim_files {
+  input {
+    File snps
+    File indels
+    Float cmBymb
+    File ref
+    File ref_fai
+    Int seed
+  }
+
+  output {
+    File mapfile = "mapfile.map"
+    File founderfile = "founderfile.gen"
+    File parfile = "sim.par"
+    File chromfile = "inb.chrom"
+    File tot_mks = "tot_mks.txt"
+  }
+  command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+        snps <- read.table("~{snps}", stringsAsFactors = FALSE)
+        indels <- read.table("~{indels}", stringsAsFactors = FALSE)
+        pos.ref <- indels[,2]
+        sinal <- indels[,4]
+
+        # Nos arquivos de saída do pirs nao consta a ultima base antes do polimorfismo
+        # Quanto se trata de indels negativos para a referencia, a posição anterior a apontada
+        # é a ultima base antes do polimorfismo
+        pos.ref[which(sinal=="-")] <- pos.ref[which(sinal=="-")] -1
+
+        # search last base before the indels (information needed by VCF)
+        command  <- c(paste("samtools faidx ~{ref}"),paste0("Chr10:",pos.ref,"-",pos.ref))
+        bases <- system(paste0(command, collapse = " "), intern = T)
+
+        bases.bf <- matrix(bases, ncol=2, byrow = T)[,2]
+        alt <- bases.bf
+        tmp <- paste0(bases.bf[which(sinal=="+")], indels[,6][which(sinal=="+")])
+        alt[which(sinal=="+")] <- tmp
+        ref <- bases.bf
+        tmp <- paste0(bases.bf[which(sinal=="-")], indels[,6][which(sinal=="-")])
+        ref[which(sinal=="-")] <- tmp
+
+        # a posição no vcf e no mapa são em relação ao genoma de referência
+        tot.mks <- data.frame(chr = c(snps[,1], indels[,1]), pos = c(snps[,2], pos.ref),
+                            ref = c(snps[,4], ref), alt = c(snps[,5],alt), stringsAsFactors = F)
+
+
+        tot.mks <- tot.mks[order(tot.mks[,2]),]
+        write.table(tot.mks, file="tot_mks.txt")
+        n.marker <- dim(tot.mks)[1]
+        ## Map file
+        # Marker names
+        marker1 <- "M"
+        marker2 <- 1:n.marker
+        marker2 <- sprintf("%03d", marker2)
+        marker <-paste0(marker1,marker2)
+        # Chromossome and position
+        pos.map <- (tot.mks[,2]/1000000) * ~{cmBymb}
+        map_file <- data.frame(marker=marker, chromosome=tot.mks[,1], position= pos.map)
+        write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
+
+        founder_file <- data.frame(marker=marker, P1_1=tot.mks[,3] , P1_2=tot.mks[,3], P2_1=tot.mks[,4], P2_2=tot.mks[,4])
+        write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
+
+        ## Parameters file
+        parameter <- paste0("PLOIDY = 2
+                                        MAPFUNCTION = HALDANE
+                                        MISSING = NA
+                                        CHROMFILE = inb.chrom
+                                        POPTYPE = F2
+                                        SEED = ~{seed}
+                                        POPSIZE = 150
+                                        MAPFILE = mapfile.map
+                                        FOUNDERFILE = founderfile.gen
+                                        OUTPUT = sim_inb")
+
+        write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
+        chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
+        write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
+        RSCRIPT
+    
+  >>>
+  runtime {
+    docker: "r-samtools:v1"
+  }
+}
+
+task pedigreeSim {
+  input {
+    File map_file
+    File founder_file
+    File chrom_file
+    File par_file
+  }
+
+  output {
+    File genotypes_dat = "sim_inb_genotypes.dat"
+  }
+  command <<<
+
+        sed -i 's+inb.chrom+~{chrom_file}+g' ~{par_file}
+        sed -i 's+mapfile.map+~{map_file}+g' ~{par_file}
+        sed -i 's+founderfile.gen+~{founder_file}+g' ~{par_file}
+
+        java -jar /usr/jars/PedigreeSim.jar ~{par_file}
+    
+  >>>
+  runtime {
+    docker: "java-in-the-cloud:v1"
+  }
+
+}
+
+# Parse pedsim output (.dat) into VCF
+task pedsim2vcf {
+  input {
+    File genotypes_dat
+    File map_file
+    File chrom_file
+    File tot_mks
+  }
+
+  output {
+    File simu_vcf = "simu.vcf"
+  }
+  command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+        
+        library(onemap)              
+        mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
+        pos <- mks[,2]
+        chr <- mks[,1]
+
+        pedsim2vcf(inputfile = "~{genotypes_dat}", 
+             map.file = "~{map_file}", 
+             chrom.file = "~{chrom_file}",
+             out.file = "simu.vcf",
+             miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1", 
+             chr = chr, phase = TRUE)
+
+        RSCRIPT
+    
+  >>>
+  runtime {
+    docker: "onemap:v1"
+  }
+
 }
 
 # GATK to generate gVCF with variants
@@ -238,68 +471,7 @@ task freebayes {
 
 }
 
-task pedigreeSim {
-  input {
-    File map_file
-    File founder_file
-    File chrom_file
-    File par_file
-  }
 
-  output {
-    File genotypes_dat = "sim_inb_genotypes.dat"
-  }
-  command <<<
-
-        sed -i 's+inb.chrom+~{chrom_file}+g' ~{par_file}
-        sed -i 's+mapfile.map+~{map_file}+g' ~{par_file}
-        sed -i 's+founderfile.gen+~{founder_file}+g' ~{par_file}
-
-        java -jar /usr/jars/PedigreeSim.jar ~{par_file}
-    
-  >>>
-  runtime {
-    docker: "java-in-the-cloud:v1"
-  }
-
-}
-
-# Parse pedsim output (.dat) into VCF
-task pedsim2vcf {
-  input {
-    File genotypes_dat
-    File map_file
-    File chrom_file
-    File tot_mks
-  }
-
-  output {
-    File simu_vcf = "simu.vcf"
-  }
-  command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-        
-        library(onemap)              
-        mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
-        pos <- mks[,2]
-        chr <- mks[,1]
-
-        pedsim2vcf(inputfile = "~{genotypes_dat}", 
-             map.file = "~{map_file}", 
-             chrom.file = "~{chrom_file}",
-             out.file = "simu.vcf",
-             miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1", 
-             chr = chr, phase = TRUE)
-
-        RSCRIPT
-    
-  >>>
-  runtime {
-    docker: "onemap:v1"
-  }
-
-}
 
 # Insert into a fasta sequence the variants present in a VCF file
 task vcf2diploid {
@@ -396,93 +568,6 @@ task alignment {
 
 }
 
-task pedsim_files {
-  input {
-    File snps
-    File indels
-    Float cmBymb
-    File ref
-    File ref_fai
-    Int seed
-  }
-
-  output {
-    File mapfile = "mapfile.map"
-    File founderfile = "founderfile.gen"
-    File parfile = "sim.par"
-    File chromfile = "inb.chrom"
-    File tot_mks = "tot_mks.txt"
-  }
-  command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-        snps <- read.table("~{snps}", stringsAsFactors = FALSE)
-        indels <- read.table("~{indels}", stringsAsFactors = FALSE)
-        pos.ref <- indels[,2]
-        sinal <- indels[,4]
-
-        # Nos arquivos de saída do pirs nao consta a ultima base antes do polimorfismo
-        # Quanto se trata de indels negativos para a referencia, a posição anterior a apontada
-        # é a ultima base antes do polimorfismo
-        pos.ref[which(sinal=="-")] <- pos.ref[which(sinal=="-")] -1
-
-        # search last base before the indels (information needed by VCF)
-        command  <- c(paste("samtools faidx ~{ref}"),paste0("Chr10:",pos.ref,"-",pos.ref))
-        bases <- system(paste0(command, collapse = " "), intern = T)
-
-        bases.bf <- matrix(bases, ncol=2, byrow = T)[,2]
-        alt <- bases.bf
-        tmp <- paste0(bases.bf[which(sinal=="+")], indels[,6][which(sinal=="+")])
-        alt[which(sinal=="+")] <- tmp
-        ref <- bases.bf
-        tmp <- paste0(bases.bf[which(sinal=="-")], indels[,6][which(sinal=="-")])
-        ref[which(sinal=="-")] <- tmp
-
-        # a posição no vcf e no mapa são em relação ao genoma de referência
-        tot.mks <- data.frame(chr = c(snps[,1], indels[,1]), pos = c(snps[,2], pos.ref),
-                            ref = c(snps[,4], ref), alt = c(snps[,5],alt), stringsAsFactors = F)
-
-
-        tot.mks <- tot.mks[order(tot.mks[,2]),]
-        write.table(tot.mks, file="tot_mks.txt")
-        n.marker <- dim(tot.mks)[1]
-        ## Map file
-        # Marker names
-        marker1 <- "M"
-        marker2 <- 1:n.marker
-        marker2 <- sprintf("%03d", marker2)
-        marker <-paste0(marker1,marker2)
-        # Chromossome and position
-        pos.map <- (tot.mks[,2]/1000000) * ~{cmBymb}
-        map_file <- data.frame(marker=marker, chromosome=tot.mks[,1], position= pos.map)
-        write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
-
-        founder_file <- data.frame(marker=marker, P1_1=tot.mks[,3] , P1_2=tot.mks[,3], P2_1=tot.mks[,4], P2_2=tot.mks[,4])
-        write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
-
-        ## Parameters file
-        parameter <- paste0("PLOIDY = 2
-                                        MAPFUNCTION = HALDANE
-                                        MISSING = NA
-                                        CHROMFILE = inb.chrom
-                                        POPTYPE = F2
-                                        SEED = ~{seed}
-                                        POPSIZE = 150
-                                        MAPFILE = mapfile.map
-                                        FOUNDERFILE = founderfile.gen
-                                        OUTPUT = sim_inb")
-
-        write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
-        chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
-        write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
-        RSCRIPT
-    
-  >>>
-  runtime {
-    docker: "r-samtools:v1"
-  }
-
-}
 
 # Variant calling on gVCF
 task GenotypeGVCFs {
@@ -536,6 +621,7 @@ task aval_vcf {
     File gatk_alt_depth = "gatk_alt_depth.txt"
     File stacks_ref_depth = "stacks_ref_depth.txt"
     File stacks_alt_depth = "stacks_alt_depth.txt"
+    File vcfRs = "vcfRs.RData"
   }
   command <<<
 
@@ -546,6 +632,8 @@ task aval_vcf {
         freebayes <- read.vcfR("~{freebayesVCF}")
         gatk <- read.vcfR("~{gatkVCF}")
         stacks <- read.vcfR("~{stacksVCF}")
+        vcfRs <- list("gatk"=gatk, "freebayes"=freebayes, "stacks"=stacks)
+        save(vcfRs, file="vcfRs.RData")
         maternal <- strsplit("~{sep=" ; "  maternal_trim}", split=";")[[1]][1]
         system(paste("grep '>'", maternal ,"> frags"))
 
@@ -741,29 +829,6 @@ task create_frags {
 
 }
 
-# Creates homologous genome with some variation
-# specified with -s and -d
-task create_alt_genome {
-  input {
-    Int seed
-    File ref_genome
-  }
-
-  output {
-    File alt_fasta = "alt.snp.indel.fa"
-    File indels = "alt.indel.lst"
-    File snps = "alt.snp.lst"
-  }
-  command <<<
-
-        /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
-    
-  >>>
-  runtime {
-    docker: "pirs-ddrad-cutadapt:v1"
-  }
-
-}
 
 # Creating input files
 task create_popmapFile {

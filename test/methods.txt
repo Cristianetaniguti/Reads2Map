@@ -1,0 +1,3 @@
+gatk
+freebayes
+stacks
