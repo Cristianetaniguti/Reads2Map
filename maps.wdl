@@ -28,6 +28,8 @@ task default {
   output{
     File filters = "~{methodName}_filters.txt"
     File map_df = "~{methodName}_map_df.txt"
+    File map_GQ = "~{methodName}_map_GQ.txt"
+    
   }
   command <<<
 
@@ -49,6 +51,8 @@ task default {
                                 parent2="P2", 
                                 f1="F1")
         }
+
+
         ## Filters        
         n.mk <- df[[3]]
         segr <- test_segregation(df)
@@ -61,7 +65,7 @@ task default {
                               "redundant_markers"=n.mk-nbins)
         write.table(filters, file = paste0("~{methodName}","_filters.txt"), row.names = F, quote = F)
 
-        ## Map
+        ## Maps default
         twopts <- rf_2pts(df)
         true.mks <- which(df[[9]] %in% tot_mks[,2])
         seq.true <- make_seq(twopts, true.mks)
@@ -71,6 +75,35 @@ task default {
                               "rf" = c(0,cumsum(haldane(map.df[[3]]))))
         write.table(map.info, file = paste0("~{methodName}", "_map_df.txt"), row.names = F, quote = F)
 
+        ## extract depth
+        
+        if("~{methodName}" == "stacks"){
+          aval.gq <- extract_depth(vcfR.object= vcfRs[["~{methodName}"]],
+                                onemap.object = df,
+                                vcf.par = "GQ",
+                                parent1 = "P1_rg",
+                                parent2 = "P2_rg",
+                                f1="F1_rg",
+                                recovering = FALSE)
+        } else {
+          aval.gq <- extract_depth(vcfR.object= vcfRs[["~{methodName}"]],
+                                onemap.object = df,
+                                vcf.par = "GQ",
+                                parent1 = "P1",
+                                parent2 = "P2",
+                                f1="F1",
+                                recovering = FALSE)
+        }
+
+        ## Maps GQ
+        twopts <- rf_2pts(aval.gq)
+        true.mks <- which(aval.gq[[9]] %in% tot_mks[,2])
+        seq.true <- make_seq(twopts, true.mks)
+        map.df <- map(seq.true)
+        map.info <- data.frame("mk.name"= colnames(aval.gq[[1]])[map.df[[1]]], 
+                              "pos" = aval.gq[[9]][map.df[[1]]],
+                              "rf" = c(0,cumsum(haldane(map.df[[3]]))))
+        write.table(map.info, file = paste0("~{methodName}", "_map_GQ.txt"), row.names = F, quote = F)
 
         RSCRIPT
   >>>
@@ -79,3 +112,4 @@ task default {
     docker:"onemap:v1"
   }
 }
+
