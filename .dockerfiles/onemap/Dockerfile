@@ -7,4 +7,4 @@ RUN R -e "install.packages('updog', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('devtools', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('stringi', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('vcfR', repos='http://brieger.esalq.usp.br/CRAN/');\
-          devtools::install_github('Cristianetaniguti/onemap_ht', auth_token = '1bcc1d0962f96c9b4d9afc936b807ab2d0804d01')"
+          devtools::install_github('Cristianetaniguti/onemap_ht', auth_token ='1bcc1d0962f96c9b4d9afc936b807ab2d0804d01')"
