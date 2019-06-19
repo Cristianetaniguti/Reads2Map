@@ -15,7 +15,7 @@ workflow maps {
         vcfRs = outputf2.vcfRs,
         tot_mks = outputf2.tot_mks,
         methodName = methodName,
-	simu_vcf = outputf2.simu_vcf
+        simu_vcf = outputf2.simu_vcf
     }
   }
 }
@@ -41,6 +41,7 @@ task default {
         library(onemap)
         library(updog)
         library(reshape2)
+        library(vcfR)
         tot_mks <- read.table("~{tot_mks}")
 
         if("~{methodName}" == "stacks"){
@@ -139,7 +140,7 @@ task default {
         
         error.info <- merge(gab.geno, meth.geno)
         error.info <- merge(error.info, meth.error)
-        error.info <- error.info[order(error.info[[9]], as.character(error.info[,1])),]
+        error.info <- error.info[order(error.info[,2], as.character(error.info[,1])),]
         
          write.table(error.info, file = paste0("~{methodName}", "_error_info.txt"), row.names = F, quote = F)
 
@@ -193,7 +194,7 @@ task default {
 
 
         # Errors info
-        pos.inv <- which(updog.aval[[9]] %in% gab$POS)
+        pos.inv <- which(updog.aval[[9]] %in% gab[[9]])
         
         meth.geno <- updog.aval[[1]][,pos.inv]
         meth.error <- updog.aval[[10]][,pos.inv]
@@ -207,7 +208,7 @@ task default {
 
         error.info <- merge(gab.geno, meth.geno)
         error.info <- merge(error.info, meth.error)
-        error.info <- error.info[order(error.info[[9]], as.character(error.info[,1])),]
+        error.info <- error.info[order(error.info[,2], as.character(error.info[,1])),]
 
         write.table(error.info, file = paste0("~{methodName}", "_updog_error_info.txt"), row.names = F, quote = F)
 
