@@ -43,39 +43,6 @@ workflow F2 {
       tot_mks = pedsim_files.tot_mks
   }
 
-
-  call create_alt_genome {
-    input:
-      seed=family.seed,
-      ref_genome = references.ref_fasta
-  }
-
-  call pedsim_files {
-    input:
-      seed=family.seed,
-      snps = create_alt_genome.snps,
-      indels = create_alt_genome.indels,
-      cmBymb = family.cmBymb,
-      ref = references.ref_fasta,
-      ref_fai = references.ref_fasta_index
-  }
-
-  call pedigreeSim {
-    input:
-      map_file = pedsim_files.mapfile,
-      founder_file = pedsim_files.founderfile,
-      chrom_file = pedsim_files.chromfile,
-      par_file = pedsim_files.parfile
-  }
-
-  call pedsim2vcf {
-    input:
-      genotypes_dat = pedigreeSim.genotypes_dat,
-      map_file = pedsim_files.mapfile,
-      chrom_file = pedsim_files.chromfile,
-      tot_mks = pedsim_files.tot_mks
-  }
-
   scatter (sampleName in sampleNames) {
 
     call vcf2diploid {
@@ -99,21 +66,6 @@ workflow F2 {
         maternal_trim = create_frags.maternal_trim,
         paternal_trim = create_frags.paternal_trim,
         sampleName = sampleName
-    }
-
-    call vcf2diploid {
-      input:
-        sampleName = sampleName,
-        ref_genome = references.ref_fasta,
-        simu_vcf = pedsim2vcf.simu_vcf
-    }
-
-    call create_frags {
-      input:
-        enzyme = family.enzyme,
-        sampleName = sampleName,
-        maternal_genomes = vcf2diploid.maternal_genomes,
-        paternal_genomes = vcf2diploid.paternal_genomes
     }
 
     call alignment {
