@@ -1,8 +1,11 @@
 {
   "maps.outputf2": {
+    "simu_vcf": "/home/cristiane/github/errors_workflow/test/simu.vcf",
     "methods": "/home/cristiane/github/errors_workflow/test/methods.txt",
-    "vcfRs": "/home/cristiane/github/errors_workflow/test/vcfRs.RData",
-    "tot_mks": "/home/cristiane/github/errors_workflow/test/tot_mks.txt"
+    "tot_mks": "/home/cristiane/github/errors_workflow/test/tot_mks.txt",
+    "gatkVCF": "/home/cristiane/github/errors_workflow/test/family1_gatk.vcf",
+    "freebayesVCF": "/home/cristiane/github/errors_workflow/test/family1_freebayes.vcf",
+    "stacksVCF": "/home/cristiane/github/errors_workflow/test/populations.snps.vcf"
   }
 }
 
