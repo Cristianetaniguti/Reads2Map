@@ -2,7 +2,7 @@ FROM r-base:3.6.0
 
 RUN apt update \
    && apt-get install -y libcurl4-gnutls-dev libssl-dev libftgl2 libglu1-mesa-dev libftgl2 libfreetype6-dev  libgfortran5 python-pip python-tk \
-   && pip install matplotlib numphy
+   && pip install matplotlib==2.0.2 numpy
 
 RUN R -e "install.packages('updog', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('devtools', repos='http://brieger.esalq.usp.br/CRAN/');\

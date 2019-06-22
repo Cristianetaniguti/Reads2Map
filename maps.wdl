@@ -9,20 +9,48 @@ workflow maps {
   
   Array[String] methodNames = read_lines(outputf2.methods)  
   
+  call vcftools_filter{
+    input:
+      gatkVCF = outputf2.gatkVCF,
+      freebayesVCF = outputf2.freebayesVCF,
+      stacksVCF = outputf2.stacksVCF
+  }
+
   scatter (methodName in methodNames){
-    call default{
+    call all_maps{
       input:
         tot_mks = outputf2.tot_mks,
         methodName = methodName,
         simu_vcf = outputf2.simu_vcf,
-        gatkVCF = outputf2.gatkVCF,
-        freebayesVCF = outputf2.freebayesVCF,
-        stacksVCF = outputf2.stacksVCF
+        gatkVCF = vcftools_filter.gatkVCF_F,
+        freebayesVCF = vcftools_filter.freebayesVCF_F,
+        stacksVCF = vcftools_filter.stacksVCF_F
     }
   }
 }
 
-task default {
+task vcftools_filter{
+  input{
+    File gatkVCF
+    File freebayesVCF
+    File stacksVCF
+  }
+  output{
+    File gatkVCF_F = "gatk.recode.vcf"
+    File freebayesVCF_F = "freebayes.recode.vcf"
+    File stacksVCF_F = "stacks.recode.vcf"
+  }
+  command <<<
+    vcftools --vcf "~{gatkVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk
+    vcftools --vcf "~{freebayesVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes
+    vcftools --vcf "~{stacksVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out stacks
+  >>>
+  runtime{
+    docker: "vcftools:v1"
+  }
+}
+
+task all_maps {
   input {
     File tot_mks
     String methodName
@@ -131,7 +159,7 @@ task default {
         write.table(map.info, file = paste0("~{methodName}", "_map_GQ.txt"), row.names = F, quote = F)
 
         # Errors info tab
-        simu <- read.vcfR("simu.vcf")
+        simu <- read.vcfR("~{simu_vcf}")
         gab <- onemap_read_vcfR(vcfR.object = simu,
                                 cross = "f2 intercross",
                                 parent1 = "P1",
@@ -156,6 +184,11 @@ task default {
 
         meth.error <- melt(meth.error)
         colnames(meth.error) <- c("MK", "POS", "methError")
+
+        if("~{methodName}"=="stacks"){
+          meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
+          meth.error[,1] <- gsub("_rg","",meth.error[,1])
+        }
 
         error.info <- merge(gab.geno, meth.geno)
         error.info <- merge(error.info, meth.error)
@@ -233,6 +266,11 @@ task default {
         meth.error <- melt(meth.error)
         colnames(meth.error) <- c("MK", "POS", "methError")
 
+        if("~{methodName}"=="stacks"){
+          meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
+          meth.error[,1] <- gsub("_rg","",meth.error[,1])
+        }
+
         error.info <- merge(gab.geno, meth.geno)
         error.info <- merge(error.info, meth.error)
         error.info <- error.info[order(error.info[,2], as.character(error.info[,1])),]
@@ -250,7 +288,7 @@ task default {
                                               f1="F1_rg",
                                               recovering = TRUE,
                                               mean_phred = 20,
-                                              cores = 3,
+                                              cores = 6,
                                               depths = NULL)
         } else {
           supermassa.aval <- supermassa_error(vcfR.object=vcf,
@@ -261,9 +299,12 @@ task default {
                                               f1="F1",
                                               recovering = TRUE,
                                               mean_phred = 20,
-                                              cores = 3,
+                                              cores = 6,
                                               depths = NULL)
         }
+
+        system("rm -f pdepth_temp*")
+        system("rm -f odepth_temp*")
 
         ## Filters
         n.mk <- supermassa.aval[[3]]
@@ -307,6 +348,11 @@ task default {
 
         meth.error <- melt(meth.error)
         colnames(meth.error) <- c("MK", "POS", "methError")
+
+        if("~{methodName}"=="stacks"){
+          meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
+          meth.error[,1] <- gsub("_rg","",meth.error[,1])
+        }
 
         error.info <- merge(gab.geno, meth.geno)
         error.info <- merge(error.info, meth.error)
