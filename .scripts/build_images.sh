@@ -29,3 +29,7 @@ cd -
 cd .dockerfiles/r-samtools
 docker build -t r-samtools:v1 .
 cd -
+
+cd .dockerfiles/vcftools
+docker build -t vcftools:v1 .
+cd -
