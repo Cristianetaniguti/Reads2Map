@@ -60,21 +60,90 @@ task all_maps {
     File stacksVCF
   }
   output{
-    File filters = "~{methodName}_filters.txt"
+    File filters_dfAndGQ = "~{methodName}_filters_dfAndGQ.txt"
+    File filters_polyrad = "~{methodName}_filters_polyrad.txt"
+    File filters_supermassa = "~{methodName}_filters_supermassa.txt"
+    File filters_updog = "~{methodName}_filters_updog.txt"
     File map_df = "~{methodName}_map_df.txt"
     File map_GQ = "~{methodName}_map_GQ.txt"
-    File GQ_error_info = "~{methodName}_error_info.txt"
-    File updog_error_info = "~{methodName}_updog_error_info.txt"
+    File map_polyrad = "~{methodName}_map_polyrad.txt"
+    File map_supermassa = "~{methodName}_map_supermassa.txt"
+    File error_info_GQ = "~{methodName}_error_info_GQ.txt"
+    File error_info_updog = "~{methodName}_error_info_updog.txt"
+    File error_info_polyrad = "~{methodName}_error_info_polyrad.txt"
+    File error_info_supermassa = "~{methodName}_error_info_supermassa.txt"
   }
   command <<<
 
         R --vanilla --no-save <<RSCRIPT
+        # Packages
+        library(supermassa4onemap)
         library(onemap)
         library(updog)
         library(reshape2)
         library(vcfR)
-        library(supermassa4onemap)
         library(doParallel)
+
+
+        # Functions
+        filters <- function(onemap.obj, type.genotype=NULL){
+          n.mk <- onemap.obj[[3]]
+          segr <- onemap::test_segregation(onemap.obj)
+          distorted <- length(onemap::select_segreg(segr, distorted = T))
+          bins <- onemap::find_bins(onemap.obj)
+          nbins <- length(bins[[1]])
+          
+          filters_tab <- data.frame("n_markers"= n.mk, 
+                                "distorted_markers"=distorted, 
+                                "redundant_markers"=n.mk-nbins)
+          write.table(filters_tab, file = paste0("~{methodName}","_filters_",type.genotype,".txt"), row.names = F, quote = F)
+        }
+
+        maps <- function(onemap.obj, type.genotype=NULL){
+          assign("onemap.obj", onemap.obj, envir = .GlobalEnv)
+          twopts <- rf_2pts(onemap.obj)
+          assign("twopts", twopts, envir = .GlobalEnv)
+          true.mks <- which(onemap.obj[[9]] %in% tot_mks[,2])
+          seq.true <- make_seq(twopts, true.mks)
+          map.df <- map(seq.true)
+          map.info <- data.frame("mk.name"= colnames(onemap.obj[[1]])[map.df[[1]]], 
+                                "pos" = onemap.obj[[9]][map.df[[1]]],
+                                "rf" = c(0,cumsum(haldane(map.df[[3]]))))
+          
+          write.table(map.info, file = paste0("~{methodName}", "_map_",type.genotype,".txt"), row.names = F, quote = F)
+        }
+
+        errors_info <- function(onemap.obj=NULL, type.genotype=NULL){
+          pos <- which(gab[[9]] %in% onemap.obj[[9]])
+          pos.inv <- which(onemap.obj[[9]] %in% gab[[9]])
+          
+          gab.pos <- gab[[9]][pos]
+          gab.geno <- gab[[1]][,pos]
+          colnames(gab.geno) <- gab.pos
+          gab.geno <-reshape2::melt(gab.geno)
+          colnames(gab.geno) <- c("MK", "POS", "gabGT")
+          
+          meth.geno <- onemap.obj[[1]][,pos.inv]
+          meth.error <- onemap.obj[[11]][pos.inv + rep(c(0:(onemap.obj[[2]]-1))*onemap.obj[[3]], each=length(pos.inv)),]
+          meth.pos <- onemap.obj[[9]][pos.inv]
+          colnames(meth.geno) <- meth.pos
+          meth.geno <- reshape2::melt(meth.geno)
+          colnames(meth.geno) <- c("MK", "POS", "methGT")
+          meth.error <- cbind(rownames(meth.error), meth.error)
+          
+          
+          if("~{methodName}"=="stacks"){
+            meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
+            rownames(meth.error) <- gsub("_rg","",rownames(meth.error))
+          }
+          
+          error.info <- merge(gab.geno, meth.geno)
+          error.info <- error.info[order(error.info[,1], error.info[,2]),]
+          error.info <- cbind(error.info, meth.error)
+          
+          write.table(error.info, file = paste0("~{methodName}", "_error_info_",type.genotype,".txt"), row.names = F, quote = F)
+        }
+
 
         tot_mks <- read.table("~{tot_mks}")
 
@@ -102,32 +171,15 @@ task all_maps {
                                 f1="F1")
         }
 
+        ## Filters
 
-        ## Filters        
-        n.mk <- df[[3]]
-        segr <- test_segregation(df)
-        distorted <- length(select_segreg(segr, distorted = T))
-        bins <- find_bins(df)
-        nbins <- length(bins[[1]])
-
-        filters <- data.frame("n_markers"= n.mk, 
-                              "distorted_markers"=distorted, 
-                              "redundant_markers"=n.mk-nbins)
-
-        write.table(filters, file = paste0("~{methodName}","_filters.txt"), row.names = F, quote = F)
+        filters(onemap.obj = df, type.genotype = "dfAndGQ")
 
         ## Maps default
-        twopts <- rf_2pts(df)
-        true.mks <- which(df[[9]] %in% tot_mks[,2])
-        seq.true <- make_seq(twopts, true.mks)
-        map.df <- map(seq.true)
-        map.info <- data.frame("mk.name"= colnames(df[[1]])[map.df[[1]]], 
-                              "pos" = df[[9]][map.df[[1]]],
-                              "rf" = c(0,cumsum(haldane(map.df[[3]]))))
 
-        write.table(map.info, file = paste0("~{methodName}", "_map_df.txt"), row.names = F, quote = F)
+        maps(onemap.obj = df, type.genotype = "df")
 
-        ## extract GQ
+        # GQ
 
         if("~{methodName}" == "stacks"){
           aval.gq <- extract_depth(vcfR.object= vcf,
@@ -147,18 +199,13 @@ task all_maps {
                                   recovering = FALSE)
         }
 
+        aval.gq <- create_probs(df, genotypes_errors= aval.gq)
+
         ## Maps GQ
-        twopts <- rf_2pts(aval.gq)
-        true.mks <- which(aval.gq[[9]] %in% tot_mks[,2])
-        seq.true <- make_seq(twopts, true.mks)
-        map.df <- map(seq.true)
-        map.info <- data.frame("mk.name"= colnames(aval.gq[[1]])[map.df[[1]]], 
-                              "pos" = aval.gq[[9]][map.df[[1]]],
-                              "rf" = c(0,cumsum(haldane(map.df[[3]]))))
 
-        write.table(map.info, file = paste0("~{methodName}", "_map_GQ.txt"), row.names = F, quote = F)
+        maps(aval.gq, type.genotype = "GQ")
 
-        # Errors info tab
+        ## Errors info tab
         simu <- read.vcfR("~{simu_vcf}")
         gab <- onemap_read_vcfR(vcfR.object = simu,
                                 cross = "f2 intercross",
@@ -166,37 +213,11 @@ task all_maps {
                                 parent2 = "P2",
                                 f1 = "F1")
 
-        pos <- which(gab[[9]] %in% aval.gq[[9]])
-        pos.inv <- which(aval.gq[[9]] %in% gab[[9]])
 
-        gab.pos <- gab[[9]][pos]
-        gab.geno <- gab[[1]][,pos]
-        colnames(gab.geno) <- gab.pos
-        gab.geno <-melt(gab.geno)
-        colnames(gab.geno) <- c("MK", "POS", "gabGT")
 
-        meth.geno <- aval.gq[[1]][,pos.inv]
-        meth.error <- aval.gq[[10]][,pos.inv]
-        meth.pos <- aval.gq[[9]][pos.inv]
-        colnames(meth.error) <- colnames(meth.geno) <- meth.pos
-        meth.geno <- melt(meth.geno)
-        colnames(meth.geno) <- c("MK", "POS", "methGT")
+        errors_info(aval.gq, type.genotype = "GQ")
 
-        meth.error <- melt(meth.error)
-        colnames(meth.error) <- c("MK", "POS", "methError")
-
-        if("~{methodName}"=="stacks"){
-          meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
-          meth.error[,1] <- gsub("_rg","",meth.error[,1])
-        }
-
-        error.info <- merge(gab.geno, meth.geno)
-        error.info <- merge(error.info, meth.error)
-        error.info <- error.info[order(error.info[,2], as.character(error.info[,1])),]
-
-        write.table(error.info, file = paste0("~{methodName}", "_error_info.txt"), row.names = F, quote = F)
-
-        ## Updog
+        # Updog
 
         if("~{methodName}" == "stacks"){
           updog.aval <- updog_error(vcfR.object=vcf,
@@ -223,64 +244,19 @@ task all_maps {
         }
 
         ## Filters        
-        n.mk <- updog.aval[[3]]
-        segr <- test_segregation(updog.aval)
-        distorted <- length(select_segreg(segr, distorted = T))
-        bins <- find_bins(updog.aval)
-        nbins <- length(bins[[1]])
 
-        filters <- data.frame("n_markers"= n.mk, 
-                              "distorted_markers"=distorted, 
-                              "redundant_markers"=n.mk-nbins)
+        filters(updog.aval, type.genotype = "updog")
 
-        write.table(filters, file = paste0("~{methodName}","_filters_updog.txt"), row.names = F, quote = F)
+        ## Maps updog
 
-        # Maps updog
-        twopts <- rf_2pts(updog.aval)
-        true.mks <- which(updog.aval[[9]] %in% tot_mks[,2])
-        seq.true <- make_seq(twopts, true.mks)
-        map.df <- map(seq.true)
-        map.info <- data.frame("mk.name"= colnames(updog.aval[[1]])[map.df[[1]]], 
-                              "pos" = updog.aval[[9]][map.df[[1]]],
-                              "rf" = c(0,cumsum(haldane(map.df[[3]]))))
+        maps(updog.aval, type.genotype = "updog")
 
-        write.table(map.info, file = paste0("~{methodName}", "_map_updog.txt"), row.names = F, quote = F)
-
-        # Errors info
-        pos <- which(gab[[9]] %in% updog.aval[[9]])
-        pos.inv <- which(updog.aval[[9]] %in% gab[[9]])
-
-        gab.pos <- gab[[9]][pos]
-        gab.geno <- gab[[1]][,pos]
-        colnames(gab.geno) <- gab.pos
-        gab.geno <-melt(gab.geno)
-        colnames(gab.geno) <- c("MK", "POS", "gabGT")
-
-        meth.geno <- updog.aval[[1]][,pos.inv]
-        meth.error <- updog.aval[[10]][,pos.inv]
-        meth.pos <- updog.aval[[9]][pos.inv]
-        colnames(meth.error) <- colnames(meth.geno) <- meth.pos
-        meth.geno <- melt(meth.geno)
-        colnames(meth.geno) <- c("MK", "POS", "methGT")
-
-        meth.error <- melt(meth.error)
-        colnames(meth.error) <- c("MK", "POS", "methError")
-
-        if("~{methodName}"=="stacks"){
-          meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
-          meth.error[,1] <- gsub("_rg","",meth.error[,1])
-        }
-
-        error.info <- merge(gab.geno, meth.geno)
-        error.info <- merge(error.info, meth.error)
-        error.info <- error.info[order(error.info[,2], as.character(error.info[,1])),]
-
-        write.table(error.info, file = paste0("~{methodName}", "_updog_error_info.txt"), row.names = F, quote = F)
+        ## Errors info
+        errors_info(updog.aval, type.genotype = "updog")
 
         # Supermassa
-
         if("~{methodName}" == "stacks"){
-          supermassa.aval <- supermassa_error(vcfR.object=vcf,
+          supermassa.aval <- supermassa4onemap::supermassa_error(vcfR.object=vcf,
                                               onemap.object = df,
                                               vcf.par = "AD",
                                               parent1 = "P1_rg",
@@ -291,7 +267,7 @@ task all_maps {
                                               cores = 6,
                                               depths = NULL)
         } else {
-          supermassa.aval <- supermassa_error(vcfR.object=vcf,
+          supermassa.aval <- supermassa4onemap::supermassa_error(vcfR.object=vcf,
                                               onemap.object = df,
                                               vcf.par = "AD",
                                               parent1 = "P1",
@@ -303,62 +279,53 @@ task all_maps {
                                               depths = NULL)
         }
 
-        system("rm -f pdepth_temp*")
-        system("rm -f odepth_temp*")
-
         ## Filters
-        n.mk <- supermassa.aval[[3]]
-        segr <- test_segregation(supermassa.aval)
-        distorted <- length(select_segreg(segr, distorted = T))
-        bins <- find_bins(supermassa.aval)
-        nbins <- length(bins[[1]])
+        filters(supermassa.aval, type.genotype="supermassa")
 
-        filters <- data.frame("n_markers"= n.mk,
-                              "distorted_markers"=distorted,
-                              "redundant_markers"=n.mk-nbins)
-        write.table(filters, file = paste0("~{methodName}","_filters_supermassa.txt"), row.names = F, quote = F)
+        ## Maps supermassa
 
-        # Maps supermassa
-        twopts <- rf_2pts(supermassa.aval)
-        true.mks <- which(supermassa.aval[[9]] %in% tot_mks[,2])
-        seq.true <- make_seq(twopts, true.mks)
-        map.df <- map(seq.true)
-        map.info <- data.frame("mk.name"= colnames(supermassa.aval[[1]])[map.df[[1]]],
-                              "pos" = supermassa.aval[[9]][map.df[[1]]],
-                              "rf" = c(0,cumsum(haldane(map.df[[3]]))))
-        write.table(map.info, file = paste0("~{methodName}", "_map_supermassa.txt"), row.names = F, quote = F)
+        maps(supermassa.aval, type.genotype = "supermassa")
 
+        ## Errors info
+        errors_info(supermassa.aval, type.genotype = "supermassa")
 
-        # Errors info
-        pos <- which(gab[[9]] %in% supermassa.aval[[9]])
-        pos.inv <- which(supermassa.aval[[9]] %in% gab[[9]])
+        # PolyRAD
 
-        gab.pos <- gab[[9]][pos]
-        gab.geno <- gab[[1]][,pos]
-        colnames(gab.geno) <- gab.pos
-        gab.geno <-melt(gab.geno)
-        colnames(gab.geno) <- c("MK", "POS", "gabGT")
-
-        meth.geno <- supermassa.aval[[1]][,pos.inv]
-        meth.error <- supermassa.aval[[10]][,pos.inv]
-        meth.pos <- supermassa.aval[[9]][pos.inv]
-        colnames(meth.error) <- colnames(meth.geno) <- meth.pos
-        meth.geno <- melt(meth.geno)
-        colnames(meth.geno) <- c("MK", "POS", "methGT")
-
-        meth.error <- melt(meth.error)
-        colnames(meth.error) <- c("MK", "POS", "methError")
-
-        if("~{methodName}"=="stacks"){
-          meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
-          meth.error[,1] <- gsub("_rg","",meth.error[,1])
+        if("~{methodName}" == "gatk"){
+          polyrad.aval <- polyRAD_error(vcf="~{gatkVCF}", 
+                                        onemap.obj = df,
+                                        parent1="P1",
+                                        parent2="P2",
+                                        f1="F1",
+                                        crosstype="f2 intercross")
+        }
+        if("~{methodName}" == "freebayes"){
+          polyrad.aval <- polyRAD_error(vcf="~{freebayesVCF}", 
+                                        onemap.obj = df,
+                                        parent1="P1",
+                                        parent2="P2",
+                                        f1="F1",
+                                        crosstype="f2 intercross")
+        }
+        if("~{methodName}" == "stacks"){
+          polyrad.aval <- polyRAD_error(vcf="~{stacksVCF}", 
+                                        onemap.obj = df,
+                                        parent1="P1_rg",
+                                        parent2="P2_rg",
+                                        f1="F1_rg",
+                                        crosstype="f2 intercross",
+                                        tech.issue=F)
         }
 
-        error.info <- merge(gab.geno, meth.geno)
-        error.info <- merge(error.info, meth.error)
-        error.info <- error.info[order(error.info[,2], as.character(error.info[,1])),]
+        ## Filters
+        filters(polyrad.aval, type.genotype="polyrad")
 
-        write.table(error.info, file = paste0("~{methodName}", "_supermassa_error_info.txt"), row.names = F, quote = F)
+        ## Maps supermassa
+
+        maps(polyrad.aval, type.genotype = "polyrad")
+
+        ## Errors info
+        errors_info(polyrad.aval, type.genotype = "polyrad")
 
         RSCRIPT
   >>>
