@@ -133,20 +133,27 @@ workflow F2 {
       popmapfile = create_popmapFile.popmapfile
   }
 
-  call aval_vcf {
+  call vcftools_filter{
     input:
       stacksVCF = ref_map.stacksVCF,
       freebayesVCF = freebayes.freebayesVCF,
-      gatkVCF = GenotypeGVCFs.gatkVCF,
+      gatkVCF = GenotypeGVCFs.gatkVCF      
+  }
+
+  call aval_vcf {
+    input:
+      stacksVCF = vcftools_filter.stacksVCF_F,
+      freebayesVCF = vcftools_filter.freebayesVCF_F,
+      gatkVCF = vcftools_filter.gatkVCF_F,
       tot_mks = pedsim_files.tot_mks,
       map_file = pedsim_files.mapfile,
       maternal_trim = create_frags.maternal_trim
   }
 
   output {
-    File stacks_vcf = ref_map.stacksVCF
-    File freebayes_vcf = freebayes.freebayesVCF
-    File gatk_vcf = GenotypeGVCFs.gatkVCF
+    File stacks_vcf = vcftools_filter.stacksVCF_F
+    File freebayes_vcf = vcftools_filter.freebayesVCF_F
+    File gatk_vcf = vcftools_filter.gatkVCF_F
     File freebayes_aval_vcf = aval_vcf.freebayes_aval_vcf
     File gatk_aval_vcf = aval_vcf.gatk_aval_vcf
     File stacks_aval_vcf = aval_vcf.stacks_aval_vcf
@@ -803,3 +810,25 @@ task create_popmapFile {
   }
 
 }
+
+task vcftools_filter{
+  input{
+    File gatkVCF
+    File freebayesVCF
+    File stacksVCF
+  }
+  output{
+    File gatkVCF_F = "gatk.recode.vcf"
+    File freebayesVCF_F = "freebayes.recode.vcf"
+    File stacksVCF_F = "stacks.recode.vcf"
+  }
+  command <<<
+    vcftools --vcf "~{gatkVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk
+    vcftools --vcf "~{freebayesVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes
+    vcftools --vcf "~{stacksVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out stacks
+  >>>
+  runtime{
+    docker: "vcftools:v1"
+  }
+}
+
