@@ -1,0 +1,69 @@
+---
+title: "Counts simulations - Testing codes"
+date: "`r Sys.Date()`"
+author: "[Statistical Genetics Lab](http://statgen.esalq.usp.br) <br/> Department of Genetics <br/> Luiz de Queiroz College of Agriculture <br/> University of São Paulo"
+output:
+    rmdformats::readthedown:
+      css: readthedownstatgen.css
+---
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+
+opts_knit$set(width=75)
+```
+
+# Packages
+
+```{r}
+library(vcfR)
+library(polyRAD)
+library(updog)
+library(supermassa4onemap)
+library(doParallel)
+library(onemap)
+```
+
+The purpose here is test the code for build maps with genotypes and genotypes probabilities coming from updog, polyRAD and supermassa software.
+
+Allele counts will be simulated using updog model with depth 50, 10 and 2. The progeny have 200 individuals and only one chromossome with 100 cM in size. To not take too much time, only 100 markers will be present. Only biallelic markers will be considered. **adapt code to support other types of markers**
+
+# VCFs simulations
+
+## F2
+
+
+```{r}
+
+
+
+run_pedsim(chromosome = c("Chr10"), n.marker = c(100), tot.size.cm = c(100), centromere = c(50),
+           n.ind = 200, mk.types = c("A.H.B"), n.types = c(100), pop = "F2", path.pedsim = "~/Programs/PedigreeSim/",
+           name.mapfile = "mapfile.map", name.founderfile="founderfile.gen", name.chromfile="sim.chrom", name.parfile="sim.par",
+           name.out="sim_out.f2")
+
+pedsim2vcf(inputfile="sim_out.f2_genotypes.dat", 
+           map.file="mapfile.map", 
+           chrom.file="sim.chrom",
+           out.file="out.f2.vcf", 
+           miss.perc = 0, 
+           counts=TRUE, 
+           mean.depth=50, 
+           p.mean.depth = 50, 
+           disper.par=2, 
+           chr.mb= 10, 
+           method = "updog", 
+           mean.phred=20, 
+           bias=1, 
+           od=0.001,
+           pos=NULL,
+           haplo.ref=NULL,
+           chr=NULL,
+           phase = FALSE)
+```
+
+
