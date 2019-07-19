@@ -17,4 +17,5 @@ struct Family {
   Int seed
   File samples_names_file
   String enzyme
+  File methods
 }
