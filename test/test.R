@@ -1,4 +1,6 @@
-# Packages
+setwd("/home/cristiane/github/errors_workflow/cromwell-executions/F2/27bd7308-bf72-4029-9b07-d0b0cb0a2b49/")
+
+                                        # Packages
 library(supermassa4onemap)
 library(onemap)
 library(updog)
@@ -66,19 +68,19 @@ errors_info <- function(onemap.obj=NULL, type.genotype=NULL){
 }
 
 
-tot_mks <- read.table("tot_mks.txt")
-methodNames <- c("gatk", "freebayes", "stacks")
-
+tot_mks <- read.table("call-pedsim_files/execution/tot_mks.txt")
+methodNames <- c("gatk")
+ 
 for(i in 1:length(methodNames)){
   methodName <- methodNames[i]
   if(methodName == "gatk"){
-    vcf <- read.vcfR("gatk.recode.vcf")
+    vcf <- read.vcfR("call-vcftools_filter/execution/gatk.recode.vcf")
   }
   if(methodName == "freebayes"){
-    vcf <- read.vcfR("freebayes.recode.vcf")
+    vcf <- read.vcfR("call-vcftools_filter/execution/freebayes.recode.vcf")
   }
   if(methodName == "stacks"){
-    vcf <- read.vcfR("stacks.recode.vcf")
+    vcf <- read.vcfR("call-vcftools_filter/execution/stacks.recode.vcf")
   }
   
   if(methodName == "stacks"){
@@ -94,6 +96,9 @@ for(i in 1:length(methodNames)){
                            parent2="P2", 
                            f1="F1")
   }
+
+
+
   
   ## Filters
   
@@ -130,7 +135,7 @@ for(i in 1:length(methodNames)){
   maps(aval.gq, type.genotype = "GQ")
   
   ## Errors info tab
-  simu <- read.vcfR("simu.vcf")
+  simu <- read.vcfR("call-pedsim2vcf/execution/simu.vcf")
   gab <- onemap_read_vcfR(vcfR.object = simu,
                           cross = "f2 intercross",
                           parent1 = "P1",
@@ -216,7 +221,7 @@ for(i in 1:length(methodNames)){
   # PolyRAD
   
   if(methodName == "gatk"){
-    polyrad.aval <- polyRAD_error(vcf="gatk.recode.vcf", 
+    polyrad.aval <- polyRAD_error(vcf="call-vcftools_filter/execution/gatk.recode.vcf", 
                                   onemap.obj = df,
                                   parent1="P1",
                                   parent2="P2",
@@ -224,7 +229,7 @@ for(i in 1:length(methodNames)){
                                   crosstype="f2 intercross")
   }
   if(methodName == "freebayes"){
-    polyrad.aval <- polyRAD_error(vcf="freebayes.recode.vcf", 
+    polyrad.aval <- polyRAD_error(vcf="call-vcftools_filter/execution/freebayes.recode.vcf", 
                                   onemap.obj = df,
                                   parent1="P1",
                                   parent2="P2",
@@ -232,7 +237,7 @@ for(i in 1:length(methodNames)){
                                   crosstype="f2 intercross")
   }
   if(methodName == "stacks"){
-    polyrad.aval <- polyRAD_error(vcf="stacks.recode.vcf", 
+    polyrad.aval <- polyRAD_error(vcf="call-vcftools_filter/execution/stacks.recode.vcf", 
                                   onemap.obj = df,
                                   parent1="P1_rg",
                                   parent2="P2_rg",
@@ -246,7 +251,7 @@ for(i in 1:length(methodNames)){
   
   ## Maps supermassa
   
-  maps(polyrad.aval, type.genotype = "polyrad")
+  maps(onemap.obj=polyrad.aval, type.genotype = "polyrad")
   
   ## Errors info
   errors_info(polyrad.aval, type.genotype = "polyrad")
