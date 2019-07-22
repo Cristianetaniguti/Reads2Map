@@ -1,3 +1,2 @@
 gatk
 freebayes
-stacks

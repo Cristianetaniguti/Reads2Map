@@ -123,27 +123,26 @@ workflow F2 {
       bam_rg = add_labs.bam_rg
   }
 
-  call create_popmapFile {
-    input:
-      sampleNamesFile = family.samples_names_file
-  }
+  # Removed stacks off the analysis, demand too much RAN
+  # call create_popmapFile {
+  #   input:
+  #     sampleNamesFile = family.samples_names_file
+  # }
 
-  call ref_map {
-    input:
-      bam_rg = add_labs.bam_rg,
-      popmapfile = create_popmapFile.popmapfile
-  }
+  # call ref_map {
+  #   input:
+  #     bam_rg = add_labs.bam_rg,
+  #     popmapfile = create_popmapFile.popmapfile
+  # }
 
   call vcftools_filter{
     input:
-      stacksVCF = ref_map.stacksVCF,
       freebayesVCF = freebayes.freebayesVCF,
       gatkVCF = GenotypeGVCFs.gatkVCF      
   }
 
   call aval_vcf {
     input:
-      stacksVCF = vcftools_filter.stacksVCF_F,
       freebayesVCF = vcftools_filter.freebayesVCF_F,
       gatkVCF = vcftools_filter.gatkVCF_F,
       tot_mks = pedsim_files.tot_mks,
@@ -158,25 +157,20 @@ workflow F2 {
         methodName = methodName,
         simu_vcf = pedsim2vcf.simu_vcf,
         gatkVCF = vcftools_filter.gatkVCF_F,
-        freebayesVCF = vcftools_filter.freebayesVCF_F,
-        stacksVCF = vcftools_filter.stacksVCF_F
+        freebayesVCF = vcftools_filter.freebayesVCF_F
     }
   }
 
 
   output {
-    File stacks_vcf = vcftools_filter.stacksVCF_F
     File freebayes_vcf = vcftools_filter.freebayesVCF_F
     File gatk_vcf = vcftools_filter.gatkVCF_F
     File freebayes_aval_vcf = aval_vcf.freebayes_aval_vcf
     File gatk_aval_vcf = aval_vcf.gatk_aval_vcf
-    File stacks_aval_vcf = aval_vcf.stacks_aval_vcf
     File freebayes_ref_depth = aval_vcf.freebayes_ref_depth
     File freebayes_alt_depth = aval_vcf.freebayes_alt_depth
     File gatk_ref_depth = aval_vcf.gatk_ref_depth
     File gatk_alt_depth = aval_vcf.gatk_alt_depth
-    File stacks_ref_depth = aval_vcf.stacks_ref_depth
-    File stacks_alt_depth = aval_vcf.stacks_alt_depth
     File tot_mks = pedsim_files.tot_mks
   }
 }
@@ -352,98 +346,7 @@ task pedsim2vcf {
   runtime {
     docker: "onemap:v1"
   }
-
 }
-
-# GATK to generate gVCF with variants
-task HaplotypeCallerERC {
-  input {
-    File ref
-    File geno_fai
-    String sampleName
-    File bam_rg
-    File bam_rg_idx
-    File geno_dict
-  }
-
-
-  output {
-    File GVCF = "${sampleName}_rawLikelihoods.g.vcf"
-    File GVCF_idx = "${sampleName}_rawLikelihoods.g.vcf.idx"
-  }
-  command <<<
-
-        /gatk/gatk HaplotypeCaller \
-            -ERC GVCF \
-            -R ~{ref} \
-            -I ~{bam_rg} \
-            -O ~{sampleName}_rawLikelihoods.g.vcf
-    
-  >>>
-  runtime {
-    docker: "gatk-picard:v1"
-  }
-
-}
-
-
-# Simulates an Illumina sequencing experiment
-# TODO: produce single sample reads
-# Fix is required because in some cases pirs fails to
-# write nucleotide qualities in fastq file
-task reads_simulations {
-  input {
-    File maternal_trim
-    File paternal_trim
-    String sampleName
-    Int seed
-  }
-
-
-  output {
-    File reads1 = "${sampleName}_100_150_1_fix.fq"
-    File reads2 = "${sampleName}_100_150_2_fix.fq"
-  }
-  command <<<
-
-        /pirs/src/pirs/pirs simulate \
-            --diploid ~{maternal_trim} ~{paternal_trim} \
-            -l 100 -x 150 -m 150 -o ~{sampleName} --random-seed ~{seed}
-
-        /cleanFastq/fixFastq "~{sampleName}_100_150_1.fq" "~{sampleName}_100_150_1_fix.fq" 
-        /cleanFastq/fixFastq "~{sampleName}_100_150_2.fq" "~{sampleName}_100_150_2_fix.fq"
-    
-  >>>
-  runtime {
-    docker: "pirs-ddrad-cutadapt:v1"
-  }
-
-}
-
-# Variant calling using freebayes
-task freebayes {
-  input {
-    String freebayesVCFname
-    File ref
-    Array[File] bam_rg
-  }
-
-
-  output {
-    File freebayesVCF = "${freebayesVCFname}"
-  }
-  command <<<
-
-        freebayes --genotype-qualities -f ~{ref} ~{sep=" "  bam_rg} > ~{freebayesVCFname}
-    
-  >>>
-  runtime {
-    docker: "freebayes:v1"
-  }
-
-}
-
-
 
 # Insert into a fasta sequence the variants present in a VCF file
 task vcf2diploid {
@@ -465,270 +368,6 @@ task vcf2diploid {
   >>>
   runtime {
     docker: "java-in-the-cloud:v1"
-  }
-
-}
-
-# Add info to alignment header
-task add_labs {
-  input {
-    String sampleName
-    File bam_file
-    File bam_idx
-  }
-
-
-  output {
-    File bam_rg = "${sampleName}_rg.bam"
-    File bam_rg_index = "${sampleName}_rg.bam.bai"
-  }
-  command <<<
-
-        mkdir tmp
-        java -jar /gatk/picard.jar AddOrReplaceReadGroups \
-            I=~{bam_file} \
-            O=~{sampleName}_rg.bam \
-            RGLB=lib-~{sampleName} \
-            RGPL=illumina \
-            RGID=FLOWCELL1.LANE1.~{sampleName} \
-            RGSM=~{sampleName} \
-            RGPU=FLOWCELL1.LANE1.~{sampleName} \
-            CREATE_INDEX=true \
-            TMP_DIR=tmp
-
-        mv ~{sampleName}_rg.bai ~{sampleName}_rg.bam.bai
-    
-  >>>
-  runtime {
-    docker: "gatk-picard:v1"
-  }
-}
-
-# Alignment using bwa mem
-task alignment {
-  input {
-    String sampleName
-    File ref
-    File reads1
-    File reads2
-    File geno_amb
-    File geno_ann
-    File geno_bwt
-    File geno_pac
-    File geno_sa
-  }
-
-
-  output {
-    File bam_file = "${sampleName}.sorted.bam"
-    File bam_idx = "${sampleName}.sorted.bam.bai"
-  }
-  command <<<
-
-        /usr/gitc/bwa mem ~{ref} ~{reads1} ~{reads2} | \
-            java -jar /usr/gitc/picard.jar SortSam \
-                I=/dev/stdin \
-                O=~{sampleName}.sorted.bam \
-                SORT_ORDER=coordinate \
-                CREATE_INDEX=true
-        mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
-    
-  >>>
-  runtime {
-    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.3.3-1513176735"
-  }
-
-}
-
-
-# Variant calling on gVCF
-task GenotypeGVCFs {
-  input {
-    File workspace_tar
-    String output_vcf_filename
-    File ref
-    File geno_fai
-    File geno_dict
-  }
-
-  output {
-    File gatkVCF = "${output_vcf_filename}"
-    File gatkVCF_index = "${output_vcf_filename}.idx"
-  }
-  command <<<
-
-        tar -xf ~{workspace_tar}
-        WORKSPACE=$( basename ~{workspace_tar} .tar)
-
-        /gatk/gatk GenotypeGVCFs \
-            -R ~{ref} \
-            -O ~{output_vcf_filename} \
-            -G StandardAnnotation \
-            -V gendb://$WORKSPACE 
-    
-  >>>
-  runtime {
-    docker: "gatk-picard:v1"
-  }
-
-}
-
-task aval_vcf {
-  input {
-    File stacksVCF
-    File freebayesVCF
-    File gatkVCF
-    File tot_mks
-    File map_file
-    Array[File] maternal_trim
-  }
-
-  output {
-    File freebayes_aval_vcf = "freebayes.txt"
-    File gatk_aval_vcf = "gatk.txt"
-    File stacks_aval_vcf = "stacks.txt"
-    File freebayes_ref_depth = "freebayes_ref_depth.txt"
-    File freebayes_alt_depth = "freebayes_alt_depth.txt"
-    File gatk_ref_depth = "gatk_ref_depth.txt"
-    File gatk_alt_depth = "gatk_alt_depth.txt"
-    File stacks_ref_depth = "stacks_ref_depth.txt"
-    File stacks_alt_depth = "stacks_alt_depth.txt"
-  }
-  command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-
-        system("cp ~{sep=" "  maternal_trim} .")
-        library(vcfR)
-        freebayes <- read.vcfR("~{freebayesVCF}")
-        gatk <- read.vcfR("~{gatkVCF}")
-        stacks <- read.vcfR("~{stacksVCF}")
-        maternal <- strsplit("~{sep=" ; "  maternal_trim}", split=";")[[1]][1]
-        system(paste("grep '>'", maternal ,"> frags"))
-
-        frags <- read.table("frags", stringsAsFactors=F)
-        start <- frags[,14]
-        end <- start + 202
-
-        snps <- read.table("~{tot_mks}", stringsAsFactors = F)
-        real.pos <- snps[,2]
-
-        filt.idx <- vector()
-        for(i in 1:length(start))
-        filt.idx <- c(filt.idx,which(real.pos >= start[i] & real.pos <= end[i]))
-
-        snps.filt <- snps[filt.idx,]
-        filt.pos <- snps.filt[,2]
-        ref.filt <- snps.filt[,3]
-        alt.filt <- snps.filt[,4]
-
-        methods <- c("freebayes", "gatk", "stacks") # include in a scatter
-        for(i in methods){
-        # counting corrected identified markers
-        pos <- get(i)@fix[,2]
-        ref <- get(i)@fix[,4]
-        alt <- get(i)@fix[,5]
-        
-        nmk.filt <- length(filt.pos)
-        nmk.id <- length(pos)
-        
-        ok <- sum(filt.pos %in% pos) #  marcadores identificados do total
-        falso.positivo <- sum(!(pos %in% filt.pos)) # falsos positivos
-        ref.ok <- sum(ref.filt==ref[pos %in% filt.pos])
-        alt.ok <- sum(alt.filt==alt[pos %in% filt.pos]) 
-        
-        result <- data.frame(nmk.filt, nmk.id, ok, falso.positivo, ref.ok, alt.ok)
-        
-        write.table(result, file= paste0(i,".txt"), quote=F, row.names=F, sep="\t")
-        
-        # tables for mesure depth distribuition
-        if(dim(get(i)@gt)[1] != 0){
-            idx <- which(strsplit(get(i)@gt[1,1], split=":")[[1]] == "AD")
-            if(length(idx) != 0){
-            ref.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",1), 
-                                ncol = dim(get(i)@gt)[2]-1)
-            alt.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",2), 
-                                ncol =  dim(get(i)@gt)[2]-1)
-            colnames(ref.depth) <- colnames(alt.depth) <- colnames(get(i)@gt[,-1])
-            write.table(ref.depth, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
-            write.table(alt.depth, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
-            } else {
-                null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
-                write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
-                write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
-            }
-            # table for GQ 
-            idx <- which(strsplit(get(i)@gt[1,1], split=":")$FORMAT == "GQ")
-            if(length(idx)!=0){
-                GQ <- sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx)
-                write.table(GQ, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
-                } else {
-                    null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
-                    write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
-                }
-                
-            } else{
-                null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
-                write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
-                write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
-                write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
-            }
-        }
-        RSCRIPT
-    
-  >>>
-  runtime {
-    docker: "onemap:v1"
-  }
-
-}
-
-# SNP calling program
-task ref_map {
-  input {
-    Array[File] bam_rg
-    File popmapfile
-  }
-
-
-  output {
-    File stacksVCF = "populations.snps.vcf"
-  }
-  command <<<
-
-        cp ~{sep=" "  bam_rg} .
-        ref_map.pl --samples . --popmap ~{popmapfile} -o . -X "populations:--ordered-export --vcf "
-    
-  >>>
-  runtime {
-    docker: "stacks:v1"
-  }
-
-}
-
-task create_gatk_database {
-  input {
-    String path_gatkDatabase
-    Array[File] GVCFs
-    Array[File] GVCFs_idx
-  }
-
-
-  output {
-    File workspace_tar = "${path_gatkDatabase}.tar"
-  }
-  command <<<
-
-        /gatk/gatk GenomicsDBImport \
-            --genomicsdb-workspace-path ~{path_gatkDatabase} \
-            -L Chr10 \
-            -V ~{sep=" -V "  GVCFs} 
-
-        tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
-    
-  >>>
-  runtime {
-    docker: "gatk-picard:v1"
   }
 
 }
@@ -798,24 +437,391 @@ task create_frags {
 
 }
 
-
-# Creating input files
-task create_popmapFile {
+# Simulates an Illumina sequencing experiment
+# TODO: produce single sample reads
+# Fix is required because in some cases pirs fails to
+# write nucleotide qualities in fastq file
+# Set a seed for individual, not only one for all
+task reads_simulations {
   input {
-    File sampleNamesFile
+    File maternal_trim
+    File paternal_trim
+    String sampleName
+    Int seed
+  }
+
+
+  output {
+    File reads1 = "${sampleName}_100_150_1_fix.fq"
+    File reads2 = "${sampleName}_100_150_2_fix.fq"
+  }
+  command <<<
+
+        /pirs/src/pirs/pirs simulate \
+            --diploid ~{maternal_trim} ~{paternal_trim} \
+            -l 100 -x 100 -m 150 -o ~{sampleName} 
+
+        /cleanFastq/fixFastq "~{sampleName}_100_150_1.fq" "~{sampleName}_100_150_1_fix.fq" 
+        /cleanFastq/fixFastq "~{sampleName}_100_150_2.fq" "~{sampleName}_100_150_2_fix.fq"
+    
+  >>>
+  runtime {
+    docker: "pirs-ddrad-cutadapt:v1"
+  }
+
+}
+
+# Alignment using bwa mem
+task alignment {
+  input {
+    String sampleName
+    File ref
+    File reads1
+    File reads2
+    File geno_amb
+    File geno_ann
+    File geno_bwt
+    File geno_pac
+    File geno_sa
+  }
+
+
+  output {
+    File bam_file = "${sampleName}.sorted.bam"
+    File bam_idx = "${sampleName}.sorted.bam.bai"
+  }
+  command <<<
+
+        /usr/gitc/bwa mem ~{ref} ~{reads1} ~{reads2} | \
+            java -jar /usr/gitc/picard.jar SortSam \
+                I=/dev/stdin \
+                O=~{sampleName}.sorted.bam \
+                SORT_ORDER=coordinate \
+                CREATE_INDEX=true
+        mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
+    
+  >>>
+  runtime {
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.3.3-1513176735"
+  }
+
+}
+
+# Add info to alignment header
+task add_labs {
+  input {
+    String sampleName
+    File bam_file
+    File bam_idx
+  }
+
+
+  output {
+    File bam_rg = "${sampleName}_rg.bam"
+    File bam_rg_index = "${sampleName}_rg.bam.bai"
+  }
+  command <<<
+
+        mkdir tmp
+        java -jar /gatk/picard.jar AddOrReplaceReadGroups \
+            I=~{bam_file} \
+            O=~{sampleName}_rg.bam \
+            RGLB=lib-~{sampleName} \
+            RGPL=illumina \
+            RGID=FLOWCELL1.LANE1.~{sampleName} \
+            RGSM=~{sampleName} \
+            RGPU=FLOWCELL1.LANE1.~{sampleName} \
+            CREATE_INDEX=true \
+            TMP_DIR=tmp
+
+        mv ~{sampleName}_rg.bai ~{sampleName}_rg.bam.bai
+    
+  >>>
+  runtime {
+    docker: "gatk-picard:v1"
+  }
+}
+
+# GATK to generate gVCF with variants
+task HaplotypeCallerERC {
+  input {
+    File ref
+    File geno_fai
+    String sampleName
+    File bam_rg
+    File bam_rg_idx
+    File geno_dict
+  }
+
+
+  output {
+    File GVCF = "${sampleName}_rawLikelihoods.g.vcf"
+    File GVCF_idx = "${sampleName}_rawLikelihoods.g.vcf.idx"
+  }
+  command <<<
+
+        /gatk/gatk HaplotypeCaller \
+            -ERC GVCF \
+            -R ~{ref} \
+            -I ~{bam_rg} \
+            -O ~{sampleName}_rawLikelihoods.g.vcf
+    
+  >>>
+  runtime {
+    docker: "gatk-picard:v1"
+  }
+
+}
+
+task create_gatk_database {
+  input {
+    String path_gatkDatabase
+    Array[File] GVCFs
+    Array[File] GVCFs_idx
+  }
+
+
+  output {
+    File workspace_tar = "${path_gatkDatabase}.tar"
+  }
+  command <<<
+
+        /gatk/gatk GenomicsDBImport \
+            --genomicsdb-workspace-path ~{path_gatkDatabase} \
+            -L Chr10 \
+            -V ~{sep=" -V "  GVCFs} 
+
+        tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
+    
+  >>>
+  runtime {
+    docker: "gatk-picard:v1"
+  }
+
+}
+
+
+# Variant calling on gVCF
+task GenotypeGVCFs {
+  input {
+    File workspace_tar
+    String output_vcf_filename
+    File ref
+    File geno_fai
+    File geno_dict
   }
 
   output {
-    File popmapfile = "popmap.txt"
+    File gatkVCF = "${output_vcf_filename}"
+    File gatkVCF_index = "${output_vcf_filename}.idx"
+  }
+  command <<<
+
+        tar -xf ~{workspace_tar}
+        WORKSPACE=$( basename ~{workspace_tar} .tar)
+
+        /gatk/gatk GenotypeGVCFs \
+            -R ~{ref} \
+            -O ~{output_vcf_filename} \
+            -G StandardAnnotation \
+            -V gendb://$WORKSPACE 
+    
+  >>>
+  runtime {
+    docker: "gatk-picard:v1"
   }
 
+}
+
+# Variant calling using freebayes
+task freebayes {
+  input {
+    String freebayesVCFname
+    File ref
+    Array[File] bam_rg
+  }
+
+
+  output {
+    File freebayesVCF = "${freebayesVCFname}"
+  }
+  command <<<
+
+        freebayes --genotype-qualities -f ~{ref} ~{sep=" "  bam_rg} > ~{freebayesVCFname}
+    
+  >>>
+  runtime {
+    docker: "freebayes:v1"
+  }
+
+}
+
+
+# Too much RAM memory
+# # Creating input files
+# task create_popmapFile {
+#   input {
+#     File sampleNamesFile
+#   }
+
+#   output {
+#     File popmapfile = "popmap.txt"
+#   }
+
+#   command <<<
+
+#         R --vanilla --no-save <<RSCRIPT
+#         names <- read.table("~{sampleNamesFile}", header = F)
+#         mapnames <- paste0(t(names), '_rg')
+#         mapdf <- data.frame(mapnames, rep(1, length(mapnames)))
+#         write.table(mapdf, file = 'popmap.txt', sep = '\t', col.names = F, row.names = F, quote=F)
+#         RSCRIPT
+    
+#   >>>
+#   runtime {
+#     docker: "onemap:v1"
+#   }
+
+# }
+
+# # SNP calling program
+# task ref_map {
+#   input {
+#     Array[File] bam_rg
+#     File popmapfile
+#   }
+
+
+#   output {
+#     File stacksVCF = "populations.snps.vcf"
+#   }
+#   command <<<
+
+#         cp ~{sep=" "  bam_rg} .
+#         ref_map.pl --samples . --popmap ~{popmapfile} -o . -X "populations:--ordered-export --vcf "
+    
+#   >>>
+#   runtime {
+#     docker: "stacks:v1"
+#   }
+
+# }
+
+task vcftools_filter{
+  input{
+    File gatkVCF
+    File freebayesVCF
+  }
+  output{
+    File gatkVCF_F = "gatk.recode.vcf"
+    File freebayesVCF_F = "freebayes.recode.vcf"
+  }
+  command <<<
+    vcftools --vcf "~{gatkVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk
+    vcftools --vcf "~{freebayesVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes
+
+>>>
+  runtime{
+    docker: "vcftools:v1"
+  }
+}
+
+task aval_vcf {
+  input {
+    File freebayesVCF
+    File gatkVCF
+    File tot_mks
+    File map_file
+    Array[File] maternal_trim
+  }
+
+  output {
+    File freebayes_aval_vcf = "freebayes.txt"
+    File gatk_aval_vcf = "gatk.txt"
+    File freebayes_ref_depth = "freebayes_ref_depth.txt"
+    File freebayes_alt_depth = "freebayes_alt_depth.txt"
+    File gatk_ref_depth = "gatk_ref_depth.txt"
+    File gatk_alt_depth = "gatk_alt_depth.txt"
+  }
   command <<<
 
         R --vanilla --no-save <<RSCRIPT
-        names <- read.table("~{sampleNamesFile}", header = F)
-        mapnames <- paste0(t(names), '_rg')
-        mapdf <- data.frame(mapnames, rep(1, length(mapnames)))
-        write.table(mapdf, file = 'popmap.txt', sep = '\t', col.names = F, row.names = F, quote=F)
+
+        system("cp ~{sep=" "  maternal_trim} .")
+        library(vcfR)
+        freebayes <- read.vcfR("~{freebayesVCF}")
+        gatk <- read.vcfR("~{gatkVCF}")
+        maternal <- strsplit("~{sep=" ; "  maternal_trim}", split=";")[[1]][1]
+        system(paste("grep '>'", maternal ,"> frags"))
+
+        frags <- read.table("frags", stringsAsFactors=F)
+        start <- frags[,14]
+        end <- start + 202
+
+        snps <- read.table("~{tot_mks}", stringsAsFactors = F)
+        real.pos <- snps[,2]
+
+        filt.idx <- vector()
+        for(i in 1:length(start))
+        filt.idx <- c(filt.idx,which(real.pos >= start[i] & real.pos <= end[i]))
+
+        snps.filt <- snps[filt.idx,]
+        filt.pos <- snps.filt[,2]
+        ref.filt <- snps.filt[,3]
+        alt.filt <- snps.filt[,4]
+
+        methods <- c("freebayes", "gatk") # include in a scatter
+        for(i in methods){
+        # counting corrected identified markers
+        pos <- get(i)@fix[,2]
+        ref <- get(i)@fix[,4]
+        alt <- get(i)@fix[,5]
+        
+        nmk.filt <- length(filt.pos)
+        nmk.id <- length(pos)
+        
+        ok <- sum(filt.pos %in% pos) #  marcadores identificados do total
+        falso.positivo <- sum(!(pos %in% filt.pos)) # falsos positivos
+        ref.ok <- sum(ref.filt==ref[pos %in% filt.pos])
+        alt.ok <- sum(alt.filt==alt[pos %in% filt.pos]) 
+        
+        result <- data.frame(nmk.filt, nmk.id, ok, falso.positivo, ref.ok, alt.ok)
+        
+        write.table(result, file= paste0(i,".txt"), quote=F, row.names=F, sep="\t")
+        
+        # tables for mesure depth distribuition
+        if(dim(get(i)@gt)[1] != 0){
+            idx <- which(strsplit(get(i)@gt[1,1], split=":")[[1]] == "AD")
+            if(length(idx) != 0){
+            ref.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",1), 
+                                ncol = dim(get(i)@gt)[2]-1)
+            alt.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",2), 
+                                ncol =  dim(get(i)@gt)[2]-1)
+            colnames(ref.depth) <- colnames(alt.depth) <- colnames(get(i)@gt[,-1])
+            write.table(ref.depth, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
+            write.table(alt.depth, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
+            } else {
+                null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
+                write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
+                write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
+            }
+            # table for GQ 
+            idx <- which(strsplit(get(i)@gt[1,1], split=":")$FORMAT == "GQ")
+            if(length(idx)!=0){
+                GQ <- sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx)
+                write.table(GQ, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
+                } else {
+                    null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
+                    write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
+                }
+                
+            } else{
+                null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
+                write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
+                write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
+                write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
+            }
+        }
         RSCRIPT
     
   >>>
@@ -825,36 +831,13 @@ task create_popmapFile {
 
 }
 
-task vcftools_filter{
-  input{
-    File gatkVCF
-    File freebayesVCF
-    File stacksVCF
-  }
-  output{
-    File gatkVCF_F = "gatk.recode.vcf"
-    File freebayesVCF_F = "freebayes.recode.vcf"
-    File stacksVCF_F = "stacks.recode.vcf"
-  }
-  command <<<
-    vcftools --vcf "~{gatkVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk
-    vcftools --vcf "~{freebayesVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes
-    vcftools --vcf "~{stacksVCF}" --max-missing 0.75  --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out stacks
-  >>>
-  runtime{
-    docker: "vcftools:v1"
-  }
-}
-
-
 task all_maps {
-  input {
+ input {
     File tot_mks
     String methodName
     File simu_vcf
     File gatkVCF
     File freebayesVCF
-    File stacksVCF
   }
   output{
     File filters_dfAndGQ = "~{methodName}_filters_dfAndGQ.txt"
@@ -950,9 +933,9 @@ task all_maps {
         if("~{methodName}" == "freebayes"){
           vcf <- read.vcfR("~{freebayesVCF}")
         }
-        if("~{methodName}" == "stacks"){
-          vcf <- read.vcfR("~{stacksVCF}")
-        }
+        # if("~{methodName}" == "stacks"){
+        #   vcf <- read.vcfR("")
+        # }
 
         if("~{methodName}" == "stacks"){
           df <- onemap_read_vcfR(vcfR.object=vcf, 
@@ -1025,7 +1008,7 @@ task all_maps {
                                     f1="F1_rg",
                                     recovering = TRUE,
                                     mean_phred = 20,
-                                    cores = 6,
+                                    cores = 3,
                                     depths = NULL)
         } else {
           updog.aval <- updog_error(vcfR.object=vcf,
@@ -1036,7 +1019,7 @@ task all_maps {
                                     f1="F1",
                                     recovering = TRUE,
                                     mean_phred = 20,
-                                    cores = 6,
+                                    cores = 3,
                                     depths = NULL)
         }
 
@@ -1061,7 +1044,7 @@ task all_maps {
                                               f1="F1_rg",
                                               recovering = TRUE,
                                               mean_phred = 20,
-                                              cores = 6,
+                                              cores = 3,
                                               depths = NULL)
         } else {
           supermassa.aval <- supermassa4onemap::supermassa_error(vcfR.object=vcf,
@@ -1072,7 +1055,7 @@ task all_maps {
                                               f1="F1",
                                               recovering = TRUE,
                                               mean_phred = 20,
-                                              cores = 6,
+                                              cores = 3,
                                               depths = NULL)
         }
 
@@ -1104,15 +1087,15 @@ task all_maps {
                                         f1="F1",
                                         crosstype="f2 intercross")
         }
-        if("~{methodName}" == "stacks"){
-          polyrad.aval <- polyRAD_error(vcf="~{stacksVCF}", 
-                                        onemap.obj = df,
-                                        parent1="P1_rg",
-                                        parent2="P2_rg",
-                                        f1="F1_rg",
-                                        crosstype="f2 intercross",
-                                        tech.issue=F)
-        }
+        # if("~{methodName}" == "stacks"){
+        #   polyrad.aval <- polyRAD_error(vcf="", 
+        #                                 onemap.obj = df,
+        #                                 parent1="P1_rg",
+        #                                 parent2="P2_rg",
+        #                                 f1="F1_rg",
+        #                                 crosstype="f2 intercross",
+        #                                 tech.issue=F)
+        # }
 
         ## Filters
         filters(polyrad.aval, type.genotype="polyrad")
