@@ -5,14 +5,26 @@ This workflow provides linkage map simulation using markers from RAD-seq methodo
 ## Quickstart
 
 ```
-# Gerar as imagens
+# Build the docker images
 bash .scripts/build_images.sh
 
-# Adequar o caminho dos inputs no F2.json
+# Adapt the path of the inputs in F2.json
 
-# Executar o workflow
+# Execute the workflow
 java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i F2.json F2.wdl
+
 ```
+
+## Results report
+
+For now, the report with the results is separated from the workflow. You can run it with:
+
+```
+# First, adapt the Rmd with the inputs path (the output path of the workflow) and then:
+R -e "rmarkdown::render('.scripts/F2_maps.Rmd')"
+```
+
+This will generate a html report at .scripts directory.
 
 ## Third party softwares
 
@@ -23,9 +35,8 @@ java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i F
 - [freebayes](https://github.com/ekg/freebayes): Variant call step.
 - [gatk](https://github.com/broadinstitute/gatk): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs.
 - [onemap](https://github.com/augusto-garcia/onemap): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses. 
-- [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1):
+- [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1): Simulates progeny genotypes from parents genotypes for different types of populations
 - [picard](https://github.com/broadinstitute/picard): Process alignment files.
 - [pirs](https://github.com/galaxy001/pirs): To generate simulates paired-end reads from a reference genome.
 - [samtools](https://github.com/samtools/samtools): Process alignment files.
-- [stacks]():
-- [vcf2diploid](https://github.com/abyzovlab/vcf2diploid):
+- [vcf2diploid](https://github.com/abyzovlab/vcf2diploid): Include the variants in a reference genome according with a VCF file.
