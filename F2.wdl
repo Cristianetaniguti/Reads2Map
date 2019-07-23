@@ -430,6 +430,18 @@ task create_frags {
 # Fix is required because in some cases pirs fails to
 # write nucleotide qualities in fastq file
 # Set a seed for individual, not only one for all
+
+  # A considerar:
+  # -d, --diploid
+  #                This option asserts that reads are being simulated from a
+  #                diploid genome.  It causes the program to abort if there
+  #                are not exactly two reference sequences; in addition, the
+  #                coverage is divided in half, since the two reference
+  #                sequences are in reality the same genome.  This option
+  #                is not required to simulate diploid reads, but you must
+  #                set the coverage correctly otherwise (it will be half
+  #                as much as you think).
+
 task reads_simulations {
   input {
     File maternal_trim
@@ -444,10 +456,14 @@ task reads_simulations {
     File reads2 = "${sampleName}_100_150_2_fix.fq"
   }
   command <<<
-
+        set -e
         /pirs/src/pirs/pirs simulate \
             --diploid ~{maternal_trim} ~{paternal_trim} \
-            -l 100 -x 100 -m 150 -o ~{sampleName} 
+            --read-len=100 \
+            --coverage=100 \
+            --insert-len-mean=150 \
+            --output-prefix=~{sampleName} \
+            --threads=2
 
         /cleanFastq/fixFastq "~{sampleName}_100_150_1.fq" "~{sampleName}_100_150_1_fix.fq" 
         /cleanFastq/fixFastq "~{sampleName}_100_150_2.fq" "~{sampleName}_100_150_2_fix.fq"
@@ -455,6 +471,7 @@ task reads_simulations {
   >>>
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
+    maxRetries: 3
   }
 
 }
