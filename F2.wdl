@@ -123,18 +123,6 @@ workflow F2 {
       bam_rg = add_labs.bam_rg
   }
 
-  # Removed stacks off the analysis, demand too much RAN
-  # call create_popmapFile {
-  #   input:
-  #     sampleNamesFile = family.samples_names_file
-  # }
-
-  # call ref_map {
-  #   input:
-  #     bam_rg = add_labs.bam_rg,
-  #     popmapfile = create_popmapFile.popmapfile
-  # }
-
   call vcftools_filter{
     input:
       freebayesVCF = freebayes.freebayesVCF,
@@ -194,7 +182,7 @@ task create_alt_genome {
     
   >>>
   runtime {
-    docker: "pirs-ddrad-cutadapt:v1"
+    docker: "taniguti/pirs-ddrad-cutadapt"
   }
 
 }
@@ -282,7 +270,7 @@ task pedsim_files {
     
   >>>
   runtime {
-    docker: "r-samtools:v1"
+    docker: "taniguti/r-samtools"
   }
 }
 
@@ -307,7 +295,7 @@ task pedigreeSim {
     
   >>>
   runtime {
-    docker: "java-in-the-cloud:v1"
+    docker: "taniguti/java-in-the-cloud"
   }
 
 }
@@ -344,7 +332,7 @@ task pedsim2vcf {
     
   >>>
   runtime {
-    docker: "onemap:v1"
+    docker: "taniguti/onemap"
   }
 }
 
@@ -367,7 +355,7 @@ task vcf2diploid {
     
   >>>
   runtime {
-    docker: "java-in-the-cloud:v1"
+    docker: "taniguti/java-in-the-cloud"
   }
 
 }
@@ -432,7 +420,7 @@ task create_frags {
     
   >>>
   runtime {
-    docker: "pirs-ddrad-cutadapt:v1"
+    docker: "taniguti/pirs-ddrad-cutadapt"
   }
 
 }
@@ -466,7 +454,7 @@ task reads_simulations {
     
   >>>
   runtime {
-    docker: "pirs-ddrad-cutadapt:v1"
+    docker: "taniguti/pirs-ddrad-cutadapt"
   }
 
 }
@@ -538,7 +526,7 @@ task add_labs {
     
   >>>
   runtime {
-    docker: "gatk-picard:v1"
+    docker: "taniguti/gatk-picard"
   }
 }
 
@@ -568,7 +556,7 @@ task HaplotypeCallerERC {
     
   >>>
   runtime {
-    docker: "gatk-picard:v1"
+    docker: "taniguti/gatk-picard"
   }
 
 }
@@ -595,7 +583,7 @@ task create_gatk_database {
     
   >>>
   runtime {
-    docker: "gatk-picard:v1"
+    docker: "taniguti/gatk-picard"
   }
 
 }
@@ -628,7 +616,7 @@ task GenotypeGVCFs {
     
   >>>
   runtime {
-    docker: "gatk-picard:v1"
+    docker: "taniguti/gatk-picard"
   }
 
 }
@@ -651,61 +639,11 @@ task freebayes {
     
   >>>
   runtime {
-    docker: "freebayes:v1"
+    docker: "taniguti/freebayes"
   }
 
 }
 
-
-# Too much RAM memory
-# # Creating input files
-# task create_popmapFile {
-#   input {
-#     File sampleNamesFile
-#   }
-
-#   output {
-#     File popmapfile = "popmap.txt"
-#   }
-
-#   command <<<
-
-#         R --vanilla --no-save <<RSCRIPT
-#         names <- read.table("~{sampleNamesFile}", header = F)
-#         mapnames <- paste0(t(names), '_rg')
-#         mapdf <- data.frame(mapnames, rep(1, length(mapnames)))
-#         write.table(mapdf, file = 'popmap.txt', sep = '\t', col.names = F, row.names = F, quote=F)
-#         RSCRIPT
-    
-#   >>>
-#   runtime {
-#     docker: "onemap:v1"
-#   }
-
-# }
-
-# # SNP calling program
-# task ref_map {
-#   input {
-#     Array[File] bam_rg
-#     File popmapfile
-#   }
-
-
-#   output {
-#     File stacksVCF = "populations.snps.vcf"
-#   }
-#   command <<<
-
-#         cp ~{sep=" "  bam_rg} .
-#         ref_map.pl --samples . --popmap ~{popmapfile} -o . -X "populations:--ordered-export --vcf "
-    
-#   >>>
-#   runtime {
-#     docker: "stacks:v1"
-#   }
-
-# }
 
 task vcftools_filter{
   input{
@@ -722,7 +660,7 @@ task vcftools_filter{
 
 >>>
   runtime{
-    docker: "vcftools:v1"
+    docker: "taniguti/vcftools"
   }
 }
 
@@ -826,7 +764,7 @@ task aval_vcf {
     
   >>>
   runtime {
-    docker: "onemap:v1"
+    docker: "taniguti/onemap"
   }
 
 }
@@ -1111,6 +1049,6 @@ task all_maps {
   >>>
 
   runtime{
-    docker:"onemap:v1"
+    docker:"taniguti/onemap"
   } 
 }
