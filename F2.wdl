@@ -197,81 +197,21 @@ task pedsim_files {
     Int seed
   }
 
-  output {
-    File mapfile = "mapfile.map"
-    File founderfile = "founderfile.gen"
-    File parfile = "sim.par"
-    File chromfile = "inb.chrom"
-    File tot_mks = "tot_mks.txt"
-  }
   command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-        snps <- read.table("~{snps}", stringsAsFactors = FALSE)
-        indels <- read.table("~{indels}", stringsAsFactors = FALSE)
-        pos.ref <- indels[,2]
-        sinal <- indels[,4]
-
-        # Nos arquivos de saída do pirs nao consta a ultima base antes do polimorfismo
-        # Quanto se trata de indels negativos para a referencia, a posição anterior a apontada
-        # é a ultima base antes do polimorfismo
-        pos.ref[which(sinal=="-")] <- pos.ref[which(sinal=="-")] -1
-
-        # search last base before the indels (information needed by VCF)
-        command  <- c(paste("samtools faidx ~{ref}"),paste0("Chr10:",pos.ref,"-",pos.ref))
-        bases <- system(paste0(command, collapse = " "), intern = T)
-
-        bases.bf <- matrix(bases, ncol=2, byrow = T)[,2]
-        alt <- bases.bf
-        tmp <- paste0(bases.bf[which(sinal=="+")], indels[,6][which(sinal=="+")])
-        alt[which(sinal=="+")] <- tmp
-        ref <- bases.bf
-        tmp <- paste0(bases.bf[which(sinal=="-")], indels[,6][which(sinal=="-")])
-        ref[which(sinal=="-")] <- tmp
-
-        # a posição no vcf e no mapa são em relação ao genoma de referência
-        tot.mks <- data.frame(chr = c(snps[,1], indels[,1]), pos = c(snps[,2], pos.ref),
-                            ref = c(snps[,4], ref), alt = c(snps[,5],alt), stringsAsFactors = F)
-
-
-        tot.mks <- tot.mks[order(tot.mks[,2]),]
-        write.table(tot.mks, file="tot_mks.txt")
-        n.marker <- dim(tot.mks)[1]
-        ## Map file
-        # Marker names
-        marker1 <- "M"
-        marker2 <- 1:n.marker
-        marker2 <- sprintf("%03d", marker2)
-        marker <-paste0(marker1,marker2)
-        # Chromossome and position
-        pos.map <- (tot.mks[,2]/1000000) * ~{cmBymb}
-        map_file <- data.frame(marker=marker, chromosome=tot.mks[,1], position= pos.map)
-        write.table(map_file, file = paste0("mapfile.map"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
-
-        founder_file <- data.frame(marker=marker, P1_1=tot.mks[,3] , P1_2=tot.mks[,3], P2_1=tot.mks[,4], P2_2=tot.mks[,4])
-        write.table(founder_file, file = paste0("founderfile.gen"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
-
-        ## Parameters file
-        parameter <- paste0("PLOIDY = 2
-                                        MAPFUNCTION = HALDANE
-                                        MISSING = NA
-                                        CHROMFILE = inb.chrom
-                                        POPTYPE = F2
-                                        SEED = ~{seed}
-                                        POPSIZE = 150
-                                        MAPFILE = mapfile.map
-                                        FOUNDERFILE = founderfile.gen
-                                        OUTPUT = sim_inb")
-
-        write.table(parameter, file = paste0("sim.par"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
-        chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
-        write.table(chrom, file= "inb.chrom", quote = F, col.names = T, row.names = F, sep= "\t")
-        RSCRIPT
-    
+    python /opt/scripts/pedsim_files.py --indels ~{indels} --snps ~{snps} --reference ~{ref} --seed 1515
   >>>
   runtime {
-    docker: "taniguti/r-samtools"
+    docker: "miniconda-alpine:latest"
   }
+
+  output {
+    File mapfile = "markers.txt"
+    File founderfile = "founders.txt"
+    File parfile = "parameters.txt"
+    File chromfile = "chromosome.txt"
+    File tot_mks = "tot_mks.txt"
+  }
+
 }
 
 task pedigreeSim {
@@ -318,6 +258,7 @@ task pedsim2vcf {
         
         library(onemap)              
         mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
+        print(mks)
         pos <- mks[,2]
         chr <- mks[,1]
 
