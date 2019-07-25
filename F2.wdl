@@ -10,7 +10,6 @@ workflow F2 {
 
   String path_gatkDatabase = "my_database"
   Array[String] sampleNames = read_lines(family.samples_names_file)
-  Array[String] methodNames = read_lines(family.methods)  
     
   call create_alt_genome {
     input:
@@ -138,7 +137,7 @@ workflow F2 {
       maternal_trim = create_frags.maternal_trim
   }
 
-  scatter (methodName in methodNames){
+  scatter (methodName in family.methods){
     call all_maps{
       input:
         tot_mks = pedsim_files.tot_mks,
@@ -171,20 +170,19 @@ task create_alt_genome {
     File ref_genome
   }
 
+  command <<<
+    /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
+  >>>
+
+  runtime {
+    docker: "taniguti/pirs-ddrad-cutadapt"
+  }
+
   output {
     File alt_fasta = "alt.snp.indel.fa"
     File indels = "alt.indel.lst"
     File snps = "alt.snp.lst"
   }
-  command <<<
-
-        /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
-    
-  >>>
-  runtime {
-    docker: "taniguti/pirs-ddrad-cutadapt"
-  }
-
 }
 
 task pedsim_files {
@@ -200,6 +198,7 @@ task pedsim_files {
   command <<<
     python /opt/scripts/pedsim_files.py --indels ~{indels} --snps ~{snps} --reference ~{ref} --seed 1515
   >>>
+
   runtime {
     docker: "miniconda-alpine:latest"
   }
@@ -222,9 +221,6 @@ task pedigreeSim {
     File par_file
   }
 
-  output {
-    File genotypes_dat = "sim_inb_genotypes.dat"
-  }
   command <<<
 
         sed -i 's+inb.chrom+~{chrom_file}+g' ~{par_file}
@@ -236,6 +232,10 @@ task pedigreeSim {
   >>>
   runtime {
     docker: "taniguti/java-in-the-cloud"
+  }
+
+  output {
+    File genotypes_dat = "sim_inb_genotypes.dat"
   }
 
 }

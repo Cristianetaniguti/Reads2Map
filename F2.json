@@ -16,6 +16,6 @@
     "samples_names_file": "/home/cristiane/github/errors_workflow/test/sub_id_names_lines",
     "enzyme":"G*CWGC",
     "seed": 1515,
-    "methods": "/home/cristiane/github/errors_workflow/test/methods.txt"
+    "methods": ["gatk", "freebayes"]
   }
 }
