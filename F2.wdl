@@ -9,7 +9,6 @@ workflow F2 {
   }
 
   String path_gatkDatabase = "my_database"
-  Array[String] sampleNames = read_lines(family.samples_names_file)
     
   call create_alt_genome {
     input:
@@ -43,7 +42,12 @@ workflow F2 {
       tot_mks = pedsim_files.tot_mks
   }
 
-  scatter (sampleName in sampleNames) {
+  call GenerateSampleNames {
+    input: 
+      samples = family.samples
+  }
+
+  scatter (sampleName in GenerateSampleNames.names) {
 
     call vcf2diploid {
       input:
@@ -300,6 +304,34 @@ task vcf2diploid {
   }
 
 }
+
+# It will always produce P1, P2, F1 and then F2_00X, where
+# X will increase from 1 to samples
+task GenerateSampleNames {
+
+  input {
+    Int samples
+  }
+
+  command {
+    python <<CODE
+    samples = ~{samples}
+
+    names = ["P1", "P2", "F1"] + ["F2_%03d" % i for i in range(1, samples + 1)]
+    for i in names:
+        print(i)
+    CODE
+  }
+
+  runtime {
+    docker: "python:3.7"
+  }
+
+  output {
+    Array[String] names = read_lines(stdout())
+  }
+}
+
 
 # Simulates RADseq experiment where certain enzyme is
 # used to fragment the sequence and then the first X
