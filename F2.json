@@ -1,13 +1,13 @@
 {
   "F2.references": {
-    "ref_dict": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.dict",
-    "ref_fasta": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa",
-    "ref_fasta_index": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa.fai",
-    "ref_sa": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa.sa",
-    "ref_amb": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa.amb",
-    "ref_bwt": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa.bwt",
-    "ref_ann": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa.ann",
-    "ref_pac": "/home/cristiane/github/errors_workflow/test/chr10.Osativa.fa.pac"
+    "ref_dict": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.dict",
+    "ref_fasta": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa",
+    "ref_fasta_index": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.fai",
+    "ref_sa": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.sa",
+    "ref_amb": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.amb",
+    "ref_bwt": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.bwt",
+    "ref_ann": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.ann",
+    "ref_pac": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.pac"
   },
 
   "F2.family": {
