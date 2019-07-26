@@ -1,5 +1,5 @@
 {
-  "F2.references": {
+  "SimulateF2.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.dict",
     "ref_fasta": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa",
     "ref_fasta_index": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.fai",
@@ -10,12 +10,12 @@
     "ref_pac": "/home/cristiane/github/errors_workflow/datadata/toy_sample/chr10.Osativa.fa.pac"
   },
 
-  "F2.family": {
+  "SimulateF2.family": {
     "name": "family1",
     "cmBymb": 4.63,
     "samples": 47,
     "enzyme":"G*CWGC",
-    "seed": 1515,
+    "seed": 244,
     "methods": ["gatk", "freebayes"]
   }
 }

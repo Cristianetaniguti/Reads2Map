@@ -5,8 +5,6 @@ library(reshape2)
 library(vcfR)
 library(doParallel)
 
-
-
 args = commandArgs(trailingOnly=TRUE)
 
 # method_name <- "~{methodName}"
@@ -17,8 +15,7 @@ tot_mks_file <- args[2]
 simu_vcf_file <- args[3]
 # ~{gatkVCF}
 vcf_file <- args[4]
-# ~{freebayesVCF}
-vcf_file <- args[5]
+
 
 
 # Functions
@@ -112,13 +109,8 @@ aval.gq <- extract_depth(vcfR.object=vcf,
                         f1="F1",
                         recovering=FALSE)
 
-
 aval.gq <- create_probs(df, genotypes_errors=aval.gq)
-print("--------")
-print(aval.gq)
-print("--------")
-print(df)
-quit()
+
 out_name <- paste0(method_name, "_map_GQ.txt")
 maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
 write_report(maps_gq_tab, out_name)
@@ -128,7 +120,7 @@ errors_tab <- create_errors_report(aval.gq, gab)
 write_report(errors_tab, out_name)
 
 
-# uniformizar
+# OTHER TOOLS
 updog.aval <- updog_error(
     vcfR.object=vcf,
     onemap.object=df,
@@ -163,6 +155,7 @@ polyrad.aval <- polyRAD_error(
 
 metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
 for (metodology in names(metodologies)){
+    print(paste0("PERFORMING ", metodology))
     error_aval <- metodologies[[metodology]]
     ## Filters
     out_name <- paste0(method_name, "_filters_", metodology, ".txt")
