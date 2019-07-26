@@ -20,22 +20,8 @@ vcf_file <- args[4]
 # ~{freebayesVCF}
 vcf_file <- args[5]
 
-# print(c(method_name, tot_mks_file, simu_vcf_file, gatk_vcf_file, freebayes_vcf_file))
 
 # Functions
-filters <- function(onemap.obj, type.genotype=NULL, method_name){
-    n.mk <- onemap.obj[[3]]
-    segr <- onemap::test_segregation(onemap.obj)
-    distorted <- length(onemap::select_segreg(segr, distorted = T))
-    bins <- onemap::find_bins(onemap.obj)
-    nbins <- length(bins[[1]])
-    
-    filters_tab <- data.frame("n_markers"= n.mk, 
-                        "distorted_markers"=distorted, 
-                        "redundant_markers"=n.mk-nbins)
-    write.table(filters_tab, file = paste0(method_name, "_filters_", type.genotype,".txt"), row.names = F, quote = F)
-}
-
 create_filters_report <- function(onemap_obj) {
     segr <- onemap::test_segregation(onemap_obj)
     distorted <- onemap::select_segreg(segr, distorted = T)
@@ -51,7 +37,7 @@ write_report <- function(filters_tab, out_name) {
     write.table(filters_tab, file=out_name, row.names=F, quote=F)
 }
 
-create_maps_report <- function(onemap_obj) {
+create_maps_report <- function(onemap_obj, tot_mks) {
     assign("onemap_obj", onemap_obj, envir=.GlobalEnv)
     twopts <- rf_2pts(onemap_obj)
     assign("twopts", twopts, envir=.GlobalEnv)
@@ -65,19 +51,6 @@ create_maps_report <- function(onemap_obj) {
     return (map_info)
 }
 
-maps <- function(onemap.obj, type.genotype=NULL, method_name){
-    assign("onemap.obj", onemap.obj, envir=.GlobalEnv)
-    twopts <- rf_2pts(onemap.obj)
-    assign("twopts", twopts, envir=.GlobalEnv)
-    true.mks <- which(onemap.obj[[9]] %in% tot_mks[,2])
-    seq.true <- make_seq(twopts, true.mks)
-    map.df <- map(seq.true)
-    map.info <- data.frame("mk.name"= colnames(onemap.obj[[1]])[map.df[[1]]], 
-                           "pos" = onemap.obj[[9]][map.df[[1]]],
-                           "rf" = c(0,cumsum(haldane(map.df[[3]]))))
-    
-    write.table(map.info, file = paste0(method_name, "_map_",type.genotype,".txt"), row.names = F, quote = F)
-}
 
 create_errors_report <- function(onemap_obj, gab) {
     pos <- which(gab[[9]] %in% onemap_obj[[9]])
@@ -100,39 +73,19 @@ create_errors_report <- function(onemap_obj, gab) {
     return (error.info)
 }
 
-errors_info <- function(onemap.obj=NULL, type.genotype=NULL, method_name=NULL){
-    pos <- which(gab[[9]] %in% onemap.obj[[9]])
-    pos.inv <- which(onemap.obj[[9]] %in% gab[[9]])
-    gab.pos <- gab[[9]][pos]
-    gab.geno <- gab[[1]][,pos]
-    colnames(gab.geno) <- gab.pos
-    gab.geno <-reshape2::melt(gab.geno)
-    colnames(gab.geno) <- c("MK", "POS", "gabGT")
-    
-    meth.geno <- onemap.obj[[1]][,pos.inv]
-    meth.error <- onemap.obj[[11]][pos.inv + rep(c(0:(onemap.obj[[2]]-1))*onemap.obj[[3]], each=length(pos.inv)),]
-    meth.pos <- onemap.obj[[9]][pos.inv]
-    colnames(meth.geno) <- meth.pos
-    meth.geno <- reshape2::melt(meth.geno)
-    colnames(meth.geno) <- c("MK", "POS", "methGT")
-    meth.error <- cbind(rownames(meth.error), meth.error)
-    
-    
-    if(method_name=="stacks"){
-        meth.geno[,1] <- gsub("_rg","",meth.geno[,1])
-        rownames(meth.error) <- gsub("_rg","",rownames(meth.error))
-    }
-    
-    error.info <- merge(gab.geno, meth.geno)
-    error.info <- error.info[order(error.info[,1], error.info[,2]),]
-    error.info <- cbind(error.info, meth.error)
-    
-    write.table(error.info, file = paste0(method_name, "_error_info_",type.genotype,".txt"), row.names = F, quote = F)
-}
 
-
-# READING DATA
+## KNOWN VARIANTS
 tot_mks <- read.table(tot_mks_file)
+
+# READING DATA FROM SIMULATED POPULATION
+simu <- read.vcfR(simu_vcf_file)
+gab <- onemap_read_vcfR(vcfR.object=simu,
+                        cross="f2 intercross",
+                        parent1="P1",
+                        parent2="P2",
+                        f1="F1")
+
+## READING FINAL VCF FROM PIPELINE
 vcf <- read.vcfR(vcf_file)
 df <- onemap_read_vcfR(vcfR.object=vcf, 
                        cross="f2 intercross", 
@@ -147,113 +100,82 @@ write_report(filters_tab, out_name)
 
 ## MAPS REPORT - DF
 out_name <- paste0(method_name, "_map_df.txt")
-maps_tab <- create_maps_report(df)
+maps_tab <- create_maps_report(df, tot_mks)
 write_report(maps_tab, out_name)
 
-
 # MAPS REPORT - GQ
-aval.gq <- extract_depth(vcfR.object= vcf,
-                        onemap.object = df,
-                        vcf.par = "GQ",
-                        parent1 = "P1",
-                        parent2 = "P2",
-                        f1="F1",
-                        recovering = FALSE)
-
-aval.gq <- create_probs(df, genotypes_errors= aval.gq)
-out_name <- paste0(method_name, "_map_GQ.txt")
-maps_gq_tab <- create_maps_report(aval.gq)
-write_report(maps_gq_tab, out_name)
-
-
-## READING SIMULATED VCF TO OBTAIN ERRORS
-simu <- read.vcfR(simu_vcf_file)
-gab <- onemap_read_vcfR(vcfR.object=simu,
-                        cross="f2 intercross",
+aval.gq <- extract_depth(vcfR.object=vcf,
+                        onemap.object=df,
+                        vcf.par="GQ",
                         parent1="P1",
                         parent2="P2",
-                        f1="F1")
+                        f1="F1",
+                        recovering=FALSE)
+
+
+aval.gq <- create_probs(df, genotypes_errors=aval.gq)
+print("--------")
+print(aval.gq)
+print("--------")
+print(df)
+quit()
+out_name <- paste0(method_name, "_map_GQ.txt")
+maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
+write_report(maps_gq_tab, out_name)
 
 out_name <- paste0(method_name, "_error_info_GQ.txt")
 errors_tab <- create_errors_report(aval.gq, gab)
 write_report(errors_tab, out_name)
 
 
+# uniformizar
+updog.aval <- updog_error(
+    vcfR.object=vcf,
+    onemap.object=df,
+    vcf.par="AD",
+    parent1="P1",
+    parent2="P2",
+    f1="F1",
+    recovering=TRUE,
+    mean_phred=20,
+    cores=3,
+    depths=NULL)
 
-# Updog
-updog.aval <- updog_error(vcfR.object=vcf,
-                          onemap.object = df,
-                          vcf.par="AD",
-                          parent1="P1",
-                          parent2="P2",
-                          f1="F1",
-                          recovering=TRUE,
-                          mean_phred=20,
-                          cores=3,
-                          depths=NULL)
+supermassa.aval <- supermassa4onemap::supermassa_error(
+    vcfR.object=vcf,
+    onemap.object = df,
+    vcf.par = "AD",
+    parent1 = "P1",
+    parent2 = "P2",
+    f1="F1",
+    recovering = TRUE,
+    mean_phred = 20,
+    cores = 3,
+    depths = NULL)
 
-## Filters
-out_name <- paste0(method_name, "_filters_updog.txt")
-filters_tab <- create_filters_report(updog.aval)
-write_report(filters_tab, out_name)
+polyrad.aval <- polyRAD_error(
+    vcf=vcf_file, 
+    onemap.obj=df,
+    parent1="P1",
+    parent2="P2",
+    f1="F1",
+    crosstype="f2 intercross")
 
-## Maps updog
-out_name <- paste0(method_name, "_map_updog.txt")
-maps_tab <- create_maps_report(updog.aval)
-write_report(maps_tab, out_name)
+metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
+for (metodology in names(metodologies)){
+    error_aval <- metodologies[[metodology]]
+    ## Filters
+    out_name <- paste0(method_name, "_filters_", metodology, ".txt")
+    filters_tab <- create_filters_report(error_aval)
+    write_report(filters_tab, out_name)
 
-## Errors info
-out_name <- paste0(method_name, "_error_updog.txt")
-errors_tab <- create_errors_report(updog.aval, gab)
-write_report(errors_tab, out_name)
+    ## Maps updog
+    out_name <- paste0(method_name, "_map_", metodology, ".txt")
+    maps_tab <- create_maps_report(error_aval, tot_mks)
+    write_report(maps_tab, out_name)
 
-
-# Supermassa
-supermassa.aval <- supermassa4onemap::supermassa_error(vcfR.object=vcf,
-                                    onemap.object = df,
-                                    vcf.par = "AD",
-                                    parent1 = "P1",
-                                    parent2 = "P2",
-                                    f1="F1",
-                                    recovering = TRUE,
-                                    mean_phred = 20,
-                                    cores = 3,
-                                    depths = NULL)
-
-## Filters
-out_name <- paste0(method_name, "_filters_supermassa.txt")
-filters_tab <- create_filters_report(supermassa.aval)
-write_report(filters_tab, out_name)
-
-## Maps supermassa
-out_name <- paste0(method_name, "_map_supermassa.txt")
-maps_tab <- create_maps_report(supermassa.aval)
-write_report(maps_tab, out_name)
-
-## Errors info
-out_name <- paste0(method_name, "_error_supermassa.txt")
-errors_tab <- create_errors_report(supermassa.aval, gab)
-write_report(errors_tab, out_name)
-
-# PolyRAD
-polyrad.aval <- polyRAD_error(vcf=vcf_file, 
-                            onemap.obj = df,
-                            parent1="P1",
-                            parent2="P2",
-                            f1="F1",
-                            crosstype="f2 intercross")
-
-## Filters
-out_name <- paste0(method_name, "_filters_polyrad.txt")
-filters_tab <- create_filters_report(polyrad.aval)
-write_report(filters_tab, out_name)
-
-## Maps supermassa
-out_name <- paste0(method_name, "_map_polyrad.txt")
-maps_tab <- create_maps_report(polyrad.aval)
-write_report(maps_tab, out_name)
-
-## Errors info
-out_name <- paste0(method_name, "_error_polyrad.txt")
-errors_tab <- create_errors_report(polyrad.aval, gab)
-write_report(errors_tab, out_name)
+    ## Errors info
+    out_name <- paste0(method_name, "_error_", metodology, ".txt")
+    errors_tab <- create_errors_report(error_aval, gab)
+    write_report(errors_tab, out_name)
+}
