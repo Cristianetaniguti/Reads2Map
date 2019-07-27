@@ -17,7 +17,7 @@ workflow SimulateF2 {
 
   call CreatePedigreeSimulatorInputs {
     input:
-      seed=family.seed,
+      seed = family.seed,
       snps = GenerateAlternativeGenome.snps,
       indels = GenerateAlternativeGenome.indels,
       cmBymb = family.cmBymb,
@@ -412,11 +412,8 @@ task SimulateIlluminaReads {
       --coverage=100 \
       --insert-len-mean=150 \
       --output-prefix=~{sampleName} \
-      --threads=2
-
-    /cleanFastq/fixFastq "~{sampleName}_100_150_1.fq" "~{sampleName}_100_150_1_fix.fq" 
-    /cleanFastq/fixFastq "~{sampleName}_100_150_2.fq" "~{sampleName}_100_150_2_fix.fq"
-    
+      --output-file-type=gzip \
+      --threads=2    
   >>>
 
   runtime {
@@ -425,8 +422,8 @@ task SimulateIlluminaReads {
   }
 
   output {
-    File reads1 = "${sampleName}_100_150_1_fix.fq"
-    File reads2 = "${sampleName}_100_150_2_fix.fq"
+    File reads1 = "${sampleName}_100_150_1.fq.gz"
+    File reads2 = "${sampleName}_100_150_2.fq.gz"
   }
 }
 

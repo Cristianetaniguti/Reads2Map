@@ -15,7 +15,6 @@
     "cmBymb": 4.63,
     "samples": 47,
     "enzyme":"G*CWGC",
-    "seed": 244,
-    "methods": ["gatk", "freebayes"]
+    "seed": 244
   }
 }

@@ -17,5 +17,4 @@ struct Family {
   Int seed
   Int samples
   String enzyme
-  Array[String] methods
 }
