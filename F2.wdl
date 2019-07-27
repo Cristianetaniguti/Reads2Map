@@ -65,7 +65,6 @@ workflow SimulateF2 {
 
     call SimulateIlluminaReads {
       input:
-        seed=family.seed,
         maternal_trim = SimulateRADseq.maternal_trim,
         paternal_trim = SimulateRADseq.paternal_trim,
         sampleName = sampleName
@@ -403,7 +402,6 @@ task SimulateIlluminaReads {
     File maternal_trim
     File paternal_trim
     String sampleName
-    Int seed
   }
 
   command <<<
