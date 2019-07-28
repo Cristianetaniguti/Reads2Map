@@ -204,7 +204,7 @@ task CreatePedigreeSimulatorInputs {
   >>>
 
   runtime {
-    docker: "miniconda-alpine:latest"
+    docker: "taniguti/miniconda-alpine"
   }
 
   output {
