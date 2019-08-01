@@ -1,522 +1,167 @@
-###########
-# Packages
-###########
-
-library(vcfR)
-library(polyRAD)
-library(updog)
 library(supermassa4onemap)
+library(onemap)
+library(updog)
+library(reshape2)
+library(vcfR)
 library(doParallel)
 
-####################################
-# Testing for outcrossing species
-####################################
+args = commandArgs(trailingOnly=TRUE)
 
-###########
-# Using GQ
-###########
+method_name <- "freebayes"
+tot_mks_file <- "tot_mks.txt"
+simu_vcf_file <- "simu.vcf"
+vcf_file <- "freebayes.recode.vcf"
 
-vcf.out <- read.vcfR("vcf_example_out.vcf")
-out <- onemap_read_vcfR(vcfR.object = vcf.out, cross = "outcross", 
-                        parent1 = "P1", parent2 = "P2")
-
-segr <- test_segregation(out)
-plot(segr)
-
-twopts <- rf_2pts(out)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1  <- make_seq(lgs,2)
-map.lg1.1 <- map(lg1)
-
-genotypes_errors <- extract_depth(vcfR.object = vcf.out, onemap.object = out, vcf.par = "GQ", parent1 = "P1", 
-                                 parent2 = "P2", mean_phred = 20, recovering = FALSE)
-
-new.errors <- create_probs(out, 
-                           genotypes_errors = genotypes_errors, 
-                           global_error = NULL, 
-                           genotypes_probs = NULL)
-
-twopts <- rf_2pts(new.errors)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1  <- make_seq(lgs,2)
-map.lg1.1 <- map(lg1)
-
-########
-# updog
-########
-
-old.updog <- updog_error(vcfR.object = vcf.out, onemap.object = out, vcf.par = "AD", parent1 = "P1", 
-                         parent2 = "P2", recovering = TRUE, mean_phred = 20, cores = 3, 
-                         depths = NULL)
-
-segr <- test_segregation(old.updog)
-plot(segr)
-
-twopts <- rf_2pts(old.updog)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1 <- make_seq(lgs,2)
-map.lg1 <- map(lg1)
-
-##########
-# PolyRAD
-##########
-
-poly.test <- VCF2RADdata("vcf_example_out.vcf", phaseSNPs = FALSE, 
-                         min.ind.with.reads = 0,
-                         min.ind.with.minor.allele = 0)
-
-
-poly.test <- SetDonorParent(poly.test, "P1")
-poly.test <- SetRecurrentParent(poly.test, "P2")
-
-mydata2 <- PipelineMapping2Parents(poly.test, 
-                                   freqAllowedDeviation = 0.06,
-                                   useLinkage = FALSE,
-                                   minLikelihoodRatio = 2)
-
-Export_MAPpoly(mydata2, "test")
-
-genotypes <- read.table("test", skip=12)
-
-pos <- sapply(strsplit(as.character(genotypes$V1), split = "_"),"[",1)
-
-pos.onemap <- colnames(out$geno)
-genotypes <- genotypes[which(pos%in%pos.onemap),]
-keep.mks <- which(pos.onemap%in%pos)
-
-# Atualizar geno
-out$geno <- out$geno[,keep.mks]
-
-new.geno <- vector()
-for(i in 1:dim(genotypes)[1]){
-  if(which.max(genotypes[i,3:5]) == 3){
-    new.geno[i] <- 3
-  }else if(which.max(genotypes[i,3:5]) == 2){
-    new.geno[i] <- 2
-  } else if(which.max(genotypes[i,3:5]) == 1){
-    new.geno[i] <- 1
-  }
+# Functions
+create_filters_report <- function(onemap_obj) {
+  segr <- onemap::test_segregation(onemap_obj)
+  distorted <- onemap::select_segreg(segr, distorted = T)
+  bins <- onemap::find_bins(onemap_obj)
+  total_variants <- onemap_obj[[3]]
+  filters_tab <- data.frame("n_markers"= total_variants, 
+                            "distorted_markers"=length(distorted), 
+                            "redundant_markers"=total_variants - length(bins))
+  return(filters_tab)
 }
 
-new.geno <- matrix(new.geno,nrow = out$n.ind, ncol = length(keep.mks) )
-colnames(new.geno) <- colnames(out$geno)
-rownames(new.geno) <- rownames(out$geno)
-
-# Mudando a ordem
-genotypes <- genotypes[order(genotypes$V2),]
-
-# Quanto mudou
-sum(new.geno == out$geno)/length(new.geno)
-
-out$geno <- new.geno
-# Remover marcadores
-out$n.mar <- length(keep.mks)
-out$segr.type <- out$segr.type[keep.mks]
-out$segr.type.num <- out$segr.type.num[keep.mks]
-out$CHROM <- out$CHROM[keep.mks]
-out$POS <- out$POS[keep.mks]
-
-polyrad.one <- create_probs(onemap.obj = out, genotypes_probs =  genotypes[,3:5])
-head(polyrad.one$error)
-
-twopts <- rf_2pts(polyrad.one)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg2 <- map(lg2)
-
-
-####################################
-# Testing for f2 populations
-####################################
-# The example was without the F1
-fix.f2 <- read.table("vcf_example_f2.vcf")
-head(fix.f2)
-new.f2 <- cbind(fix.f2[,1:11], rep("0/1:7,4:11:99:111,0,219",length(fix.f2[,1])), fix.f2[,12:dim(fix.f2)[2]])
-write.table(new.f2, file = "new.f2", quote = F, sep = "\t", col.names = F, row.names = F)
-
-f2.vcf <- read.vcfR("vcf_example_f2.new.vcf")
-
-###########
-# Using GQ
-###########
-
-f2 <- onemap_read_vcfR(vcfR.object = f2.vcf, cross = "f2 intercross", parent1 = "P1", parent2 = "P2", f1 = "F1")
-
-segr <- test_segregation(f2)
-plot(segr)
-
-twopts <- rf_2pts(f2)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1  <- make_seq(lgs,2)
-map.lg1.1 <- map(lg1)
-
-genotypes_errors <- extract_depth(vcfR.object = f2.vcf, onemap.object = f2, vcf.par = "GQ", parent1 = "P1", 
-                                  parent2 = "P2", f1 = "F1", mean_phred = 20, recovering = FALSE)
-
-new.errors <- create_probs(f2, 
-                           genotypes_errors = genotypes_errors, 
-                           global_error = NULL, 
-                           genotypes_probs = NULL)
-
-twopts <- rf_2pts(new.errors)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1  <- make_seq(lgs,2)
-map.lg1.1 <- map(lg1)
-
-########
-# updog
-########
-
-old.updog <- updog_error(vcfR.object = f2.vcf, onemap.object = f2, vcf.par = "AD", parent1 = "P1", 
-                         parent2 = "P2", recovering = TRUE, mean_phred = 20, cores = 3, 
-                         depths = NULL)
-
-segr <- test_segregation(old.updog)
-plot(segr)
-
-twopts <- rf_2pts(old.updog)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1 <- make_seq(lgs,2)
-map.lg1 <- map(lg1)
-
-##########
-# PolyRAD
-##########
-
-poly.test <- VCF2RADdata("vcf_example_f2.new.vcf", phaseSNPs = FALSE, 
-                         min.ind.with.reads = 0,
-                         min.ind.with.minor.allele = 0)
-
-
-poly.test <- SetDonorParent(poly.test, "F1")
-poly.test <- SetRecurrentParent(poly.test, "F1")
-
-mydata2 <- PipelineMapping2Parents(poly.test, 
-                                   freqAllowedDeviation = 0.06,
-                                   useLinkage = FALSE)
-
-Export_MAPpoly(mydata2, "test")
-
-genotypes <- read.table("test", skip=12)
-
-pos <- sapply(strsplit(as.character(genotypes$V1), split = "_"),"[",1)
-
-pos.onemap <- colnames(f2$geno)
-genotypes <- genotypes[which(pos%in%pos.onemap),]
-keep.mks <- which(pos.onemap%in%pos)
-
-# Remove parents
-genotypes <- genotypes[-which(genotypes[,2]%in%"P1"),]
-genotypes <- genotypes[-which(genotypes[,2] %in%"P2"),]
-
-# Atualizar geno
-f2$geno <- f2$geno[,keep.mks]
-
-new.geno <- vector()
-for(i in 1:dim(genotypes)[1]){
-  if(which.max(genotypes[i,3:5]) == 3){
-    new.geno[i] <- 3
-  }else if(which.max(genotypes[i,3:5]) == 2){
-    new.geno[i] <- 2
-  } else if(which.max(genotypes[i,3:5]) == 1){
-    new.geno[i] <- 1
-  }
+create_maps_report <- function(onemap_obj, tot_mks) {
+  assign("onemap_obj", onemap_obj, envir=.GlobalEnv)
+  twopts <- rf_2pts(onemap_obj)
+  assign("twopts", twopts, envir=.GlobalEnv)
+  
+  true_mks <- which(onemap_obj[[9]] %in% tot_mks[,2])
+  seq_true <- make_seq(twopts, true_mks)
+  map_df <- map(seq_true)
+  map_info <- data.frame("mk.name"= colnames(onemap_obj[[1]])[map_df[[1]]], 
+                         "pos" = onemap_obj[[9]][map_df[[1]]],
+                         "rf" = c(0,cumsum(haldane(map_df[[3]]))))
+  return (map_info)
 }
 
-new.geno <- matrix(new.geno,nrow = f2$n.ind, ncol = length(keep.mks))
-colnames(new.geno) <- colnames(f2$geno)
-rownames(new.geno) <- rownames(f2$geno)
 
-# Mudando a ordem
-genotypes <- genotypes[order(genotypes$V2),]
-
-# Quanto mudou
-sum(new.geno == f2$geno)/length(new.geno)
-
-f2$geno <- new.geno
-
-# Remover marcadores
-f2$n.mar <- length(keep.mks)
-f2$segr.type <- f2$segr.type[keep.mks]
-f2$segr.type.num <- f2$segr.type.num[keep.mks]
-f2$CHROM <- f2$CHROM[keep.mks]
-f2$POS <- f2$POS[keep.mks]
-
-polyrad.one <- create_probs(onemap.obj = f2, genotypes_probs =  genotypes[,3:5])
-head(polyrad.one$error)
-
-twopts <- rf_2pts(polyrad.one)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg2 <- map(lg2)
-
-######################################
-# Testing with GATK simulated results
-######################################
-
-###########
-# Using GQ
-###########
-
-f2.vcf <- read.vcfR("family1_gatk.vcf")
-
-f2 <- onemap_read_vcfR(vcfR.object = f2.vcf, cross = "f2 intercross", parent1 = "P1", parent2 = "P2", f1 = "F1")
-
-segr <- test_segregation(f2)
-plot(segr)
-
-twopts <- rf_2pts(f2)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1  <- make_seq(lgs,1)
-map.lg1.1 <- map(lg1)
-
-genotypes_errors <- extract_depth(vcfR.object = f2.vcf, onemap.object = f2, vcf.par = "GQ", parent1 = "P1", 
-                                  parent2 = "P2", f1 = "F1", mean_phred = 20, recovering = FALSE)
-
-new.errors <- create_probs(f2, 
-                           genotypes_errors = genotypes_errors, 
-                           global_error = NULL, 
-                           genotypes_probs = NULL)
-
-twopts <- rf_2pts(new.errors)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1  <- make_seq(lgs,1)
-map.lg1.1 <- map(lg1)
-
-########
-# updog
-########
-
-old.updog <- updog_error(vcfR.object = f2.vcf, onemap.object = f2, vcf.par = "AD", parent1 = "P1", 
-                         parent2 = "P2",f1 = "F1", recovering = TRUE, mean_phred = 20, cores = 3, 
-                         depths = NULL)
-
-segr <- test_segregation(old.updog) # Verificar pq o teste ta zuado!
-plot(segr)
-
-twopts <- rf_2pts(old.updog)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1 <- make_seq(lgs,1)
-map.lg1 <- map(lg1)
-
-##########
-# PolyRAD
-##########
-
-poly.onemap <- polyRAD_error(vcf="family1_gatk.vcf", 
-                             onemap.obj = f2,
-                             parent1="P1",
-                             parent2="P2",
-                             f1="F1",
-                             crosstype="f2 intercross")
-
-
-twopts <- rf_2pts(poly.onemap)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg1.poly <- map(lg2)
-
-# fazer teste com exemplos
-
-data("vcf_example_f2")
-segr <- test_segregation(vcf_example_f2)
-plot(segr)
-test.df <- create_probs(vcf_example_f2)
-twopts <- rf_2pts(test.df)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg2 <- map(lg2)
-
-data("vcf_example_riself")
-segr <- test_segregation(vcf_example_riself)
-plot(segr)
-
-test.df <- create_probs(vcf_example_riself)
-twopts <- rf_2pts(test.df)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg2 <- map(lg2)
-
-data("vcf_example_f2")
-test.df <- create_probs(vcf_example_f2)
-twopts <- rf_2pts(test.df)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg2 <- map(lg2)
-
-data("vcf_example_bc")
-test.df <- create_probs(vcf_example_bc)
-twopts <- rf_2pts(test.df)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,2)
-map.lg2 <- map(lg2)
-
-
-###############################
-# Simulations to test the code
-###############################
-
-run_pedsim(chromosome = c("Chr10"), n.marker = c(100), tot.size.cm = c(100), centromere = c(50),
-           n.ind = 200, mk.types = c("A.H.B"), n.types = c(100), pop = "F2", path.pedsim = "~/Programs/PedigreeSim/",
-           name.mapfile = "mapfile.map", name.founderfile="founderfile.gen", name.chromfile="sim.chrom", name.parfile="sim.par",
-           name.out="sim_out.f2")
-
-pedsim2vcf(inputfile="sim_out.f2_genotypes.dat", 
-           map.file="mapfile.map", 
-           chrom.file="sim.chrom",
-           out.file="out.f2.vcf", 
-           miss.perc = 0, 
-           counts=TRUE, 
-           mean.depth=50, 
-           p.mean.depth = 50, 
-           disper.par=2, 
-           chr.mb= 10, 
-           method = "updog", 
-           mean.phred=20, 
-           bias=1, 
-           od=0.001,
-           pos=NULL,
-           haplo.ref=NULL,
-           chr=NULL,
-           phase = FALSE)
-
-
-f2.vcf <- read.vcfR("out.f2.vcf")
-
-f2 <- onemap_read_vcfR(vcfR.object = f2.vcf, cross = "f2 intercross", parent1 = "P1", parent2 = "P2", f1 = "F1")
-
-########
-# updog
-########
-
-old.updog <- updog_error(vcfR.object = f2.vcf, onemap.object = f2, vcf.par = "AD", parent1 = "P1", 
-                         parent2 = "P2",f1 = "F1", recovering = TRUE, mean_phred = 20, cores = 3, 
-                         depths = NULL)
-
-segr <- test_segregation(old.updog) 
-plot(segr)
-
-twopts <- rf_2pts(old.updog)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg1 <- make_seq(lgs,1)
-map.lg1 <- map(lg1)
-
-##########
-# PolyRAD
-##########
-
-poly.test <- VCF2RADdata("out.f2.vcf", phaseSNPs = FALSE, 
-                         min.ind.with.reads = 0,
-                         min.ind.with.minor.allele = 0)
-
-
-poly.test <- SetDonorParent(poly.test, "F1")
-poly.test <- SetRecurrentParent(poly.test, "F1")
-
-mydata2 <- PipelineMapping2Parents(poly.test, 
-                                   freqAllowedDeviation = 0.06,
-                                   useLinkage = FALSE)
-
-Export_MAPpoly(mydata2, "test")
-
-genotypes <- read.table("test", skip=12)
-
-any(is.na(genotypes[,3:5]))
-
-pos <- sapply(strsplit(as.character(genotypes$V1), split = "_"),"[",1)
-
-pos.onemap <- colnames(f2$geno)
-genotypes <- genotypes[which(pos%in%pos.onemap),]
-keep.mks <- which(pos.onemap%in%pos)
-
-# Remove parents
-genotypes <- genotypes[-which(genotypes[,2]%in%"P1"),]
-genotypes <- genotypes[-which(genotypes[,2] %in%"P2"),]
-
-# Atualizar geno
-f2$geno <- f2$geno[,keep.mks]
-
-new.geno <- vector()
-for(i in 1:dim(genotypes)[1]){
-  if(which.max(genotypes[i,3:5]) == 3){
-    new.geno[i] <- 3
-  }else if(which.max(genotypes[i,3:5]) == 2){
-    new.geno[i] <- 2
-  } else if(which.max(genotypes[i,3:5]) == 1){
-    new.geno[i] <- 1
-  }
+create_errors_report <- function(onemap_obj, gab) {
+  pos <- which(gab[[9]] %in% onemap_obj[[9]])
+  pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
+  gab.pos <- gab[[9]][pos]
+  gab.geno <- gab[[1]][,pos]
+  colnames(gab.geno) <- gab.pos
+  gab.geno <-reshape2::melt(gab.geno)
+  colnames(gab.geno) <- c("MK", "POS", "gabGT")
+  meth.geno <- onemap_obj[[1]][,pos.inv]
+  meth.error <- onemap_obj[[11]][pos.inv + rep(c(0:(onemap_obj[[2]]-1))*onemap_obj[[3]], each=length(pos.inv)),]
+  meth.pos <- onemap_obj[[9]][pos.inv]
+  colnames(meth.geno) <- meth.pos
+  meth.geno <- reshape2::melt(meth.geno)
+  colnames(meth.geno) <- c("MK", "POS", "methGT")
+  meth.error <- cbind(rownames(meth.error), meth.error)
+  error.info <- merge(gab.geno, meth.geno)
+  error.info <- error.info[order(error.info[,1], error.info[,2]),]
+  error.info <- cbind(error.info, meth.error)
+  return (error.info)
 }
 
-new.geno <- matrix(new.geno,nrow = f2$n.ind, ncol = length(keep.mks))
-colnames(new.geno) <- colnames(f2$geno)
-rownames(new.geno) <- rownames(f2$geno)
+write_report <- function(filters_tab, out_name) {
+  write.table(filters_tab, file=out_name, row.names=F, quote=F)
+}
 
-# Mudando a ordem
-genotypes <- genotypes[order(genotypes$V2),]
+## KNOWN VARIANTS
+tot_mks <- read.table(tot_mks_file)
 
-# Quanto mudou
-1- sum(new.geno == f2$geno)/length(new.geno)
+# READING DATA FROM SIMULATED POPULATION
+simu <- read.vcfR(simu_vcf_file)
+gab <- onemap_read_vcfR(vcfR.object=simu,
+                        cross="f2 intercross",
+                        parent1="P1",
+                        parent2="P2",
+                        f1="F1")
 
-f2$geno <- new.geno
+## READING FINAL VCF FROM PIPELINE
+vcf <- read.vcfR(vcf_file)
+df <- onemap_read_vcfR(vcfR.object=vcf, 
+                       cross="f2 intercross", 
+                       parent1="P1", 
+                       parent2="P2", 
+                       f1="F1")
 
-# Remover marcadores
-f2$n.mar <- length(keep.mks)
-f2$segr.type <- f2$segr.type[keep.mks]
-f2$segr.type.num <- f2$segr.type.num[keep.mks]
-f2$CHROM <- f2$CHROM[keep.mks]
-f2$POS <- f2$POS[keep.mks]
+## FILTERS REPORT
+out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
+filters_tab <- create_filters_report(df)
+write_report(filters_tab, out_name)
 
-polyrad.one <- create_probs(onemap.obj = f2, genotypes_probs =  genotypes[,3:5])
-head(polyrad.one$error)
+## MAPS REPORT - DF
+out_name <- paste0(method_name, "_map_df.txt")
+maps_tab <- create_maps_report(df, tot_mks)
+write_report(maps_tab, out_name)
 
-twopts <- rf_2pts(polyrad.one)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,1)
-map.lg1.poly <- map(lg2)
+# MAPS REPORT - GQ
+aval.gq <- extract_depth(vcfR.object=vcf,
+                         onemap.object=df,
+                         vcf.par="GQ",
+                         parent1="P1",
+                         parent2="P2",
+                         f1="F1",
+                         recovering=FALSE)
 
-#############
-# Supermassa
-#############
+aval.gq <- create_probs(df, genotypes_errors=aval.gq)
 
-f2.vcf <- read.vcfR("out.f2.vcf")
+out_name <- paste0(method_name, "_map_GQ.txt")
+maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
+write_report(maps_gq_tab, out_name)
 
-f2 <- onemap_read_vcfR(vcfR.object = f2.vcf, cross = "f2 intercross", parent1 = "P1", parent2 = "P2", f1 = "F1")
+out_name <- paste0(method_name, "_error_info_GQ.txt")
+errors_tab <- create_errors_report(aval.gq, gab)
+write_report(errors_tab, out_name)
 
 
-supermassa.aval <- supermassa_error(vcfR.object=f2.vcf,
-                                    onemap.object = f2,
-                                    vcf.par = "AD",
-                                    parent1 = "P1",
-                                    parent2 = "P2",
-                                    f1="F1",
-                                    recovering = TRUE,
-                                    mean_phred = 20,
-                                    cores = 3,
-                                    depths = NULL)
+# OTHER TOOLS
+updog.aval <- updog_error(
+  vcfR.object=vcf,
+  onemap.object=df,
+  vcf.par="AD",
+  parent1="P1",
+  parent2="P2",
+  f1="F1",
+  recovering=TRUE,
+  mean_phred=20,
+  cores=3,
+  depths=NULL)
 
-supermassa.aval <- create_probs(supermassa.aval, genotypes_errors = supermassa.aval$error)
+supermassa.aval <- supermassa4onemap::supermassa_error(
+  vcfR.object=vcf,
+  onemap.object = df,
+  vcf.par = "AD",
+  parent1 = "P1",
+  parent2 = "P2",
+  f1="F1",
+  recovering = TRUE,
+  mean_phred = 20,
+  cores = 3,
+  depths = NULL)
 
-twopts <- rf_2pts(supermassa.aval)
-seq1 <- make_seq(twopts, "all")
-lgs <- group(seq1)
-lg2 <- make_seq(lgs,1)
-map.lg1.super <- map(lg2)
+polyrad.aval <- polyRAD_error(
+  vcf=vcf_file, 
+  onemap.obj=df,
+  parent1="P1",
+  parent2="P2",
+  f1="F1",
+  crosstype="f2 intercross")
+
+metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
+for (metodology in names(metodologies)){
+  error_aval <- metodologies[[metodology]]
+  ## Filters
+  out_name <- paste0(method_name, "_filters_", metodology, ".txt")
+  filters_tab <- create_filters_report(error_aval)
+  write_report(filters_tab, out_name)
+  
+  ## Maps updog
+  out_name <- paste0(method_name, "_map_", metodology, ".txt")
+  maps_tab <- create_maps_report(error_aval, tot_mks)
+  write_report(maps_tab, out_name)
+  
+  ## Errors info
+  out_name <- paste0(method_name, "_error_", metodology, ".txt")
+  errors_tab <- create_errors_report(error_aval, gab)
+  write_report(errors_tab, out_name)
+}
 

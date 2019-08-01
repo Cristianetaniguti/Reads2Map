@@ -200,7 +200,7 @@ task CreatePedigreeSimulatorInputs {
   }
 
   command <<<
-    python /opt/scripts/pedsim_files.py --indels ~{indels} --snps ~{snps} --reference ~{ref} --seed ~{seed}
+    python /opt/scripts/pedsim_files.py --indels ~{indels} --snps ~{snps} --reference ~{ref} --seed ~{seed} --cmbymb ~{cmBymb}
   >>>
 
   runtime {
@@ -857,7 +857,7 @@ task all_maps {
           maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
           write_report(maps_gq_tab, out_name)
 
-          out_name <- paste0(method_name, "_error_info_GQ.txt")
+          out_name <- paste0(method_name, "_error_GQ.txt")
           errors_tab <- create_errors_report(aval.gq, gab)
           write_report(errors_tab, out_name)
 
@@ -929,7 +929,7 @@ task all_maps {
     File map_GQ = "~{methodName}_map_GQ.txt"
     File map_polyrad = "~{methodName}_map_polyrad.txt"
     File map_supermassa = "~{methodName}_map_supermassa.txt"
-    File error_info_GQ = "~{methodName}_error_info_GQ.txt"
+    File error_info_GQ = "~{methodName}_error_GQ.txt"
     File error_info_updog = "~{methodName}_error_updog.txt"
     File error_info_polyrad = "~{methodName}_error_polyrad.txt"
     File error_info_supermassa = "~{methodName}_error_supermassa.txt"

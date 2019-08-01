@@ -31,9 +31,9 @@ def produce_vcf_like_data(snps, indels, reference):
     final_snps.columns = ["chr", "pos", "ref", "alt"]
     return pd.concat([final_indels, final_snps], ignore_index=True).sort_values(by=['chr', 'pos'])
 
-def produce_markers_list(variants):
+def produce_markers_list(variants, cmbymb):
     markers_names = ["M%03d" % i for i in range(1, variants.shape[0] + 1)]
-    markers_positions = list(variants.apply(lambda row: row['pos']/1000000 * 4.63, axis=1))
+    markers_positions = list(variants.apply(lambda row: row['pos']/1000000 * cmbymb, axis=1))
     markers = pd.DataFrame({'marker':markers_names, 'chromosome': variants["chr"].tolist(), 'position': markers_positions})
     return markers
 
@@ -79,6 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('--snps', required=True, help='Pirs list of snp variants')
     parser.add_argument('--reference', required=True, help='Fasta sequence of the reference chromosome')
     parser.add_argument('--seed', required=True, help='Seed to be applied on random steps')
+    parser.add_argument('--cmbymb', required=True, type=float, help='Mean recombination rate for the specie')
     args = parser.parse_args()
 
     # outputs
@@ -100,7 +101,7 @@ if __name__ == "__main__":
         raise ValueError("We only simulate one chromosome each time")
     variants.reset_index()[["chr", "pos", "ref", "alt"]].to_csv(variants_file, sep="\t", quoting=csv.QUOTE_NONNUMERIC, index=False, header=False)
 
-    markers = produce_markers_list(variants)
+    markers = produce_markers_list(variants, args.cmbymb)
     markers[["marker", "chromosome", "position"]].to_csv(map_file, sep="\t", index=False)
     
     founders = produce_founders_individuals(markers, variants)
