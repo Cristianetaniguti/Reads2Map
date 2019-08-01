@@ -204,7 +204,6 @@ p
 As distâncias estimadas do mapa deveriam ser as mesmas das simuladas, quanto mais perto do 0 o valor, melhor. O primeiro número sempre vai ser 0 porque eu normalizei.
 
 ```{r}
-str(df.diff.dis)
 df.melt.diff.dis <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis[[1]]))), 
                                           rep("freebayes", length(unlist(df.diff.dis[[2]])))), 
                                genoty = c(rep("GQ", length(df.diff.dis[[1]][[1]])), 
