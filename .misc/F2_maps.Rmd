@@ -140,7 +140,7 @@ for(i in 1:length(method)){
   df.depths <- data.frame(ind = gt$Var2, gt = gt$value, alt = alt$value, ref=ref$value)
   
   p[[i]] <- ggplot(df.depths, aes(x=ref, y=alt, color=as.factor(gt))) + geom_point(size=0.5) +
-    labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") 
+    labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,200) + ylim(0,200)
   
   for(j in 1:length(meth.geno)){
     # Map distance
