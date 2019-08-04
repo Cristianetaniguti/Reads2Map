@@ -11,39 +11,40 @@ workflow SimulateF2 {
     
   call GenerateAlternativeGenome {
     input:
-    seed=family.seed,
+    seed       = family.seed,
     ref_genome = references.ref_fasta
   }
 
   call CreatePedigreeSimulatorInputs {
     input:
-      seed = family.seed,
-      snps = GenerateAlternativeGenome.snps,
-      indels = GenerateAlternativeGenome.indels,
-      cmBymb = family.cmBymb,
-      ref = references.ref_fasta,
+      seed    = family.seed,
+      snps    = GenerateAlternativeGenome.snps,
+      indels  = GenerateAlternativeGenome.indels,
+      cmBymb  = family.cmBymb,
+      samples = family.samples,
+      ref     = references.ref_fasta,
       ref_fai = references.ref_fasta_index
   }
 
   call RunPedigreeSimulator {
     input:
-      map_file = CreatePedigreeSimulatorInputs.mapfile,
+      map_file     = CreatePedigreeSimulatorInputs.mapfile,
       founder_file = CreatePedigreeSimulatorInputs.founderfile,
-      chrom_file = CreatePedigreeSimulatorInputs.chromfile,
-      par_file = CreatePedigreeSimulatorInputs.parfile
+      chrom_file   = CreatePedigreeSimulatorInputs.chromfile,
+      par_file     = CreatePedigreeSimulatorInputs.parfile
   }
 
   call PedgreeSimulator2vcf {
     input:
       genotypes_dat = RunPedigreeSimulator.genotypes_dat,
-      map_file = CreatePedigreeSimulatorInputs.mapfile,
-      chrom_file = CreatePedigreeSimulatorInputs.chromfile,
-      tot_mks = CreatePedigreeSimulatorInputs.tot_mks
+      map_file      = CreatePedigreeSimulatorInputs.mapfile,
+      chrom_file    = CreatePedigreeSimulatorInputs.chromfile,
+      tot_mks       = CreatePedigreeSimulatorInputs.tot_mks
   }
 
   call GenerateSampleNames {
     input: 
-      samples = family.samples
+      simulated_vcf = PedgreeSimulator2vcf.simu_vcf
   }
 
   scatter (sampleName in GenerateSampleNames.names) {
@@ -52,13 +53,13 @@ workflow SimulateF2 {
       input:
         sampleName = sampleName,
         ref_genome = references.ref_fasta,
-        simu_vcf = PedgreeSimulator2vcf.simu_vcf
+        simu_vcf   = PedgreeSimulator2vcf.simu_vcf
     }
 
     call SimulateRADseq {
       input:
-        enzyme = family.enzyme,
-        sampleName = sampleName,
+        enzyme           = family.enzyme,
+        sampleName       = sampleName,
         maternal_genomes = RunVcf2diploid.maternal_genomes,
         paternal_genomes = RunVcf2diploid.paternal_genomes
     }
@@ -67,75 +68,75 @@ workflow SimulateF2 {
       input:
         maternal_trim = SimulateRADseq.maternal_trim,
         paternal_trim = SimulateRADseq.paternal_trim,
-        sampleName = sampleName
+        sampleName    = sampleName
     }
 
     call RunBwaAlignment {
       input:
         sampleName = sampleName,
-        reads1 = SimulateIlluminaReads.reads1,
-        reads2 = SimulateIlluminaReads.reads2,
-        ref = references.ref_fasta,
-        geno_amb = references.ref_amb,
-        geno_ann = references.ref_ann,
-        geno_bwt = references.ref_bwt,
-        geno_pac = references.ref_pac,
-        geno_sa = references.ref_sa
+        reads1     = SimulateIlluminaReads.reads1,
+        reads2     = SimulateIlluminaReads.reads2,
+        ref        = references.ref_fasta,
+        geno_amb   = references.ref_amb,
+        geno_ann   = references.ref_ann,
+        geno_bwt   = references.ref_bwt,
+        geno_pac   = references.ref_pac,
+        geno_sa    = references.ref_sa
     }
 
     call AddAlignmentHeader {
       input:
         sampleName = sampleName,
-        bam_file = RunBwaAlignment.bam_file,
-        bam_idx = RunBwaAlignment.bam_idx
+        bam_file   = RunBwaAlignment.bam_file,
+        bam_idx    = RunBwaAlignment.bam_idx
     }
 
     call HaplotypeCallerERC {
       input:
-        ref = references.ref_fasta,
-        geno_fai = references.ref_fasta_index,
+        ref        = references.ref_fasta,
+        geno_fai   = references.ref_fasta_index,
         sampleName = sampleName,
-        bam_rg = AddAlignmentHeader.bam_rg,
+        bam_rg     = AddAlignmentHeader.bam_rg,
         bam_rg_idx = AddAlignmentHeader.bam_rg_index,
-        geno_dict = references.ref_dict
+        geno_dict  = references.ref_dict
     }
   }
 
   call CreateGatkDatabase {
     input:
       path_gatkDatabase = "my_database",
-      GVCFs = HaplotypeCallerERC.GVCF,
-      GVCFs_idx = HaplotypeCallerERC.GVCF_idx
+      GVCFs             = HaplotypeCallerERC.GVCF,
+      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx
   }
 
   call GenotypeGVCFs {
     input:
-      workspace_tar = CreateGatkDatabase.workspace_tar,
+      workspace_tar       = CreateGatkDatabase.workspace_tar,
       output_vcf_filename = family.name + "_gatk.vcf",
-      ref = references.ref_fasta,
-      geno_fai = references.ref_fasta_index,
-      geno_dict = references.ref_dict
+      ref                 = references.ref_fasta,
+      geno_fai            = references.ref_fasta_index,
+      geno_dict           = references.ref_dict
   }
 
   call RunFreebayes {
     input:
       freebayesVCFname = family.name + "_freebayes.vcf",
-      ref = references.ref_fasta,
-      bam_rg = AddAlignmentHeader.bam_rg
+      ref              = references.ref_fasta,
+      bam_rg           = AddAlignmentHeader.bam_rg
   }
 
   call VcftoolsApplyFilters{
     input:
       freebayesVCF = RunFreebayes.freebayesVCF,
-      gatkVCF = GenotypeGVCFs.gatkVCF
+      gatkVCF      = GenotypeGVCFs.gatkVCF
   }
 
   call CalculateVcfMetrics {
     input:
-      freebayesVCF = VcftoolsApplyFilters.freebayesVCF_F,
-      gatkVCF = VcftoolsApplyFilters.gatkVCF_F,
-      tot_mks = CreatePedigreeSimulatorInputs.tot_mks,
-      map_file = CreatePedigreeSimulatorInputs.mapfile,
+      freebayesVCF  = VcftoolsApplyFilters.freebayesVCF_F,
+      gatkVCF       = VcftoolsApplyFilters.gatkVCF_F,
+      tot_mks       = CreatePedigreeSimulatorInputs.tot_mks,
+      map_file      = CreatePedigreeSimulatorInputs.mapfile,
       maternal_trim = SimulateRADseq.maternal_trim
   }
 
@@ -146,23 +147,23 @@ workflow SimulateF2 {
   scatter (vcf in program_and_vcf){
     call all_maps{
       input:
-        tot_mks = CreatePedigreeSimulatorInputs.tot_mks,
-        simu_vcf = PedgreeSimulator2vcf.simu_vcf,
+        tot_mks    = CreatePedigreeSimulatorInputs.tot_mks,
+        simu_vcf   = PedgreeSimulator2vcf.simu_vcf,
         methodName = vcf.left,
-        vcf_file = vcf.right
+        vcf_file   = vcf.right
     }
   }
 
   output {
-    File freebayes_vcf = VcftoolsApplyFilters.freebayesVCF_F
-    File gatk_vcf = VcftoolsApplyFilters.gatkVCF_F
-    File freebayes_aval_vcf = CalculateVcfMetrics.freebayes_aval_vcf
-    File gatk_aval_vcf = CalculateVcfMetrics.gatk_aval_vcf
+    File freebayes_vcf       = VcftoolsApplyFilters.freebayesVCF_F
+    File gatk_vcf            = VcftoolsApplyFilters.gatkVCF_F
+    File freebayes_aval_vcf  = CalculateVcfMetrics.freebayes_aval_vcf
+    File gatk_aval_vcf       = CalculateVcfMetrics.gatk_aval_vcf
     File freebayes_ref_depth = CalculateVcfMetrics.freebayes_ref_depth
     File freebayes_alt_depth = CalculateVcfMetrics.freebayes_alt_depth
-    File gatk_ref_depth = CalculateVcfMetrics.gatk_ref_depth
-    File gatk_alt_depth = CalculateVcfMetrics.gatk_alt_depth
-    File tot_mks = CreatePedigreeSimulatorInputs.tot_mks
+    File gatk_ref_depth      = CalculateVcfMetrics.gatk_ref_depth
+    File gatk_alt_depth      = CalculateVcfMetrics.gatk_alt_depth
+    File tot_mks             = CreatePedigreeSimulatorInputs.tot_mks
   }
 }
 
@@ -197,10 +198,16 @@ task CreatePedigreeSimulatorInputs {
     File ref
     File ref_fai
     Int seed
+    Int samples
   }
 
   command <<<
-    python /opt/scripts/pedsim_files.py --indels ~{indels} --snps ~{snps} --reference ~{ref} --seed ~{seed} --cmbymb ~{cmBymb}
+    python /opt/scripts/pedsim_files.py --indels ~{indels} \
+      --snps ~{snps} \
+      --reference ~{ref} \
+      --seed ~{seed} \
+      --cmbymb ~{cmBymb} \
+      --samples ~{samples}
   >>>
 
   runtime {
@@ -308,21 +315,22 @@ task RunVcf2diploid {
 task GenerateSampleNames {
 
   input {
-    Int samples
+    File simulated_vcf
   }
 
   command {
     python <<CODE
-    samples = ~{samples}
+    from pysam import VariantFile
 
-    names = ["P1", "P2", "F1"] + ["F2_%03d" % i for i in range(1, samples + 1)]
-    for i in names:
+    bcf_in = VariantFile("~{simulated_vcf}")
+
+    for i in bcf_in.header.samples:
         print(i)
     CODE
   }
 
   runtime {
-    docker: "python:3.7"
+    docker: "taniguti/miniconda-alpine"
   }
 
   output {

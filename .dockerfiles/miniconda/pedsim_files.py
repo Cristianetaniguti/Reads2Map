@@ -47,7 +47,7 @@ def produce_founders_individuals(markers, variants):
         })
 
 
-def produce_parameters(seed):
+def produce_parameters(seed, samples):
     return dict(
         PLOIDY=2,
         MAPFUNCTION='HALDANE',
@@ -55,7 +55,7 @@ def produce_parameters(seed):
         CHROMFILE = "inb.chrom",
         POPTYPE = 'F2',
         SEED = seed,
-        POPSIZE = 150,
+        POPSIZE = samples,
         MAPFILE = "mapfile.map",
         FOUNDERFILE = "founderfile.gen",
         OUTPUT = "sim_inb",
@@ -80,6 +80,7 @@ if __name__ == "__main__":
     parser.add_argument('--reference', required=True, help='Fasta sequence of the reference chromosome')
     parser.add_argument('--seed', required=True, help='Seed to be applied on random steps')
     parser.add_argument('--cmbymb', required=True, type=float, help='Mean recombination rate for the specie')
+    parser.add_argument('--samples', required=True, type=int, help='Number of F2 samples to simulate')
     args = parser.parse_args()
 
     # outputs
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     chromosome = chromosome_structure(markers)
     chromosome[["chromosome", "length", "centromere", "prefPairing", "quadrivalents"]].to_csv(chromosome_file, sep="\t", index=False)
 
-    parameters = produce_parameters(args.seed)
+    parameters = produce_parameters(args.seed, args.samples)
     with open(parameters_file, "w+") as out:
         for key, value in parameters.items():
             out.write("%s = %s\n" % (key, value))
