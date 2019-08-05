@@ -15,7 +15,6 @@ struct Family {
   String name
   Float cmBymb
   Int seed
-  File samples_names_file
+  Int samples
   String enzyme
-  File methods
 }

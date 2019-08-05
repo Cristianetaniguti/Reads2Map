@@ -10,6 +10,11 @@ bash .scripts/build_images.sh
 
 # Adapt the path of the inputs in F2.json
 
+# Start a mysql instance on port 3307
+# - required just to reuse already processed tasks.
+# - If you do not want, please edit your .configurations/cromwell.conf
+docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
+
 # Execute the workflow
 java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i F2.json F2.wdl
 
