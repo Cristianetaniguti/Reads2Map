@@ -68,7 +68,8 @@ workflow SimulateF2 {
       input:
         maternal_trim = SimulateRADseq.maternal_trim,
         paternal_trim = SimulateRADseq.paternal_trim,
-        sampleName    = sampleName
+        sampleName    = sampleName,
+        depth         = family.depth
     }
 
     call RunBwaAlignment {
@@ -138,6 +139,29 @@ workflow SimulateF2 {
       tot_mks       = CreatePedigreeSimulatorInputs.tot_mks,
       map_file      = CreatePedigreeSimulatorInputs.mapfile,
       maternal_trim = SimulateRADseq.maternal_trim
+  }
+
+  Array[Pair[File, String]] bams_files = zip(AddAlignmentHeader.bam_rg, GenerateSampleNames.names)
+
+  scatter (bams in bams_files) {
+
+    call BamCounts{
+      input:
+        sampleName    = bams.right,
+        bam_file      = bams.left,
+        bam_idx       = AddAlignmentHeader.bam_rg_index,
+        freebayes_pos = CalculateVcfMetrics.freebayes_pos,
+        gatk_pos      = CalculateVcfMetrics.gatk_pos,
+        ref           = references.ref_fasta,
+        ref_fai       = references.ref_fasta_index
+    }
+  }
+
+  call DepthBam{
+    input:
+      sampleName       = GenerateSamplesNames.names,
+      freebayes_counts = BamCounts.freebayes_counts
+      gatk_counts      = BamCounts.gatk_counts
   }
 
   Array[String] methods = ["gatk", "freebayes"]
@@ -409,6 +433,7 @@ task SimulateIlluminaReads {
   input {
     File maternal_trim
     File paternal_trim
+    Int depth
     String sampleName
   }
 
@@ -417,7 +442,7 @@ task SimulateIlluminaReads {
     /pirs/src/pirs/pirs simulate \
       --diploid ~{maternal_trim} ~{paternal_trim} \
       --read-len=100 \
-      --coverage=100 \
+      --coverage=~{depth} \
       --insert-len-mean=150 \
       --output-prefix=~{sampleName} \
       --output-file-type=gzip \
@@ -519,7 +544,8 @@ task HaplotypeCallerERC {
       -ERC GVCF \
       -R ~{ref} \
       -I ~{bam_rg} \
-      -O ~{sampleName}_rawLikelihoods.g.vcf
+      -O ~{sampleName}_rawLikelihoods.g.vcf \
+      --max-reads-per-alignment-start 0
   >>>
 
   runtime {
@@ -675,8 +701,14 @@ task CalculateVcfMetrics {
 
         methods <- c("freebayes", "gatk") # include in a scatter
         for(i in methods){
+      
         # counting corrected identified markers
         pos <- get(i)@fix[,2]
+        chr <- get(i)@fix[,1]
+        site_list <- data.frame(chr, pos, pos)
+        # Export for next step
+        write.table(site_list, file= paste0(i,"_site_list.txt"), quote=F, row.names=F, sep="\t", col.names=F)
+
         ref <- get(i)@fix[,4]
         alt <- get(i)@fix[,5]
         
@@ -734,6 +766,8 @@ task CalculateVcfMetrics {
   }
 
   output {
+    File freebayes_pos = "freebayes_site_list.txt"
+    File gatk_pos = "gatk_site_list.txt"
     File freebayes_aval_vcf = "freebayes.txt"
     File gatk_aval_vcf = "gatk.txt"
     File freebayes_ref_depth = "freebayes_ref_depth.txt"
@@ -942,4 +976,117 @@ task all_maps {
     File error_info_polyrad = "~{methodName}_error_polyrad.txt"
     File error_info_supermassa = "~{methodName}_error_supermassa.txt"
   }
+}
+
+task BamCounts{
+  input {
+    String sampleName
+    File bam_file
+    Array[File] bam_idx
+    File freebayes_pos
+    File gatk_pos
+    File ref
+    File ref_fai    
+  }
+
+  command <<<
+
+    /bam-readcount/bin/bam-readcount -f ~{ref} ~{bam_file} -l ~{freebayes_pos} > ~{sampleName}_freebayes_counts.txt
+    /bam-readcount/bin/bam-readcount -f ~{ref} ~{bam_file} -l ~{gatk_pos} > ~{sampleName}_gatk_counts.txt
+
+  >>>
+
+  runtime{
+    docker:"cristaniguti/bam-readcount"
+  }
+
+  output{
+    File freebayes_counts = "~{sampleName}_freebayes_counts.txt"
+    File gatk_counts      = "~{sampleName}_gatk_counts.txt"
+  }
+}
+
+task DepthBam{
+  input{
+    Array[File] freebayes_counts
+    Array[File] gatk_counts
+    Array[String] sampleName
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      names <- c("~{sep=" , "  sampleName}")      
+      ref_depth_matrix <- alt_depth_matrix <- matrix()
+      methods <- c("gatk", "freebayes")
+
+      for(method in methods){
+        for(j in 1:length(names)){
+          res <- read.table(paste0(names[j],"_",method,"_counts.txt"), stringsAsFactors = F)
+          ref.idx <- res[,3]
+          ref.idx[ref.idx == "A"] <- 1
+          ref.idx[ref.idx == "C"] <- 2
+          ref.idx[ref.idx == "G"] <- 3
+          ref.idx[ref.idx == "T"] <- 4
+          
+          res.app <- apply(res[,5:10], 2, function(x) sapply(strsplit(x, ":"), "[",2))
+          
+          res.appp <- res.app[,-1]
+          
+          ref_depth <- rep(NA, dim(res)[1])
+          alt_depth <- rep(NA, dim(res)[1])
+          
+          c.idx <- apply(res.appp, 1, function(x)  which(x != 0))
+          
+          for(i in 1:length(alt_depth)){
+            if(length(c.idx[[i]]) == 0){
+              ref_depth[i] <- alt_depth[i] <- 0
+            } else {
+              idx <- which(c.idx[[i]] == ref.idx[i])
+              if(length(idx) != 0){
+                ref_depth[i] <- res.appp[i,][c.idx[[i]][idx]]
+              } else {
+                ref_depth[i]  <- res.appp[i,][c.idx[[i]][1]]
+              }
+              
+              if(length(c.idx[[i]]) == 2){
+                idx <- which(c.idx[[i]] != ref.idx[i])
+                if(length(idx) != 0){
+                  alt_depth[i] <- res.appp[i,][c.idx[[i]][idx]]
+                } else {
+                  alt_depth[i]  <- res.appp[i,][c.idx[[i]][2]]
+                } 
+              }  
+              
+              if(length(c.idx[[i]]) > 2){ # When non-biallelic add NA to alternative allele count
+                alt_depth[i] <- NA
+              } 
+              
+              if(length(c.idx[[i]]) == 1){
+                alt_depth[i] <- 0
+              }
+            }
+          }
+          ref_depth_matrix <- cbind(ref_depth_matrix, ref_depth)  
+          alt_depth_matrix <- cbind(alt_depth_matrix, alt_depth)
+        }
+
+        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=F, sep="\t")
+        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=F, sep="\t")
+      }
+
+    RSCRIPT
+
+  >>>
+
+  runtime{
+    docker:"r-base:3.6.0"
+  }
+
+  output{
+    File gatk_ref_bam      = "gatk_ref_depth_bam.txt"
+    File gatk_alt_bam      = "gatk_alt_depth_bam.txt"
+    File freebayes_ref_bam = "freebayes_ref_depth_bam.txt"
+    File freebayes_alt_bam = "freebayes_alt_depth_bam.txt"
+  }
+
 }

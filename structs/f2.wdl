@@ -17,4 +17,5 @@ struct Family {
   Int seed
   Int samples
   String enzyme
+  Int depth
 }

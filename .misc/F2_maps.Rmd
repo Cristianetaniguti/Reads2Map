@@ -59,6 +59,13 @@ Ta com pau.. arrumar!
 * method.txt
 nmk.filt nmk.id ok falso.positivo ref.ok alt.ok
 
+nmk.filt - How many SNPs should have considering the RAD fragments
+nmk.id - How many SNPS were identified in vcf
+ok - How many SNPs in vcf are in correct position
+falso.positivo - How many do not
+ref.ok - Correct reference alleles
+alt.ok - Correct alternative alleles
+
 From all_maps task:
 
 * method_error_info_genotypeMethod.txt
@@ -88,8 +95,9 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/df200b5c-ef4e-4282-9b83-441caea03d67"
+path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/82c00908-7277-48d9-87e0-0492d5b46844"
 cMByMb <- 4.63
+depth.ex <- 20
 ```
 
 
@@ -120,7 +128,7 @@ for(i in 1:length(df.diff.dis)){
   df.diff.dis[[i]] <- as.list(rep(NA, length(meth.geno)))
 }
 
-df.per.geno <- df.coverage <- df.diff.tot <- df.diff.median <- df.diff.mean <- names.id <- vector()
+df.per.geno <- df.coverage <- df.diff.tot <- df.diff.median <- df.diff.mean <- names.id <- df.filt <- vector()
 
 for(i in 1:length(method)){
   ## vcfs
@@ -128,6 +136,10 @@ for(i in 1:length(method)){
   gt <- vcf@gt[,-1]
   gt <- melt(gt)
   gt$value <- sapply(strsplit(as.character(gt$value), ":"), "[", 1)
+  
+  # Filters
+  filt <- read.table(paste0("call-CalculateVcfMetrics/execution/",method[i], ".txt"), header = T)
+  df.filt <- rbind(df.filt, filt)
   
   ## Depths
   alt_depth <- read.table(paste0("call-CalculateVcfMetrics/execution/", method[i], "_alt_depth.txt"), header = T, stringsAsFactors = F)
@@ -140,7 +152,7 @@ for(i in 1:length(method)){
   df.depths <- data.frame(ind = gt$Var2, gt = gt$value, alt = alt$value, ref=ref$value)
   
   p[[i]] <- ggplot(df.depths, aes(x=ref, y=alt, color=as.factor(gt))) + geom_point(size=0.5) +
-    labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,200) + ylim(0,200)
+    labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,depth.ex) + ylim(0,depth.ex)
   
   for(j in 1:length(meth.geno)){
     # Map distance
@@ -181,10 +193,8 @@ for(i in 1:length(method)){
     per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.geno[j],".txt"), header =T)
     per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
     df.per.geno <- c(df.per.geno,per.geno)
-    
   }              
 }
-
 
 ```
 
@@ -224,22 +234,42 @@ p
 
 ## Difference of total size
 
-Como serão várias famílias, vai ficar difícil comparar em relação à todas as marcas, então estou considerando comparar só o tamanho total, média e mediana de cada família
+Como serão várias famílias, vai ficar difícil comparar em relação à todas as marcas, então estou considerando comparar só o tamanho total, média e mediana de cada família. Quando tiver várias famílias, mudar de barplot para boxplot.
 
 ```{r}
-rbind(names.id,df.diff.tot)
+
+df.diff.tot1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot)
+
+p <- ggplot(data=df.diff.tot1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
 ```
 
 ## Median of differences
 
 ```{r}
-rbind(names.id,df.diff.median)
+
+df.diff.median1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.median)
+
+p <- ggplot(data=df.diff.median1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
 ```
 
 ## Mean of differences
 
 ```{r}
-rbind(names.id,df.diff.mean)
+
+df.diff.mean1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean)
+
+p <- ggplot(data=df.diff.mean1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
 ```
 
 ## Percentage of rigth genotyping
@@ -247,16 +277,45 @@ rbind(names.id,df.diff.mean)
 Comparação entre os genótipos simulados e estimados com cada método
 
 ```{r}
-rbind(names.id,df.per.geno)
+
+df.per.geno1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.per.geno)
+
+p <- ggplot(data=df.per.geno1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
 ```
 
 ## Percentage of the chromosome covered 
 
-Aqui esta outro problema, ele esta simulando somente para parte do genoma
 
 ```{r}
-rbind(names.id,df.coverage)
+
+df.coverage1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.coverage)
+
+p <- ggplot(data=df.coverage1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
 ```
+
+## Number of filtered
+
+```{r}
+df.filt2 <- cbind(c("gatk", "freebayes"),df.filt)
+colnames(df.filt2) <- c("method", "n.snps.simu", "n.snps.identified", "n.snps.okay", "n.snps.fake", "n.snps.ref.okay", "n.snps.alt.okay")
+
+df.filt2.melt <- melt(df.filt2)
+
+p <- ggplot(data=df.filt2.melt, aes(x=variable, y=value, fill=method)) +
+geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+```
+
+
 
 ```
 Só para lembrar:

@@ -15,6 +15,7 @@
     "cmBymb": 4.63,
     "samples": 47,
     "enzyme":"G*CWGC",
-    "seed": 1515
+    "seed": 1515,
+    "depth": 2  
   }
 }
