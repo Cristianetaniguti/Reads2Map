@@ -159,9 +159,11 @@ workflow SimulateF2 {
 
   call DepthBam{
     input:
-      sampleName       = GenerateSamplesNames.names,
-      freebayes_counts = BamCounts.freebayes_counts
-      gatk_counts      = BamCounts.gatk_counts
+      sampleName       = GenerateSampleNames.names,
+      freebayes_counts = BamCounts.freebayes_counts,
+      gatk_counts      = BamCounts.gatk_counts,
+      freebayes_pos    = CalculateVcfMetrics.freebayes_pos,
+      gatk_pos         = CalculateVcfMetrics.gatk_pos
   }
 
   Array[String] methods = ["gatk", "freebayes"]
@@ -1011,31 +1013,58 @@ task DepthBam{
     Array[File] freebayes_counts
     Array[File] gatk_counts
     Array[String] sampleName
+    File freebayes_pos
+    File gatk_pos
   }
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
-      names <- c("~{sep=" , "  sampleName}")      
-      ref_depth_matrix <- alt_depth_matrix <- matrix()
+      library(R.utils)
+      system("cp ~{sep=" "  freebayes_counts} .")
+      system("cp ~{sep=" "  gatk_counts} .")
+      names <- c("~{sep=" , "  sampleName}")  
+      names <- unlist(strsplit(names, split = " , "))
+    
       methods <- c("gatk", "freebayes")
 
       for(method in methods){
+        if(method == "gatk"){
+          site_list <- read.table("~{gatk_pos}")
+        } else {
+          site_list <- read.table("~{freebayes_pos}")
+        }
+        ref_depth_matrix <- alt_depth_matrix  <- matrix(NA, nrow = dim(site_list)[1], ncol = length(names))
+        
         for(j in 1:length(names)){
-          res <- read.table(paste0(names[j],"_",method,"_counts.txt"), stringsAsFactors = F)
-          ref.idx <- res[,3]
+          
+          inputFile <- paste0(names[j],"_",method,"_counts.txt")
+          
+          con  <- file(inputFile, open = "r")
+          
+          dataList <- list()
+          
+          while (length(oneLine <- readLines(con, n = 1, warn = FALSE)) > 0) {
+            myVector <- (strsplit(oneLine, "\t"))
+            dataList <- c(dataList,myVector)
+          } 
+          
+          close(con)
+
+          ref.idx <- sapply(dataList, "[",3)
           ref.idx[ref.idx == "A"] <- 1
           ref.idx[ref.idx == "C"] <- 2
           ref.idx[ref.idx == "G"] <- 3
           ref.idx[ref.idx == "T"] <- 4
+          ref.idx <- as.numeric(ref.idx)
           
-          res.app <- apply(res[,5:10], 2, function(x) sapply(strsplit(x, ":"), "[",2))
+          res.app <- lapply(lapply(dataList, "[", -c(1:4)), function(x) sapply(strsplit(x, ":"), "[",2))
           
-          res.appp <- res.app[,-1]
+          pos.app <- sapply(dataList, "[",2)
+          res.appp <- lapply(res.app, "[", -1)
           
-          ref_depth <- rep(NA, dim(res)[1])
-          alt_depth <- rep(NA, dim(res)[1])
+          ref_depth <- alt_depth <- rep(NA, length(res.appp))
           
-          c.idx <- apply(res.appp, 1, function(x)  which(x != 0))
+          c.idx <- lapply(res.appp, function(x)  which(x != 0))
           
           for(i in 1:length(alt_depth)){
             if(length(c.idx[[i]]) == 0){
@@ -1043,17 +1072,17 @@ task DepthBam{
             } else {
               idx <- which(c.idx[[i]] == ref.idx[i])
               if(length(idx) != 0){
-                ref_depth[i] <- res.appp[i,][c.idx[[i]][idx]]
+                ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
               } else {
-                ref_depth[i]  <- res.appp[i,][c.idx[[i]][1]]
+                ref_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
               }
               
               if(length(c.idx[[i]]) == 2){
                 idx <- which(c.idx[[i]] != ref.idx[i])
                 if(length(idx) != 0){
-                  alt_depth[i] <- res.appp[i,][c.idx[[i]][idx]]
+                  alt_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
                 } else {
-                  alt_depth[i]  <- res.appp[i,][c.idx[[i]][2]]
+                  alt_depth[i]  <- res.appp[[i]][c.idx[[i]][2]]
                 } 
               }  
               
@@ -1066,12 +1095,20 @@ task DepthBam{
               }
             }
           }
-          ref_depth_matrix <- cbind(ref_depth_matrix, ref_depth)  
-          alt_depth_matrix <- cbind(alt_depth_matrix, alt_depth)
+          
+          mis <- which(!site_list[,2] %in% pos.app)
+          if(length(mis) != 0){
+            for(w in 1:length(mis)){
+              ref_depth <- insert(ref_depth, mis[w], 0)
+              alt_depth <- insert(alt_depth, mis[w], 0)
+            }
+          }
+          ref_depth_matrix[,j] <- ref_depth
+          alt_depth_matrix[,j] <- alt_depth
         }
-
-        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=F, sep="\t")
-        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=F, sep="\t")
+        
+        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=F)
+        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=F)
       }
 
     RSCRIPT
@@ -1079,7 +1116,7 @@ task DepthBam{
   >>>
 
   runtime{
-    docker:"r-base:3.6.0"
+    docker:"taniguti/onemap"
   }
 
   output{
