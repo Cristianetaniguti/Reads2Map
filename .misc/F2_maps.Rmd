@@ -3,9 +3,9 @@ title: "F2 simulations results"
 date: "`r Sys.Date()`"
 author: "[Statistical Genetics Lab](http://statgen.esalq.usp.br) <br/> Department of Genetics <br/> Luiz de Queiroz College of Agriculture <br/> University of São Paulo"
 output:
-    rmdformats::readthedown:
-      css: readthedownstatgen.css
-      code_folding: hide
+rmdformats::readthedown:
+css: readthedownstatgen.css
+code_folding: hide
 ---
 
 ```{r knitr_init, echo=FALSE, cache=FALSE}
@@ -45,7 +45,7 @@ lines = markers
 cells = counts for alternative alleles
 
 * method_ref_depth.txt
-																																																																						
+
 method = c("gatk", "freebayes", "stacks")
 
 columns = individuals
@@ -95,9 +95,9 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/82c00908-7277-48d9-87e0-0492d5b46844"
+path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/8468b0df-94d8-464a-bdb3-bac5f624e7c2"
 cMByMb <- 4.63
-depth.ex <- 20
+depth.ex <- 200
 ```
 
 
@@ -114,13 +114,13 @@ library(vcfR)
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 setwd(path)
 method <- c("gatk", "freebayes")
-meth.geno <- c("GQ", "polyrad", "updog", "supermassa")
+meth.geno <- c("df", "GQ", "polyrad", "updog", "supermassa")
 
 mapfile <- read.table("call-CreatePedigreeSimulatorInputs/execution/markers.txt", header=T)
 
 tot_mks <- read.table("call-CreatePedigreeSimulatorInputs/execution/tot_mks.txt")
 id <- c(0,1)
-p  <- list()
+p  <- p.bam <- list()
 
 
 df.diff.dis <- as.list(rep(NA, length(method)))
@@ -134,6 +134,7 @@ for(i in 1:length(method)){
   ## vcfs
   vcf <- read.vcfR(paste0("call-VcftoolsApplyFilters/execution/",method[i], ".recode.vcf"))
   gt <- vcf@gt[,-1]
+  gt <- gt[,sort(colnames(gt))]
   gt <- melt(gt)
   gt$value <- sapply(strsplit(as.character(gt$value), ":"), "[", 1)
   
@@ -141,13 +142,34 @@ for(i in 1:length(method)){
   filt <- read.table(paste0("call-CalculateVcfMetrics/execution/",method[i], ".txt"), header = T)
   df.filt <- rbind(df.filt, filt)
   
-  ## Depths
+  
+  ## Depths by bam
+  alt_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_alt_depth_bam.txt"), header = T, stringsAsFactors = F)
+  alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
+  alt_depth <- alt_depth[,sort(colnames(alt_depth))]
+  alt <- melt(alt_depth)
+  
+  ref_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_ref_depth_bam.txt"), header = T, stringsAsFactors = F)
+  ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
+  ref_depth <- ref_depth[,sort(colnames(ref_depth))]
+  ref <- melt(ref_depth)
+  
+  idx.id <- match(gt$Var2, ref$variable)
+  df.depths <- data.frame(ind = ref$variable, gt = gt$value, alt = alt$value, ref=ref$value)
+  
+  p.bam[[i]] <- ggplot(df.depths, aes(x=ref, y=alt, color=as.factor(gt))) + geom_point(size=0.5) +
+    labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,depth.ex) + ylim(0,depth.ex)
+  
+  
+  ## Depths by softwares
   alt_depth <- read.table(paste0("call-CalculateVcfMetrics/execution/", method[i], "_alt_depth.txt"), header = T, stringsAsFactors = F)
   alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
+  alt_depth <- alt_depth[,sort(colnames(alt_depth))]
   alt <- melt(alt_depth)
   
   ref_depth <- read.table(paste0("call-CalculateVcfMetrics/execution/", method[i], "_ref_depth.txt"), header = T, stringsAsFactors = F)
   ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
+  ref_depth <- ref_depth[,sort(colnames(ref_depth))]
   ref <- melt(ref_depth)
   df.depths <- data.frame(ind = gt$Var2, gt = gt$value, alt = alt$value, ref=ref$value)
   
@@ -190,9 +212,11 @@ for(i in 1:length(method)){
     df.coverage <- c(df.coverage,coverage)
     
     # Percentage of rigth genotyping
-    per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.geno[j],".txt"), header =T)
-    per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
-    df.per.geno <- c(df.per.geno,per.geno)
+    if(meth.geno[j] != "df"){
+      per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.geno[j],".txt"), header =T)
+      per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
+      df.per.geno <- c(df.per.geno,per.geno)
+    }
   }              
 }
 
@@ -202,9 +226,14 @@ for(i in 1:length(method)){
 
 Aqui mostra a distribuição das contagens de cada alelo, teoricamente deveriam ter homozigotos para os dois pais e heterozigotos no meio, uma diagonal (mas parece que só esta simulando homozigotos, isso altera tudo em seguida).
 
+```{r}
+# Depths from bam
+p.bam
+```
+
 
 ```{r}
-# Depths
+# Depths from softwares
 p
 ```
 
@@ -216,14 +245,16 @@ As distâncias estimadas do mapa deveriam ser as mesmas das simuladas, quanto ma
 ```{r}
 df.melt.diff.dis <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis[[1]]))), 
                                           rep("freebayes", length(unlist(df.diff.dis[[2]])))), 
-                               genoty = c(rep("GQ", length(df.diff.dis[[1]][[1]])), 
-                                          rep("polyrad", length(df.diff.dis[[1]][[2]])), 
-                                          rep("updog", length(df.diff.dis[[1]][[3]])),
-                                          rep("supermassa", length(df.diff.dis[[1]][[4]])),
-                                          rep("GQ", length(df.diff.dis[[2]][[1]])), 
-                                          rep("polyrad", length(df.diff.dis[[2]][[2]])), 
-                                          rep("updog", length(df.diff.dis[[2]][[3]])),
-                                          rep("supermassa", length(df.diff.dis[[2]][[4]]))),
+                               genoty = c(rep("df", length(df.diff.dis[[1]][[1]])),
+                                          rep("GQ", length(df.diff.dis[[1]][[2]])), 
+                                          rep("polyrad", length(df.diff.dis[[1]][[3]])), 
+                                          rep("updog", length(df.diff.dis[[1]][[4]])),
+                                          rep("supermassa", length(df.diff.dis[[1]][[5]])),
+                                          rep("df", length(df.diff.dis[[2]][[1]])),
+                                          rep("GQ", length(df.diff.dis[[2]][[2]])), 
+                                          rep("polyrad", length(df.diff.dis[[2]][[3]])), 
+                                          rep("updog", length(df.diff.dis[[2]][[4]])),
+                                          rep("supermassa", length(df.diff.dis[[2]][[5]]))),
                                value = unlist(df.diff.dis))
 
 
@@ -238,10 +269,10 @@ Como serão várias famílias, vai ficar difícil comparar em relação à todas
 
 ```{r}
 
-df.diff.tot1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot)
+df.diff.tot1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df","GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot)
 
 p <- ggplot(data=df.diff.tot1, aes(x=genotype.prob, y=value, fill=snp.call)) +
-geom_bar(stat="identity", color="black", position=position_dodge())+
+  geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
 
@@ -251,10 +282,10 @@ p
 
 ```{r}
 
-df.diff.median1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.median)
+df.diff.median1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.median)
 
 p <- ggplot(data=df.diff.median1, aes(x=genotype.prob, y=value, fill=snp.call)) +
-geom_bar(stat="identity", color="black", position=position_dodge())+
+  geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
 ```
@@ -263,10 +294,10 @@ p
 
 ```{r}
 
-df.diff.mean1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean)
+df.diff.mean1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean)
 
 p <- ggplot(data=df.diff.mean1, aes(x=genotype.prob, y=value, fill=snp.call)) +
-geom_bar(stat="identity", color="black", position=position_dodge())+
+  geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
 
@@ -281,7 +312,7 @@ Comparação entre os genótipos simulados e estimados com cada método
 df.per.geno1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.per.geno)
 
 p <- ggplot(data=df.per.geno1, aes(x=genotype.prob, y=value, fill=snp.call)) +
-geom_bar(stat="identity", color="black", position=position_dodge())+
+  geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
 
@@ -292,10 +323,10 @@ p
 
 ```{r}
 
-df.coverage1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.coverage)
+df.coverage1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.coverage)
 
 p <- ggplot(data=df.coverage1, aes(x=genotype.prob, y=value, fill=snp.call)) +
-geom_bar(stat="identity", color="black", position=position_dodge())+
+  geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
 
@@ -310,7 +341,7 @@ colnames(df.filt2) <- c("method", "n.snps.simu", "n.snps.identified", "n.snps.ok
 df.filt2.melt <- melt(df.filt2)
 
 p <- ggplot(data=df.filt2.melt, aes(x=variable, y=value, fill=method)) +
-geom_bar(stat="identity", color="black", position=position_dodge())+
+  geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
 ```

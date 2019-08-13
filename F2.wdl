@@ -1069,31 +1069,27 @@ task DepthBam{
           for(i in 1:length(alt_depth)){
             if(length(c.idx[[i]]) == 0){
               ref_depth[i] <- alt_depth[i] <- 0
-            } else {
+            } else if (length(c.idx[[i]]) == 1){
               idx <- which(c.idx[[i]] == ref.idx[i])
               if(length(idx) != 0){
                 ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
+                alt_depth[i] <- 0
+              } else {
+                ref_depth[i] <- 0
+                alt_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
+              }
+            } else if(length(c.idx[[i]]) == 2){
+              idx <- which(c.idx[[i]] == ref.idx[i])
+              if(length(idx) != 0){
+                ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
+                alt_depth[i] <- res.appp[[i]][c.idx[[i]][-idx]]
               } else {
                 ref_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
-              }
-              
-              if(length(c.idx[[i]]) == 2){
-                idx <- which(c.idx[[i]] != ref.idx[i])
-                if(length(idx) != 0){
-                  alt_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
-                } else {
-                  alt_depth[i]  <- res.appp[[i]][c.idx[[i]][2]]
-                } 
-              }  
-              
-              if(length(c.idx[[i]]) > 2){ # When non-biallelic add NA to alternative allele count
-                alt_depth[i] <- NA
+                alt_depth[i]  <- res.appp[[i]][c.idx[[i]][2]]
               } 
-              
-              if(length(c.idx[[i]]) == 1){
-                alt_depth[i] <- 0
-              }
-            }
+            } else if(length(c.idx[[i]]) > 2){ # When non-biallelic add NA to alternative allele count
+              alt_depth[i] <- NA
+            } 
           }
           
           mis <- which(!site_list[,2] %in% pos.app)
@@ -1107,8 +1103,11 @@ task DepthBam{
           alt_depth_matrix[,j] <- alt_depth
         }
         
-        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=F)
-        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=F)
+        rownames(ref_depth_matrix) <- rownames(alt_depth_matrix) <- paste0(site_list[,1],"_", site_list[,2])
+        colnames(ref_depth_matrix) <- colnames(alt_depth_matrix) <- names
+
+        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=T)
+        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=T)
       }
 
     RSCRIPT
