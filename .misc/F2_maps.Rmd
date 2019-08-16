@@ -95,7 +95,7 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/8468b0df-94d8-464a-bdb3-bac5f624e7c2"
+path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/03160234-5b51-41e4-973d-2cefc3d2fc5c"
 cMByMb <- 4.63
 depth.ex <- 200
 ```
@@ -114,6 +114,7 @@ library(vcfR)
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 setwd(path)
 method <- c("gatk", "freebayes")
+meth.bam <- c("polyrad", "updog", "supermassa")
 meth.geno <- c("df", "GQ", "polyrad", "updog", "supermassa")
 
 mapfile <- read.table("call-CreatePedigreeSimulatorInputs/execution/markers.txt", header=T)
@@ -122,13 +123,18 @@ tot_mks <- read.table("call-CreatePedigreeSimulatorInputs/execution/tot_mks.txt"
 id <- c(0,1)
 p  <- p.bam <- list()
 
-
 df.diff.dis <- as.list(rep(NA, length(method)))
 for(i in 1:length(df.diff.dis)){
   df.diff.dis[[i]] <- as.list(rep(NA, length(meth.geno)))
 }
 
+df.diff.dis.bam <- as.list(rep(NA, length(method)))
+for(i in 1:length(df.diff.dis.bam)){
+  df.diff.dis.bam[[i]] <- as.list(rep(NA, length(meth.bam)))
+}
+
 df.per.geno <- df.coverage <- df.diff.tot <- df.diff.median <- df.diff.mean <- names.id <- df.filt <- vector()
+df.per.geno.bam <- df.coverage.bam <- df.diff.tot.bam <- df.diff.median.bam <- df.diff.mean.bam <- vector()
 
 for(i in 1:length(method)){
   ## vcfs
@@ -141,7 +147,6 @@ for(i in 1:length(method)){
   # Filters
   filt <- read.table(paste0("call-CalculateVcfMetrics/execution/",method[i], ".txt"), header = T)
   df.filt <- rbind(df.filt, filt)
-  
   
   ## Depths by bam
   alt_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_alt_depth_bam.txt"), header = T, stringsAsFactors = F)
@@ -217,6 +222,46 @@ for(i in 1:length(method)){
       per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
       df.per.geno <- c(df.per.geno,per.geno)
     }
+  }
+  
+  for(j in 1:length(meth.bam)){
+    # Map distance
+    maps <- read.table(paste0("call-all_maps/shard-", id[i],"/execution/", method[i],"_map_bam_", meth.bam[j],".txt"), header =T)
+    
+    poscM <- (as.numeric(as.character(maps[,2]))/1000000)*cMByMb
+    poscM.norm <- poscM-poscM[1]
+    maps <- cbind(maps, poscM, poscM.norm)
+    
+    # Difference between distances real and estimated
+    diff.dis <- sqrt((maps$poscM.norm - maps$rf)^2)
+    df.diff.dis.bam[[i]][[j]] <- diff.dis
+    names(df.diff.dis.bam[[i]][[j]]) <- paste0(method[i],"_",meth.bam[j])
+    
+    # Meth names
+    names.id <-  c(names.id,paste0(method[i],"_",meth.bam[j]))
+    
+    # Mean of differences
+    diff.dis.mean.bam <- mean(sqrt((maps$poscM.norm - maps$rf)^2))
+    df.diff.mean.bam <- c(df.diff.mean.bam,diff.dis.mean.bam)
+    
+    # Median of differences
+    diff.dis.median.bam <- median(sqrt((maps$poscM.norm - maps$rf)^2))
+    df.diff.median.bam <- c(df.diff.median.bam,diff.dis.median.bam)
+    
+    # Difference of total size
+    diff.tot.dis <- sqrt((maps$poscM.norm[length(maps$poscM.norm)] - maps$rf[length(maps$rf)])^2)
+    df.diff.tot.bam <- c(df.diff.tot.bam,diff.tot.dis)
+    
+    mapfile.pos <- cbind(mapfile, tot_mks[,2])
+    
+    # Percentage of the chromosome covered 
+    coverage <- maps$pos[length(maps$pos)]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
+    df.coverage.bam <- c(df.coverage.bam,coverage)
+    
+    # Percentage of rigth genotyping
+    per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.bam[j],".txt"), header =T)
+    per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
+    df.per.geno.bam <- c(df.per.geno.bam,per.geno)
   }              
 }
 
@@ -263,6 +308,28 @@ p<-ggplot(df.melt.diff.dis, aes(x=genoty, y=value, fill=method)) +
 p
 ```
 
+* Counts from bam
+
+```{r}
+df.melt.diff.dis.bam <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis.bam[[1]]))), 
+                                          rep("freebayes", length(unlist(df.diff.dis.bam[[2]])))), 
+                               genoty = c(rep("polyrad", length(df.diff.dis.bam[[1]][[1]])), 
+                                          rep("updog", length(df.diff.dis.bam[[1]][[2]])),
+                                          rep("supermassa", length(df.diff.dis.bam[[1]][[3]])),
+                                          rep("polyrad", length(df.diff.dis.bam[[2]][[1]])), 
+                                          rep("updog", length(df.diff.dis.bam[[2]][[2]])),
+                                          rep("supermassa", length(df.diff.dis.bam[[2]][[3]]))),
+                               value = unlist(df.diff.dis.bam))
+
+
+p<-ggplot(df.melt.diff.dis.bam, aes(x=genoty, y=value, fill=method)) +
+  geom_boxplot() + geom_hline(yintercept=0, color="red")
+p
+
+```
+
+
+
 ## Difference of total size
 
 Como serão várias famílias, vai ficar difícil comparar em relação à todas as marcas, então estou considerando comparar só o tamanho total, média e mediana de cada família. Quando tiver várias famílias, mudar de barplot para boxplot.
@@ -278,6 +345,18 @@ p
 
 ```
 
+
+```{r}
+df.diff.tot1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot.bam)
+
+p <- ggplot(data=df.diff.tot1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
+
 ## Median of differences
 
 ```{r}
@@ -290,6 +369,17 @@ p <- ggplot(data=df.diff.median1, aes(x=genotype.prob, y=value, fill=snp.call)) 
 p
 ```
 
+
+```{r}
+
+df.diff.median1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.median.bam)
+
+p <- ggplot(data=df.diff.median1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+```
+
 ## Mean of differences
 
 ```{r}
@@ -297,6 +387,18 @@ p
 df.diff.mean1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean)
 
 p <- ggplot(data=df.diff.mean1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
+
+```{r}
+
+df.diff.mean1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean.bam)
+
+p <- ggplot(data=df.diff.mean1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
@@ -318,6 +420,18 @@ p
 
 ```
 
+
+```{r}
+
+df.per.geno1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.per.geno.bam)
+
+p <- ggplot(data=df.per.geno1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
 ## Percentage of the chromosome covered 
 
 
@@ -326,6 +440,18 @@ p
 df.coverage1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.coverage)
 
 p <- ggplot(data=df.coverage1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
+
+```{r}
+
+df.coverage1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.coverage.bam)
+
+p <- ggplot(data=df.coverage1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
@@ -345,7 +471,6 @@ p <- ggplot(data=df.filt2.melt, aes(x=variable, y=value, fill=method)) +
   theme_minimal()
 p
 ```
-
 
 
 ```

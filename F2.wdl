@@ -176,7 +176,11 @@ workflow SimulateF2 {
         tot_mks    = CreatePedigreeSimulatorInputs.tot_mks,
         simu_vcf   = PedgreeSimulator2vcf.simu_vcf,
         methodName = vcf.left,
-        vcf_file   = vcf.right
+        vcf_file   = vcf.right,
+        freebayes_ref_depth = DepthBam.freebayes_ref_bam, 
+        freebayes_alt_depth = DepthBam.freebayes_alt_bam,
+        gatk_ref_depth = DepthBam.gatk_ref_bam,
+        gatk_alt_depth = DepthBam.gatk_alt_bam
     }
   }
 
@@ -779,206 +783,6 @@ task CalculateVcfMetrics {
   }
 }
 
-task all_maps {
-
- input {
-    File tot_mks
-    String methodName
-    File simu_vcf
-    File vcf_file
-  }
-
-  command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-          library(supermassa4onemap)
-          library(onemap)
-          library(updog)
-          library(reshape2)
-          library(vcfR)
-          library(doParallel)
-
-          args = commandArgs(trailingOnly=TRUE)
-
-          method_name <- "~{methodName}"
-          tot_mks_file <- "~{tot_mks}"
-          simu_vcf_file <- "~{simu_vcf}"
-          vcf_file <- "~{vcf_file}"
-
-          # Functions
-          create_filters_report <- function(onemap_obj) {
-              segr <- onemap::test_segregation(onemap_obj)
-              distorted <- onemap::select_segreg(segr, distorted = T)
-              bins <- onemap::find_bins(onemap_obj)
-              total_variants <- onemap_obj[[3]]
-              filters_tab <- data.frame("n_markers"= total_variants, 
-                                        "distorted_markers"=length(distorted), 
-                                        "redundant_markers"=total_variants - length(bins))
-              return(filters_tab)
-          }
-
-          create_maps_report <- function(onemap_obj, tot_mks) {
-              assign("onemap_obj", onemap_obj, envir=.GlobalEnv)
-              twopts <- rf_2pts(onemap_obj)
-              assign("twopts", twopts, envir=.GlobalEnv)
-
-              true_mks <- which(onemap_obj[[9]] %in% tot_mks[,2])
-              seq_true <- make_seq(twopts, true_mks)
-              map_df <- map(seq_true)
-              map_info <- data.frame("mk.name"= colnames(onemap_obj[[1]])[map_df[[1]]], 
-                                    "pos" = onemap_obj[[9]][map_df[[1]]],
-                                    "rf" = c(0,cumsum(haldane(map_df[[3]]))))
-              return (map_info)
-          }
-
-
-          create_errors_report <- function(onemap_obj, gab) {
-              pos <- which(gab[[9]] %in% onemap_obj[[9]])
-              pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
-              gab.pos <- gab[[9]][pos]
-              gab.geno <- gab[[1]][,pos]
-              colnames(gab.geno) <- gab.pos
-              gab.geno <-reshape2::melt(gab.geno)
-              colnames(gab.geno) <- c("MK", "POS", "gabGT")
-              meth.geno <- onemap_obj[[1]][,pos.inv]
-              meth.error <- onemap_obj[[11]][pos.inv + rep(c(0:(onemap_obj[[2]]-1))*onemap_obj[[3]], each=length(pos.inv)),]
-              meth.pos <- onemap_obj[[9]][pos.inv]
-              colnames(meth.geno) <- meth.pos
-              meth.geno <- reshape2::melt(meth.geno)
-              colnames(meth.geno) <- c("MK", "POS", "methGT")
-              meth.error <- cbind(rownames(meth.error), meth.error)
-              error.info <- merge(gab.geno, meth.geno)
-              error.info <- error.info[order(error.info[,1], error.info[,2]),]
-              error.info <- cbind(error.info, meth.error)
-              return (error.info)
-          }
-
-          write_report <- function(filters_tab, out_name) {
-              write.table(filters_tab, file=out_name, row.names=F, quote=F)
-          }
-
-          ## KNOWN VARIANTS
-          tot_mks <- read.table(tot_mks_file)
-
-          # READING DATA FROM SIMULATED POPULATION
-          simu <- read.vcfR(simu_vcf_file)
-          gab <- onemap_read_vcfR(vcfR.object=simu,
-                                  cross="f2 intercross",
-                                  parent1="P1",
-                                  parent2="P2",
-                                  f1="F1")
-
-          ## READING FINAL VCF FROM PIPELINE
-          vcf <- read.vcfR(vcf_file)
-          df <- onemap_read_vcfR(vcfR.object=vcf, 
-                                cross="f2 intercross", 
-                                parent1="P1", 
-                                parent2="P2", 
-                                f1="F1")
-
-          ## FILTERS REPORT
-          out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
-          filters_tab <- create_filters_report(df)
-          write_report(filters_tab, out_name)
-
-          ## MAPS REPORT - DF
-          out_name <- paste0(method_name, "_map_df.txt")
-          maps_tab <- create_maps_report(df, tot_mks)
-          write_report(maps_tab, out_name)
-
-          # MAPS REPORT - GQ
-          aval.gq <- extract_depth(vcfR.object=vcf,
-                                  onemap.object=df,
-                                  vcf.par="GQ",
-                                  parent1="P1",
-                                  parent2="P2",
-                                  f1="F1",
-                                  recovering=FALSE)
-
-          aval.gq <- create_probs(df, genotypes_errors=aval.gq)
-
-          out_name <- paste0(method_name, "_map_GQ.txt")
-          maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
-          write_report(maps_gq_tab, out_name)
-
-          out_name <- paste0(method_name, "_error_GQ.txt")
-          errors_tab <- create_errors_report(aval.gq, gab)
-          write_report(errors_tab, out_name)
-
-
-          # OTHER TOOLS
-          updog.aval <- updog_error(
-              vcfR.object=vcf,
-              onemap.object=df,
-              vcf.par="AD",
-              parent1="P1",
-              parent2="P2",
-              f1="F1",
-              recovering=TRUE,
-              mean_phred=20,
-              cores=3,
-              depths=NULL)
-
-          supermassa.aval <- supermassa4onemap::supermassa_error(
-              vcfR.object=vcf,
-              onemap.object = df,
-              vcf.par = "AD",
-              parent1 = "P1",
-              parent2 = "P2",
-              f1="F1",
-              recovering = TRUE,
-              mean_phred = 20,
-              cores = 3,
-              depths = NULL)
-
-          polyrad.aval <- polyRAD_error(
-              vcf=vcf_file, 
-              onemap.obj=df,
-              parent1="P1",
-              parent2="P2",
-              f1="F1",
-              crosstype="f2 intercross")
-
-          metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
-          for (metodology in names(metodologies)){
-              error_aval <- metodologies[[metodology]]
-              ## Filters
-              out_name <- paste0(method_name, "_filters_", metodology, ".txt")
-              filters_tab <- create_filters_report(error_aval)
-              write_report(filters_tab, out_name)
-
-              ## Maps updog
-              out_name <- paste0(method_name, "_map_", metodology, ".txt")
-              maps_tab <- create_maps_report(error_aval, tot_mks)
-              write_report(maps_tab, out_name)
-
-              ## Errors info
-              out_name <- paste0(method_name, "_error_", metodology, ".txt")
-              errors_tab <- create_errors_report(error_aval, gab)
-              write_report(errors_tab, out_name)
-          }
-        RSCRIPT
-  >>>
-
-  runtime{
-    docker:"taniguti/onemap"
-  }
-
-  output{
-    File filters_dfAndGQ = "~{methodName}_filters_dfAndGQ.txt"
-    File filters_polyrad = "~{methodName}_filters_polyrad.txt"
-    File filters_supermassa = "~{methodName}_filters_supermassa.txt"
-    File filters_updog = "~{methodName}_filters_updog.txt"
-    File map_df = "~{methodName}_map_df.txt"
-    File map_GQ = "~{methodName}_map_GQ.txt"
-    File map_polyrad = "~{methodName}_map_polyrad.txt"
-    File map_supermassa = "~{methodName}_map_supermassa.txt"
-    File error_info_GQ = "~{methodName}_error_GQ.txt"
-    File error_info_updog = "~{methodName}_error_updog.txt"
-    File error_info_polyrad = "~{methodName}_error_polyrad.txt"
-    File error_info_supermassa = "~{methodName}_error_supermassa.txt"
-  }
-}
 
 task BamCounts{
   input {
@@ -1022,6 +826,8 @@ task DepthBam{
       library(R.utils)
       system("cp ~{sep=" "  freebayes_counts} .")
       system("cp ~{sep=" "  gatk_counts} .")
+      system("cp ~{sep=" "  freebayes_pos} .")
+      system("cp ~{sep=" "  gatk_pos} .")
       names <- c("~{sep=" , "  sampleName}")  
       names <- unlist(strsplit(names, split = " , "))
     
@@ -1029,9 +835,9 @@ task DepthBam{
 
       for(method in methods){
         if(method == "gatk"){
-          site_list <- read.table("~{gatk_pos}")
+          site_list <- read.table("gatk_site_list.txt")
         } else {
-          site_list <- read.table("~{freebayes_pos}")
+          site_list <- read.table("freebayes_site_list.txt")
         }
         ref_depth_matrix <- alt_depth_matrix  <- matrix(NA, nrow = dim(site_list)[1], ncol = length(names))
         
@@ -1049,7 +855,7 @@ task DepthBam{
           } 
           
           close(con)
-
+          
           ref.idx <- sapply(dataList, "[",3)
           ref.idx[ref.idx == "A"] <- 1
           ref.idx[ref.idx == "C"] <- 2
@@ -1066,6 +872,7 @@ task DepthBam{
           
           c.idx <- lapply(res.appp, function(x)  which(x != 0))
           
+          # Define which allele is the reference allele
           for(i in 1:length(alt_depth)){
             if(length(c.idx[[i]]) == 0){
               ref_depth[i] <- alt_depth[i] <- 0
@@ -1087,8 +894,17 @@ task DepthBam{
                 ref_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
                 alt_depth[i]  <- res.appp[[i]][c.idx[[i]][2]]
               } 
-            } else if(length(c.idx[[i]]) > 2){ # When non-biallelic add NA to alternative allele count
-              alt_depth[i] <- NA
+            } else if(length(c.idx[[i]]) > 2){ # When non-biallelic maker, save the two most representated
+              idx <- which(c.idx[[i]] == ref.idx[i])
+              if(length(idx) != 0){
+                ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
+                alt_depth[i] <- res.appp[[i]][c.idx[[i]][-idx]][which.max(res.appp[[i]][c.idx[[i]][-idx]])]
+              } else {
+                ref_depth[i]  <- sort(res.appp[[i]], decreasing = T)[1]
+                alt_depth[i]  <- sort(res.appp[[i]], decreasing = T)[2]
+              } 
+              #alt_depth[i] <- NA # When non-biallelic add NA to alternative allele count (it happens a lot)
+              #ref_depth[i] <- NA
             } 
           }
           
@@ -1105,9 +921,9 @@ task DepthBam{
         
         rownames(ref_depth_matrix) <- rownames(alt_depth_matrix) <- paste0(site_list[,1],"_", site_list[,2])
         colnames(ref_depth_matrix) <- colnames(alt_depth_matrix) <- names
-
-        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=T)
-        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=F, sep="\t", col.names=T)
+        
+        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
       }
 
     RSCRIPT
@@ -1124,5 +940,287 @@ task DepthBam{
     File freebayes_ref_bam = "freebayes_ref_depth_bam.txt"
     File freebayes_alt_bam = "freebayes_alt_depth_bam.txt"
   }
-
 }
+
+task all_maps {
+
+ input {
+    File tot_mks
+    String methodName
+    File simu_vcf
+    File vcf_file
+    File freebayes_ref_depth
+    File freebayes_alt_depth
+    File gatk_ref_depth 
+    File gatk_alt_depth 
+  }
+
+  command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+          library(supermassa4onemap)
+          library(onemap)
+          library(updog)
+          library(reshape2)
+          library(vcfR)
+          library(doParallel)
+
+          args = commandArgs(trailingOnly=TRUE)
+
+          system("cp ~{sep=" "  freebayes_ref_depth} .")
+          system("cp ~{sep=" "  freebayes_alt_depth} .")
+          system("cp ~{sep=" "  gatk_ref_depth} .")
+          system("cp ~{sep=" "  gatk_alt_depth} .")
+          method_name <- "~{methodName}"
+          tot_mks_file <- "~{tot_mks}"
+          simu_vcf_file <- "~{simu_vcf}"
+          vcf_file <- "~{vcf_file}"
+
+          # Functions
+          create_filters_report <- function(onemap_obj) {
+            segr <- onemap::test_segregation(onemap_obj)
+            distorted <- onemap::select_segreg(segr, distorted = T)
+            bins <- onemap::find_bins(onemap_obj)
+            total_variants <- onemap_obj[[3]]
+            filters_tab <- data.frame("n_markers"= total_variants, 
+                                      "distorted_markers"=length(distorted), 
+                                      "redundant_markers"=total_variants - length(bins))
+            return(filters_tab)
+          }
+
+          create_maps_report <- function(onemap_obj, tot_mks) {
+            assign("onemap_obj", onemap_obj, envir=.GlobalEnv)
+            twopts <- rf_2pts(onemap_obj)
+            assign("twopts", twopts, envir=.GlobalEnv)
+            
+            true_mks <- which(onemap_obj[[9]] %in% tot_mks[,2])
+            seq_true <- make_seq(twopts, true_mks)
+            map_df <- map(seq_true)
+            map_info <- data.frame("mk.name"= colnames(onemap_obj[[1]])[map_df[[1]]], 
+                                  "pos" = onemap_obj[[9]][map_df[[1]]],
+                                  "rf" = c(0,cumsum(haldane(map_df[[3]]))))
+            return (map_info)
+          }
+
+
+          create_errors_report <- function(onemap_obj, gab) {
+            pos <- which(gab[[9]] %in% onemap_obj[[9]])
+            pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
+            gab.pos <- gab[[9]][pos]
+            gab.geno <- gab[[1]][,pos]
+            colnames(gab.geno) <- gab.pos
+            gab.geno <-reshape2::melt(gab.geno)
+            colnames(gab.geno) <- c("MK", "POS", "gabGT")
+            meth.geno <- onemap_obj[[1]][,pos.inv]
+            meth.error <- onemap_obj[[11]][pos.inv + rep(c(0:(onemap_obj[[2]]-1))*onemap_obj[[3]], each=length(pos.inv)),]
+            meth.pos <- onemap_obj[[9]][pos.inv]
+            colnames(meth.geno) <- meth.pos
+            meth.geno <- reshape2::melt(meth.geno)
+            colnames(meth.geno) <- c("MK", "POS", "methGT")
+            pos.error <- sapply(strsplit(rownames(meth.error), split = "_"), "[",2)
+            ind.error <- paste0(sapply(strsplit(rownames(meth.error), split = "_"), "[", 3), "_", sapply(strsplit(rownames(meth.error), split = "_"), "[", 4))
+            meth.error <- as.data.frame(cbind(ind.error, pos.error, meth.error))
+            colnames(meth.error) <- c("MK", "POS", "A", "AB", "BA", "B")
+            error.info <- merge(gab.geno, meth.geno)
+            error.info <- merge(error.info, meth.error)
+            return (error.info)
+          }
+
+          write_report <- function(filters_tab, out_name) {
+            write.table(filters_tab, file=out_name, row.names=F, quote=F)
+          }
+
+          
+          ## KNOWN VARIANTS
+          tot_mks <- read.table(tot_mks_file)
+          
+          # READING DATA FROM SIMULATED POPULATION
+          simu <- read.vcfR(simu_vcf_file)
+          gab <- onemap_read_vcfR(vcfR.object=simu,
+                                  cross="f2 intercross",
+                                  parent1="P1",
+                                  parent2="P2",
+                                  f1="F1")
+          
+          ## READING FINAL VCF FROM PIPELINE
+          vcf <- read.vcfR(vcf_file)
+          df <- onemap_read_vcfR(vcfR.object=vcf, 
+                                cross="f2 intercross", 
+                                parent1="P1", 
+                                parent2="P2", 
+                                f1="F1")
+          
+          ## FILTERS REPORT
+          out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
+          filters_tab <- create_filters_report(df)
+          write_report(filters_tab, out_name)
+          
+          ## MAPS REPORT - DF
+          out_name <- paste0(method_name, "_map_df.txt")
+          maps_tab <- create_maps_report(df, tot_mks)
+          write_report(maps_tab, out_name)
+          
+          # MAPS REPORT - GQ
+          aval.gq <- extract_depth(vcfR.object=vcf,
+                                  onemap.object=df,
+                                  vcf.par="GQ",
+                                  parent1="P1",
+                                  parent2="P2",
+                                  f1="F1",
+                                  recovering=FALSE)
+          
+          aval.gq <- create_probs(df, genotypes_errors=aval.gq)
+          
+          out_name <- paste0(method_name, "_map_GQ.txt")
+          maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
+          write_report(maps_gq_tab, out_name)
+          
+          out_name <- paste0(method_name, "_error_GQ.txt")
+          errors_tab <- create_errors_report(aval.gq, gab)
+          write_report(errors_tab, out_name)
+          
+          
+          # OTHER TOOLS
+          ## With depths from vcf
+          updog.aval <- updog_error(
+            vcfR.object=vcf,
+            onemap.object=df,
+            vcf.par="AD",
+            parent1="P1",
+            parent2="P2",
+            f1="F1",
+            recovering=TRUE,
+            mean_phred=20,
+            cores=3,
+            depths=NULL)
+          
+          supermassa.aval <- supermassa4onemap::supermassa_error(
+            vcfR.object=vcf,
+            onemap.object = df,
+            vcf.par = "AD",
+            parent1 = "P1",
+            parent2 = "P2",
+            f1="F1",
+            recovering = TRUE,
+            mean_phred = 20,
+            cores = 3,
+            depths = NULL)
+          
+          polyrad.aval <- polyRAD_error(
+            vcf=vcf_file, 
+            onemap.obj=df,
+            parent1="P1",
+            parent2="P2",
+            f1="F1",
+            crosstype="f2 intercross")
+          
+          metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
+          for (metodology in names(metodologies)){
+            error_aval <- metodologies[[metodology]]
+            ## Filters
+            out_name <- paste0(method_name, "_filters_", metodology, ".txt")
+            filters_tab <- create_filters_report(error_aval)
+            write_report(filters_tab, out_name)
+            
+            ## Maps 
+            out_name <- paste0(method_name, "_map_", metodology, ".txt")
+            maps_tab <- create_maps_report(error_aval, tot_mks)
+            write_report(maps_tab, out_name)
+            
+            ## Errors info
+            out_name <- paste0(method_name, "_error_", metodology, ".txt")
+            errors_tab <- create_errors_report(error_aval, gab)
+            write_report(errors_tab, out_name)
+          }
+          
+          ## Depths from bam
+          depths.alt <- read.table(paste0(method_name, "_alt_depth_bam.txt"), header = T)
+          depths.ref <- read.table(paste0(method_name, "_ref_depth_bam.txt"), header = T)
+          
+          depths <- list("ref"=depths.ref, "alt"=depths.alt)
+          
+          updog.aval.bam <- updog_error(
+            vcfR.object=vcf,
+            onemap.object=df,
+            vcf.par="AD",
+            parent1="P1",
+            parent2="P2",
+            f1="F1",
+            recovering=TRUE,
+            mean_phred=20,
+            cores=3,
+            depths=depths)
+          
+          supermassa.aval.bam <- supermassa_error(
+            vcfR.object=vcf,
+            onemap.object = df,
+            vcf.par = "AD",
+            parent1 = "P1",
+            parent2 = "P2",
+            f1="F1",
+            recovering = TRUE,
+            mean_phred = 20,
+            cores = 3,
+            depths = depths)
+          
+          polyrad.aval.bam <- polyRAD_error(
+            vcf=vcf_file, 
+            onemap.obj=df,
+            parent1="P1",
+            parent2="P2",
+            f1="F1",
+            crosstype="f2 intercross", 
+            depths = depths)
+          
+          metodologies <- list(updog = updog.aval.bam, supermassa= supermassa.aval.bam, polyrad=polyrad.aval.bam)
+          for (metodology in names(metodologies)){
+            error_aval <- metodologies[[metodology]]
+            ## Filters
+            out_name <- paste0(method_name, "_filters_bam_", metodology, ".txt")
+            filters_tab <- create_filters_report(error_aval)
+            write_report(filters_tab, out_name)
+            
+            ## Maps 
+            out_name <- paste0(method_name, "_map_bam_", metodology, ".txt")
+            maps_tab <- create_maps_report(error_aval, tot_mks)
+            write_report(maps_tab, out_name)
+            
+            ## Errors info
+            out_name <- paste0(method_name, "_error_bam_", metodology, ".txt")
+            errors_tab <- create_errors_report(onemap_obj = error_aval, gab = gab)
+            write_report(errors_tab, out_name)
+          }
+        
+        RSCRIPT
+  >>>
+
+  runtime{
+    docker:"taniguti/onemap"
+  }
+
+  output{
+    File filters_dfAndGQ = "~{methodName}_filters_dfAndGQ.txt"
+    File filters_polyrad = "~{methodName}_filters_polyrad.txt"
+    File filters_supermassa = "~{methodName}_filters_supermassa.txt"
+    File filters_updog = "~{methodName}_filters_updog.txt"
+    File filters_bam_polyrad = "~{methodName}_filters_bam_polyrad.txt"
+    File filters_bam_supermassa = "~{methodName}_filters_bam_supermassa.txt"
+    File filters_bam_updog = "~{methodName}_filters_bam_updog.txt"
+    File map_df = "~{methodName}_map_df.txt"
+    File map_GQ = "~{methodName}_map_GQ.txt"
+    File map_polyrad = "~{methodName}_map_polyrad.txt"
+    File map_supermassa = "~{methodName}_map_supermassa.txt"
+    File map_updog = "~{methodName}_map_updog.txt"
+    File map_bam_polyrad = "~{methodName}_map_bam_polyrad.txt"
+    File map_bam_supermassa = "~{methodName}_map_bam_supermassa.txt"
+    File map_bam_updog = "~{methodName}_map_bam_updog.txt"
+    File error_info_GQ = "~{methodName}_error_GQ.txt"
+    File error_info_updog = "~{methodName}_error_updog.txt"
+    File error_info_polyrad = "~{methodName}_error_polyrad.txt"
+    File error_info_supermassa = "~{methodName}_error_supermassa.txt"
+    File error_info_bam_updog = "~{methodName}_error_bam_updog.txt"
+    File error_info_bam_polyrad = "~{methodName}_error_bam_polyrad.txt"
+    File error_info_bam_supermassa = "~{methodName}_error_bam_supermassa.txt"
+  }
+}
+
