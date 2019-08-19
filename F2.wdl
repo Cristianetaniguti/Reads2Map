@@ -155,6 +155,18 @@ workflow SimulateF2 {
         ref           = references.ref_fasta,
         ref_fai       = references.ref_fasta_index
     }
+
+    call BamCounts2{
+      input:
+       sampleName     = bams.right,
+       bam_file       = bams.left,
+       bam_idx        = AddAlignmentHeader.bam_rg_index,
+       ref            = references.ref_fasta,
+       ref_fai        = references.ref_fasta_index,
+       ref_dict       = references.ref_dict,
+       gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
+       freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
+    }
   }
 
   call DepthBam{
@@ -162,6 +174,8 @@ workflow SimulateF2 {
       sampleName       = GenerateSampleNames.names,
       freebayes_counts = BamCounts.freebayes_counts,
       gatk_counts      = BamCounts.gatk_counts,
+      freebayes_counts2 = BamCounts2.freebayes_counts2,
+      gatk_counts2      = BamCounts2.gatk_counts2,
       freebayes_pos    = CalculateVcfMetrics.freebayes_pos,
       gatk_pos         = CalculateVcfMetrics.gatk_pos
   }
@@ -180,7 +194,13 @@ workflow SimulateF2 {
         freebayes_ref_depth = DepthBam.freebayes_ref_bam, 
         freebayes_alt_depth = DepthBam.freebayes_alt_bam,
         gatk_ref_depth = DepthBam.gatk_ref_bam,
-        gatk_alt_depth = DepthBam.gatk_alt_bam
+        gatk_alt_depth = DepthBam.gatk_alt_bam,
+        freebayes_ref_depth2 = DepthBam.freebayes_ref_bam2, 
+        freebayes_alt_depth2 = DepthBam.freebayes_alt_bam2,
+        gatk_ref_depth2 = DepthBam.gatk_ref_bam2,
+        gatk_alt_depth2 = DepthBam.gatk_alt_bam2,
+        gatk_example_alleles = DepthBam.gatk_example_alleles,
+        freebayes_example_alleles = DepthBam.freebayes_example_alleles
     }
   }
 
@@ -783,7 +803,7 @@ task CalculateVcfMetrics {
   }
 }
 
-
+# This task extract the allele depths from bam files
 task BamCounts{
   input {
     String sampleName
@@ -812,10 +832,61 @@ task BamCounts{
   }
 }
 
+
+# now make with Picard tool
+task BamCounts2{
+  input{
+    String sampleName
+    File bam_file
+    Array[File] bam_idx
+    File ref
+    File ref_fai
+    File ref_dict
+    File gatk_vcf
+    File freebayes_vcf
+  }
+
+  command <<<
+
+    java -jar /gatk/picard.jar VcfToIntervalList \
+      I=~{gatk_vcf} \
+      O=gatk.interval.list
+
+    /gatk/gatk CollectAllelicCounts \
+      --input ~{bam_file} \
+      --reference ~{ref} \
+      --intervals gatk.interval.list \
+      --output ~{sampleName}_gatk_counts2.tsv
+
+   java -jar /gatk/picard.jar VcfToIntervalList \
+      I=~{freebayes_vcf} \
+      O=freebayes.interval.list
+
+    /gatk/gatk CollectAllelicCounts \
+      --input ~{bam_file} \
+      --reference ~{ref} \
+      --intervals freebayes.interval.list \
+      --output ~{sampleName}_freebayes_counts2.tsv
+
+  >>>
+
+  runtime{
+    docker:"taniguti/gatk-picard"
+  }
+
+  output{
+    File gatk_counts2 = "~{sampleName}_gatk_counts2.tsv"
+    File freebayes_counts2 = "~{sampleName}_freebayes_counts2.tsv"
+  }
+}
+
+# This task convert the output from BamCounts to the depths input for onemap
 task DepthBam{
   input{
     Array[File] freebayes_counts
     Array[File] gatk_counts
+    Array[File] freebayes_counts2
+    Array[File] gatk_counts2
     Array[String] sampleName
     File freebayes_pos
     File gatk_pos
@@ -826,6 +897,8 @@ task DepthBam{
       library(R.utils)
       system("cp ~{sep=" "  freebayes_counts} .")
       system("cp ~{sep=" "  gatk_counts} .")
+      system("cp ~{sep=" "  freebayes_counts2} .")
+      system("cp ~{sep=" "  gatk_counts2} .")
       system("cp ~{sep=" "  freebayes_pos} .")
       system("cp ~{sep=" "  gatk_pos} .")
       names <- c("~{sep=" , "  sampleName}")  
@@ -834,97 +907,135 @@ task DepthBam{
       methods <- c("gatk", "freebayes")
 
       for(method in methods){
-        if(method == "gatk"){
-          site_list <- read.table("gatk_site_list.txt")
-        } else {
-          site_list <- read.table("freebayes_site_list.txt")
-        }
-        ref_depth_matrix <- alt_depth_matrix  <- matrix(NA, nrow = dim(site_list)[1], ncol = length(names))
-        
-        for(j in 1:length(names)){
+          if(method == "gatk"){
+            site_list <- read.table("gatk_site_list.txt")
+          } else {
+            site_list <- read.table("freebayes_site_list.txt")
+          }
           
-          inputFile <- paste0(names[j],"_",method,"_counts.txt")
+          ref_depth_matrix <- alt_depth_matrix  <- matrix(NA, nrow = dim(site_list)[1], ncol = length(names))
+
+          file.counts2 <- read.table(paste0(names[1],"_", method,"_counts2.tsv"), skip = 3, header=T, stringsAsFactors = F)
+
+          ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts2)[1], ncol = length(names))
           
-          con  <- file(inputFile, open = "r")
-          
-          dataList <- list()
-          
-          while (length(oneLine <- readLines(con, n = 1, warn = FALSE)) > 0) {
-            myVector <- (strsplit(oneLine, "\t"))
-            dataList <- c(dataList,myVector)
-          } 
-          
-          close(con)
-          
-          ref.idx <- sapply(dataList, "[",3)
-          ref.idx[ref.idx == "A"] <- 1
-          ref.idx[ref.idx == "C"] <- 2
-          ref.idx[ref.idx == "G"] <- 3
-          ref.idx[ref.idx == "T"] <- 4
-          ref.idx <- as.numeric(ref.idx)
-          
-          res.app <- lapply(lapply(dataList, "[", -c(1:4)), function(x) sapply(strsplit(x, ":"), "[",2))
-          
-          pos.app <- sapply(dataList, "[",2)
-          res.appp <- lapply(res.app, "[", -1)
-          
-          ref_depth <- alt_depth <- rep(NA, length(res.appp))
-          
-          c.idx <- lapply(res.appp, function(x)  which(x != 0))
-          
-          # Define which allele is the reference allele
-          for(i in 1:length(alt_depth)){
-            if(length(c.idx[[i]]) == 0){
-              ref_depth[i] <- alt_depth[i] <- 0
-            } else if (length(c.idx[[i]]) == 1){
-              idx <- which(c.idx[[i]] == ref.idx[i])
-              if(length(idx) != 0){
-                ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
-                alt_depth[i] <- 0
-              } else {
-                ref_depth[i] <- 0
-                alt_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
-              }
-            } else if(length(c.idx[[i]]) == 2){
-              idx <- which(c.idx[[i]] == ref.idx[i])
-              if(length(idx) != 0){
-                ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
-                alt_depth[i] <- res.appp[[i]][c.idx[[i]][-idx]]
-              } else {
-                ref_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
-                alt_depth[i]  <- res.appp[[i]][c.idx[[i]][2]]
-              } 
-            } else if(length(c.idx[[i]]) > 2){ # When non-biallelic maker, save the two most representated
-              idx <- which(c.idx[[i]] == ref.idx[i])
-              if(length(idx) != 0){
-                ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
-                alt_depth[i] <- res.appp[[i]][c.idx[[i]][-idx]][which.max(res.appp[[i]][c.idx[[i]][-idx]])]
-              } else {
-                ref_depth[i]  <- sort(res.appp[[i]], decreasing = T)[1]
-                alt_depth[i]  <- sort(res.appp[[i]], decreasing = T)[2]
-              } 
-              #alt_depth[i] <- NA # When non-biallelic add NA to alternative allele count (it happens a lot)
-              #ref_depth[i] <- NA
+          for(j in 1:length(names)){
+
+            inputFile <- paste0(names[j],"_",method,"_counts.txt")
+            
+            con  <- file(inputFile, open = "r")
+            
+            dataList <- list()
+            
+            while (length(oneLine <- readLines(con, n = 1, warn = FALSE)) > 0) {
+              myVector <- (strsplit(oneLine, "\t"))
+              dataList <- c(dataList,myVector)
             } 
+            
+            close(con)
+            
+            ref.idx <- sapply(dataList, "[",3)
+            ref.idx[ref.idx == "A"] <- 1
+            ref.idx[ref.idx == "C"] <- 2
+            ref.idx[ref.idx == "G"] <- 3
+            ref.idx[ref.idx == "T"] <- 4
+            ref.idx <- as.numeric(ref.idx)
+            
+            res.app <- lapply(lapply(dataList, "[", -c(1:4)), function(x) sapply(strsplit(x, ":"), "[",2))
+            
+            pos.app <- sapply(dataList, "[",2)
+            res.appp <- lapply(res.app, "[", -1)
+            
+            ref_depth <- alt_depth <- rep(NA, length(res.appp))
+            
+            c.idx <- lapply(res.appp, function(x)  which(x != 0))
+            
+            # Define which allele is the reference allele
+            for(i in 1:length(alt_depth)){
+              if(length(c.idx[[i]]) == 0){
+                ref_depth[i] <- alt_depth[i] <- 0
+              } else if (length(c.idx[[i]]) == 1){
+                idx <- which(c.idx[[i]] == ref.idx[i])
+                if(length(idx) != 0){
+                  ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
+                  alt_depth[i] <- 0
+                } else {
+                  ref_depth[i] <- 0
+                  alt_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
+                }
+              } else if(length(c.idx[[i]]) == 2){
+                idx <- which(c.idx[[i]] == ref.idx[i])
+                if(length(idx) != 0){
+                  ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
+                  alt_depth[i] <- res.appp[[i]][c.idx[[i]][-idx]]
+                } else {
+                  ref_depth[i]  <- res.appp[[i]][c.idx[[i]][1]]
+                  alt_depth[i]  <- res.appp[[i]][c.idx[[i]][2]]
+                } 
+              } else if(length(c.idx[[i]]) > 2){ # When non-biallelic maker, save the two most representated
+                idx <- which(c.idx[[i]] == ref.idx[i])
+                if(length(idx) != 0){
+                  ref_depth[i] <- res.appp[[i]][c.idx[[i]][idx]]
+                  alt_depth[i] <- res.appp[[i]][c.idx[[i]][-idx]][which.max(res.appp[[i]][c.idx[[i]][-idx]])]
+                } else {
+                  ref_depth[i]  <- sort(res.appp[[i]], decreasing = T)[1]
+                  alt_depth[i]  <- sort(res.appp[[i]], decreasing = T)[2]
+                } 
+                #alt_depth[i] <- NA # When non-biallelic add NA to alternative allele count (it happens a lot)
+                #ref_depth[i] <- NA
+              } 
+            }
+            
+            mis <- which(!site_list[,2] %in% pos.app)
+            if(length(mis) != 0){
+              for(w in 1:length(mis)){
+                ref_depth <- insert(ref_depth, mis[w], 0)
+                alt_depth <- insert(alt_depth, mis[w], 0)
+              }
+            }
+            ref_depth_matrix[,j] <- ref_depth
+            alt_depth_matrix[,j] <- alt_depth
+            
+            
+            ## From picard tool
+            
+            file.counts2 <- read.table(paste0(names[j],"_", method,"_counts2.tsv"), skip = 3, header=T, stringsAsFactors = F)
+
+            ref_depth_matrix2[,j] <- file.counts2[,3]
+            alt_depth_matrix2[,j] <- file.counts2[,4]
+
+            if(j == 1){
+              ref_allele <- file.counts2[,5]
+              alt_allele <- file.counts2[,6]
+            } else {
+              idx.ref <- which(ref_allele == "N")
+              idx.alt <- which(alt_allele == "N")
+              if(length(idx.ref)!=0){
+                ref_allele[idx.ref] <- file.counts2[idx.ref,5]
+              }
+              if(length(idx.alt)!=0){
+                alt_allele[idx.alt] <- file.counts2[idx.alt,6]
+              }
+            }
+
           }
           
-          mis <- which(!site_list[,2] %in% pos.app)
-          if(length(mis) != 0){
-            for(w in 1:length(mis)){
-              ref_depth <- insert(ref_depth, mis[w], 0)
-              alt_depth <- insert(alt_depth, mis[w], 0)
-            }
-          }
-          ref_depth_matrix[,j] <- ref_depth
-          alt_depth_matrix[,j] <- alt_depth
+          rownames(ref_depth_matrix) <- rownames(alt_depth_matrix) <- paste0(site_list[,1],"_", site_list[,2])
+          colnames(ref_depth_matrix) <- colnames(alt_depth_matrix) <- names
+          
+          rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts2[,1],"_", file.counts2[,2])
+          colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
+          
+          alleles <- data.frame(file.counts2[,1],file.counts2[,2], ref_allele, alt_allele)
+          write.table(alleles, file = paste0(method,"_example4ref_alt_alleles.txt"), col.names = F, row.names = F)
+
+          write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+          write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+          
+          write.table(ref_depth_matrix2, file = paste0(method,"_ref_depth_bam2.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+          write.table(alt_depth_matrix2, file = paste0(method,"_alt_depth_bam2.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+          
         }
-        
-        rownames(ref_depth_matrix) <- rownames(alt_depth_matrix) <- paste0(site_list[,1],"_", site_list[,2])
-        colnames(ref_depth_matrix) <- colnames(alt_depth_matrix) <- names
-        
-        write.table(ref_depth_matrix, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-        write.table(alt_depth_matrix, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-      }
 
     RSCRIPT
 
@@ -935,10 +1046,17 @@ task DepthBam{
   }
 
   output{
-    File gatk_ref_bam      = "gatk_ref_depth_bam.txt"
-    File gatk_alt_bam      = "gatk_alt_depth_bam.txt"
-    File freebayes_ref_bam = "freebayes_ref_depth_bam.txt"
-    File freebayes_alt_bam = "freebayes_alt_depth_bam.txt"
+    File gatk_ref_bam       = "gatk_ref_depth_bam.txt"
+    File gatk_alt_bam       = "gatk_alt_depth_bam.txt"
+    File freebayes_ref_bam  = "freebayes_ref_depth_bam.txt"
+    File freebayes_alt_bam  = "freebayes_alt_depth_bam.txt"
+    File gatk_ref_bam2      = "gatk_ref_depth_bam2.txt"
+    File gatk_alt_bam2      = "gatk_alt_depth_bam2.txt"
+    File freebayes_ref_bam2 = "freebayes_ref_depth_bam2.txt"
+    File freebayes_alt_bam2 = "freebayes_alt_depth_bam2.txt"
+    File gatk_example_alleles    = "gatk_example4ref_alt_alleles.txt"
+    File freebayes_example_alleles    = "freebayes_example4ref_alt_alleles.txt"
+    
   }
 }
 
@@ -953,6 +1071,12 @@ task all_maps {
     File freebayes_alt_depth
     File gatk_ref_depth 
     File gatk_alt_depth 
+    File freebayes_ref_depth2
+    File freebayes_alt_depth2
+    File gatk_ref_depth2 
+    File gatk_alt_depth2
+    File gatk_example_alleles
+    File freebayes_example_alleles 
   }
 
   command <<<
@@ -971,6 +1095,12 @@ task all_maps {
           system("cp ~{sep=" "  freebayes_alt_depth} .")
           system("cp ~{sep=" "  gatk_ref_depth} .")
           system("cp ~{sep=" "  gatk_alt_depth} .")
+          system("cp ~{sep=" "  freebayes_ref_depth2} .")
+          system("cp ~{sep=" "  freebayes_alt_depth2} .")
+          system("cp ~{sep=" "  gatk_ref_depth2} .")
+          system("cp ~{sep=" "  gatk_alt_depth2} .")
+          system("cp ~{gatk_example_alleles} .")
+          system("cp ~{freebayes_example_alleles} .")
           method_name <- "~{methodName}"
           tot_mks_file <- "~{tot_mks}"
           simu_vcf_file <- "~{simu_vcf}"
@@ -1031,6 +1161,51 @@ task all_maps {
           }
 
           
+          make_vcf <- function(vcf.old, depths, method){
+            # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
+            idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
+            idx.i <- strsplit(idx, split = ":")[[1]][1]
+            seed <- sample(1:10000, 1)
+            system(paste0("head -n ", idx.i," ", vcf.old, " > head.",seed))
+            
+            vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
+            
+            if(all(rownames(depths[[1]]) == paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
+            
+              vcf.init <- vcf.tab[,1:8]
+              AD.colum <- rep("AD", dim(vcf.init)[1])
+              vcf.init <- cbind(vcf.init, AD.colum)
+              
+              rs <- rownames(depths[[1]])
+              vcf.init[,3] <- rs
+            } else {
+              temp.tab <- read.table(paste0(method,"_example4ref_alt_alleles.txt"))
+              vcf.init <- cbind(temp.tab[,1:2],paste0(temp.tab[,1], "_", temp.tab[,2]), temp.tab[,3:4], 
+                                rep(".", dim(temp.tab)[1]),rep(".", dim(temp.tab)[1]), rep(".", dim(temp.tab)[1]), rep("AD",dim(temp.tab)[1]))
+            }
+            
+            ind.n <- colnames(depths[[1]]) # The names came in different order
+            
+            header <- strsplit(idx, split = "\t")[[1]]
+            ind.vcf <- header[10:length(header)]
+            ind.n <- factor(ind.n, levels = ind.vcf)
+            
+            depths[[1]] <- depths[[1]][,order(ind.n)]
+            depths[[2]] <- depths[[2]][,order(ind.n)]
+            
+            comb.depth <- matrix(paste0(as.matrix(depths[[1]]), ",", as.matrix(depths[[2]])), ncol = ncol(depths[[2]]))
+            colnames(comb.depth) <- ind.vcf
+            #hmc.file <- cbind(rs, comb.depth)
+            
+            vcf.body <- cbind(vcf.init, comb.depth)
+            
+            write.table(vcf.body, file = paste0("temp.body.", seed), quote = FALSE, sep = "\t", row.names = FALSE, col.names = F) 
+            
+            system(paste0("cat head.",seed," temp.body.",seed," > temp.",seed,".vcf"))
+            return(paste0("temp.",seed, ".vcf"))
+          }
+
+
           ## KNOWN VARIANTS
           tot_mks <- read.table(tot_mks_file)
           
@@ -1163,14 +1338,15 @@ task all_maps {
             cores = 3,
             depths = depths)
           
+          new.vcf <- make_vcf(vcf_file, depths, method_name)
+          
           polyrad.aval.bam <- polyRAD_error(
-            vcf=vcf_file, 
+            vcf=new.vcf, 
             onemap.obj=df,
             parent1="P1",
             parent2="P2",
             f1="F1",
-            crosstype="f2 intercross", 
-            depths = depths)
+            crosstype="f2 intercross")
           
           metodologies <- list(updog = updog.aval.bam, supermassa= supermassa.aval.bam, polyrad=polyrad.aval.bam)
           for (metodology in names(metodologies)){
@@ -1190,6 +1366,65 @@ task all_maps {
             errors_tab <- create_errors_report(onemap_obj = error_aval, gab = gab)
             write_report(errors_tab, out_name)
           }
+
+          ## Depths from bam 2
+          depths.alt <- read.table(paste0(method_name, "_alt_depth_bam2.txt"), header = T)
+          depths.ref <- read.table(paste0(method_name, "_ref_depth_bam2.txt"), header = T)
+          
+          depths <- list("ref"=depths.ref, "alt"=depths.alt)
+          
+          updog.aval.bam2 <- updog_error(
+            vcfR.object=vcf,
+            onemap.object=df,
+            vcf.par="AD",
+            parent1="P1",
+            parent2="P2",
+            f1="F1",
+            recovering=TRUE,
+            mean_phred=20,
+            cores=3,
+            depths=depths)
+          
+          supermassa.aval.bam2 <- supermassa_error(
+            vcfR.object=vcf,
+            onemap.object = df,
+            vcf.par = "AD",
+            parent1 = "P1",
+            parent2 = "P2",
+            f1="F1",
+            recovering = TRUE,
+            mean_phred = 20,
+            cores = 3,
+            depths = depths)
+          
+            new.vcf <- make_vcf(vcf_file, depths, method_name)
+
+          polyrad.aval.bam2 <- polyRAD_error(
+            vcf=new.vcf, 
+            onemap.obj=df,
+            parent1="P1",
+            parent2="P2",
+            f1="F1",
+            crosstype="f2 intercross")
+          
+          metodologies <- list(updog = updog.aval.bam2, supermassa= supermassa.aval.bam2, polyrad=polyrad.aval.bam2)
+          for (metodology in names(metodologies)){
+            error_aval <- metodologies[[metodology]]
+            ## Filters
+            out_name <- paste0(method_name, "_filters_bam2_", metodology, ".txt")
+            filters_tab <- create_filters_report(error_aval)
+            write_report(filters_tab, out_name)
+            
+            ## Maps 
+            out_name <- paste0(method_name, "_map_bam2_", metodology, ".txt")
+            maps_tab <- create_maps_report(error_aval, tot_mks)
+            write_report(maps_tab, out_name)
+            
+            ## Errors info
+            out_name <- paste0(method_name, "_error_bam2_", metodology, ".txt")
+            errors_tab <- create_errors_report(onemap_obj = error_aval, gab = gab)
+            write_report(errors_tab, out_name)
+          }
         
         RSCRIPT
   >>>
@@ -1203,6 +1438,9 @@ task all_maps {
     File filters_polyrad = "~{methodName}_filters_polyrad.txt"
     File filters_supermassa = "~{methodName}_filters_supermassa.txt"
     File filters_updog = "~{methodName}_filters_updog.txt"
+    File filters_bam2_polyrad = "~{methodName}_filters_bam2_polyrad.txt"
+    File filters_bam2_supermassa = "~{methodName}_filters_bam2_supermassa.txt"
+    File filters_bam2_updog = "~{methodName}_filters_bam2_updog.txt"
     File filters_bam_polyrad = "~{methodName}_filters_bam_polyrad.txt"
     File filters_bam_supermassa = "~{methodName}_filters_bam_supermassa.txt"
     File filters_bam_updog = "~{methodName}_filters_bam_updog.txt"
@@ -1214,6 +1452,9 @@ task all_maps {
     File map_bam_polyrad = "~{methodName}_map_bam_polyrad.txt"
     File map_bam_supermassa = "~{methodName}_map_bam_supermassa.txt"
     File map_bam_updog = "~{methodName}_map_bam_updog.txt"
+    File map_bam2_polyrad = "~{methodName}_map_bam2_polyrad.txt"
+    File map_bam2_supermassa = "~{methodName}_map_bam2_supermassa.txt"
+    File map_bam2_updog = "~{methodName}_map_bam2_updog.txt"
     File error_info_GQ = "~{methodName}_error_GQ.txt"
     File error_info_updog = "~{methodName}_error_updog.txt"
     File error_info_polyrad = "~{methodName}_error_polyrad.txt"
@@ -1221,6 +1462,10 @@ task all_maps {
     File error_info_bam_updog = "~{methodName}_error_bam_updog.txt"
     File error_info_bam_polyrad = "~{methodName}_error_bam_polyrad.txt"
     File error_info_bam_supermassa = "~{methodName}_error_bam_supermassa.txt"
+    File error_info_bam2_updog = "~{methodName}_error_bam2_updog.txt"
+    File error_info_bam2_polyrad = "~{methodName}_error_bam2_polyrad.txt"
+    File error_info_bam2_supermassa = "~{methodName}_error_bam2_supermassa.txt"
+
   }
 }
 

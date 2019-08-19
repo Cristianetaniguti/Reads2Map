@@ -95,7 +95,7 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/03160234-5b51-41e4-973d-2cefc3d2fc5c"
+path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/adf4c9d8-0705-4aa3-9431-617a7df04b28"
 cMByMb <- 4.63
 depth.ex <- 200
 ```
@@ -114,14 +114,14 @@ library(vcfR)
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 setwd(path)
 method <- c("gatk", "freebayes")
-meth.bam <- c("polyrad", "updog", "supermassa")
+meth.bam <- meth.bam2 <- c("polyrad", "updog", "supermassa")
 meth.geno <- c("df", "GQ", "polyrad", "updog", "supermassa")
 
 mapfile <- read.table("call-CreatePedigreeSimulatorInputs/execution/markers.txt", header=T)
 
 tot_mks <- read.table("call-CreatePedigreeSimulatorInputs/execution/tot_mks.txt")
 id <- c(0,1)
-p  <- p.bam <- list()
+p  <- p.bam <- p.bam2 <- list()
 
 df.diff.dis <- as.list(rep(NA, length(method)))
 for(i in 1:length(df.diff.dis)){
@@ -133,8 +133,16 @@ for(i in 1:length(df.diff.dis.bam)){
   df.diff.dis.bam[[i]] <- as.list(rep(NA, length(meth.bam)))
 }
 
+df.diff.dis.bam2 <- as.list(rep(NA, length(method)))
+for(i in 1:length(df.diff.dis.bam2)){
+  df.diff.dis.bam2[[i]] <- as.list(rep(NA, length(meth.bam2)))
+}
+
+
 df.per.geno <- df.coverage <- df.diff.tot <- df.diff.median <- df.diff.mean <- names.id <- df.filt <- vector()
 df.per.geno.bam <- df.coverage.bam <- df.diff.tot.bam <- df.diff.median.bam <- df.diff.mean.bam <- vector()
+df.per.geno.bam2 <- df.coverage.bam2 <- df.diff.tot.bam2 <- df.diff.median.bam2 <- df.diff.mean.bam2 <- vector()
+
 
 for(i in 1:length(method)){
   ## vcfs
@@ -165,7 +173,23 @@ for(i in 1:length(method)){
   p.bam[[i]] <- ggplot(df.depths, aes(x=ref, y=alt, color=as.factor(gt))) + geom_point(size=0.5) +
     labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,depth.ex) + ylim(0,depth.ex)
   
+   ## Depths by bam2
+  alt_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_alt_depth_bam2.txt"), header = T, stringsAsFactors = F)
+  alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
+  alt_depth <- alt_depth[,sort(colnames(alt_depth))]
+  alt <- melt(alt_depth)
   
+  ref_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_ref_depth_bam2.txt"), header = T, stringsAsFactors = F)
+  ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
+  ref_depth <- ref_depth[,sort(colnames(ref_depth))]
+  ref <- melt(ref_depth)
+  
+  idx.id <- match(gt$Var2, ref$variable)
+  df.depths <- data.frame(ind = ref$variable, alt = alt$value, ref=ref$value)
+  
+  p.bam2[[i]] <- ggplot(df.depths, aes(x=ref, y=alt)) + geom_point(size=0.5) +
+    labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,depth.ex) + ylim(0,depth.ex)
+
   ## Depths by softwares
   alt_depth <- read.table(paste0("call-CalculateVcfMetrics/execution/", method[i], "_alt_depth.txt"), header = T, stringsAsFactors = F)
   alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
@@ -263,6 +287,46 @@ for(i in 1:length(method)){
     per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
     df.per.geno.bam <- c(df.per.geno.bam,per.geno)
   }              
+  
+  for(j in 1:length(meth.bam2)){
+    # Map distance
+    maps <- read.table(paste0("call-all_maps/shard-", id[i],"/execution/", method[i],"_map_bam2_", meth.bam2[j],".txt"), header =T)
+    
+    poscM <- (as.numeric(as.character(maps[,2]))/1000000)*cMByMb
+    poscM.norm <- poscM-poscM[1]
+    maps <- cbind(maps, poscM, poscM.norm)
+    
+    # Difference between distances real and estimated
+    diff.dis <- sqrt((maps$poscM.norm - maps$rf)^2)
+    df.diff.dis.bam2[[i]][[j]] <- diff.dis
+    names(df.diff.dis.bam2[[i]][[j]]) <- paste0(method[i],"_",meth.bam2[j])
+    
+    # Meth names
+    names.id <-  c(names.id,paste0(method[i],"_",meth.bam2[j]))
+    
+    # Mean of differences
+    diff.dis.mean.bam2 <- mean(sqrt((maps$poscM.norm - maps$rf)^2))
+    df.diff.mean.bam2 <- c(df.diff.mean.bam2,diff.dis.mean.bam2)
+    
+    # Median of differences
+    diff.dis.median.bam2 <- median(sqrt((maps$poscM.norm - maps$rf)^2))
+    df.diff.median.bam2 <- c(df.diff.median.bam2,diff.dis.median.bam2)
+    
+    # Difference of total size
+    diff.tot.dis <- sqrt((maps$poscM.norm[length(maps$poscM.norm)] - maps$rf[length(maps$rf)])^2)
+    df.diff.tot.bam2 <- c(df.diff.tot.bam2,diff.tot.dis)
+    
+    mapfile.pos <- cbind(mapfile, tot_mks[,2])
+    
+    # Percentage of the chromosome covered 
+    coverage <- maps$pos[length(maps$pos)]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
+    df.coverage.bam2 <- c(df.coverage.bam2,coverage)
+    
+    # Percentage of rigth genotyping
+    per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.bam2[j],".txt"), header =T)
+    per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
+    df.per.geno.bam2 <- c(df.per.geno.bam2,per.geno)
+  }              
 }
 
 ```
@@ -270,6 +334,11 @@ for(i in 1:length(method)){
 ## Depth
 
 Aqui mostra a distribuição das contagens de cada alelo, teoricamente deveriam ter homozigotos para os dois pais e heterozigotos no meio, uma diagonal (mas parece que só esta simulando homozigotos, isso altera tudo em seguida).
+
+```{r}
+# Depths from bam
+p.bam2
+```
 
 ```{r}
 # Depths from bam
@@ -328,6 +397,23 @@ p
 
 ```
 
+```{r}
+df.melt.diff.dis.bam2 <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis.bam2[[1]]))), 
+                                          rep("freebayes", length(unlist(df.diff.dis.bam2[[2]])))), 
+                               genoty = c(rep("polyrad", length(df.diff.dis.bam2[[1]][[1]])), 
+                                          rep("updog", length(df.diff.dis.bam2[[1]][[2]])),
+                                          rep("supermassa", length(df.diff.dis.bam2[[1]][[3]])),
+                                          rep("polyrad", length(df.diff.dis.bam2[[2]][[1]])), 
+                                          rep("updog", length(df.diff.dis.bam2[[2]][[2]])),
+                                          rep("supermassa", length(df.diff.dis.bam2[[2]][[3]]))),
+                               value = unlist(df.diff.dis.bam2))
+
+
+p<-ggplot(df.melt.diff.dis.bam2, aes(x=genoty, y=value, fill=method)) +
+  geom_boxplot() + geom_hline(yintercept=0, color="red")
+p
+
+```
 
 
 ## Difference of total size
@@ -356,6 +442,15 @@ p
 
 ```
 
+```{r}
+df.diff.tot1.bam2 <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot.bam2)
+
+p <- ggplot(data=df.diff.tot1.bam2, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
 
 ## Median of differences
 
@@ -380,6 +475,16 @@ p <- ggplot(data=df.diff.median1.bam, aes(x=genotype.prob, y=value, fill=snp.cal
 p
 ```
 
+```{r}
+
+df.diff.median1.bam2 <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.median.bam2)
+
+p <- ggplot(data=df.diff.median1.bam2, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+```
+
 ## Mean of differences
 
 ```{r}
@@ -399,6 +504,17 @@ p
 df.diff.mean1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean.bam)
 
 p <- ggplot(data=df.diff.mean1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
+```{r}
+
+df.diff.mean1.bam2 <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean.bam2)
+
+p <- ggplot(data=df.diff.mean1.bam2, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
   theme_minimal()
 p
@@ -432,6 +548,17 @@ p
 
 ```
 
+```{r}
+
+df.per.geno1.bam2 <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.per.geno.bam2)
+
+p <- ggplot(data=df.per.geno1.bam2, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
 ## Percentage of the chromosome covered 
 
 
@@ -457,6 +584,19 @@ p <- ggplot(data=df.coverage1.bam, aes(x=genotype.prob, y=value, fill=snp.call))
 p
 
 ```
+
+
+```{r}
+
+df.coverage1.bam2 <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.coverage.bam2)
+
+p <- ggplot(data=df.coverage1.bam2, aes(x=genotype.prob, y=value, fill=snp.call)) +
+  geom_bar(stat="identity", color="black", position=position_dodge())+
+  theme_minimal()
+p
+
+```
+
 
 ## Number of filtered
 
