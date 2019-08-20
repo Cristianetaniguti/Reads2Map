@@ -1,5 +1,5 @@
 {
-  "SimulateF2.references": {
+  "reads_simu.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
     "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.fai",
@@ -10,12 +10,15 @@
     "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
   },
 
-  "SimulateF2.family": {
+  "reads_simu.family": {
     "name": "family1",
     "cmBymb": 4.63,
-    "samples": 47,
+    "popsize": 47,
     "enzyme":"G*CWGC",
     "seed": 1515,
-    "depth": 2  
+    "depth": 10,
+    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
+    "ploidy": 2,
+    "cross": "F1"
   }
 }

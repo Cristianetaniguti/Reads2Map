@@ -95,9 +95,9 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/adf4c9d8-0705-4aa3-9431-617a7df04b28"
+path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/e41856b6-af22-4f69-8fe7-86abfac9162a"
 cMByMb <- 4.63
-depth.ex <- 200
+depth.ex <- 20
 ```
 
 
