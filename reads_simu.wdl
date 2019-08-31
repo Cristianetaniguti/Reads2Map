@@ -37,187 +37,188 @@ workflow reads_simu{
       parfile     = CreatePedigreeSimulatorInputs.parfile
   }
 
-  # call PedgreeSimulator2vcf {
-  #   input:
-  #     genotypes_dat = RunPedigreeSimulator.genotypes_dat,
-  #     map_file      = CreatePedigreeSimulatorInputs.mapfile,
-  #     chrom_file    = CreatePedigreeSimulatorInputs.chromfile,
-  #     tot_mks       = CreatePedigreeSimulatorInputs.tot_mks
-  # }
+  call PedigreeSim2vcf {
+    input:
+      genotypes_dat = RunPedigreeSimulator.genotypes_dat,
+      map_file      = CreatePedigreeSimulatorInputs.mapfile,
+      chrom_file    = CreatePedigreeSimulatorInputs.chromfile,
+      tot_mks       = CreatePedigreeSimulatorInputs.tot_mks
+  }
 
-  # call GenerateSampleNames {
-  #   input: 
-  #     simulated_vcf = PedgreeSimulator2vcf.simu_vcf
-  # }
+  call GenerateSampleNames {
+    input: 
+      simulated_vcf = PedigreeSim2vcf.simu_vcf
+  }
 
-  # scatter (sampleName in GenerateSampleNames.names) {
+  scatter (sampleName in GenerateSampleNames.names) {
 
-  #   call RunVcf2diploid {
-  #     input:
-  #       sampleName = sampleName,
-  #       ref_genome = references.ref_fasta,
-  #       simu_vcf   = PedgreeSimulator2vcf.simu_vcf
-  #   }
+    call RunVcf2diploid {
+      input:
+        sampleName = sampleName,
+        ref_genome = references.ref_fasta,
+        simu_vcf   = PedigreeSim2vcf.simu_vcf
+    }
 
-  #   call SimulateRADseq {
-  #     input:
-  #       enzyme           = family.enzyme,
-  #       sampleName       = sampleName,
-  #       maternal_genomes = RunVcf2diploid.maternal_genomes,
-  #       paternal_genomes = RunVcf2diploid.paternal_genomes
-  #   }
+    call SimulateRADseq {
+      input:
+        enzyme           = family.enzyme,
+        sampleName       = sampleName,
+        maternal_genomes = RunVcf2diploid.maternal_genomes,
+        paternal_genomes = RunVcf2diploid.paternal_genomes
+    }
 
-  #   call SimulateIlluminaReads {
-  #     input:
-  #       maternal_trim = SimulateRADseq.maternal_trim,
-  #       paternal_trim = SimulateRADseq.paternal_trim,
-  #       sampleName    = sampleName,
-  #       depth         = family.depth
-  #   }
+    call SimulateIlluminaReads {
+      input:
+        maternal_trim = SimulateRADseq.maternal_trim,
+        paternal_trim = SimulateRADseq.paternal_trim,
+        sampleName    = sampleName,
+        depth         = family.depth
+    }
 
-  #   call RunBwaAlignment {
-  #     input:
-  #       sampleName = sampleName,
-  #       reads1     = SimulateIlluminaReads.reads1,
-  #       reads2     = SimulateIlluminaReads.reads2,
-  #       ref        = references.ref_fasta,
-  #       geno_amb   = references.ref_amb,
-  #       geno_ann   = references.ref_ann,
-  #       geno_bwt   = references.ref_bwt,
-  #       geno_pac   = references.ref_pac,
-  #       geno_sa    = references.ref_sa
-  #   }
+    call RunBwaAlignment {
+      input:
+        sampleName = sampleName,
+        reads1     = SimulateIlluminaReads.reads1,
+        reads2     = SimulateIlluminaReads.reads2,
+        ref        = references.ref_fasta,
+        geno_amb   = references.ref_amb,
+        geno_ann   = references.ref_ann,
+        geno_bwt   = references.ref_bwt,
+        geno_pac   = references.ref_pac,
+        geno_sa    = references.ref_sa
+    }
 
-  #   call AddAlignmentHeader {
-  #     input:
-  #       sampleName = sampleName,
-  #       bam_file   = RunBwaAlignment.bam_file,
-  #       bam_idx    = RunBwaAlignment.bam_idx
-  #   }
+    call AddAlignmentHeader {
+      input:
+        sampleName = sampleName,
+        bam_file   = RunBwaAlignment.bam_file,
+        bam_idx    = RunBwaAlignment.bam_idx
+    }
 
-  #   call HaplotypeCallerERC {
-  #     input:
-  #       ref        = references.ref_fasta,
-  #       geno_fai   = references.ref_fasta_index,
-  #       sampleName = sampleName,
-  #       bam_rg     = AddAlignmentHeader.bam_rg,
-  #       bam_rg_idx = AddAlignmentHeader.bam_rg_index,
-  #       geno_dict  = references.ref_dict
-  #   }
-  # }
+    call HaplotypeCallerERC {
+      input:
+        ref        = references.ref_fasta,
+        geno_fai   = references.ref_fasta_index,
+        sampleName = sampleName,
+        bam_rg     = AddAlignmentHeader.bam_rg,
+        bam_rg_idx = AddAlignmentHeader.bam_rg_index,
+        geno_dict  = references.ref_dict
+    }
+  }
 
-  # call CreateGatkDatabase {
-  #   input:
-  #     path_gatkDatabase = "my_database",
-  #     GVCFs             = HaplotypeCallerERC.GVCF,
-  #     GVCFs_idx         = HaplotypeCallerERC.GVCF_idx
-  # }
+  call CreateGatkDatabase {
+    input:
+      path_gatkDatabase = "my_database",
+      GVCFs             = HaplotypeCallerERC.GVCF,
+      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx
+  }
 
-  # call GenotypeGVCFs {
-  #   input:
-  #     workspace_tar       = CreateGatkDatabase.workspace_tar,
-  #     output_vcf_filename = family.name + "_gatk.vcf",
-  #     ref                 = references.ref_fasta,
-  #     geno_fai            = references.ref_fasta_index,
-  #     geno_dict           = references.ref_dict
-  # }
+  call GenotypeGVCFs {
+    input:
+      workspace_tar       = CreateGatkDatabase.workspace_tar,
+      output_vcf_filename = family.name + "_gatk.vcf",
+      ref                 = references.ref_fasta,
+      geno_fai            = references.ref_fasta_index,
+      geno_dict           = references.ref_dict
+  }
 
-  # call RunFreebayes {
-  #   input:
-  #     freebayesVCFname = family.name + "_freebayes.vcf",
-  #     ref              = references.ref_fasta,
-  #     bam_rg           = AddAlignmentHeader.bam_rg
-  # }
+  call RunFreebayes {
+    input:
+      freebayesVCFname = family.name + "_freebayes.vcf",
+      ref              = references.ref_fasta,
+      bam_rg           = AddAlignmentHeader.bam_rg
+  }
 
-  # call VcftoolsApplyFilters{
-  #   input:
-  #     freebayesVCF = RunFreebayes.freebayesVCF,
-  #     gatkVCF      = GenotypeGVCFs.gatkVCF
-  # }
+  call VcftoolsApplyFilters{
+    input:
+      freebayesVCF = RunFreebayes.freebayesVCF,
+      gatkVCF      = GenotypeGVCFs.gatkVCF
+  }
 
-  # call CalculateVcfMetrics {
-  #   input:
-  #     freebayesVCF  = VcftoolsApplyFilters.freebayesVCF_F,
-  #     gatkVCF       = VcftoolsApplyFilters.gatkVCF_F,
-  #     tot_mks       = CreatePedigreeSimulatorInputs.tot_mks,
-  #     map_file      = CreatePedigreeSimulatorInputs.mapfile,
-  #     maternal_trim = SimulateRADseq.maternal_trim
-  # }
+  call CalculateVcfMetrics {
+    input:
+      freebayesVCF  = VcftoolsApplyFilters.freebayesVCF_F,
+      gatkVCF       = VcftoolsApplyFilters.gatkVCF_F,
+      tot_mks       = CreatePedigreeSimulatorInputs.tot_mks,
+      map_file      = CreatePedigreeSimulatorInputs.mapfile,
+      maternal_trim = SimulateRADseq.maternal_trim
+  }
 
-  # Array[Pair[File, String]] bams_files = zip(AddAlignmentHeader.bam_rg, GenerateSampleNames.names)
+  Array[Pair[File, String]] bams_files = zip(AddAlignmentHeader.bam_rg, GenerateSampleNames.names)
 
-  # scatter (bams in bams_files) {
+  scatter (bams in bams_files) {
 
-  #   call BamCounts{
-  #     input:
-  #       sampleName    = bams.right,
-  #       bam_file      = bams.left,
-  #       bam_idx       = AddAlignmentHeader.bam_rg_index,
-  #       freebayes_pos = CalculateVcfMetrics.freebayes_pos,
-  #       gatk_pos      = CalculateVcfMetrics.gatk_pos,
-  #       ref           = references.ref_fasta,
-  #       ref_fai       = references.ref_fasta_index
-  #   }
+    call BamCounts{
+      input:
+        sampleName    = bams.right,
+        bam_file      = bams.left,
+        bam_idx       = AddAlignmentHeader.bam_rg_index,
+        freebayes_pos = CalculateVcfMetrics.freebayes_pos,
+        gatk_pos      = CalculateVcfMetrics.gatk_pos,
+        ref           = references.ref_fasta,
+        ref_fai       = references.ref_fasta_index
+    }
 
-  #   call BamCounts2{
-  #     input:
-  #      sampleName     = bams.right,
-  #      bam_file       = bams.left,
-  #      bam_idx        = AddAlignmentHeader.bam_rg_index,
-  #      ref            = references.ref_fasta,
-  #      ref_fai        = references.ref_fasta_index,
-  #      ref_dict       = references.ref_dict,
-  #      gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
-  #      freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
-  #   }
-  # }
+    call BamCounts2{
+      input:
+       sampleName     = bams.right,
+       bam_file       = bams.left,
+       bam_idx        = AddAlignmentHeader.bam_rg_index,
+       ref            = references.ref_fasta,
+       ref_fai        = references.ref_fasta_index,
+       ref_dict       = references.ref_dict,
+       gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
+       freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
+    }
+  }
 
-  # call DepthBam{
-  #   input:
-  #     sampleName       = GenerateSampleNames.names,
-  #     freebayes_counts = BamCounts.freebayes_counts,
-  #     gatk_counts      = BamCounts.gatk_counts,
-  #     freebayes_counts2 = BamCounts2.freebayes_counts2,
-  #     gatk_counts2      = BamCounts2.gatk_counts2,
-  #     freebayes_pos    = CalculateVcfMetrics.freebayes_pos,
-  #     gatk_pos         = CalculateVcfMetrics.gatk_pos
-  # }
+  call DepthBam{
+    input:
+      sampleName       = GenerateSampleNames.names,
+      freebayes_counts = BamCounts.freebayes_counts,
+      gatk_counts      = BamCounts.gatk_counts,
+      freebayes_counts2 = BamCounts2.freebayes_counts2,
+      gatk_counts2      = BamCounts2.gatk_counts2,
+      freebayes_pos    = CalculateVcfMetrics.freebayes_pos,
+      gatk_pos         = CalculateVcfMetrics.gatk_pos
+  }
 
-  # Array[String] methods = ["gatk", "freebayes"]
-  # Array[File] vcfs = [VcftoolsApplyFilters.gatkVCF_F, VcftoolsApplyFilters.freebayesVCF_F]
-  # Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
+  Array[String] methods = ["gatk", "freebayes"]
+  Array[File] vcfs = [VcftoolsApplyFilters.gatkVCF_F, VcftoolsApplyFilters.freebayesVCF_F]
+  Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
-  # scatter (vcf in program_and_vcf){
-  #   call all_maps{
-  #     input:
-  #       tot_mks    = CreatePedigreeSimulatorInputs.tot_mks,
-  #       simu_vcf   = PedgreeSimulator2vcf.simu_vcf,
-  #       methodName = vcf.left,
-  #       vcf_file   = vcf.right,
-  #       freebayes_ref_depth = DepthBam.freebayes_ref_bam, 
-  #       freebayes_alt_depth = DepthBam.freebayes_alt_bam,
-  #       gatk_ref_depth = DepthBam.gatk_ref_bam,
-  #       gatk_alt_depth = DepthBam.gatk_alt_bam,
-  #       freebayes_ref_depth2 = DepthBam.freebayes_ref_bam2, 
-  #       freebayes_alt_depth2 = DepthBam.freebayes_alt_bam2,
-  #       gatk_ref_depth2 = DepthBam.gatk_ref_bam2,
-  #       gatk_alt_depth2 = DepthBam.gatk_alt_bam2,
-  #       gatk_example_alleles = DepthBam.gatk_example_alleles,
-  #       freebayes_example_alleles = DepthBam.freebayes_example_alleles
-  #   }
-  # }
+  scatter (vcf in program_and_vcf){
+    call all_maps{
+      input:
+        tot_mks    = CreatePedigreeSimulatorInputs.tot_mks,
+        simu_vcf   = PedigreeSim2vcf.simu_vcf,
+        methodName = vcf.left,
+        vcf_file   = vcf.right,
+        freebayes_ref_depth = DepthBam.freebayes_ref_bam, 
+        freebayes_alt_depth = DepthBam.freebayes_alt_bam,
+        gatk_ref_depth = DepthBam.gatk_ref_bam,
+        gatk_alt_depth = DepthBam.gatk_alt_bam,
+        freebayes_ref_depth2 = DepthBam.freebayes_ref_bam2, 
+        freebayes_alt_depth2 = DepthBam.freebayes_alt_bam2,
+        gatk_ref_depth2 = DepthBam.gatk_ref_bam2,
+        gatk_alt_depth2 = DepthBam.gatk_alt_bam2,
+        gatk_example_alleles = DepthBam.gatk_example_alleles,
+        freebayes_example_alleles = DepthBam.freebayes_example_alleles,
+        cross = family.cross
+    }
+  }
 
-  # output {
-  #   File freebayes_vcf       = VcftoolsApplyFilters.freebayesVCF_F
-  #   File gatk_vcf            = VcftoolsApplyFilters.gatkVCF_F
-  #   File freebayes_aval_vcf  = CalculateVcfMetrics.freebayes_aval_vcf
-  #   File gatk_aval_vcf       = CalculateVcfMetrics.gatk_aval_vcf
-  #   File freebayes_ref_depth = CalculateVcfMetrics.freebayes_ref_depth
-  #   File freebayes_alt_depth = CalculateVcfMetrics.freebayes_alt_depth
-  #   File gatk_ref_depth      = CalculateVcfMetrics.gatk_ref_depth
-  #   File gatk_alt_depth      = CalculateVcfMetrics.gatk_alt_depth
-  #   File tot_mks             = CreatePedigreeSimulatorInputs.tot_mks
-  # }
+  output {
+    File freebayes_vcf       = VcftoolsApplyFilters.freebayesVCF_F
+    File gatk_vcf            = VcftoolsApplyFilters.gatkVCF_F
+    File freebayes_aval_vcf  = CalculateVcfMetrics.freebayes_aval_vcf
+    File gatk_aval_vcf       = CalculateVcfMetrics.gatk_aval_vcf
+    File freebayes_ref_depth = CalculateVcfMetrics.freebayes_ref_depth
+    File freebayes_alt_depth = CalculateVcfMetrics.freebayes_alt_depth
+    File gatk_ref_depth      = CalculateVcfMetrics.gatk_ref_depth
+    File gatk_alt_depth      = CalculateVcfMetrics.gatk_alt_depth
+    File tot_mks             = CreatePedigreeSimulatorInputs.tot_mks
+  }
 }
 
 # Creates homologous genome with some variation
@@ -252,7 +253,7 @@ task CreatePedigreeSimulatorInputs {
     File ref_fai
     Int seed
     Int popsize
-    Int ploidy
+    Int ploidy # Only ploidy 2 available
     File doses
     String cross
   }
@@ -314,30 +315,39 @@ task CreatePedigreeSimulatorInputs {
       ref.alleles <- tot.mks[,3]
       alt.alleles  <- tot.mks[,4]
 
+      doses <- doses[c(1,length(doses),2:(length(doses)-1))]
+      ploidys <- c(0:ploidy)
+      ploidys <- ploidys[c(1,length(doses),2:(length(doses)-1))]
+
       founder1.df <- matrix(ref.alleles, ncol = ploidy, nrow = length(ref.alleles))
 
       founder2.df <- matrix(ref.alleles, ncol = ploidy, nrow = length(ref.alleles))
 
       idx <- 1:length(ref.alleles)
-      ploidys <- c(0:ploidy)
-
+      set.seed(1491)
       for(i in 1:length(doses)){
         size <- round((doses[i]/100)*length(ref.alleles))
         if(i == 1){
-          idx.both <- sample(idx, as.numeric(size)*2)
+          idx.both <- sample(idx, as.numeric(size)*2) # It will not have monomorphic markers
           idx.p1 <- idx.both[1:as.numeric(size)]
           idx.p2 <- idx.both[(as.numeric(size)+1):(as.numeric(size)*2)]
           founder1.df[idx.p1,] <- ref.alleles[idx.p1]
           founder2.df[idx.p2,] <- ref.alleles[idx.p2]
           idx.p1.tot <- idx[-idx.p1]
           idx.p2.tot <- idx[-idx.p2]
-        } else if(i == length(doses)){
-          
-          for(j in 1:length(idx.p1.tot)){
-            founder1.df[idx.p1.tot[j],sample(1:ploidy,ploidys[i])] <- alt.alleles[idx.p1.tot[j]]
-            founder2.df[idx.p2.tot[j],sample(1:ploidy,ploidys[i])] <- alt.alleles[idx.p2.tot[j]]
+        } else if(i == 2){
+          idx.p1 <- sample(idx.p1.tot, as.numeric(size)-1)
+          idx.p2 <- vector()
+          for(w in 1:(as.numeric(size)-1)){
+            idx.p2[w] <- sample(idx.p2.tot, 1)
+            while(any(idx.p1 %in% idx.p2[w])){
+              idx.p2[w] <- sample(idx.p2.tot, 1)
+            }
+            idx.p2.tot <- idx.p2.tot[-which(idx.p2.tot%in%idx.p2)]
           }
-          
+          idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
+          founder1.df[idx.p1,] <- alt.alleles[idx.p1]
+          founder2.df[idx.p2,] <- alt.alleles[idx.p2]
         } else {
           idx.p1 <- sample(idx.p1.tot, as.numeric(size))
           idx.p2 <- sample(idx.p2.tot, as.numeric(size))
@@ -362,7 +372,7 @@ task CreatePedigreeSimulatorInputs {
                            CHROMFILE = chromosome.txt
                            POPTYPE = ~{cross}
                            SEED = ~{seed}
-                           POPSIZE = 150
+                           POPSIZE = ~{popsize}
                            MAPFILE = mapfile.txt
                            FOUNDERFILE = founderfile.txt
                            OUTPUT = sim")
@@ -414,7 +424,7 @@ task RunPedigreeSimulator {
 }
 
 # Parse pedsim output (.dat) into VCF
-task PedgreeSimulator2vcf {
+task PedigreeSim2vcf {
 
   input {
     File genotypes_dat
@@ -428,7 +438,6 @@ task PedgreeSimulator2vcf {
     
     library(onemap)
     mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
-    print(mks)
     pos <- mks[,2]
     chr <- mks[,1]
 
@@ -1191,6 +1200,7 @@ task all_maps {
     File gatk_alt_depth2
     File gatk_example_alleles
     File freebayes_example_alleles 
+    String cross
   }
 
   command <<<
@@ -1219,6 +1229,7 @@ task all_maps {
           tot_mks_file <- "~{tot_mks}"
           simu_vcf_file <- "~{simu_vcf}"
           vcf_file <- "~{vcf_file}"
+          cross <- "~{cross}"
 
           # Functions
           create_filters_report <- function(onemap_obj) {
@@ -1239,7 +1250,11 @@ task all_maps {
             
             true_mks <- which(onemap_obj[[9]] %in% tot_mks[,2])
             seq_true <- make_seq(twopts, true_mks)
-            map_df <- map(seq_true)
+            map_df <- map(seq_true, mds.seq = T)
+            while(class(map_df) == "integer"){
+              seq_true <- make_seq(twopts, map_df)
+              map_df <- map(input.seq = seq_true, mds.seq = T)
+            }
             map_info <- data.frame("mk.name"= colnames(onemap_obj[[1]])[map_df[[1]]], 
                                   "pos" = onemap_obj[[9]][map_df[[1]]],
                                   "rf" = c(0,cumsum(haldane(map_df[[3]]))))
@@ -1274,7 +1289,7 @@ task all_maps {
             write.table(filters_tab, file=out_name, row.names=F, quote=F)
           }
 
-          
+
           make_vcf <- function(vcf.old, depths, method){
             # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
             idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
@@ -1285,7 +1300,7 @@ task all_maps {
             vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
             
             if(all(rownames(depths[[1]]) == paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
-            
+              
               vcf.init <- vcf.tab[,1:8]
               AD.colum <- rep("AD", dim(vcf.init)[1])
               vcf.init <- cbind(vcf.init, AD.colum)
@@ -1322,53 +1337,56 @@ task all_maps {
 
           ## KNOWN VARIANTS
           tot_mks <- read.table(tot_mks_file)
-          
+
+          if(cross == "F1"){
+            cross <- "outcross"
+          } else if (cross == "F2"){
+            cross <- "f2 intercross"
+          }
+
           # READING DATA FROM SIMULATED POPULATION
           simu <- read.vcfR(simu_vcf_file)
           gab <- onemap_read_vcfR(vcfR.object=simu,
-                                  cross="f2 intercross",
+                                  cross= cross,
                                   parent1="P1",
-                                  parent2="P2",
-                                  f1="F1")
-          
+                                  parent2="P2")
+
           ## READING FINAL VCF FROM PIPELINE
           vcf <- read.vcfR(vcf_file)
           df <- onemap_read_vcfR(vcfR.object=vcf, 
-                                cross="f2 intercross", 
+                                cross= cross, 
                                 parent1="P1", 
-                                parent2="P2", 
-                                f1="F1")
-          
+                                parent2="P2")
+
           ## FILTERS REPORT
           out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
           filters_tab <- create_filters_report(df)
           write_report(filters_tab, out_name)
-          
+
           ## MAPS REPORT - DF
           out_name <- paste0(method_name, "_map_df.txt")
           maps_tab <- create_maps_report(df, tot_mks)
           write_report(maps_tab, out_name)
-          
+
           # MAPS REPORT - GQ
           aval.gq <- extract_depth(vcfR.object=vcf,
                                   onemap.object=df,
                                   vcf.par="GQ",
                                   parent1="P1",
                                   parent2="P2",
-                                  f1="F1",
                                   recovering=FALSE)
-          
+
           aval.gq <- create_probs(df, genotypes_errors=aval.gq)
-          
+
           out_name <- paste0(method_name, "_map_GQ.txt")
           maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
           write_report(maps_gq_tab, out_name)
-          
+
           out_name <- paste0(method_name, "_error_GQ.txt")
           errors_tab <- create_errors_report(aval.gq, gab)
           write_report(errors_tab, out_name)
-          
-          
+
+
           # OTHER TOOLS
           ## With depths from vcf
           updog.aval <- updog_error(
@@ -1377,32 +1395,29 @@ task all_maps {
             vcf.par="AD",
             parent1="P1",
             parent2="P2",
-            f1="F1",
             recovering=TRUE,
             mean_phred=20,
             cores=3,
             depths=NULL)
-          
+
           supermassa.aval <- supermassa4onemap::supermassa_error(
             vcfR.object=vcf,
             onemap.object = df,
             vcf.par = "AD",
             parent1 = "P1",
             parent2 = "P2",
-            f1="F1",
             recovering = TRUE,
             mean_phred = 20,
             cores = 3,
             depths = NULL)
-          
+
           polyrad.aval <- polyRAD_error(
             vcf=vcf_file, 
             onemap.obj=df,
             parent1="P1",
             parent2="P2",
-            f1="F1",
-            crosstype="f2 intercross")
-          
+            crosstype=cross)
+
           metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
           for (metodology in names(metodologies)){
             error_aval <- metodologies[[metodology]]
@@ -1413,7 +1428,7 @@ task all_maps {
             
             ## Maps 
             out_name <- paste0(method_name, "_map_", metodology, ".txt")
-            maps_tab <- create_maps_report(error_aval, tot_mks)
+            maps_tab <- create_maps_report(onemap_obj = error_aval, tot_mks = tot_mks)
             write_report(maps_tab, out_name)
             
             ## Errors info
@@ -1421,47 +1436,44 @@ task all_maps {
             errors_tab <- create_errors_report(error_aval, gab)
             write_report(errors_tab, out_name)
           }
-          
+
           ## Depths from bam
           depths.alt <- read.table(paste0(method_name, "_alt_depth_bam.txt"), header = T)
           depths.ref <- read.table(paste0(method_name, "_ref_depth_bam.txt"), header = T)
-          
+
           depths <- list("ref"=depths.ref, "alt"=depths.alt)
-          
+
           updog.aval.bam <- updog_error(
             vcfR.object=vcf,
             onemap.object=df,
             vcf.par="AD",
             parent1="P1",
             parent2="P2",
-            f1="F1",
             recovering=TRUE,
             mean_phred=20,
             cores=3,
             depths=depths)
-          
+
           supermassa.aval.bam <- supermassa_error(
             vcfR.object=vcf,
             onemap.object = df,
             vcf.par = "AD",
             parent1 = "P1",
             parent2 = "P2",
-            f1="F1",
             recovering = TRUE,
             mean_phred = 20,
             cores = 3,
             depths = depths)
-          
+
           new.vcf <- make_vcf(vcf_file, depths, method_name)
-          
+
           polyrad.aval.bam <- polyRAD_error(
             vcf=new.vcf, 
             onemap.obj=df,
             parent1="P1",
             parent2="P2",
-            f1="F1",
-            crosstype="f2 intercross")
-          
+            crosstype=cross)
+
           metodologies <- list(updog = updog.aval.bam, supermassa= supermassa.aval.bam, polyrad=polyrad.aval.bam)
           for (metodology in names(metodologies)){
             error_aval <- metodologies[[metodology]]
@@ -1484,43 +1496,40 @@ task all_maps {
           ## Depths from bam 2
           depths.alt <- read.table(paste0(method_name, "_alt_depth_bam2.txt"), header = T)
           depths.ref <- read.table(paste0(method_name, "_ref_depth_bam2.txt"), header = T)
-          
+
           depths <- list("ref"=depths.ref, "alt"=depths.alt)
-          
+
           updog.aval.bam2 <- updog_error(
             vcfR.object=vcf,
             onemap.object=df,
             vcf.par="AD",
             parent1="P1",
             parent2="P2",
-            f1="F1",
             recovering=TRUE,
             mean_phred=20,
             cores=3,
             depths=depths)
-          
+
           supermassa.aval.bam2 <- supermassa_error(
             vcfR.object=vcf,
             onemap.object = df,
             vcf.par = "AD",
             parent1 = "P1",
             parent2 = "P2",
-            f1="F1",
             recovering = TRUE,
             mean_phred = 20,
             cores = 3,
             depths = depths)
-          
-            new.vcf <- make_vcf(vcf_file, depths, method_name)
+
+          new.vcf <- make_vcf(vcf_file, depths, method_name)
 
           polyrad.aval.bam2 <- polyRAD_error(
             vcf=new.vcf, 
             onemap.obj=df,
             parent1="P1",
             parent2="P2",
-            f1="F1",
-            crosstype="f2 intercross")
-          
+            crosstype=cross)
+
           metodologies <- list(updog = updog.aval.bam2, supermassa= supermassa.aval.bam2, polyrad=polyrad.aval.bam2)
           for (metodology in names(metodologies)){
             error_aval <- metodologies[[metodology]]
