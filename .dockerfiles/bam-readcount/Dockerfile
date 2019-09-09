@@ -8,3 +8,4 @@ RUN apt-get update \
     && make
  
  WORKDIR /bam-readcount/bin/
+ 

@@ -16,9 +16,9 @@
     "popsize": 47,
     "enzyme":"G*CWGC",
     "seed": 1515,
-    "depth": 10,
+    "depth": 20,
     "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
     "ploidy": 2,
-    "cross": "F1"
+    "cross": "F2"
   }
 }
