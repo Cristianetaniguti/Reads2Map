@@ -298,54 +298,58 @@ task CreatePedigreeSimulatorInputs {
       ref.alleles <- tot.mks[,3]
       alt.alleles  <- tot.mks[,4]
 
-      doses <- doses[c(1,length(doses),2:(length(doses)-1))]
-      ploidys <- c(0:ploidy)
-      ploidys <- ploidys[c(1,length(doses),2:(length(doses)-1))]
-
-      founder1.df <- matrix(ref.alleles, ncol = ploidy, nrow = length(ref.alleles))
-
-      founder2.df <- matrix(ref.alleles, ncol = ploidy, nrow = length(ref.alleles))
-
-      idx <- 1:length(ref.alleles)
-      set.seed(1491)
-      for(i in 1:length(doses)){
-        size <- round((doses[i]/100)*length(ref.alleles))
-        if(i == 1){
-          idx.both <- sample(idx, as.numeric(size)*2) # It will not have monomorphic markers
-          idx.p1 <- idx.both[1:as.numeric(size)]
-          idx.p2 <- idx.both[(as.numeric(size)+1):(as.numeric(size)*2)]
-          founder1.df[idx.p1,] <- ref.alleles[idx.p1]
-          founder2.df[idx.p2,] <- ref.alleles[idx.p2]
-          idx.p1.tot <- idx[-idx.p1]
-          idx.p2.tot <- idx[-idx.p2]
-        } else if(i == 2){
-          idx.p1 <- sample(idx.p1.tot, as.numeric(size)-1)
-          idx.p2 <- vector()
-          for(w in 1:(as.numeric(size)-1)){
-            idx.p2[w] <- sample(idx.p2.tot, 1)
-            while(any(idx.p1 %in% idx.p2[w])){
+      if("~{cross}" == "F1"){
+        doses <- doses[c(1,length(doses),2:(length(doses)-1))]
+        ploidys <- c(0:ploidy)
+        ploidys <- ploidys[c(1,length(doses),2:(length(doses)-1))]
+  
+        founder1.df <- matrix(ref.alleles, ncol = ploidy, nrow = length(ref.alleles))
+  
+        founder2.df <- matrix(ref.alleles, ncol = ploidy, nrow = length(ref.alleles))
+  
+        idx <- 1:length(ref.alleles)
+        for(i in 1:length(doses)){
+          size <- round((doses[i]/100)*length(ref.alleles))
+          if(i == 1){
+            idx.both <- sample(idx, as.numeric(size)*2) # It will not have monomorphic markers
+            idx.p1 <- idx.both[1:as.numeric(size)]
+            idx.p2 <- idx.both[(as.numeric(size)+1):(as.numeric(size)*2)]
+            founder1.df[idx.p1,] <- ref.alleles[idx.p1]
+            founder2.df[idx.p2,] <- ref.alleles[idx.p2]
+            idx.p1.tot <- idx[-idx.p1]
+            idx.p2.tot <- idx[-idx.p2]
+          } else if(i == 2){
+            idx.p1 <- sample(idx.p1.tot, as.numeric(size)-1)
+            idx.p2 <- vector()
+            for(w in 1:(as.numeric(size)-1)){
               idx.p2[w] <- sample(idx.p2.tot, 1)
+              while(any(idx.p1 %in% idx.p2[w])){
+                idx.p2[w] <- sample(idx.p2.tot, 1)
+              }
+              idx.p2.tot <- idx.p2.tot[-which(idx.p2.tot%in%idx.p2)]
             }
+            idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
+            founder1.df[idx.p1,] <- alt.alleles[idx.p1]
+            founder2.df[idx.p2,] <- alt.alleles[idx.p2]
+          } else {
+            idx.p1 <- sample(idx.p1.tot, as.numeric(size))
+            idx.p2 <- sample(idx.p2.tot, as.numeric(size))
+            for(j in 1:length(idx.p1)){
+              founder1.df[idx[idx.p1][j],sample(1:ploidy,ploidys[i])] <- alt.alleles[idx[idx.p1][j]]
+              founder2.df[idx[idx.p2][j],sample(1:ploidy,ploidys[i])] <- alt.alleles[idx[idx.p2][j]]
+            }
+            idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
             idx.p2.tot <- idx.p2.tot[-which(idx.p2.tot%in%idx.p2)]
           }
-          idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
-          founder1.df[idx.p1,] <- alt.alleles[idx.p1]
-          founder2.df[idx.p2,] <- alt.alleles[idx.p2]
-        } else {
-          idx.p1 <- sample(idx.p1.tot, as.numeric(size))
-          idx.p2 <- sample(idx.p2.tot, as.numeric(size))
-          for(j in 1:length(idx.p1)){
-            founder1.df[idx[idx.p1][j],sample(1:ploidy,ploidys[i])] <- alt.alleles[idx[idx.p1][j]]
-            founder2.df[idx[idx.p2][j],sample(1:ploidy,ploidys[i])] <- alt.alleles[idx[idx.p2][j]]
-          }
-          idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
-          idx.p2.tot <- idx.p2.tot[-which(idx.p2.tot%in%idx.p2)]
         }
+
+        founder_file <- cbind(marker, founder1.df, founder2.df)
+        colnames(founder_file) <- c("marker", paste0("P1_",1:ploidy), paste0("P2_",1:ploidy))
+
+      } else if("~{cross}" == "F2"){
+        founder_file <- data.frame(marker=marker, P1_1=tot.mks[,3] , P1_2=tot.mks[,3], P2_1=tot.mks[,4], P2_2=tot.mks[,4]) # Only for diploids
       }
-
-      founder_file <- cbind(marker, founder1.df, founder2.df)
-      colnames(founder_file) <- c("marker", paste0("P1_",1:ploidy), paste0("P2_",1:ploidy))
-
+     
       write.table(founder_file, file = paste0("founders.txt"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
 
       ## Parameters file
@@ -1186,8 +1190,10 @@ task all_maps {
 
           if(cross == "F1"){
             cross <- "outcross"
+            f1 = NULL
           } else if (cross == "F2"){
             cross <- "f2 intercross"
+            f1 = "F1"
           }
 
           # READING DATA FROM SIMULATED POPULATION
@@ -1195,14 +1201,16 @@ task all_maps {
           gab <- onemap_read_vcfR(vcfR.object=simu,
                                   cross= cross,
                                   parent1="P1",
-                                  parent2="P2")
+                                  parent2="P2",
+                                  f1 = f1)
 
           ## READING FINAL VCF FROM PIPELINE
           vcf <- read.vcfR(vcf_file)
           df <- onemap_read_vcfR(vcfR.object=vcf, 
                                 cross= cross, 
                                 parent1="P1", 
-                                parent2="P2")
+                                parent2="P2",
+                                f1 = f1)
 
           ## FILTERS REPORT
           out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
@@ -1220,6 +1228,7 @@ task all_maps {
                                   vcf.par="GQ",
                                   parent1="P1",
                                   parent2="P2",
+                                  f1 = f1,
                                   recovering=FALSE)
 
           aval.gq <- create_probs(df, genotypes_errors=aval.gq)
@@ -1235,12 +1244,14 @@ task all_maps {
 
           # OTHER TOOLS
           ## With depths from vcf
+
           updog.aval <- updog_error(
             vcfR.object=vcf,
             onemap.object=df,
             vcf.par="AD",
             parent1="P1",
             parent2="P2",
+            f1 = f1,
             recovering=TRUE,
             mean_phred=20,
             cores=3,
@@ -1252,6 +1263,7 @@ task all_maps {
             vcf.par = "AD",
             parent1 = "P1",
             parent2 = "P2",
+            f1 = f1,
             recovering = TRUE,
             mean_phred = 20,
             cores = 3,
@@ -1262,6 +1274,7 @@ task all_maps {
             onemap.obj=df,
             parent1="P1",
             parent2="P2",
+            f1 = f1,
             crosstype=cross)
 
           metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
@@ -1284,7 +1297,7 @@ task all_maps {
           }
 
     
-          ## Depths from bam 2
+          ## Depths from bam 
           depths.alt <- read.table(paste0(method_name, "_alt_depth_bam.txt"), header = T)
           depths.ref <- read.table(paste0(method_name, "_ref_depth_bam.txt"), header = T)
 
@@ -1296,6 +1309,7 @@ task all_maps {
             vcf.par="AD",
             parent1="P1",
             parent2="P2",
+            f1 = f1,
             recovering=TRUE,
             mean_phred=20,
             cores=3,
@@ -1307,6 +1321,7 @@ task all_maps {
             vcf.par = "AD",
             parent1 = "P1",
             parent2 = "P2",
+            f1 = f1,
             recovering = TRUE,
             mean_phred = 20,
             cores = 3,
@@ -1319,6 +1334,7 @@ task all_maps {
             onemap.obj=df,
             parent1="P1",
             parent2="P2",
+            f1 = f1,
             crosstype=cross)
 
           metodologies <- list(updog = updog.aval.bam, supermassa= supermassa.aval.bam, polyrad=polyrad.aval.bam)

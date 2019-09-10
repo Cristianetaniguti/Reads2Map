@@ -95,7 +95,7 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/reads_simu/ffe52f45-ee46-46f7-b483-28e892cda582"
+path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/d2be9acd-9912-4472-980a-8681ad6520fe"
 cMByMb <- 4.63
 depth.ex <- 20
 ```
@@ -117,7 +117,7 @@ method <- c("gatk", "freebayes")
 meth.bam <-  c("polyrad", "updog", "supermassa")
 meth.geno <- c("df", "GQ", "polyrad", "updog", "supermassa")
 
-mapfile <- read.table("call-CreatePedigreeSimulatorInputs/execution/mapfile.txt", header=T)
+mapfile <- read.table("call-CreatePedigreeSimulatorInputs/execution/markers.txt", header=T)
 
 tot_mks <- read.table("call-CreatePedigreeSimulatorInputs/execution/tot_mks.txt")
 id <- c(0,1)
@@ -152,12 +152,12 @@ for(i in 1:length(method)){
   df.filt <- rbind(df.filt, filt)
   
   ## Depths by bam
-  alt_depth <- read.table(paste0("call-BamCounts4Onemap/execution/", method[i], "_alt_depth_bam.txt"), header = T, stringsAsFactors = F)
+  alt_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_alt_depth_bam.txt"), header = T, stringsAsFactors = F)
   alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
   alt_depth <- alt_depth[,sort(colnames(alt_depth))]
   alt <- melt(alt_depth)
   
-  ref_depth <- read.table(paste0("call-BamCounts4Onemap/execution/", method[i], "_ref_depth_bam.txt"), header = T, stringsAsFactors = F)
+  ref_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_ref_depth_bam.txt"), header = T, stringsAsFactors = F)
   ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
   ref_depth <- ref_depth[,sort(colnames(ref_depth))]
   ref <- melt(ref_depth)
