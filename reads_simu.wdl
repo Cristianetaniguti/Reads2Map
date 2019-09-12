@@ -181,14 +181,49 @@ workflow reads_simu{
         simu_vcf   = PedigreeSim2vcf.simu_vcf,
         methodName = vcf.left,
         vcf_file   = vcf.right,
-        freebayes_ref_depth2 = BamCounts4Onemap.freebayes_ref_bam, 
-        freebayes_alt_depth2 = BamCounts4Onemap.freebayes_alt_bam,
-        gatk_ref_depth2 = BamCounts4Onemap.gatk_ref_bam,
-        gatk_alt_depth2 = BamCounts4Onemap.gatk_alt_bam,
+        freebayes_ref_depth = BamCounts4Onemap.freebayes_ref_bam, 
+        freebayes_alt_depth = BamCounts4Onemap.freebayes_alt_bam,
+        gatk_ref_depth = BamCounts4Onemap.gatk_ref_bam,
+        gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
         gatk_example_alleles = BamCounts4Onemap.gatk_example_alleles,
         freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles,
         cross = family.cross
     }
+  }
+
+  call DiagnosticGraphics{
+    input:
+        cmBymb                    = family.cmBymb,
+        depth                     = family.depth,
+        mapfile                   = CreatePedigreeSimulatorInputs.mapfile,
+        tot_mks                   = CreatePedigreeSimulatorInputs.tot_mks,
+        gatkVCF_F                 = VcftoolsApplyFilters.gatkVCF_F,
+        freebayesVCF_F            = VcftoolsApplyFilters.freebayesVCF_F,
+        gatk_aval_vcf             = CalculateVcfMetrics.gatk_aval_vcf,
+        freebayes_aval_vcf        = CalculateVcfMetrics.freebayes_aval_vcf,
+        gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
+        gatk_ref_depth_bam        = BamCounts4Onemap.gatk_ref_bam,
+        gatk_alt_depth            = CalculateVcfMetrics.gatk_alt_depth,
+        gatk_alt_depth_bam        = BamCounts4Onemap.gatk_alt_bam,
+        freebayes_ref_depth_bam   = BamCounts4Onemap.freebayes_ref_bam,
+        freebayes_alt_depth_bam   = BamCounts4Onemap.freebayes_alt_bam,
+        freebayes_ref_depth       = CalculateVcfMetrics.freebayes_ref_depth,
+        freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth,
+        map_df                    = all_maps.map_df,
+        map_GQ                    = all_maps.map_GQ,
+        map_polyrad               = all_maps.map_polyrad,
+        map_supermassa            = all_maps.map_supermassa,
+        map_updog                 = all_maps.map_updog,
+        map_bam_polyrad           = all_maps.map_bam_polyrad,
+        map_bam_supermassa        = all_maps.map_bam_supermassa,
+        map_bam_updog             = all_maps.map_bam_updog,
+        error_info_GQ             = all_maps.error_info_GQ,
+        error_info_updog          = all_maps.error_info_updog,
+        error_info_polyrad        = all_maps.error_info_polyrad,
+        error_info_supermassa     = all_maps.error_info_supermassa,
+        error_info_bam_updog      = all_maps.error_info_updog,
+        error_info_bam_polyrad    = all_maps.error_info_polyrad,
+        error_info_bam_supermassa = all_maps.error_info_bam_supermassa
   }
 
   output {
@@ -877,7 +912,7 @@ task CalculateVcfMetrics {
                 write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
             }
             # table for GQ 
-            idx <- which(strsplit(get(i)@gt[1,1], split=":")$FORMAT == "GQ")
+            idx <- which(strsplit(get(i)@gt[1,1], split=":")["FORMAT"] == "GQ")
             if(length(idx)!=0){
                 GQ <- sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx)
                 write.table(GQ, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
@@ -1048,10 +1083,10 @@ task all_maps {
     String methodName
     File simu_vcf
     File vcf_file
-    File freebayes_ref_depth2
-    File freebayes_alt_depth2
-    File gatk_ref_depth2 
-    File gatk_alt_depth2
+    File freebayes_ref_depth
+    File freebayes_alt_depth
+    File gatk_ref_depth
+    File gatk_alt_depth
     File gatk_example_alleles
     File freebayes_example_alleles 
     String cross
@@ -1069,10 +1104,10 @@ task all_maps {
 
           args = commandArgs(trailingOnly=TRUE)
 
-          system("cp ~{sep=" "  freebayes_ref_depth2} .")
-          system("cp ~{sep=" "  freebayes_alt_depth2} .")
-          system("cp ~{sep=" "  gatk_ref_depth2} .")
-          system("cp ~{sep=" "  gatk_alt_depth2} .")
+          system("cp ~{sep=" "  freebayes_ref_depth} .")
+          system("cp ~{sep=" "  freebayes_alt_depth} .")
+          system("cp ~{sep=" "  gatk_ref_depth} .")
+          system("cp ~{sep=" "  gatk_alt_depth} .")
           system("cp ~{gatk_example_alleles} .")
           system("cp ~{freebayes_example_alleles} .")
           method_name <- "~{methodName}"
@@ -1388,5 +1423,407 @@ task all_maps {
     File error_info_bam_supermassa = "~{methodName}_error_bam_supermassa.txt"
 
   }
+}
+
+task DiagnosticGraphics{
+  input{
+    Float cmBymb
+    Int depth
+    File mapfile
+    File tot_mks
+    File gatkVCF_F
+    File freebayesVCF_F
+    File gatk_aval_vcf
+    File freebayes_aval_vcf
+    File gatk_ref_depth
+    File gatk_ref_depth_bam
+    File gatk_alt_depth
+    File gatk_alt_depth_bam
+    File freebayes_ref_depth_bam
+    File freebayes_alt_depth_bam
+    File freebayes_ref_depth   
+    File freebayes_alt_depth   
+    Array[File] map_df 
+    Array[File] map_GQ 
+    Array[File] map_polyrad
+    Array[File] map_supermassa 
+    Array[File] map_updog 
+    Array[File] map_bam_polyrad 
+    Array[File] map_bam_supermassa 
+    Array[File] map_bam_updog 
+    Array[File] error_info_GQ 
+    Array[File] error_info_updog 
+    Array[File] error_info_polyrad 
+    Array[File] error_info_supermassa 
+    Array[File] error_info_bam_updog 
+    Array[File] error_info_bam_polyrad 
+    Array[File] error_info_bam_supermassa 
+  }
+
+  command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+
+        library(ggplot2)
+        library(reshape2)
+        library(vcfR)
+
+        system("cp ~{sep= " " map_df } .")   
+        system("cp ~{sep= " " map_GQ } .")
+        system("cp ~{sep= " " map_polyrad } .")
+        system("cp ~{sep= " " map_supermassa } .")
+        system("cp ~{sep= " " map_updog } .")
+        system("cp ~{sep= " " map_bam_polyrad } .")
+        system("cp ~{sep= " " map_bam_supermassa } .")
+        system("cp ~{sep= " " map_bam_updog } .")
+        system("cp ~{sep= " " error_info_GQ } .")
+        system("cp ~{sep= " " error_info_updog } .")
+        system("cp ~{sep= " " error_info_polyrad } .")
+        system("cp ~{sep= " " error_info_supermassa } .")
+        system("cp ~{sep= " " error_info_bam_updog } .")
+        system("cp ~{sep= " " error_info_bam_polyrad } .")
+        system("cp ~{sep= " " error_info_bam_supermassa } .")
+
+        method <- c("gatk", "freebayes")
+        meth.bam <-  c("polyrad", "updog", "supermassa")
+        meth.geno <- c("df", "GQ", "polyrad", "updog", "supermassa")
+
+        mapfile <- read.table("~{mapfile}", header=T)
+
+        tot_mks <- read.table("~{tot_mks}")
+        id <- c(0,1)
+        p  <- p.bam  <- list()
+
+        df.diff.dis <- as.list(rep(NA, length(method)))
+        for(i in 1:length(df.diff.dis)){
+          df.diff.dis[[i]] <- as.list(rep(NA, length(meth.geno)))
+        }
+
+        df.diff.dis.bam <- as.list(rep(NA, length(method)))
+        for(i in 1:length(df.diff.dis.bam)){
+          df.diff.dis.bam[[i]] <- as.list(rep(NA, length(meth.bam)))
+        }
+
+        df.per.geno <- df.coverage <- df.diff.tot <- df.diff.median <- df.diff.mean <- names.id <- df.filt <- vector()
+        df.per.geno.bam <- df.coverage.bam <- df.diff.tot.bam <- df.diff.median.bam <- df.diff.mean.bam <- vector()
+      
+        for(i in 1:length(method)){
+          if(method[i] == "gatk"){
+            vcf.file <- "~{gatkVCF_F}"
+            vcf.aval <- "~{gatk_aval_vcf}"
+            alt.depth.bam <- "~{gatk_alt_depth_bam}"
+            ref.depth.bam <- "~{gatk_ref_depth_bam}"
+            alt.depth <- "~{gatk_alt_depth}"
+            ref.depth <- "~{gatk_ref_depth}"
+          } else{
+            vcf.file <- "~{freebayesVCF_F}"
+            vcf.aval <- "~{freebayes_aval_vcf}"
+            alt.depth.bam <- "~{freebayes_alt_depth_bam}"
+            ref.depth.bam <- "~{freebayes_ref_depth_bam}"
+            alt.depth <- "~{freebayes_alt_depth}"
+            ref.depth <- "~{freebayes_ref_depth}"
+          }
+
+          ## vcfs
+          vcf <- read.vcfR(vcf.file)
+          gt <- vcf@gt[,-1]
+          gt <- gt[,sort(colnames(gt))]
+          gt <- melt(gt)
+          gt["value"] <- sapply(strsplit(as.character(gt[,3]), ":"), "[", 1)
+
+          # Filters
+          filt <- read.table(vcf.aval, header = T)
+          df.filt <- rbind(df.filt, filt)
+          
+          ## Depths by bam
+          alt_depth <- read.table(alt.depth.bam, header = T, stringsAsFactors = F)
+          alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
+          alt_depth <- alt_depth[,sort(colnames(alt_depth))]
+          alt <- melt(alt_depth)
+          
+          ref_depth <- read.table(ref.depth.bam, header = T, stringsAsFactors = F)
+          ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
+          ref_depth <- ref_depth[,sort(colnames(ref_depth))]
+          ref <- melt(ref_depth)
+          
+          idx.id <- match(gt["Var2"], ref["variable"])
+          df.depths <- data.frame(ind = ref["variable"], alt = alt["value"], ref=ref["value"])
+          colnames(df.depths) <- c("ind", "alt", "ref")
+
+          p.bam[[i]] <- ggplot(df.depths, aes(x=ref, y=alt)) + geom_point(size=0.5) +
+            labs(title= paste0(method[i]," depths example"),x="ref", y = "alt") + xlim(0,~{depth}*2) + ylim(0,~{depth}*2)
+          
+          ## Depths by softwares
+          alt_depth <- read.table(alt.depth, header = T, stringsAsFactors = F)
+          alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
+          alt_depth <- alt_depth[,sort(colnames(alt_depth))]
+          alt <- melt(alt_depth)
+          
+          ref_depth <- read.table(ref.depth, header = T, stringsAsFactors = F)
+          ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
+          ref_depth <- ref_depth[,sort(colnames(ref_depth))]
+          ref <- melt(ref_depth)
+          df.depths <- data.frame(ind = gt["Var2"], gt = gt["value"], alt = alt["value"], ref=ref["value"])
+          colnames(df.depths) <- c("ind", "gt","alt", "ref")
+
+          p[[i]] <- ggplot(df.depths, aes(x=ref, y=alt, color=as.factor(gt))) + geom_point(size=0.5) +
+            labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,~{depth}*2) + ylim(0,~{depth}*2)
+          
+          for(j in 1:length(meth.geno)){
+            # Map distance
+            maps <- read.table(paste0(method[i],"_map_", meth.geno[j],".txt"), header =T)
+            
+            poscM <- (as.numeric(as.character(maps[,2]))/1000000)*~{cmBymb}
+            poscM.norm <- poscM-poscM[1]
+            maps <- cbind(maps, poscM, poscM.norm)
+            
+            # Difference between distances real and estimated
+            diff.dis <- sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1]
+            df.diff.dis[[i]][[j]] <- diff.dis
+            names(df.diff.dis[[i]][[j]]) <- paste0(method[i],"_",meth.geno[j])
+            
+            # Meth names
+            names.id <-  c(names.id,paste0(method[i],"_",meth.geno[j]))
+            
+            # Mean of differences
+            diff.dis.mean <- mean(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
+            df.diff.mean <- c(df.diff.mean,diff.dis.mean)
+            
+            
+            # Median of differences
+            diff.dis.median <- median(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
+            df.diff.median <- c(df.diff.median,diff.dis.median)
+            
+            # Difference of total size
+            diff.tot.dis <- sqrt((maps["poscM.norm"][,1][length(maps["poscM.norm"][,1])] - maps["rf"][,1][length(maps["rf"][,1])])^2)
+            df.diff.tot <- c(df.diff.tot,diff.tot.dis)
+            
+            mapfile.pos <- cbind(mapfile, tot_mks[,2])
+            
+            # Percentage of the chromosome covered 
+            coverage <- maps[,2][length(maps[,2])]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
+            df.coverage <- c(df.coverage,coverage)
+            
+            # Percentage of rigth genotyping
+            if(meth.geno[j] != "df"){
+              per.geno <- read.table(paste0(method[i],"_error_",meth.geno[j],".txt"), header =T)
+              per.geno <- (sum(per.geno[,3] == per.geno[,4])/length(per.geno[,4])*100)
+              df.per.geno <- c(df.per.geno,per.geno)
+            }
+          }
+          
+          for(j in 1:length(meth.bam)){
+            # Map distance
+            maps <- read.table(paste0(method[i],"_map_bam_", meth.bam[j],".txt"), header =T)
+            
+            poscM <- (as.numeric(as.character(maps[,2]))/1000000)*~{cmBymb}
+            poscM.norm <- poscM-poscM[1]
+            maps <- cbind(maps, poscM, poscM.norm)
+            
+            # Difference between distances real and estimated
+            diff.dis <- sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1]
+            df.diff.dis.bam[[i]][[j]] <- diff.dis
+            names(df.diff.dis.bam[[i]][[j]]) <- paste0(method[i],"_",meth.bam[j])
+            
+            # Meth names
+            names.id <-  c(names.id,paste0(method[i],"_",meth.bam[j]))
+            
+            # Mean of differences
+            diff.dis.mean.bam <- mean(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
+            df.diff.mean.bam <- c(df.diff.mean.bam,diff.dis.mean.bam)
+            
+            # Median of differences
+            diff.dis.median.bam <- median(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
+            df.diff.median.bam <- c(df.diff.median.bam,diff.dis.median.bam)
+            
+            # Difference of total size
+            diff.tot.dis <- sqrt((maps["poscM.norm"][,1][length(maps["poscM.norm"][,1])] - maps["rf"][,1][length(maps["rf"][,1])])^2)
+            df.diff.tot.bam <- c(df.diff.tot.bam,diff.tot.dis)
+            
+            mapfile.pos <- cbind(mapfile, tot_mks[,2])
+            
+            # Percentage of the chromosome covered 
+            coverage <- maps[,2][length(maps[,2])]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
+            df.coverage.bam <- c(df.coverage.bam,coverage)
+            
+            # Percentage of rigth genotyping
+            per.geno <- read.table(paste0(method[i],"_error_",meth.bam[j],".txt"), header =T)
+            per.geno <- (sum(per.geno[,3] == per.geno[,4])/length(per.geno[,4])*100)
+            df.per.geno.bam <- c(df.per.geno.bam,per.geno)
+          }
+        }
+
+        ggsave(paste0("counts_dist_",method[1],".pdf"), plot= p[[1]])
+
+        ggsave(paste0("counts_dist_",method[2],".pdf"), plot= p[[2]])
+
+        ggsave(paste0("counts_dist_bam_", method[1], ".pdf"), plot= p.bam[[1]])
+
+        ggsave(paste0("counts_dist_bam_", method[2], ".pdf"), plot= p.bam[[2]])
+
+        df.melt.diff.dis <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis[[1]]))), 
+                                          rep("freebayes", length(unlist(df.diff.dis[[2]])))), 
+                               genoty = c(rep("df", length(df.diff.dis[[1]][[1]])),
+                                          rep("GQ", length(df.diff.dis[[1]][[2]])), 
+                                          rep("polyrad", length(df.diff.dis[[1]][[3]])), 
+                                          rep("updog", length(df.diff.dis[[1]][[4]])),
+                                          rep("supermassa", length(df.diff.dis[[1]][[5]])),
+                                          rep("df", length(df.diff.dis[[2]][[1]])),
+                                          rep("GQ", length(df.diff.dis[[2]][[2]])), 
+                                          rep("polyrad", length(df.diff.dis[[2]][[3]])), 
+                                          rep("updog", length(df.diff.dis[[2]][[4]])),
+                                          rep("supermassa", length(df.diff.dis[[2]][[5]]))),
+                               value = unlist(df.diff.dis))
+
+
+        p<-ggplot(df.melt.diff.dis, aes(x=genoty, y=value, fill=method)) +
+          geom_boxplot() + geom_hline(yintercept=0, color="red")
+
+        ggsave("dist_diff_each_mk.pdf", plot = p)
+
+        df.melt.diff.dis.bam <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis.bam[[1]]))), 
+                                            rep("freebayes", length(unlist(df.diff.dis.bam[[2]])))), 
+                                genoty = c(rep("polyrad", length(df.diff.dis.bam[[1]][[1]])), 
+                                            rep("updog", length(df.diff.dis.bam[[1]][[2]])),
+                                            rep("supermassa", length(df.diff.dis.bam[[1]][[3]])),
+                                            rep("polyrad", length(df.diff.dis.bam[[2]][[1]])), 
+                                            rep("updog", length(df.diff.dis.bam[[2]][[2]])),
+                                            rep("supermassa", length(df.diff.dis.bam[[2]][[3]]))),
+                                value = unlist(df.diff.dis.bam))
+
+        p<-ggplot(df.melt.diff.dis.bam, aes(x=genoty, y=value, fill=method)) +
+          geom_boxplot() + geom_hline(yintercept=0, color="red")
+
+        ggsave("dist_diff_each_mk_bam.pdf", plot=p)
+
+        df.diff.tot1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df","GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot)
+
+        p <- ggplot(data=df.diff.tot1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+        
+        ggsave("dist_diff_tot_size.pdf", plot=p)
+
+        df.diff.tot1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.tot.bam)
+
+        p <- ggplot(data=df.diff.tot1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("dist_diff_tot_size_bam.pdf", plot=p)
+
+        df.diff.median1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.median)
+
+        p <- ggplot(data=df.diff.median1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("dist_diff_median.pdf", plot =p)
+
+        df.diff.median1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.median.bam)
+
+        p <- ggplot(data=df.diff.median1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("dist_diff_median_bam.pdf", plot = p)
+
+        df.diff.mean1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean)
+
+        p <- ggplot(data=df.diff.mean1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("dist_diff_mean.pdf", plot=p)
+
+        df.diff.mean1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.diff.mean.bam)
+
+        p <- ggplot(data=df.diff.mean1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("dist_diff_mean_bam.pdf", plot=p)
+
+        df.per.geno1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), "genotype.prob" = rep(c("GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.per.geno)
+
+        p <- ggplot(data=df.per.geno1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("right_genotype_perc.pdf", plot =p)
+
+        df.per.geno1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.per.geno.bam)
+
+        p <- ggplot(data=df.per.geno1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("right_genotype_perc_bam.pdf", plot=p)
+
+        df.coverage1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), "genotype.prob" = rep(c("df", "GQ", "polyrad", "updog", "supermassa"), 2), "value" = df.coverage)
+
+        p <- ggplot(data=df.coverage1, aes(x=genotype.prob, y=value, fill=snp.call)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("coverage.pdf", plot=p)
+
+        df.coverage1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3)), "genotype.prob" = rep(c("polyrad", "updog", "supermassa"), 2), "value" = df.coverage.bam)
+
+        p <- ggplot(data=df.coverage1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
+        geom_bar(stat="identity", color="black", position=position_dodge())+
+        geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+        theme_minimal() 
+
+        ggsave("coverage_bam.pdf", plot=p)
+
+        df.filt2 <- cbind(c("gatk", "freebayes"),df.filt)
+        colnames(df.filt2) <- c("method", "n.snps.simu", "n.snps.identified", "n.snps.okay", "n.snps.fake", "n.snps.ref.okay", "n.snps.alt.okay")
+
+        df.filt2.melt <- melt(df.filt2)
+
+        p <- ggplot(data=df.filt2.melt, aes(x=variable, y=value, fill=method)) +
+          geom_bar(stat="identity", color="black", position=position_dodge())+
+          geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+          theme_minimal() 
+
+        ggsave("right_snp_calling_perc.pdf", plot=p)
+
+       RSCRIPT
+  >>>
+
+  runtime{
+    docker:"taniguti/onemap"
+  }
+
+  output{
+    File count_dist_gatk = "counts_dist_gatk.pdf"
+    File count_dist_bam_gatk = "counts_dist_bam_gatk.pdf"
+    File count_dist_freebayes = "counts_dist_freebayes.pdf"
+    File count_dist_bam_freebayes = "counts_dist_bam_freebayes.pdf"
+    File dist_diff_each_mk = "dist_diff_each_mk.pdf"
+    File dist_diff_each_mk_bam = "dist_diff_each_mk_bam.pdf"
+    File dist_diff_tot_size = "dist_diff_tot_size.pdf"
+    File dist_diff_tot_size_bam = "dist_diff_tot_size_bam.pdf"
+    File dist_diff_median = "dist_diff_median.pdf"
+    File dist_diff_median_bam = "dist_diff_median_bam.pdf"
+    File dist_diff_mean = "dist_diff_mean.pdf"
+    File dist_diff_mean_bam = "dist_diff_mean_bam.pdf"
+    File right_genotype_perc = "right_genotype_perc.pdf"
+    File right_genotype_perc_bam = "right_genotype_perc_bam.pdf"
+    File coverage = "coverage.pdf"
+    File coverage_bam = "coverage_bam.pdf"
+    File right_snp_calling_perc = "right_snp_calling_perc.pdf"
+  }
+
 }
 

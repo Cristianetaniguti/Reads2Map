@@ -95,7 +95,7 @@ MK POS cM
 **The only part of this report that you need to change**
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-path <- "~/github/errors_workflow/cromwell-executions/SimulateF2/d2be9acd-9912-4472-980a-8681ad6520fe"
+path <- "~/github/errors_workflow/cromwell-executions/reads_simu/049ee17e-c224-4957-906c-19fc41a6ee2a"
 cMByMb <- 4.63
 depth.ex <- 20
 ```
@@ -117,9 +117,9 @@ method <- c("gatk", "freebayes")
 meth.bam <-  c("polyrad", "updog", "supermassa")
 meth.geno <- c("df", "GQ", "polyrad", "updog", "supermassa")
 
-mapfile <- read.table("call-CreatePedigreeSimulatorInputs/execution/markers.txt", header=T)
+mapfile <- read.table("call-DiagnosticGraphics/execution/mapfile.txt", header=T)
 
-tot_mks <- read.table("call-CreatePedigreeSimulatorInputs/execution/tot_mks.txt")
+tot_mks <- read.table("call-DiagnosticGraphics/execution/tot_mks.txt")
 id <- c(0,1)
 p  <- p.bam  <- list()
 
@@ -145,25 +145,26 @@ for(i in 1:length(method)){
   gt <- vcf@gt[,-1]
   gt <- gt[,sort(colnames(gt))]
   gt <- melt(gt)
-  gt$value <- sapply(strsplit(as.character(gt$value), ":"), "[", 1)
+  gt["value"] <- sapply(strsplit(as.character(gt[,3]), ":"), "[", 1)
   
   # Filters
-  filt <- read.table(paste0("call-CalculateVcfMetrics/execution/",method[i], ".txt"), header = T)
+  filt <- read.table(paste0("call-CalculateVcfMetrics/execution/", method[i], ".txt"), header = T)
   df.filt <- rbind(df.filt, filt)
   
   ## Depths by bam
-  alt_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_alt_depth_bam.txt"), header = T, stringsAsFactors = F)
+  alt_depth <- read.table(paste0("call-BamCounts4Onemap/execution/", method[i], "_alt_depth_bam.txt"), header = T, stringsAsFactors = F)
   alt_depth <- as.data.frame(apply(alt_depth, 2, as.integer))
   alt_depth <- alt_depth[,sort(colnames(alt_depth))]
   alt <- melt(alt_depth)
   
-  ref_depth <- read.table(paste0("call-DepthBam/execution/", method[i], "_ref_depth_bam.txt"), header = T, stringsAsFactors = F)
+  ref_depth <- read.table(paste0("call-BamCounts4Onemap/execution/", method[i], "_ref_depth_bam.txt"), header = T, stringsAsFactors = F)
   ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
   ref_depth <- ref_depth[,sort(colnames(ref_depth))]
   ref <- melt(ref_depth)
   
-  idx.id <- match(gt$Var2, ref$variable)
-  df.depths <- data.frame(ind = ref$variable, alt = alt$value, ref=ref$value)
+  idx.id <- match(gt["Var2"], ref["variable"])
+  df.depths <- data.frame(ind = ref["variable"], alt = alt["value"], ref=ref["value"])
+  colnames(df.depths) <- c("ind", "alt", "ref")
   
   p.bam[[i]] <- ggplot(df.depths, aes(x=ref, y=alt)) + geom_point(size=0.5) +
     labs(title= paste0(method[i]," depths example"),x="ref", y = "alt") + xlim(0,depth.ex) + ylim(0,depth.ex)
@@ -178,21 +179,22 @@ for(i in 1:length(method)){
   ref_depth <- as.data.frame(apply(ref_depth, 2, as.integer))
   ref_depth <- ref_depth[,sort(colnames(ref_depth))]
   ref <- melt(ref_depth)
-  df.depths <- data.frame(ind = gt$Var2, gt = gt$value, alt = alt$value, ref=ref$value)
+  df.depths <- data.frame(ind = gt["Var2"], gt = gt["value"], alt = alt["value"], ref=ref["value"])
+  colnames(df.depths) <- c("ind", "gt","alt", "ref")
   
   p[[i]] <- ggplot(df.depths, aes(x=ref, y=alt, color=as.factor(gt))) + geom_point(size=0.5) +
     labs(title= paste0(method[i]," depths example"),x="ref", y = "alt", color="Genotypes") + xlim(0,depth.ex) + ylim(0,depth.ex)
   
   for(j in 1:length(meth.geno)){
     # Map distance
-    maps <- read.table(paste0("call-all_maps/shard-", id[i],"/execution/", method[i],"_map_", meth.geno[j],".txt"), header =T)
+    maps <- read.table(paste0("call-DiagnosticGraphics/execution/", method[i],"_map_", meth.geno[j],".txt"), header =T)
     
     poscM <- (as.numeric(as.character(maps[,2]))/1000000)*cMByMb
     poscM.norm <- poscM-poscM[1]
     maps <- cbind(maps, poscM, poscM.norm)
     
     # Difference between distances real and estimated
-    diff.dis <- sqrt((maps$poscM.norm - maps$rf)^2)
+    diff.dis <- sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1]
     df.diff.dis[[i]][[j]] <- diff.dis
     names(df.diff.dis[[i]][[j]]) <- paste0(method[i],"_",meth.geno[j])
     
@@ -200,42 +202,42 @@ for(i in 1:length(method)){
     names.id <-  c(names.id,paste0(method[i],"_",meth.geno[j]))
     
     # Mean of differences
-    diff.dis.mean <- mean(sqrt((maps$poscM.norm - maps$rf)^2))
+    diff.dis.mean <- mean(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
     df.diff.mean <- c(df.diff.mean,diff.dis.mean)
     
     
     # Median of differences
-    diff.dis.median <- median(sqrt((maps$poscM.norm - maps$rf)^2))
+    diff.dis.median <- median(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
     df.diff.median <- c(df.diff.median,diff.dis.median)
     
     # Difference of total size
-    diff.tot.dis <- sqrt((maps$poscM.norm[length(maps$poscM.norm)] - maps$rf[length(maps$rf)])^2)
+    diff.tot.dis <- sqrt((maps["poscM.norm"][,1][length(maps["poscM.norm"][,1])] - maps["rf"][,1][length(maps["rf"][,1])])^2)
     df.diff.tot <- c(df.diff.tot,diff.tot.dis)
     
     mapfile.pos <- cbind(mapfile, tot_mks[,2])
     
     # Percentage of the chromosome covered 
-    coverage <- maps$pos[length(maps$pos)]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
+    coverage <- maps[,2][length(maps[,2])]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
     df.coverage <- c(df.coverage,coverage)
     
     # Percentage of rigth genotyping
     if(meth.geno[j] != "df"){
-      per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.geno[j],".txt"), header =T)
-      per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
+      per.geno <- read.table(paste0("call-DiagnosticGraphics/execution/",method[i],"_error_",meth.geno[j],".txt"), header =T)
+      per.geno <- (sum(per.geno[,3] == per.geno[,4])/length(per.geno[,4])*100)
       df.per.geno <- c(df.per.geno,per.geno)
     }
   }
   
   for(j in 1:length(meth.bam)){
     # Map distance
-    maps <- read.table(paste0("call-all_maps/shard-", id[i],"/execution/", method[i],"_map_bam_", meth.bam[j],".txt"), header =T)
+    maps <- read.table(paste0("call-DiagnosticGraphics/execution/", method[i],"_map_bam_", meth.bam[j],".txt"), header =T)
     
     poscM <- (as.numeric(as.character(maps[,2]))/1000000)*cMByMb
     poscM.norm <- poscM-poscM[1]
     maps <- cbind(maps, poscM, poscM.norm)
     
     # Difference between distances real and estimated
-    diff.dis <- sqrt((maps$poscM.norm - maps$rf)^2)
+    diff.dis <- sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1]
     df.diff.dis.bam[[i]][[j]] <- diff.dis
     names(df.diff.dis.bam[[i]][[j]]) <- paste0(method[i],"_",meth.bam[j])
     
@@ -243,26 +245,26 @@ for(i in 1:length(method)){
     names.id <-  c(names.id,paste0(method[i],"_",meth.bam[j]))
     
     # Mean of differences
-    diff.dis.mean.bam <- mean(sqrt((maps$poscM.norm - maps$rf)^2))
+    diff.dis.mean.bam <- mean(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
     df.diff.mean.bam <- c(df.diff.mean.bam,diff.dis.mean.bam)
     
     # Median of differences
-    diff.dis.median.bam <- median(sqrt((maps$poscM.norm - maps$rf)^2))
+    diff.dis.median.bam <- median(sqrt((maps["poscM.norm"] - maps["rf"])^2)[,1])
     df.diff.median.bam <- c(df.diff.median.bam,diff.dis.median.bam)
     
     # Difference of total size
-    diff.tot.dis <- sqrt((maps$poscM.norm[length(maps$poscM.norm)] - maps$rf[length(maps$rf)])^2)
+    diff.tot.dis <- sqrt((maps["poscM.norm"][,1][length(maps["poscM.norm"][,1])] - maps["rf"][,1][length(maps["rf"][,1])])^2)
     df.diff.tot.bam <- c(df.diff.tot.bam,diff.tot.dis)
     
     mapfile.pos <- cbind(mapfile, tot_mks[,2])
     
     # Percentage of the chromosome covered 
-    coverage <- maps$pos[length(maps$pos)]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
+    coverage <- maps[,2][length(maps[,2])]*100/mapfile.pos[,4][length(mapfile.pos[,4])]
     df.coverage.bam <- c(df.coverage.bam,coverage)
     
     # Percentage of rigth genotyping
-    per.geno <- read.table(paste0("call-all_maps/shard-",id[i],"/execution/",method[i],"_error_",meth.bam[j],".txt"), header =T)
-    per.geno <- (sum(per.geno$gabGT == per.geno$methGT)/length(per.geno$methGT)*100)
+    per.geno <- read.table(paste0("call-DiagnosticGraphics/execution/",method[i],"_error_",meth.bam[j],".txt"), header =T)
+    per.geno <- (sum(per.geno[,3] == per.geno[,4])/length(per.geno[,4])*100)
     df.per.geno.bam <- c(df.per.geno.bam,per.geno)
   }              
 }
@@ -283,6 +285,9 @@ p.bam
 ```{r}
 # Depths from softwares
 p
+
+ggsave("test.pdf", plot= p)
+
 ```
 
 
@@ -309,6 +314,9 @@ df.melt.diff.dis <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis[
 p<-ggplot(df.melt.diff.dis, aes(x=genoty, y=value, fill=method)) +
   geom_boxplot() + geom_hline(yintercept=0, color="red")
 p
+
+ggsave("test.pdf", plot= p)
+
 ```
 
 * Counts from bam
@@ -327,6 +335,10 @@ df.melt.diff.dis.bam <- data.frame(method = c(rep("gatk", length(unlist(df.diff.
 
 p<-ggplot(df.melt.diff.dis.bam, aes(x=genoty, y=value, fill=method)) +
   geom_boxplot() + geom_hline(yintercept=0, color="red")
+
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -342,7 +354,11 @@ df.diff.tot1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), 
 
 p <- ggplot(data=df.diff.tot1, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -353,7 +369,12 @@ df.diff.tot1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3
 
 p <- ggplot(data=df.diff.tot1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -367,7 +388,12 @@ df.diff.median1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)
 
 p <- ggplot(data=df.diff.median1, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 ```
 
@@ -378,7 +404,12 @@ df.diff.median1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes"
 
 p <- ggplot(data=df.diff.median1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 ```
 
@@ -391,7 +422,12 @@ df.diff.mean1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)),
 
 p <- ggplot(data=df.diff.mean1, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -403,7 +439,12 @@ df.diff.mean1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 
 
 p <- ggplot(data=df.diff.mean1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -419,7 +460,11 @@ df.per.geno1 <- data.frame("snp.call" = c(rep("gatk", 4), rep("freebayes", 4)), 
 
 p <- ggplot(data=df.per.geno1, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -431,7 +476,11 @@ df.per.geno1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3
 
 p <- ggplot(data=df.per.geno1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -446,7 +495,12 @@ df.coverage1 <- data.frame("snp.call" = c(rep("gatk", 5), rep("freebayes", 5)), 
 
 p <- ggplot(data=df.coverage1, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -458,7 +512,12 @@ df.coverage1.bam <- data.frame("snp.call" = c(rep("gatk", 3), rep("freebayes", 3
 
 p <- ggplot(data=df.coverage1.bam, aes(x=genotype.prob, y=value, fill=snp.call)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
 p
 
 ```
@@ -474,7 +533,13 @@ df.filt2.melt <- melt(df.filt2)
 
 p <- ggplot(data=df.filt2.melt, aes(x=variable, y=value, fill=method)) +
   geom_bar(stat="identity", color="black", position=position_dodge())+
-  theme_minimal()
+  geom_text(aes(label= round(value,2)), vjust=1.6, color="black", position = position_dodge(0.9), size=3.5)+
+  theme_minimal() 
+
+
+ggsave("test.pdf", plot= p)
+
+
 p
 ```
 
