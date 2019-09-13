@@ -227,15 +227,32 @@ workflow reads_simu{
   }
 
   output {
-    File freebayes_vcf       = VcftoolsApplyFilters.freebayesVCF_F
-    File gatk_vcf            = VcftoolsApplyFilters.gatkVCF_F
-    File freebayes_aval_vcf  = CalculateVcfMetrics.freebayes_aval_vcf
-    File gatk_aval_vcf       = CalculateVcfMetrics.gatk_aval_vcf
-    File freebayes_ref_depth = CalculateVcfMetrics.freebayes_ref_depth
-    File freebayes_alt_depth = CalculateVcfMetrics.freebayes_alt_depth
-    File gatk_ref_depth      = CalculateVcfMetrics.gatk_ref_depth
-    File gatk_alt_depth      = CalculateVcfMetrics.gatk_alt_depth
-    File tot_mks             = CreatePedigreeSimulatorInputs.tot_mks
+    File freebayes_vcf            = VcftoolsApplyFilters.freebayesVCF_F
+    File gatk_vcf                 = VcftoolsApplyFilters.gatkVCF_F
+    File freebayes_aval_vcf       = CalculateVcfMetrics.freebayes_aval_vcf
+    File gatk_aval_vcf            = CalculateVcfMetrics.gatk_aval_vcf
+    File freebayes_ref_depth      = CalculateVcfMetrics.freebayes_ref_depth
+    File freebayes_alt_depth      = CalculateVcfMetrics.freebayes_alt_depth
+    File gatk_ref_depth           = CalculateVcfMetrics.gatk_ref_depth
+    File gatk_alt_depth           = CalculateVcfMetrics.gatk_alt_depth
+    File tot_mks                  = CreatePedigreeSimulatorInputs.tot_mks
+    File count_dist_gatk          = DiagnosticGraphics.count_dist_gatk
+    File count_dist_bam_gatk      = DiagnosticGraphics.count_dist_bam_gatk
+    File count_dist_freebayes     = DiagnosticGraphics.count_dist_freebayes
+    File count_dist_bam_freebayes = DiagnosticGraphics.count_dist_bam_freebayes
+    File dist_diff_each_mk        = DiagnosticGraphics.dist_diff_each_mk
+    File dist_diff_each_mk_bam    = DiagnosticGraphics.dist_diff_each_mk_bam
+    File dist_diff_tot_size       = DiagnosticGraphics.dist_diff_tot_size
+    File dist_diff_tot_size_bam   = DiagnosticGraphics.dist_diff_tot_size_bam
+    File dist_diff_median         = DiagnosticGraphics.dist_diff_median
+    File dist_diff_median_bam     = DiagnosticGraphics.dist_diff_median_bam
+    File dist_diff_mean           = DiagnosticGraphics.dist_diff_mean
+    File dist_diff_mean_bam       = DiagnosticGraphics.dist_diff_mean_bam
+    File right_genotype_perc      = DiagnosticGraphics.right_genotype_perc
+    File right_genotype_perc_bam  = DiagnosticGraphics.right_genotype_perc_bam
+    File coverage                 = DiagnosticGraphics.coverage
+    File coverage_bam             = DiagnosticGraphics.coverage_bam
+    File right_snp_calling_perc   = DiagnosticGraphics.right_snp_calling_perc
   }
 }
 
@@ -1653,13 +1670,13 @@ task DiagnosticGraphics{
           }
         }
 
-        ggsave(paste0("counts_dist_",method[1],".pdf"), plot= p[[1]])
+        ggsave(paste0("count_dist_",method[1],".pdf"), plot= p[[1]])
 
-        ggsave(paste0("counts_dist_",method[2],".pdf"), plot= p[[2]])
+        ggsave(paste0("count_dist_",method[2],".pdf"), plot= p[[2]])
 
-        ggsave(paste0("counts_dist_bam_", method[1], ".pdf"), plot= p.bam[[1]])
+        ggsave(paste0("count_dist_bam_", method[1], ".pdf"), plot= p.bam[[1]])
 
-        ggsave(paste0("counts_dist_bam_", method[2], ".pdf"), plot= p.bam[[2]])
+        ggsave(paste0("count_dist_bam_", method[2], ".pdf"), plot= p.bam[[2]])
 
         df.melt.diff.dis <- data.frame(method = c(rep("gatk", length(unlist(df.diff.dis[[1]]))), 
                                           rep("freebayes", length(unlist(df.diff.dis[[2]])))), 
@@ -1806,10 +1823,10 @@ task DiagnosticGraphics{
   }
 
   output{
-    File count_dist_gatk = "counts_dist_gatk.pdf"
-    File count_dist_bam_gatk = "counts_dist_bam_gatk.pdf"
-    File count_dist_freebayes = "counts_dist_freebayes.pdf"
-    File count_dist_bam_freebayes = "counts_dist_bam_freebayes.pdf"
+    File count_dist_gatk = "count_dist_gatk.pdf"
+    File count_dist_bam_gatk = "count_dist_bam_gatk.pdf"
+    File count_dist_freebayes = "count_dist_freebayes.pdf"
+    File count_dist_bam_freebayes = "count_dist_bam_freebayes.pdf"
     File dist_diff_each_mk = "dist_diff_each_mk.pdf"
     File dist_diff_each_mk_bam = "dist_diff_each_mk_bam.pdf"
     File dist_diff_tot_size = "dist_diff_tot_size.pdf"
@@ -1824,6 +1841,5 @@ task DiagnosticGraphics{
     File coverage_bam = "coverage_bam.pdf"
     File right_snp_calling_perc = "right_snp_calling_perc.pdf"
   }
-
 }
 
