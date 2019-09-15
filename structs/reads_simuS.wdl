@@ -15,7 +15,10 @@ struct Family {
   String name
   Float cmBymb
   Int seed
-  Int samples
+  Int popsize
   String enzyme
   Int depth
+  File doses
+  Int ploidy
+  String cross
 }

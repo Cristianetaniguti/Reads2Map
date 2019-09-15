@@ -4,32 +4,42 @@ This workflow provides linkage map simulation using markers from RAD-seq methodo
 
 ## Quickstart
 
+This workflow requires docker hub images. First of all, install [docker](https://docs.docker.com/install/) and [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/).
+
+* Adapt the path of the inputs in `reads_simu.json`
+
+*references*
+- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time)
+- ref_fasta_index: index made by samtools faidx
+- ref_dict: index made by picard dict
+- ref_sa: index made by bwa index
+- ref_amb: index made by bwa index
+- ref_bwt: index made by bwa index
+- ref_ann: index made by bwa index
+- ref_pac: index made by bwa index
+
+*family*
+- name: specify a ID for the family - useful if running several families
+- cmBymb: recombination rate according with other genetic maps of the specie
+- samples: number of individuals at the progenie population
+- enzyme: enzyme cute site
+- seed: seed to reproduce the analysis after - warning: some steps are still random, as the reads simulation
+- depth: sequencing depth
+- doses: file containing the percentage of markers with doses 0, 1 and 2 (when cross is F1)
+- ploidy: the ploidy of the specie, by now only diploid (2) species are supported
+- cross: cross type: "F1" or "F2"
+
+
 ```
-# Build the docker images
-bash .scripts/build_images.sh
-
-# Adapt the path of the inputs in F2.json
-
 # Start a mysql instance on port 3307
 # - required just to reuse already processed tasks.
 # - If you do not want, please edit your .configurations/cromwell.conf
 docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
 
 # Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i F2.json F2.wdl
+java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
 
 ```
-
-## Results report
-
-For now, the report with the results is separated from the workflow. You can run it with:
-
-```
-# First, adapt the Rmd with the inputs path (the output path of the workflow) and then:
-R -e "rmarkdown::render('.scripts/F2_maps.Rmd')"
-```
-
-This will generate a html report at .scripts directory.
 
 ## Third party softwares
 

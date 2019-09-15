@@ -5,6 +5,7 @@ RUN apt update \
    && pip install matplotlib==2.0.2 numpy
 
 RUN R -e "install.packages('updog', repos='http://brieger.esalq.usp.br/CRAN/');\
+          install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('devtools', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('stringi', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('vcfR', repos='http://brieger.esalq.usp.br/CRAN/');\

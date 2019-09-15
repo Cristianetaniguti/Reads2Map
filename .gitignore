@@ -2,4 +2,5 @@ cromwell-executions/
 cromwell-workflow-logs/
 *~
 *Rhistory
-
+test/
+data/Populus/
