@@ -29,6 +29,11 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 - ploidy: the ploidy of the specie, by now only diploid (2) species are supported
 - cross: cross type: "F1" or "F2"
 
+### WDL configurations
+
+There are three possible configurations available in `.configurations` directory:
+
+* cromwell_cache.conf: to store cache in a mysql database
 
 ```
 # Start a mysql instance on port 3307
@@ -40,6 +45,45 @@ docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 330
 java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
 
 ```
+
+* cromwell_singularity: to run docker images through singularity (useful to run in HPC)
+
+```
+# For private repos
+export SINGULARITY_DOCKER_USERNAME=fulana
+export SINGULARITY_DOCKER_PASSWORD=senhadafulana
+
+# To store singularity images in a different path than home
+export SINGULARITY_CACHEDIR=/path/to/cache
+
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_singularity.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+
+```
+
+* cromwell_sing_slurm: to run docker images through singularity moderated by slurm system (useful to run in HPC)
+
+```
+# For private repos
+export SINGULARITY_DOCKER_USERNAME=fulana
+export SINGULARITY_DOCKER_PASSWORD=senhadafulana
+
+# To store singularity images in a different path than home
+export SINGULARITY_CACHEDIR=/path/to/cache
+
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_sing_slurm.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+
+```
+
+If you want to run wdl with default configurations simple use:
+
+```
+# Execute the workflow
+java -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+
+```
+
 
 ## Third party softwares
 

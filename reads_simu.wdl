@@ -1,3 +1,4 @@
+
 version 1.0
 
 import "./structs/reads_simuS.wdl"
@@ -530,7 +531,9 @@ task GenerateSampleNames {
     File simulated_vcf
   }
 
-  command {
+  command <<<
+    export PATH=$PATH:/opt/conda/bin
+
     python <<CODE
     from pysam import VariantFile
 
@@ -539,7 +542,7 @@ task GenerateSampleNames {
     for i in bcf_in.header.samples:
         print(i)
     CODE
-  }
+  >>>
 
   runtime {
     docker: "taniguti/miniconda-alpine"
@@ -663,8 +666,10 @@ task RunBwaAlignment {
   }
 
   command <<<
-    /usr/gitc/bwa mem ~{ref} ~{reads1} ~{reads2} | \
-      java -jar /usr/gitc/picard.jar SortSam \
+        export PATH=$PATH:/bin
+        export PATH=$PATH:/picard.jar
+        bwa mem ~{ref} ~{reads1} ~{reads2} | \
+        java -jar /picard.jar SortSam \
         I=/dev/stdin \
         O=~{sampleName}.sorted.bam \
         SORT_ORDER=coordinate \
@@ -673,7 +678,7 @@ task RunBwaAlignment {
   >>>
 
   runtime {
-    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.3.3-1513176735"
+    docker: "kfdrc/bwa-picard:latest-dev"
   }
 
   output {
