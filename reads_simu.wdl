@@ -117,7 +117,7 @@ workflow reads_simu{
   call GenotypeGVCFs {
     input:
       workspace_tar       = CreateGatkDatabase.workspace_tar,
-      output_vcf_filename = family.name + "_gatk.vcf",
+      output_vcf_filename = "gatk.vcf",
       ref                 = references.ref_fasta,
       geno_fai            = references.ref_fasta_index,
       geno_dict           = references.ref_dict
@@ -125,7 +125,7 @@ workflow reads_simu{
 
   call RunFreebayes {
     input:
-      freebayesVCFname = family.name + "_freebayes.vcf",
+      freebayesVCFname = "freebayes.vcf",
       ref              = references.ref_fasta,
       bam_rg           = AddAlignmentHeader.bam_rg
   }

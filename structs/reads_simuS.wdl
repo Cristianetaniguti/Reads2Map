@@ -12,9 +12,7 @@ struct ReferenceFasta {
 }
 
 struct Family {
-  String name
   Float cmBymb
-  Int seed
   Int popsize
   String enzyme
   Int depth
