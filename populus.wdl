@@ -6,7 +6,7 @@ workflow populus{
 
     input{
         dataset dataset
-        ReferenceFasta references 
+        ReferenceFasta references
     }
 
     Array[Array[File]] inputSamples = read_tsv(dataset.samples_info)
@@ -78,7 +78,7 @@ workflow populus{
        input:
        freebayesVCF = RunFreebayes.freebayesVCF,
        gatkVCF      = GenotypeGVCFs.gatkVCF
-    } 
+    }
 
   Array[String] bamNames = read_lines(dataset.bamNames)
   Array[Pair[File, String]] bams_files = zip(AddAlignmentHeader.bam_rg, bamNames)
@@ -115,7 +115,7 @@ task RunBwaAlignment {
   command <<<
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
-  
+
     bwa mem -t 10 ~{ref} ~{reads1} | \
       java -jar /picard.jar SortSam \
         I=/dev/stdin \
@@ -187,7 +187,7 @@ task HaplotypeCallerERC {
       -R ~{ref} \
       -I ~{bam_rg} \
       -O ~{sampleName}_rawLikelihoods.g.vcf \
-      --max-reads-per-alignment-start 0 
+      --max-reads-per-alignment-start 0
   >>>
 
   runtime {
@@ -212,7 +212,7 @@ task CreateGatkDatabase {
     /gatk/gatk GenomicsDBImport \
       --genomicsdb-workspace-path ~{path_gatkDatabase} \
       -L Chr10 \
-      -V ~{sep=" -V "  GVCFs} 
+      -V ~{sep=" -V "  GVCFs}
 
     tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
   >>>
@@ -245,7 +245,7 @@ task GenotypeGVCFs {
         -R ~{ref} \
         -O ~{output_vcf_filename} \
         -G StandardAnnotation \
-        -V gendb://$WORKSPACE 
+        -V gendb://$WORKSPACE
   >>>
 
   runtime {
@@ -276,7 +276,7 @@ task JointSameSamples{
           files <- read.table("~{samples_info}", stringsAsFactors = F)
 
           repet <- names(which(table(files[,2]) > 1))
-          
+
           if(length(repet) != 0){
             idx <- vector()
             for(i in 1:length(repet)){
