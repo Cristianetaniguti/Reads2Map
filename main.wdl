@@ -1,7 +1,7 @@
 version 1.0
 
 import "./structs/reads_simuS.wdl"
-import reads_simu.wdl as sub
+import "reads_simu.wdl" as sub
 
 workflow main{
 
@@ -13,7 +13,7 @@ workflow main{
 
     scatter(seed in seeds){
         call sub.reads_simu{
-            input: 
+            input:
             ReferenceFasta references # isso aqui esta errado
             Family family             # isso também
 	        seed = seed
@@ -72,7 +72,7 @@ task GraphicsAll{
     >>>
 
     runtime{
-        
+
     }
 
     output{
