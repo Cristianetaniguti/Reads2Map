@@ -4,3 +4,11 @@ cromwell-workflow-logs/
 *Rhistory
 test/
 data/Populus/
+cromwell-46.jar
+docker/
+metadata/
+*.err
+*.log
+*.sh
+*.swp
+.devcontainer

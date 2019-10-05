@@ -29,6 +29,11 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 - ploidy: the ploidy of the specie, by now only diploid (2) species are supported
 - cross: cross type: "F1" or "F2"
 
+### WDL configurations
+
+There are three possible configurations available in `.configurations` directory:
+
+* cromwell_cache.conf: to store cache in a mysql database
 
 ```
 # Start a mysql instance on port 3307
@@ -41,6 +46,45 @@ java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i r
 
 ```
 
+* cromwell_singularity: to run docker images through singularity (useful to run in HPC)
+
+```
+# For private repos
+export SINGULARITY_DOCKER_USERNAME=fulana
+export SINGULARITY_DOCKER_PASSWORD=senhadafulana
+
+# To store singularity images in a different path than home
+export SINGULARITY_CACHEDIR=/path/to/cache
+
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_singularity.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+
+```
+
+* cromwell_sing_slurm: to run docker images through singularity moderated by slurm system (useful to run in HPC)
+
+```
+# For private repos
+export SINGULARITY_DOCKER_USERNAME=fulana
+export SINGULARITY_DOCKER_PASSWORD=senhadafulana
+
+# To store singularity images in a different path than home
+export SINGULARITY_CACHEDIR=/path/to/cache
+
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_sing_slurm.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+
+```
+
+If you want to run wdl with default configurations simple use:
+
+```
+# Execute the workflow
+java -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+
+```
+
+
 ## Third party softwares
 
 - [bwa](https://github.com/lh3/bwa): Used to align simulated reads to reference.
@@ -49,7 +93,7 @@ java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i r
 - [ddRADseqTools](https://github.com/GGFHF/ddRADseqTools): Set of applications useful to in silico design and testing of double digest RADseq (ddRADseq) experiments.
 - [freebayes](https://github.com/ekg/freebayes): Variant call step.
 - [gatk](https://github.com/broadinstitute/gatk): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs.
-- [onemap](https://github.com/augusto-garcia/onemap): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses. 
+- [onemap](https://github.com/augusto-garcia/onemap): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses.
 - [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1): Simulates progeny genotypes from parents genotypes for different types of populations
 - [picard](https://github.com/broadinstitute/picard): Process alignment files.
 - [pirs](https://github.com/galaxy001/pirs): To generate simulates paired-end reads from a reference genome.
