@@ -93,7 +93,7 @@ java -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
 - [ddRADseqTools](https://github.com/GGFHF/ddRADseqTools): Set of applications useful to in silico design and testing of double digest RADseq (ddRADseq) experiments.
 - [freebayes](https://github.com/ekg/freebayes): Variant call step.
 - [gatk](https://github.com/broadinstitute/gatk): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs.
-- [onemap](https://github.com/augusto-garcia/onemap): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses. 
+- [onemap](https://github.com/augusto-garcia/onemap): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses.
 - [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1): Simulates progeny genotypes from parents genotypes for different types of populations
 - [picard](https://github.com/broadinstitute/picard): Process alignment files.
 - [pirs](https://github.com/galaxy001/pirs): To generate simulates paired-end reads from a reference genome.
