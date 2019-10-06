@@ -22,3 +22,14 @@ struct Family {
   Int ploidy
   String cross
 }
+
+struct FamilyTemplate {
+  Float cmBymb
+  Int? seed
+  Int popsize
+  String enzyme
+  Int depth
+  File doses
+  Int ploidy
+  String cross
+}

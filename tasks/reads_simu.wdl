@@ -1,7 +1,6 @@
-
 version 1.0
 
-import "./structs/reads_simuS.wdl"
+import "../structs/reads_simuS.wdl"
 
 workflow reads_simu{
 
@@ -141,7 +140,6 @@ workflow reads_simu{
       freebayesVCF  = VcftoolsApplyFilters.freebayesVCF_F,
       gatkVCF       = VcftoolsApplyFilters.gatkVCF_F,
       tot_mks       = CreatePedigreeSimulatorInputs.tot_mks,
-      map_file      = CreatePedigreeSimulatorInputs.mapfile,
       maternal_trim = SimulateRADseq.maternal_trim
   }
 
@@ -666,14 +664,14 @@ task RunBwaAlignment {
   }
 
   command <<<
-        export PATH=$PATH:/bin
-        export PATH=$PATH:/picard.jar
-        bwa mem ~{ref} ~{reads1} ~{reads2} | \
-        java -jar /picard.jar SortSam \
-        I=/dev/stdin \
-        O=~{sampleName}.sorted.bam \
-        SORT_ORDER=coordinate \
-        CREATE_INDEX=true
+    export PATH=$PATH:/bin
+    export PATH=$PATH:/picard.jar
+    bwa mem ~{ref} ~{reads1} ~{reads2} | \
+    java -jar /picard.jar SortSam \
+    I=/dev/stdin \
+    O=~{sampleName}.sorted.bam \
+    SORT_ORDER=coordinate \
+    CREATE_INDEX=true
     mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
   >>>
 
@@ -861,7 +859,6 @@ task CalculateVcfMetrics {
     File freebayesVCF
     File gatkVCF
     File tot_mks
-    File map_file
     Array[File] maternal_trim
   }
 
@@ -1032,8 +1029,8 @@ task BamCounts4Onemap{
       library(R.utils)
       system("cp ~{sep=" "  freebayes_counts} .")
       system("cp ~{sep=" "  gatk_counts} .")
-      system("cp ~{sep=" "  freebayes_pos} .")
-      system("cp ~{sep=" "  gatk_pos} .")
+      system("cp ~{freebayes_pos} .")
+      system("cp ~{gatk_pos} .")
       names <- c("~{sep=" , "  sampleName}")
       names <- unlist(strsplit(names, split = " , "))
 
@@ -1126,10 +1123,10 @@ task all_maps {
 
           args = commandArgs(trailingOnly=TRUE)
 
-          system("cp ~{sep=" "  freebayes_ref_depth} .")
-          system("cp ~{sep=" "  freebayes_alt_depth} .")
-          system("cp ~{sep=" "  gatk_ref_depth} .")
-          system("cp ~{sep=" "  gatk_alt_depth} .")
+          system("cp ~{freebayes_ref_depth} .")
+          system("cp ~{freebayes_alt_depth} .")
+          system("cp ~{gatk_ref_depth} .")
+          system("cp ~{gatk_alt_depth} .")
           system("cp ~{gatk_example_alleles} .")
           system("cp ~{freebayes_example_alleles} .")
           method_name <- "~{methodName}"

@@ -1,0 +1,24 @@
+{
+  "main.name": "family1",
+  "main.number_of_families": 2,
+  "main.family_template": {
+    "cmBymb": 4.63,
+    "popsize": 47,
+    "enzyme":"G*CWGC",
+    "depth": 20,
+    "doses": "/executions/toy_sample/doses",
+    "ploidy": 2,
+    "cross": "F2"
+  },
+  "main.references": {
+    "ref_dict": "/executions/toy_sample/sub.dict",
+    "ref_fasta": "/executions/toy_sample/sub.fa",
+    "ref_fasta_index": "/executions/toy_sample/sub.fa.fai",
+    "ref_sa": "/executions/toy_sample/sub.fa.sa",
+    "ref_amb": "/executions/toy_sample/sub.fa.amb",
+    "ref_bwt": "/executions/toy_sample/sub.fa.bwt",
+    "ref_ann": "/executions/toy_sample/sub.fa.ann",
+    "ref_pac": "/executions/toy_sample/sub.fa.pac"
+  }
+}
+
