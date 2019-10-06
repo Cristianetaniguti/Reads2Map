@@ -27,7 +27,7 @@ workflow main{
             "cmBymb": family_template.cmBymb,
             "popsize": family_template.popsize,
             "enzyme": family_template.enzyme,
-            "seed": 1515,
+            "seed": seed,
             "depth": family_template.depth,
             "doses": family_template.doses,
             "ploidy": family_template.ploidy,
