@@ -8,7 +8,6 @@ workflow main{
     input{
         ReferenceFasta references
         FamilyTemplate family_template
-        String name
         Int number_of_families
     }
 
@@ -23,7 +22,6 @@ workflow main{
     # from the family_template and the random seed of the previous task.
     scatter(seed in ProduceFamiliesSeeds.seeds) {
         Family fam =  {
-            "name": name,
             "cmBymb": family_template.cmBymb,
             "popsize": family_template.popsize,
             "enzyme": family_template.enzyme,
@@ -42,67 +40,25 @@ workflow main{
         }
     }
 
-    # call GraphicsAll{
-    #     # vou fazer uma task para gerar gráficos dos resultados de todas as simulações
-    #     # os inputs vao ser (só que de todos os seeds):
-    #     input:
-    #         cmBymb                    = family.cmBymb,
-    #         depth                     = family.depth,
-    #         mapfile                   = CreatePedigreeSimulatorInputs.mapfile,
-    #         tot_mks                   = CreatePedigreeSimulatorInputs.tot_mks,
-    #         gatkVCF_F                 = VcftoolsApplyFilters.gatkVCF_F,
-    #         freebayesVCF_F            = VcftoolsApplyFilters.freebayesVCF_F,
-    #         gatk_aval_vcf             = CalculateVcfMetrics.gatk_aval_vcf,
-    #         freebayes_aval_vcf        = CalculateVcfMetrics.freebayes_aval_vcf,
-    #         gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
-    #         gatk_ref_depth_bam        = BamCounts4Onemap.gatk_ref_bam,
-    #         gatk_alt_depth            = CalculateVcfMetrics.gatk_alt_depth,
-    #         gatk_alt_depth_bam        = BamCounts4Onemap.gatk_alt_bam,
-    #         freebayes_ref_depth_bam   = BamCounts4Onemap.freebayes_ref_bam,
-    #         freebayes_alt_depth_bam   = BamCounts4Onemap.freebayes_alt_bam,
-    #         freebayes_ref_depth       = CalculateVcfMetrics.freebayes_ref_depth,
-    #         freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth,
-    #         map_df                    = all_maps.map_df,
-    #         map_GQ                    = all_maps.map_GQ,
-    #         map_polyrad               = all_maps.map_polyrad,
-    #         map_supermassa            = all_maps.map_supermassa,
-    #         map_updog                 = all_maps.map_updog,
-    #         map_bam_polyrad           = all_maps.map_bam_polyrad,
-    #         map_bam_supermassa        = all_maps.map_bam_supermassa,
-    #         map_bam_updog             = all_maps.map_bam_updog,
-    #         error_info_GQ             = all_maps.error_info_GQ,
-    #         error_info_updog          = all_maps.error_info_updog,
-    #         error_info_polyrad        = all_maps.error_info_polyrad,
-    #         error_info_supermassa     = all_maps.error_info_supermassa,
-    #         error_info_bam_updog      = all_maps.error_info_updog,
-    #         error_info_bam_polyrad    = all_maps.error_info_polyrad,
-    #         error_info_bam_supermassa = all_maps.error_info_bam_supermassa
-    # }
+    call JointTables{
+        input:
+            data1  = ReadSimulations.data1,
+            data2  = ReadSimulations.data2,
+            data3  = ReadSimulations.data3,
+            data4  = ReadSimulations.data4,
+            data5  = ReadSimulations.data5,
+    }
 
     # Here you can reference outputs from the sub workflow. Remember that
     # it will be an array of the same type of the original.
     output {
-        Array[File] coverages = ReadSimulations.coverage
+        File data1 = JointTables.data1
+        File data2 = JointTables.data2
+        File data3 = JointTables.data3
+        File data4 = JointTables.data4
+        File data5 = JointTables.data5
     }
 }
-
-
-# task GraphicsAll{
-#     input{
-
-#     }
-
-#     command <<<
-#     >>>
-
-#     runtime{
-
-#     }
-
-#     output{
-
-#     }
-# }
 
 task ProduceFamiliesSeeds {
     input {
@@ -112,7 +68,7 @@ task ProduceFamiliesSeeds {
     command <<<
         python <<CODE
         import random
-        for x in range(10):
+        for x in range(~{number_of_families}):
             print(random.randint(1,101))
         CODE
     >>>
@@ -123,5 +79,56 @@ task ProduceFamiliesSeeds {
 
     output {
         Array[Int] seeds = read_lines(stdout())
+    }
+}
+
+
+
+task JointTables{
+    input{
+        Array[File] data1 
+        Array[File] data2
+        Array[File] data3 
+        Array[File] data4 
+        Array[File] data5 
+    }
+
+    command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+
+          datas <- list()
+
+          datas[[1]] <- c("~{sep=";" data1}")
+          datas[[2]] <- c("~{sep=";" data2}")
+          datas[[3]] <- c("~{sep=";" data3}")
+          datas[[4]] <- c("~{sep=";" data4}")
+          datas[[5]] <- c("~{sep=";" data5}")
+
+          datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
+ 
+          data_lst <- list()
+          for(j in 1:length(datas)){
+              for(i in 1:length(datas[[j]])){
+                  data_lst[[i]] <- readRDS(datas[[j]][i])
+              }
+          
+            dat <- do.call(rbind, data_lst)
+            saveRDS(dat, paste0("data",j,".rds"))
+          }
+
+        RSCRIPT
+    >>>
+
+    runtime{
+        docker:"taniguti/onemap"
+    }
+
+    output{
+       File data1 = "data1.rds"
+       File data2 = "data2.rds"
+       File data3 = "data3.rds"
+       File data4 = "data4.rds"
+       File data5 = "data5.rds"
     }
 }
