@@ -1476,6 +1476,7 @@ task CreateTables{
     Array[File] map_bam_polyrad
     Array[File] map_bam_supermassa
     Array[File] map_bam_updog
+    Array[File] error_info_df
     Array[File] error_info_GQ
     Array[File] error_info_updog
     Array[File] error_info_polyrad
