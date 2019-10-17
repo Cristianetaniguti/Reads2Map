@@ -6,7 +6,11 @@ This workflow provides linkage map simulation using markers from RAD-seq methodo
 
 This workflow requires docker hub images. First of all, install [docker](https://docs.docker.com/install/) and [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/).
 
-* Adapt the path of the inputs in `reads_simu.json`
+### Run for only one family
+
+* Adapt the path of the inputs in `/main.inputs.json`
+
+*number_of_families* : an integer defining the number of families with `popsize` individuals to be simulated
 
 *references*
 - ref_fasta: chromosome sequence in fasta format (only one chromosome at a time)
@@ -18,13 +22,12 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 - ref_ann: index made by bwa index
 - ref_pac: index made by bwa index
 
-*family*
-- name: specify a ID for the family - useful if running several families
+*family_template*
 - cmBymb: recombination rate according with other genetic maps of the specie
-- samples: number of individuals at the progenie population
+- popsize: number of individuals at the progenie population
 - enzyme: enzyme cute site
 - seed: seed to reproduce the analysis after - warning: some steps are still random, as the reads simulation
-- depth: sequencing depth
+- depth: sequencing depth (remember that the default mode produce pair-end reads, than the double of the depth here defined) 
 - doses: file containing the percentage of markers with doses 0, 1 and 2 (when cross is F1)
 - ploidy: the ploidy of the specie, by now only diploid (2) species are supported
 - cross: cross type: "F1" or "F2"
@@ -38,41 +41,35 @@ There are three possible configurations available in `.configurations` directory
 ```
 # Start a mysql instance on port 3307
 # - required just to reuse already processed tasks.
-# - If you do not want, please edit your .configurations/cromwell.conf
 docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
 
 # Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i main.inputs.json main.wdl
 
 ```
 
-* cromwell_singularity: to run docker images through singularity (useful to run in HPC)
+* cromwell_sing: to run docker images through singularity (useful to run in HPC)
 
 ```
 # For private repos
 export SINGULARITY_DOCKER_USERNAME=fulana
 export SINGULARITY_DOCKER_PASSWORD=senhadafulana
 
-# To store singularity images in a different path than home
+# To store singularity temporary files in a different path than home
 export SINGULARITY_CACHEDIR=/path/to/cache
+export SINGULARITY_TMPDIR=/path/to/cache
+export SINGULARITY_LOCALCACHEDIR=/path/to/cache
 
 # Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_singularity.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+java -jar -Dconfig.file=.configurations/cromwell_sing.conf -jar cromwell.jar run -i main.inputs.json main.wdl
 
 ```
 
 * cromwell_sing_slurm: to run docker images through singularity moderated by slurm system (useful to run in HPC)
 
 ```
-# For private repos
-export SINGULARITY_DOCKER_USERNAME=fulana
-export SINGULARITY_DOCKER_PASSWORD=senhadafulana
-
-# To store singularity images in a different path than home
-export SINGULARITY_CACHEDIR=/path/to/cache
-
 # Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_sing_slurm.conf -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
+java -jar -Dconfig.file=.configurations/cromwell_sing_slurm.conf -jar cromwell.jar run -i main.inputs.json main.wdl
 
 ```
 
@@ -80,10 +77,8 @@ If you want to run wdl with default configurations simple use:
 
 ```
 # Execute the workflow
-java -jar cromwell.jar run -i reads_simu.json reads_simu.wdl
-
+java -jar cromwell.jar run -i main.inputs.json main.wdl
 ```
-
 
 ## Third party softwares
 
