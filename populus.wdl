@@ -6,7 +6,7 @@ workflow populus{
 
     input{
         dataset dataset
-        ReferenceFasta references 
+        ReferenceFasta references
     }
 
     Array[Array[File]] inputSamples = read_tsv(dataset.samples_info)
@@ -120,8 +120,9 @@ task RunBwaAlignment {
   command <<<
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
-  
-    bwa mem -t 5 ~{ref} ~{reads1} | \
+
+
+    bwa mem -t 10 ~{ref} ~{reads1} | \
       java -jar /picard.jar SortSam \
         I=/dev/stdin \
         O=~{sampleName}.sorted.bam \
@@ -252,7 +253,7 @@ task HaplotypeCallerERC {
       -R ~{ref} \
       -I ~{bam_rg} \
       -O ~{sampleName}_rawLikelihoods.g.vcf \
-      --max-reads-per-alignment-start 0 
+      --max-reads-per-alignment-start 0
   >>>
 
   runtime {
@@ -277,7 +278,7 @@ task CreateGatkDatabase {
     /gatk/gatk GenomicsDBImport \
       --genomicsdb-workspace-path ~{path_gatkDatabase} \
       -L Chr10 \
-      -V ~{sep=" -V "  GVCFs} 
+      -V ~{sep=" -V "  GVCFs}
 
     tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
   >>>
@@ -310,7 +311,7 @@ task GenotypeGVCFs {
         -R ~{ref} \
         -O ~{output_vcf_filename} \
         -G StandardAnnotation \
-        -V gendb://$WORKSPACE 
+        -V gendb://$WORKSPACE
   >>>
 
   runtime {
@@ -323,7 +324,6 @@ task GenotypeGVCFs {
   }
 
 }
-
 
 # Variant calling using freebayes
 task RunFreebayes {
@@ -420,4 +420,3 @@ task BamCounts{
     File freebayes_counts = "~{sampleName}_freebayes_counts.tsv"
   }
 }
-
