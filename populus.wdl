@@ -121,7 +121,6 @@ task RunBwaAlignment {
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
 
-
     bwa mem -t 10 ~{ref} ~{reads1} | \
       java -jar /picard.jar SortSam \
         I=/dev/stdin \
