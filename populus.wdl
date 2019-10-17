@@ -12,33 +12,46 @@ workflow populus{
     Array[Array[File]] inputSamples = read_tsv(dataset.samples_info)
 
     scatter (samples in inputSamples){
-        call RunBwaAlignment{
-            input:
-            sampleName = samples[2],
-            reads1     = samples[0],
-            ref        = references.ref_fasta,
-            geno_amb   = references.ref_amb,
-            geno_ann   = references.ref_ann,
-            geno_bwt   = references.ref_bwt,
-            geno_pac   = references.ref_pac,
-            geno_sa    = references.ref_sa
-        }
+       call RunBwaAlignment{
+           input:
+           sampleName = samples[2],
+           reads1     = samples[0],
+           ref        = references.ref_fasta,
+           geno_amb   = references.ref_amb,
+           geno_ann   = references.ref_ann,
+           geno_bwt   = references.ref_bwt,
+           geno_pac   = references.ref_pac,
+           geno_sa    = references.ref_sa
+       }
+    
+       call AddAlignmentHeader{
+           input:
+           sampleName = samples[1],
+           libName    = samples[2],
+           bam_file   = RunBwaAlignment.bam_file,
+           bam_idx    = RunBwaAlignment.bam_idx
+       }
+    }
 
-        call AddAlignmentHeader{
-            input:
-            sampleName = samples[1],
-            libName    = samples[2],
-            bam_file   = RunBwaAlignment.bam_file,
-            bam_idx    = RunBwaAlignment.bam_idx
-        }
+        
+    call JointSameSamples{
+        input:
+        samples_info = dataset.samples_info,
+        bam_rg       = AddAlignmentHeader.bam_rg
+    }
+         
+    Array[String] merged_names = read_lines(JointSameSamples.merged_names)
+    Array[Pair[File, String]] bam_files = zip(JointSameSamples.merged_files, merged_names)
+
+    scatter (bams in bam_files){        
 
         call HaplotypeCallerERC {
             input:
             ref        = references.ref_fasta,
             geno_fai   = references.ref_fasta_index,
-            sampleName = samples[2],
-            bam_rg     = AddAlignmentHeader.bam_rg,
-            bam_rg_idx = AddAlignmentHeader.bam_rg_index,
+            sampleName = bams.right,
+            bam_rg     = bams.left,
+            bam_rg_idx = JointSameSamples.merged_files_idx,
             geno_dict  = references.ref_dict
         }
 
@@ -60,36 +73,28 @@ workflow populus{
         geno_dict           = references.ref_dict
     }
 
-    call JointSameSamples{
-        input:
-        samples_info = dataset.samples_info,
-        bam_rg       = AddAlignmentHeader.bam_rg
-    }
 
     call RunFreebayes {
-        input:
-        freebayesVCFname = dataset.name + "_freebayes.vcf",
-        ref              = references.ref_fasta,
-        ref_fai          = references.ref_fasta_index,
-        merged_files     = JointSameSamples.merged_files
+       input:
+       freebayesVCFname = dataset.name + "_freebayes.vcf",
+       ref              = references.ref_fasta,
+       ref_fai          = references.ref_fasta_index,
+       merged_files     = JointSameSamples.merged_files
     }
 
     call VcftoolsApplyFilters{
        input:
        freebayesVCF = RunFreebayes.freebayesVCF,
        gatkVCF      = GenotypeGVCFs.gatkVCF
-    } 
+    }
 
-  Array[String] bamNames = read_lines(dataset.bamNames)
-  Array[Pair[File, String]] bams_files = zip(AddAlignmentHeader.bam_rg, bamNames)
-
-  scatter (bams in bams_files) {
+    scatter (bams in bam_files) {
 
     call BamCounts{
       input:
        sampleName     = bams.right,
        bam_file       = bams.left,
-       bam_idx        = AddAlignmentHeader.bam_rg_index,
+       bam_idx        = JointSameSamples.merged_files_idx,
        ref            = references.ref_fasta,
        ref_fai        = references.ref_fasta_index,
        ref_dict       = references.ref_dict,
@@ -116,7 +121,7 @@ task RunBwaAlignment {
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
   
-    bwa mem -t 10 ~{ref} ~{reads1} | \
+    bwa mem -t 5 ~{ref} ~{reads1} | \
       java -jar /picard.jar SortSam \
         I=/dev/stdin \
         O=~{sampleName}.sorted.bam \
@@ -170,6 +175,63 @@ task AddAlignmentHeader {
   }
 }
 
+# Joint same sample bam files
+task JointSameSamples{
+
+    input{
+        File samples_info
+        Array[File] bam_rg
+    }
+
+    command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+
+          system("cp ~{sep=" "  bam_rg} .")
+
+          files <- read.table("~{samples_info}", stringsAsFactors = F)
+
+          repet <- names(which(table(files[,2]) > 1))
+          
+          if(length(repet) != 0){
+            idx <- vector()
+            for(i in 1:length(repet)){
+              idx <- c(idx,which(files[,2] == repet[i]))
+              files1 <- files[which(files[,2] == repet[i]),3]
+              files1 <- paste0(files1, "_rg.bam")
+              system(paste0("samtools merge ", repet[i], ".merged.bam"," ", paste(files1, collapse = " ") , collapse=" "))
+            }
+            files2 <- files[-idx,]
+          } else {
+            files2 <- files
+          }
+         
+          for(i in 1:dim(files2)[1]){
+            system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam ")) 
+          }
+          
+          system("ls *merged.bam > merged_names")
+          df <- read.table("merged_names")
+          for(i in 1:length(df[,1]))
+              system(paste0("samtools index ", df[i,1]))
+          df.new <- sapply(strsplit(as.character(df[,1]), "[.]"), "[",1)
+          write.table(df.new, "merged_names", quote = F, col.names=F, row.names=F)
+         
+        RSCRIPT
+    >>>
+
+    runtime{
+      docker: "cristaniguti/r-samtools"
+    }
+
+    output{
+        Array[File] merged_files = glob("*.merged.bam")
+        Array[File] merged_files_idx = glob("*.merged.bam.bai")
+        File merged_names = "merged_names"
+    }
+
+}
+
 # GATK to generate gVCF with variants
 task HaplotypeCallerERC {
   input {
@@ -177,11 +239,14 @@ task HaplotypeCallerERC {
     File geno_fai
     String sampleName
     File bam_rg
-    File bam_rg_idx
+    Array[File] bam_rg_idx
     File geno_dict
   }
 
   command <<<
+
+    cp ~{sep=" " bam_rg_idx} $(dirname ~{bam_rg})
+
     /gatk/gatk HaplotypeCaller \
       -ERC GVCF \
       -R ~{ref} \
@@ -259,55 +324,6 @@ task GenotypeGVCFs {
 
 }
 
-# Joint same sample bam files
-task JointSameSamples{
-
-    input{
-        File samples_info
-        Array[File] bam_rg
-    }
-
-    command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-
-          system("cp ~{sep=" "  bam_rg} .")
-
-          files <- read.table("~{samples_info}", stringsAsFactors = F)
-
-          repet <- names(which(table(files[,2]) > 1))
-          
-          if(length(repet) != 0){
-            idx <- vector()
-            for(i in 1:length(repet)){
-              idx <- c(idx,which(files[,2] == repet[i]))
-              files1 <- files[which(files[,2] == repet[i]),3]
-              files1 <- paste0(files1, "_rg.bam")
-              system(paste0("samtools merge ", repet[i], ".merged.bam"," ", paste(files1, collapse = " ") , collapse=" "))
-            }
-            files2 <- files[-idx,]
-          } else {
-            files2 <- files
-          }
-          for(i in 1:dim(files2)[1]){
-            system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam "))
-            # files3 <- paste0(getwd(), "/",c(repet,files2[,2]), ".merged.bam")
-            # files3 <- sub('.', '', files3)
-          }
-          # write.table(files3, file = "merged.files", sep = "\t", col.names = F, row.names = F, quote = F)
-
-        RSCRIPT
-    >>>
-
-    runtime{
-      docker: "cristaniguti/r-samtools"
-    }
-
-    output{
-        Array[File] merged_files = glob("*.merged.bam")
-    }
-
-}
 
 # Variant calling using freebayes
 task RunFreebayes {
@@ -370,6 +386,8 @@ task BamCounts{
   }
 
   command <<<
+
+    cp ~{sep=" " bam_idx} $(dirname ~{bam_file})
 
     java -jar /gatk/picard.jar VcfToIntervalList \
       I=~{gatk_vcf} \
