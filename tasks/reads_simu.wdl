@@ -337,7 +337,7 @@ task CreatePedigreeSimulatorInputs {
         doses <- doses[c(1,length(doses),2:(length(doses)-1))]
         ploidys <- c(0:ploidy)
         ploidys <- ploidys[c(1,length(doses),2:(length(doses)-1))]
-        
+
         founder1.df <- matrix(NA, ncol = ploidy, nrow = length(ref.alleles))
         
         founder2.df <- matrix(NA, ncol = ploidy, nrow = length(ref.alleles))
