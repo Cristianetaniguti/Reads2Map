@@ -42,21 +42,21 @@ workflow main{
 
     call JointTables{
         input:
-            data1  = ReadSimulations.data1,
-            data2  = ReadSimulations.data2,
-            data3  = ReadSimulations.data3,
-            data4  = ReadSimulations.data4,
-            data5  = ReadSimulations.data5,
+            data1  = ReadSimulations.data1_depths_geno_prob,
+            data2  = ReadSimulations.data2_maps,
+            data3  = ReadSimulations.data3_coverage,
+            data4  = ReadSimulations.data4_filters,
+            data5  = ReadSimulations.data5_SNPcall_efficiency,
     }
 
     # Here you can reference outputs from the sub workflow. Remember that
     # it will be an array of the same type of the original.
     output {
-        File data1 = JointTables.data1
-        File data2 = JointTables.data2
-        File data3 = JointTables.data3
-        File data4 = JointTables.data4
-        File data5 = JointTables.data5
+        File data1_depths_geno_prob = JointTables.data1_depths_geno_prob
+        File data2_maps = JointTables.data2_maps
+        File data3_coverage = JointTables.data3_coverage
+        File data4_filters = JointTables.data4_filters
+        File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
     }
 }
 
@@ -125,10 +125,10 @@ task JointTables{
     }
 
     output{
-       File data1 = "data1.rds"
-       File data2 = "data2.rds"
-       File data3 = "data3.rds"
-       File data4 = "data4.rds"
-       File data5 = "data5.rds"
+       File data1_depths_geno_prob = "data1.rds"
+       File data2_maps = "data2.rds"
+       File data3_coverage = "data3.rds"
+       File data4_filters = "data4.rds"
+       File data5_SNPcall_efficiency = "data5.rds"
     }
 }

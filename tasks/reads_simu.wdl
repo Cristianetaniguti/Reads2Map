@@ -79,7 +79,6 @@ workflow reads_simu{
       input:
         sampleName = sampleName,
         reads1     = SimulateIlluminaReads.reads1,
-        reads2     = SimulateIlluminaReads.reads2,
         ref        = references.ref_fasta,
         geno_amb   = references.ref_amb,
         geno_ann   = references.ref_ann,
@@ -140,7 +139,9 @@ workflow reads_simu{
       freebayesVCF  = VcftoolsApplyFilters.freebayesVCF_F,
       gatkVCF       = VcftoolsApplyFilters.gatkVCF_F,
       tot_mks       = CreatePedigreeSimulatorInputs.tot_mks,
-      maternal_trim = SimulateRADseq.maternal_trim
+      maternal_trim = SimulateRADseq.maternal_trim,
+      seed          = family.seed,
+      depth         = family.depth
   }
 
   Array[Pair[File, String]] bams_files = zip(AddAlignmentHeader.bam_rg, GenerateSampleNames.names)
@@ -230,11 +231,11 @@ workflow reads_simu{
     }
 
   output {
-    File data1 = CreateTables.data1
-    File data2 = CreateTables.data2
-    File data3 = CreateTables.data3
-    File data4 = CreateTables.data4
-    File data5 = CalculateVcfMetrics.data5
+    File data1_depths_geno_prob = CreateTables.data1_depths_geno_prob
+    File data2_maps = CreateTables.data2_maps
+    File data3_coverage = CreateTables.data3_coverage
+    File data4_filters = CreateTables.data4_filters
+    File data5_SNPcall_efficiency = CalculateVcfMetrics.data5_SNPcall_efficiency
   }
 }
 
@@ -365,6 +366,18 @@ task CreatePedigreeSimulatorInputs {
             idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
             founder1.df[idx.p1,] <- alt.alleles[idx.p1]
             founder2.df[idx.p2,] <- alt.alleles[idx.p2]
+          } else if(i == length(doses)){
+            if(length(idx.p1.tot)!= 0 | length(idx.p2.tot)!= 0){
+              cat(length(idx.p1.tot), length(idx.p2.tot))
+              for(j in 1:length(idx.p1.tot)){
+                dose.idx <- sample(1:ploidy,ploidys[i])
+                founder1.df[idx[idx.p1.tot][j],dose.idx] <- alt.alleles[idx[idx.p1.tot][j]]
+                founder1.df[idx[idx.p1.tot][j],which(!1:ploidy == dose.idx)] <- ref.alleles[idx[idx.p1.tot][j]]
+                dose.idx <- sample(1:ploidy,ploidys[i])
+                founder2.df[idx[idx.p2.tot][j],dose.idx] <- alt.alleles[idx[idx.p2.tot][j]]
+                founder2.df[idx[idx.p2.tot][j],which(!1:ploidy == dose.idx)] <- ref.alleles[idx[idx.p2.tot][j]]
+             }
+           }
           } else {
             idx.p1 <- sample(idx.p1.tot, as.numeric(size))
             idx.p2 <- sample(idx.p2.tot, as.numeric(size))
@@ -378,19 +391,6 @@ task CreatePedigreeSimulatorInputs {
             }
             idx.p1.tot <- idx.p1.tot[-which(idx.p1.tot%in%idx.p1)]
             idx.p2.tot <- idx.p2.tot[-which(idx.p2.tot%in%idx.p2)]
-          }
-          if(i == length(doses)){
-            if(length(idx.p1.tot)!= 0 | length(idx.p2.tot)!= 0){
-              cat(length(idx.p1.tot), length(idx.p2.tot))
-              for(j in 1:length(idx.p1.tot)){
-                dose.idx <- sample(1:ploidy,ploidys[i])
-                founder1.df[idx[idx.p1.tot][j],dose.idx] <- alt.alleles[idx[idx.p1.tot][j]]
-                founder1.df[idx[idx.p1.tot][j],which(!1:ploidy == dose.idx)] <- ref.alleles[idx[idx.p1.tot][j]]
-                dose.idx <- sample(1:ploidy,ploidys[i])
-                founder2.df[idx[idx.p2.tot][j],dose.idx] <- alt.alleles[idx[idx.p2.tot][j]]
-                founder2.df[idx[idx.p2.tot][j],which(!1:ploidy == dose.idx)] <- ref.alleles[idx[idx.p2.tot][j]]
-             }
-           }
           }
         }
 
@@ -655,7 +655,6 @@ task RunBwaAlignment {
     String sampleName
     File ref
     File reads1
-    File reads2
     File geno_amb
     File geno_ann
     File geno_bwt
@@ -666,7 +665,7 @@ task RunBwaAlignment {
   command <<<
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
-    bwa mem ~{ref} ~{reads1} ~{reads2} | \
+    bwa mem ~{ref} ~{reads1}  | \
     java -jar /picard.jar SortSam \
     I=/dev/stdin \
     O=~{sampleName}.sorted.bam \
@@ -860,6 +859,8 @@ task CalculateVcfMetrics {
     File gatkVCF
     File tot_mks
     Array[File] maternal_trim
+    Int seed
+    Int depth
   }
 
   command <<<
@@ -911,7 +912,7 @@ task CalculateVcfMetrics {
           ref.ok <- sum(ref.filt==ref[pos %in% filt.pos])
           alt.ok <- sum(alt.filt==alt[pos %in% filt.pos])
 
-          result <- data.frame(SNPcall = methods,mks_tot = nmk.filt, mks_ide = nmk.id, ok, fake=falso.positivo, ref.ok, alt.ok)
+          result <- data.frame(depth = ~{depth}, seed = ~{seed}, SNPcall = i,mks_tot = nmk.filt, mks_ide = nmk.id, ok, fake=falso.positivo, ref.ok, alt.ok)
           results_tot <- rbind(results_tot, result)
 
           #write.table(result, file= paste0(i,".txt"), quote=F, row.names=F, sep="\t")
@@ -963,7 +964,7 @@ task CalculateVcfMetrics {
   output {
     File freebayes_pos = "freebayes_site_list.txt"
     File gatk_pos = "gatk_site_list.txt"
-    File data5  = "data5_SNPcall_efficiency.rds"
+    File data5_SNPcall_efficiency  = "data5_SNPcall_efficiency.rds"
     File freebayes_ref_depth = "freebayes_ref_depth.txt"
     File freebayes_alt_depth = "freebayes_alt_depth.txt"
     File gatk_ref_depth = "gatk_ref_depth.txt"
@@ -1147,7 +1148,7 @@ task CreateMaps {
             total_variants <- onemap_obj[[3]]
             filters_tab <- data.frame("n_markers"= total_variants,
                                       "distorted_markers"=length(distorted),
-                                      "redundant_markers"=total_variants - length(bins))
+                                      "redundant_markers"=total_variants - length(bins[[1]]))
             return(filters_tab)
           }
 
@@ -1531,163 +1532,137 @@ task CreateTables{
           seed <- ~{seed}
           depth <- ~{depth}
 
+          # Functions
+
+          joint_depths <- function(depth_matrix_alt, depth_matrix_ref, CountsFrom, SNPcall, depth,seed, genotype_meth){
+            depth_matrix <- list(depth_matrix_alt, depth_matrix_ref)
+            alle_name <- c("alt", "ref")
+            allele <- list()
+            for(i in 1:length(depth_matrix)){
+              depth2 <- read.table(depth_matrix[[i]], header = T, stringsAsFactors = F)
+              depth3 <- as.data.frame(apply(depth2, 2, as.integer))
+              depth3 <- cbind(MKS= rownames(depth2), depth3) 
+              depth3 <- depth3[,sort(colnames(depth3))]
+              allele[[i]] <- melt(depth3)
+              colnames(allele[[i]]) <- c("mks", "ind", paste0(alle_name[i]))
+            }
+            alleles <- merge(allele[[1]], allele[[2]])
+            alleles <- cbind(seed= seed, depth = depth, "SNPcall" = SNPcall, "CountsFrom" = CountsFrom, alleles)
+            alleles[,4] <- as.character(alleles[,4])
+            alleles[,5] <- as.character(alleles[,5])
+            df_tot <- vector()
+            for(j in 1:length(genotype_meth)){
+              if(CountsFrom == "bam"){
+                error.file <- paste0(SNPcall,"_error_bam_", genotype_meth[j],".txt")
+              } else {
+                error.file <- paste0(SNPcall,"_error_", genotype_meth[j],".txt")
+              }
+              error_df <- read.table(error.file, header = T, stringsAsFactors = F)
+              error_df[,2] <- paste0("Chr10_",error_df[,2])
+              colnames(error_df) <- c("ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
+              df_meth <- merge(alleles, error_df)
+              df_meth <- cbind(ErrorProb = genotype_meth[j], df_meth)
+              df_tot <- rbind(df_tot, df_meth)
+            }
+            return(df_tot)
+          }
+
+          joint_maps <- function(CountsFrom = "vcf", genotype_meth = meth.geno, snpcall = "gatk"){
+            map_df_tot <- coverage_df_tot<- vector()
+            for(j in 1:length(genotype_meth)){
+              if(CountsFrom == "vcf"){
+                map.file <- paste0(snpcall, "_map_", genotype_meth[j],".txt")
+              } else {
+                map.file <- paste0(snpcall, "_map_bam_", genotype_meth[j],".txt")
+              }
+              
+              map_df <- read.table(map.file, header = T)
+              
+              poscM <- (as.numeric(as.character(map_df[,2]))/1000000)*~{cmBymb}
+              poscM.norm <- poscM-poscM[1] 
+              map_df <- cbind(map_df, poscM, poscM.norm)
+              
+              # Difference between distances real and estimated
+              map_df <- cbind(map_df, diff= sqrt((map_df["poscM.norm"] - map_df["rf"])^2)[,1])
+              
+              coverage_df <- map_df[,2][length(map_df[,2])]*100/tot_mks[,2][length(tot_mks[,2])]
+              map_df <- cbind(seed, depth, CountsFrom, ErrorProb= genotype_meth[j], 
+                              SNPcall=snpcall, map_df)
+              coverage_df <- cbind(seed, depth, CountsFrom, ErrorProb= genotype_meth[j], 
+                                  SNPcall=snpcall, coverage = coverage_df)
+              
+              coverage_df_tot <- rbind(coverage_df_tot, coverage_df)
+              map_df_tot <- rbind(map_df_tot, map_df)
+            }
+            return(list(map_df_tot, coverage_df_tot))
+          }
+
           df_tot_all <- maps_tot <- coverage_tot <- filters_tot <- vector()
           for(i in 1:length(method)){
-
-          ########################################################################################
-          # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
-          ########################################################################################
-
-          if(method[i] == "gatk"){
-            alt.depth.bam <- "~{gatk_alt_depth_bam}"
-            ref.depth.bam <- "~{gatk_ref_depth_bam}"
-            alt.depth <- "~{gatk_alt_depth}"
-            ref.depth <- "~{gatk_ref_depth}"
-          } else{
-            alt.depth.bam <- "~{freebayes_alt_depth_bam}"
-            ref.depth.bam <- "~{freebayes_ref_depth_bam}"
-            alt.depth <- "~{freebayes_alt_depth}"
-            ref.depth <- "~{freebayes_ref_depth}"
+            
+            ########################################################################################
+            # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
+            ########################################################################################
+            
+            if(method[i] == "gatk"){
+              alt.depth.bam <- "~{gatk_alt_depth_bam}"
+              ref.depth.bam <- "~{gatk_ref_depth_bam}"
+              alt.depth <- "~{gatk_alt_depth}"
+              ref.depth <- "~{gatk_ref_depth}"
+            } else{
+              alt.depth.bam <- "~{freebayes_alt_depth_bam}"
+              ref.depth.bam <- "~{freebayes_ref_depth_bam}"
+              alt.depth <- "~{freebayes_alt_depth}"
+              ref.depth <- "~{freebayes_ref_depth}"
+            }
+            
+            ## Depths by bam
+            
+            df_tot_bam <- joint_depths(alt.depth.bam,ref.depth.bam, "bam", method[i], depth, seed, meth.bam)
+            
+            ## Depths by softwares
+            df_tot <- joint_depths(alt.depth,ref.depth, "vcf", method[i], depth, seed, meth.geno)
+            
+            df_tot_all <- rbind(df_tot_all, df_tot, df_tot_bam)
+            
+            ########################################################
+            # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf
+            # Table3: seed; CountsFrom; ErrorProb; SNPcall; coverage
+            ########################################################
+            
+            map_df_tot <- joint_maps("vcf", meth.geno, method[i])
+            map_bam_tot <- joint_maps("bam", meth.bam, method[i])
+            
+            maps_tot <- rbind(maps_tot, map_df_tot[[1]], map_bam_tot[[1]])
+            maps_tot <- as.data.frame(maps_tot)
+            coverage_tot <- rbind(coverage_tot, map_df_tot[[2]], map_bam_tot[[2]])
+            
+            ##########################################################################
+            # Table4: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
+            ##########################################################################
+            
+            filters_vcf_tot <- filters_bam_tot <- vector()
+            for(j in 1:length(meth.filt)){
+              filters_vcf <- read.table(paste0(method[i], "_filters_", meth.filt[j], ".txt"), header = T)
+              filters_vcf <- cbind(CountsFrom = "vcf", seed= seed, depth, SNPcall = method[i], GenoCall = meth.filt[j],
+                                  filters_vcf)
+              filters_vcf_tot <- rbind(filters_vcf_tot, filters_vcf)
+            }
+            
+            for(j in 1:length(meth.bam)){
+              filters_bam <- read.table(paste0(method[i], "_filters_bam_", meth.bam[j], ".txt"), header = T)
+              filters_bam <- cbind(CountsFrom = "bam", seed= seed, depth, SNPcall = method[i], GenoCall = meth.bam[j],
+                                  filters_bam)
+              filters_bam_tot <- rbind(filters_bam_tot, filters_bam)
+            }
+            
+            filters_tot <- rbind(filters_tot, filters_bam_tot, filters_vcf_tot)
           }
 
-          ## Depths by bam
-          alt_depth2 <- read.table(alt.depth.bam, header = T, stringsAsFactors = F)
-          alt_depth <- as.data.frame(apply(alt_depth2, 2, as.integer))
-          alt_depth <- cbind(MKS= rownames(alt_depth2), alt_depth) 
-          alt_depth <- alt_depth[,sort(colnames(alt_depth))]
-          alt <- melt(alt_depth)
-          colnames(alt) <- c("mks", "ind", "alt")
-
-          ref_depth2 <- read.table(ref.depth.bam, header = T, stringsAsFactors = F)
-          ref_depth <- as.data.frame(apply(ref_depth2, 2, as.integer))
-          ref_depth <- cbind(MKS= rownames(ref_depth2), ref_depth) 
-          ref_depth <- ref_depth[,sort(colnames(ref_depth))]
-          ref <- melt(ref_depth)
-          colnames(ref) <- c("mks", "ind", "ref")
-
-          alleles <- merge(alt, ref)
-          alleles <- cbind(seed= seed, depth = depth, "SNPcall" = method[i], "CountsFrom" = "bam", alleles)
-          alleles[,4] <- as.character(alleles[,4])
-          alleles[,5] <- as.character(alleles[,5])
-
-          df_tot_bam <- vector()
-          for(j in 1:length(meth.bam)){
-            error_df <- read.table(paste0(method[i],"_error_bam_", meth.bam[j],".txt"), header = T, stringsAsFactors = F)
-            error_df[,2] <- paste0("Chr10_",error_df[,2])
-            colnames(error_df) <- c("ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
-            df_meth <- merge(alleles, error_df)
-            df_meth <- cbind(ErrorProb = meth.bam[j], df_meth)
-            df_tot_bam <- rbind(df_tot_bam, df_meth)
-          }
-
-          ## Depths by softwares
-          alt_depth2 <- read.table(alt.depth, header = T, stringsAsFactors = F)
-          alt_depth <- as.data.frame(apply(alt_depth2, 2, as.integer))
-          alt_depth <- cbind(MKS= rownames(alt_depth2), alt_depth) 
-          alt_depth <- alt_depth[,sort(colnames(alt_depth))]
-          alt <- melt(alt_depth)
-          colnames(alt) <- c("mks", "ind", "alt")
-
-          ref_depth2 <- read.table(ref.depth, header = T, stringsAsFactors = F)
-          ref_depth <- as.data.frame(apply(ref_depth2, 2, as.integer))
-          ref_depth <- cbind(MKS= rownames(ref_depth2), ref_depth) 
-          ref_depth <- ref_depth[,sort(colnames(ref_depth))]
-          ref <- melt(ref_depth)
-          colnames(ref) <- c("mks", "ind", "ref")
-
-          alleles <- merge(alt, ref)
-          alleles <- cbind(seed = seed, depth = depth, "SNPcall" = method[i], "CountsFrom" = "vcf", alleles)
-          alleles[,4] <- as.character(alleles[,4])
-          alleles[,5] <- as.character(alleles[,5])
-
-          df_tot <- vector()
-          for(j in 1:length(meth.geno)){
-            error_df <- read.table(paste0(method[i],"_error_", meth.geno[j],".txt"), header = T, stringsAsFactors = F)
-            error_df[,2] <- paste0("Chr10_",error_df[,2])
-            colnames(error_df) <- c("ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
-            df_meth <- merge(alleles, error_df)
-            df_meth <- cbind(ErrorProb = meth.geno[j], df_meth)
-            df_tot <- rbind(df_tot, df_meth)
-          }
-
-          df_tot_all <- rbind(df_tot_all, df_tot, df_tot_bam)
-
-          ########################################################
-          # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf
-          # Table3: seed; CountsFrom; ErrorProb; SNPcall; coverage
-          ########################################################
-          map_df_tot <- map_bam_tot <- coverage_bam_tot <- coverage_df_tot <- vector()
-          for(j in 1:length(meth.geno)){
-            map_df <- read.table(paste0(method[i], "_map_", meth.geno[j],".txt"), header = T)
-
-            poscM <- (as.numeric(as.character(map_df[,2]))/1000000)*~{cmBymb}
-            poscM.norm <- poscM-poscM[1] 
-            map_df <- cbind(map_df, poscM, poscM.norm)
-
-            # Difference between distances real and estimated
-            map_df <- cbind(map_df, diff= sqrt((map_df["poscM.norm"] - map_df["rf"])^2)[,1])
-
-            coverage_df <- map_df[,2][length(map_df[,2])]*100/tot_mks[,2][length(tot_mks[,2])]
-            map_df <- cbind(seed, depth, CountsFrom="vcf", ErrorProb= meth.geno[j], 
-                            SNPcall=method[i], map_df)
-            coverage_df <- cbind(seed, depth, CountsFrom="vcf", ErrorProb= meth.geno[j], 
-                                SNPcall=method[i], coverage = coverage_df)
-
-            coverage_df_tot <- rbind(coverage_df_tot, coverage_df)
-            map_df_tot <- rbind(map_df_tot, map_df)
-          }
-
-          for(j in 1:length(meth.bam)){
-            map_bam <- read.table(paste0(method[i], "_map_bam_", meth.bam[j],".txt"), header = T)
-
-            poscM <- (as.numeric(as.character(map_bam[,2]))/1000000)*~{cmBymb}
-            poscM.norm <- poscM-poscM[1]
-            map_bam <- cbind(map_bam, poscM, poscM.norm)
-
-            # Difference between distances real and estimated
-            map_bam <- cbind(map_bam, diff=sqrt((map_bam["poscM.norm"] - map_bam["rf"])^2)[,1])
-
-            coverage_bam <- map_bam[,2][length(map_bam[,2])]*100/tot_mks[,2][length(tot_mks[,2])]
-
-            map_bam <- cbind(seed, depth, CountsFrom="bam", ErrorProb= meth.bam[j], 
-                            SNPcall=method[i], map_bam)
-            coverage_bam <- cbind(seed, depth, CountsFrom="bam", ErrorProb= meth.bam[j], 
-                                  SNPcall=method[i], coverage = coverage_bam)
-
-            coverage_bam_tot <- rbind(coverage_bam_tot, coverage_bam)
-            map_bam_tot <- rbind(map_bam_tot, map_bam)
-          }
-
-          maps_tot <- rbind(maps_tot, map_df_tot, map_bam_tot)
-          maps_tot <- as.data.frame(maps_tot)
-          coverage_tot <- rbind(coverage_tot, coverage_bam_tot, coverage_df_tot)
-
-          ##########################################################################
-          # Table4: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
-          ##########################################################################
-
-          filters_vcf_tot <- filters_bam_tot <- vector()
-          for(j in 1:length(meth.filt)){
-            filters_vcf <- read.table(paste0(method[i], "_filters_", meth.filt[j], ".txt"), header = T)
-            filters_vcf <- cbind(CountsFrom = "vcf", seed= seed, depth, SNPcall = method[i], GenoCall = meth.filt[j],
-                                filters_vcf)
-            filters_vcf_tot <- rbind(filters_vcf_tot, filters_vcf)
-          }
-
-          for(j in 1:length(meth.bam)){
-            filters_bam <- read.table(paste0(method[i], "_filters_bam_", meth.bam[j], ".txt"), header = T)
-            filters_bam <- cbind(CountsFrom = "bam", seed= seed, depth, SNPcall = method[i], GenoCall = meth.bam[j],
-                                filters_bam)
-            filters_bam_tot <- rbind(filters_bam_tot, filters_bam)
-          }
-
-          filters_tot <- rbind(filters_tot, filters_bam_tot, filters_vcf_tot)
-        }
-
-        saveRDS(df_tot_all, file = "data1_depths_geno_prob.rds")
-        saveRDS(maps_tot, file = "data2_maps.rds")
-        saveRDS(coverage_tot, file = "data3_coverage.rds")
-        saveRDS(filters_tot, file = "data4_filters.rds")      
+          saveRDS(df_tot_all, file = "data1_depths_geno_prob.rds")
+          saveRDS(maps_tot, file = "data2_maps.rds")
+          saveRDS(coverage_tot, file = "data3_coverage.rds")
+          saveRDS(filters_tot, file = "data4_filters.rds")        
           
       RSCRIPT
   >>>
@@ -1697,10 +1672,10 @@ task CreateTables{
   }
 
   output{
-    File data1 = "data1_depths_geno_prob.rds"
-    File data2 = "data2_maps.rds"
-    File data3 = "data3_coverage.rds"
-    File data4 = "data4_filters.rds"
+    File data1_depths_geno_prob = "data1_depths_geno_prob.rds"
+    File data2_maps = "data2_maps.rds"
+    File data3_coverage = "data3_coverage.rds"
+    File data4_filters = "data4_filters.rds"
   }
 }
 
