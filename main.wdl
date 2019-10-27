@@ -47,6 +47,7 @@ workflow main{
             data3  = ReadSimulations.data3_coverage,
             data4  = ReadSimulations.data4_filters,
             data5  = ReadSimulations.data5_SNPcall_efficiency,
+            depth  = family_template.depth
     }
 
     # Here you can reference outputs from the sub workflow. Remember that
@@ -90,7 +91,8 @@ task JointTables{
         Array[File] data2
         Array[File] data3 
         Array[File] data4 
-        Array[File] data5 
+        Array[File] data5
+        Int depth 
     }
 
     command <<<
@@ -114,7 +116,7 @@ task JointTables{
               }
           
             dat <- do.call(rbind, data_lst)
-            saveRDS(dat, paste0("data",j,".rds"))
+            saveRDS(dat, paste0("data",j,"_",~{depth},".rds"))
           }
 
         RSCRIPT
@@ -125,10 +127,10 @@ task JointTables{
     }
 
     output{
-       File data1_depths_geno_prob = "data1.rds"
-       File data2_maps = "data2.rds"
-       File data3_coverage = "data3.rds"
-       File data4_filters = "data4.rds"
-       File data5_SNPcall_efficiency = "data5.rds"
+       File data1_depths_geno_prob = "data1_~{depth}.rds"
+       File data2_maps = "data2_~{depth}.rds"
+       File data3_coverage = "data3_~{depth}.rds"
+       File data4_filters = "data4_~{depth}.rds"
+       File data5_SNPcall_efficiency = "data5_~{depth}.rds"
     }
 }

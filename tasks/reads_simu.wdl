@@ -187,7 +187,8 @@ workflow reads_simu{
         gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
         gatk_example_alleles = BamCounts4Onemap.gatk_example_alleles,
         freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles,
-        cross = family.cross
+        cross = family.cross,
+        real_phases = CreatePedigreeSimulatorInputs.real_phases
     }
   }
 
@@ -210,9 +211,11 @@ workflow reads_simu{
         map_polyrad               = CreateMaps.map_polyrad,
         map_supermassa            = CreateMaps.map_supermassa,
         map_updog                 = CreateMaps.map_updog,
+        map_gusmap                = CreateMaps.map_gusmap,
         map_bam_polyrad           = CreateMaps.map_bam_polyrad,
         map_bam_supermassa        = CreateMaps.map_bam_supermassa,
         map_bam_updog             = CreateMaps.map_bam_updog,
+        map_bam_gusmap            = CreateMaps.map_bam_gusmap,
         error_info_df             = CreateMaps.error_info_df,
         error_info_GQ             = CreateMaps.error_info_GQ,
         error_info_updog          = CreateMaps.error_info_updog,
@@ -403,6 +406,22 @@ task CreatePedigreeSimulatorInputs {
 
       write.table(founder_file, file = paste0("founders.txt"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
 
+      ## Real Phases for comparisions with Gusmap
+      founder <- founder_file[,-1]
+      real_phases <- rep(NA, dim(founder)[1])
+      real_phases[which(founder[,1] == founder[,3] & founder[,2] == founder[,4])] <- 17 # 1 and 4
+      real_phases[which(founder[,1] == founder[,4] & founder[,2] == founder[,3])] <- 18 # 2 and 3
+      real_phases[which(founder[,1] == founder[,3] & founder[,1] == founder[,4] & founder[,1] != founder[,2])] <- 19 # 5 and 8
+      real_phases[which(founder[,2] == founder[,3] & founder[,2] == founder[,4] & founder[,1] != founder[,2])] <- 20 # 6 and 7
+      real_phases[which(founder[,1] == founder[,2] & founder[,1] == founder[,3] & founder[,1] != founder[,4])] <- 21 # 9 and 12
+      real_phases[which(founder[,1] == founder[,2] & founder[,1] == founder[,4] & founder[,1] != founder[,3])] <- 22 # 10 and 11
+      real_phases[which(founder[,1] == founder[,2] & founder[,1] == founder[,3] & founder[,1] == founder[,4])] <- 23 # 13 and 16
+      real_phases[which(founder[,1] == founder[,2] & founder[,3] == founder[,4] & founder[,1] != founder[,3])] <- 24 # 14 and 15
+
+      real_phases <- data.frame(pos=tot.mks[,2], real_phases)
+
+      write.table(real_phases, file = paste0("real_phases.txt"))
+
       ## Parameters file
       parameter <- paste0("PLOIDY = ~{ploidy}
                            MAPFUNCTION = HALDANE
@@ -432,6 +451,7 @@ task CreatePedigreeSimulatorInputs {
     File parfile = "parameters.txt"
     File chromfile = "chromosome.txt"
     File tot_mks = "tot_mks.txt"
+    File real_phases = "real_phases.txt"
   }
 
 }
@@ -1114,6 +1134,7 @@ task CreateMaps {
     File gatk_example_alleles
     File freebayes_example_alleles
     String cross
+    File real_phases
   }
 
   command <<<
@@ -1125,6 +1146,7 @@ task CreateMaps {
           library(reshape2)
           library(vcfR)
           library(doParallel)
+          library(GUSMap)
 
           args = commandArgs(trailingOnly=TRUE)
 
@@ -1139,111 +1161,8 @@ task CreateMaps {
           simu_vcf_file <- "~{simu_vcf}"
           vcf_file <- "~{vcf_file}"
           cross <- "~{cross}"
-
-          # Functions
-          create_filters_report <- function(onemap_obj) {
-            segr <- onemap::test_segregation(onemap_obj)
-            distorted <- onemap::select_segreg(segr, distorted = T)
-            bins <- onemap::find_bins(onemap_obj)
-            total_variants <- onemap_obj[[3]]
-            filters_tab <- data.frame("n_markers"= total_variants,
-                                      "distorted_markers"=length(distorted),
-                                      "redundant_markers"=total_variants - length(bins[[1]]))
-            return(filters_tab)
-          }
-
-          create_maps_report <- function(onemap_obj, tot_mks) {
-            assign("onemap_obj", onemap_obj, envir=.GlobalEnv)
-            twopts <- rf_2pts(onemap_obj)
-            assign("twopts", twopts, envir=.GlobalEnv)
-
-            true_mks <- which(onemap_obj[[9]] %in% tot_mks[,2])
-            seq_true <- make_seq(twopts, true_mks)
-            map_df <- map(seq_true, mds.seq = T)
-            while(class(map_df) == "integer"){
-              seq_true <- make_seq(twopts, map_df)
-              map_df <- map(input.seq = seq_true, mds.seq = T)
-            }
-            map_info <- data.frame("mk.name"= colnames(onemap_obj[[1]])[map_df[[1]]],
-                                  "pos" = onemap_obj[[9]][map_df[[1]]],
-                                  "rf" = c(0,cumsum(haldane(map_df[[3]]))),
-                                  "type"= onemap_obj[[4]][map_df[[1]]])
-            return (map_info)
-          }
-
-
-          create_errors_report <- function(onemap_obj, gab) {
-            pos <- which(gab[[9]] %in% onemap_obj[[9]])
-            pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
-            gab.pos <- gab[[9]][pos]
-            gab.geno <- gab[[1]][,pos]
-            colnames(gab.geno) <- gab.pos
-            gab.geno <-reshape2::melt(gab.geno)
-            colnames(gab.geno) <- c("MK", "POS", "gabGT")
-            meth.geno <- onemap_obj[[1]][,pos.inv]
-            meth.error <- onemap_obj[[11]][pos.inv + rep(c(0:(onemap_obj[[2]]-1))*onemap_obj[[3]], each=length(pos.inv)),]
-            meth.pos <- onemap_obj[[9]][pos.inv]
-            colnames(meth.geno) <- meth.pos
-            meth.geno <- reshape2::melt(meth.geno)
-            colnames(meth.geno) <- c("MK", "POS", "methGT")
-            pos.error <- sapply(strsplit(rownames(meth.error), split = "_"), "[",2)
-            ind.error <- paste0(sapply(strsplit(rownames(meth.error), split = "_"), "[", 3), "_", sapply(strsplit(rownames(meth.error), split = "_"), "[", 4))
-            meth.error <- as.data.frame(cbind(ind.error, pos.error, meth.error))
-            colnames(meth.error) <- c("MK", "POS", "A", "AB", "BA", "B")
-            error.info <- merge(gab.geno, meth.geno)
-            error.info <- merge(error.info, meth.error)
-            return (error.info)
-          }
-
-          write_report <- function(filters_tab, out_name) {
-            write.table(filters_tab, file=out_name, row.names=F, quote=F)
-          }
-
-
-          make_vcf <- function(vcf.old, depths, method){
-            # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
-            idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
-            idx.i <- strsplit(idx, split = ":")[[1]][1]
-            seed <- sample(1:10000, 1)
-            system(paste0("head -n ", idx.i," ", vcf.old, " > head.",seed))
-
-            vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
-
-            if(all(rownames(depths[[1]]) == paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
-
-              vcf.init <- vcf.tab[,1:8]
-              AD.colum <- rep("AD", dim(vcf.init)[1])
-              vcf.init <- cbind(vcf.init, AD.colum)
-
-              rs <- rownames(depths[[1]])
-              vcf.init[,3] <- rs
-            } else {
-              temp.tab <- read.table(paste0(method,"_example4ref_alt_alleles.txt"))
-              vcf.init <- cbind(temp.tab[,1:2],paste0(temp.tab[,1], "_", temp.tab[,2]), temp.tab[,3:4],
-                                rep(".", dim(temp.tab)[1]),rep(".", dim(temp.tab)[1]), rep(".", dim(temp.tab)[1]), rep("AD",dim(temp.tab)[1]))
-            }
-
-            ind.n <- colnames(depths[[1]]) # The names came in different order
-
-            header <- strsplit(idx, split = "\t")[[1]]
-            ind.vcf <- header[10:length(header)]
-            ind.n <- factor(ind.n, levels = ind.vcf)
-
-            depths[[1]] <- depths[[1]][,order(ind.n)]
-            depths[[2]] <- depths[[2]][,order(ind.n)]
-
-            comb.depth <- matrix(paste0(as.matrix(depths[[1]]), ",", as.matrix(depths[[2]])), ncol = ncol(depths[[2]]))
-            colnames(comb.depth) <- ind.vcf
-            #hmc.file <- cbind(rs, comb.depth)
-
-            vcf.body <- cbind(vcf.init, comb.depth)
-
-            write.table(vcf.body, file = paste0("temp.body.", seed), quote = FALSE, sep = "\t", row.names = FALSE, col.names = F)
-
-            system(paste0("cat head.",seed," temp.body.",seed," > temp.",seed,".vcf"))
-            return(paste0("temp.",seed, ".vcf"))
-          }
-
+          real_phases <- read.table("~{real_phases}")
+          source("/opt/scripts/functions.R")
 
           ## KNOWN VARIANTS
           tot_mks <- read.table(tot_mks_file)
@@ -1420,6 +1339,15 @@ task CreateMaps {
             write_report(errors_tab, out_name)
           }
 
+          ## Gusmap maps
+          out_name <- paste0(method_name, "_map_gusmap.txt")
+          map_gus <- create_gusmap_report(vcf_file)
+          write_report(map_gus, out_name)
+
+          out_name <- paste0(method_name, "_map_bam_gusmap.txt")
+          map_gus <- create_gusmap_report(new.vcf)
+          write_report(map_gus, out_name)
+
         RSCRIPT
   >>>
 
@@ -1443,6 +1371,8 @@ task CreateMaps {
     File map_bam_polyrad = "~{methodName}_map_bam_polyrad.txt"
     File map_bam_supermassa = "~{methodName}_map_bam_supermassa.txt"
     File map_bam_updog = "~{methodName}_map_bam_updog.txt"
+    File map_gusmap = "~{methodName}_map_gusmap.txt"
+    File map_bam_gusmap = "~{methodName}_map_bam_gusmap.txt"
     File error_info_df = "~{methodName}_error_df.txt"
     File error_info_GQ = "~{methodName}_error_GQ.txt"
     File error_info_updog = "~{methodName}_error_updog.txt"
@@ -1477,6 +1407,8 @@ task CreateTables{
     Array[File] map_bam_polyrad
     Array[File] map_bam_supermassa
     Array[File] map_bam_updog
+    Array[File] map_gusmap
+    Array[File] map_bam_gusmap
     Array[File] error_info_df
     Array[File] error_info_GQ
     Array[File] error_info_updog
@@ -1508,6 +1440,8 @@ task CreateTables{
           system("cp ~{sep= " " map_bam_polyrad } .")
           system("cp ~{sep= " " map_bam_supermassa } .")
           system("cp ~{sep= " " map_bam_updog } .")
+          system("cp ~{sep= " " map_gusmap } .")
+          system("cp ~{sep= " " map_bam_gusmap } .")
           system("cp ~{sep= " " error_info_df } .")
           system("cp ~{sep= " " error_info_GQ } .")
           system("cp ~{sep= " " error_info_updog } .")
@@ -1597,12 +1531,12 @@ task CreateTables{
             return(list(map_df_tot, coverage_df_tot))
           }
 
-          df_tot_all <- maps_tot <- coverage_tot <- filters_tot <- vector()
-          for(i in 1:length(method)){
             
             ########################################################################################
             # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
             ########################################################################################
+            df_tot_all <- maps_tot <- coverage_tot <- filters_tot <- vector()
+          for(i in 1:length(method)){
             
             if(method[i] == "gatk"){
               alt.depth.bam <- "~{gatk_alt_depth_bam}"
@@ -1626,16 +1560,21 @@ task CreateTables{
             df_tot_all <- rbind(df_tot_all, df_tot, df_tot_bam)
             
             ########################################################
-            # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf
+            # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; real_phases
             # Table3: seed; CountsFrom; ErrorProb; SNPcall; coverage
             ########################################################
             
             map_df_tot <- joint_maps("vcf", meth.geno, method[i])
             map_bam_tot <- joint_maps("bam", meth.bam, method[i])
+            map_df_gusmap <- joint_maps("vcf", "gusmap", method[i])
+            map_bam_gusmap <- joint_maps("bam", "gusmap", method[i])
             
-            maps_tot <- rbind(maps_tot, map_df_tot[[1]], map_bam_tot[[1]])
+            maps_tot <- rbind(maps_tot, map_df_tot[[1]], map_bam_tot[[1]],
+                              map_df_gusmap[[1]], map_bam_gusmap[[1]])
             maps_tot <- as.data.frame(maps_tot)
-            coverage_tot <- rbind(coverage_tot, map_df_tot[[2]], map_bam_tot[[2]])
+            coverage_tot <- rbind(coverage_tot, map_df_tot[[2]],
+                                  map_bam_tot[[2]], map_df_gusmap[[2]],
+                                  map_bam_gusmap[[2]])
             
             ##########################################################################
             # Table4: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
