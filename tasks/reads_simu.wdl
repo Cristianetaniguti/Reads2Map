@@ -194,6 +194,7 @@ workflow reads_simu{
 
   call CreateTables{
     input:
+        times                     = CreateMaps.times,
         cmBymb                    = family.cmBymb,
         depth                     = family.depth,
         seed                      = family.seed,
@@ -239,6 +240,7 @@ workflow reads_simu{
     File data3_coverage = CreateTables.data3_coverage
     File data4_filters = CreateTables.data4_filters
     File data5_SNPcall_efficiency = CalculateVcfMetrics.data5_SNPcall_efficiency
+    File data6_times = CreateTables.data6_times
   }
 }
 
@@ -1194,12 +1196,13 @@ task CreateMaps {
           ## FILTERS REPORT
           out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
           filters_tab <- create_filters_report(df)
-          write_report(filters_tab, out_name)
+          write_report(filters_tab[[1]], out_name)
 
           ## MAPS REPORT - DF
           out_name <- paste0(method_name, "_map_df.txt")
-          maps_tab <- create_maps_report(df, tot_mks)
+          times <-system.time(maps_tab <- create_maps_report(filters_tab[[2]], tot_mks))
           write_report(maps_tab, out_name)
+          times <- data.frame(meth =paste0(method_name, "_map_df"), time = times[3])
 
           out_name <- paste0(method_name, "_error_df.txt")
           errors_tab <- create_errors_report(df, gab)
@@ -1216,14 +1219,16 @@ task CreateMaps {
 
           aval.gq <- create_probs(df, genotypes_errors=aval.gq)
 
+          filters_tab <- create_filters_report(aval.gq)
           out_name <- paste0(method_name, "_map_GQ.txt")
-          maps_gq_tab <- create_maps_report(aval.gq, tot_mks)
+          times_temp <- system.time(maps_gq_tab <- create_maps_report(filters_tab[[2]], tot_mks))
           write_report(maps_gq_tab, out_name)
-
+          times_temp <- data.frame(meth =paste0(method_name, "_map_GQ"), time = times_temp[3])
+          times <- rbind(times, times_temp)
+          
           out_name <- paste0(method_name, "_error_GQ.txt")
           errors_tab <- create_errors_report(aval.gq, gab)
           write_report(errors_tab, out_name)
-
 
           # OTHER TOOLS
           ## With depths from vcf
@@ -1266,12 +1271,14 @@ task CreateMaps {
             ## Filters
             out_name <- paste0(method_name, "_filters_", metodology, ".txt")
             filters_tab <- create_filters_report(error_aval)
-            write_report(filters_tab, out_name)
+            write_report(filters_tab[[1]], out_name)
 
             ## Maps
             out_name <- paste0(method_name, "_map_", metodology, ".txt")
-            maps_tab <- create_maps_report(onemap_obj = error_aval, tot_mks = tot_mks)
+            times_temp <- system.time(maps_tab <- create_maps_report(input.seq = filters_tab[[2]], tot_mks = tot_mks))
             write_report(maps_tab, out_name)
+            times_temp <- data.frame(meth =paste0(method_name, "_map_",metodology), time = times_temp[3])
+            times <- rbind(times, times_temp)
 
             ## Errors info
             out_name <- paste0(method_name, "_error_", metodology, ".txt")
@@ -1326,12 +1333,14 @@ task CreateMaps {
             ## Filters
             out_name <- paste0(method_name, "_filters_bam_", metodology, ".txt")
             filters_tab <- create_filters_report(error_aval)
-            write_report(filters_tab, out_name)
+            write_report(filters_tab[[1]], out_name)
 
             ## Maps
             out_name <- paste0(method_name, "_map_bam_", metodology, ".txt")
-            maps_tab <- create_maps_report(error_aval, tot_mks)
+            times_temp <- system.time(maps_tab <- create_maps_report(filters_tab[[2]], tot_mks = tot_mks))
             write_report(maps_tab, out_name)
+            times_temp <- data.frame(meth =paste0(method_name, "_map_bam_",metodology), time = times_temp[3])
+            times <- rbind(times, times_temp)
 
             ## Errors info
             out_name <- paste0(method_name, "_error_bam_", metodology, ".txt")
@@ -1341,12 +1350,17 @@ task CreateMaps {
 
           ## Gusmap maps
           out_name <- paste0(method_name, "_map_gusmap.txt")
-          map_gus <- create_gusmap_report(vcf_file)
+          times_temp <- system.time(map_gus <- create_gusmap_report(vcf_file))
           write_report(map_gus, out_name)
+          times_temp <- data.frame(meth =paste0(method_name, "_map_gusmap"), time = times_temp[3])
+          times <- rbind(times, times_temp)
 
           out_name <- paste0(method_name, "_map_bam_gusmap.txt")
-          map_gus <- create_gusmap_report(new.vcf)
+          times_temp <- system.time(map_gus <- create_gusmap_report(new.vcf))
           write_report(map_gus, out_name)
+          times_temp <- data.frame(meth =paste0(method_name, "_map_bam_gusmap"), time = times_temp[3])
+          times <- rbind(times, times_temp)
+          write.table(times, paste0(method_name,"_times.txt"))
 
         RSCRIPT
   >>>
@@ -1381,12 +1395,14 @@ task CreateMaps {
     File error_info_bam_updog = "~{methodName}_error_bam_updog.txt"
     File error_info_bam_polyrad = "~{methodName}_error_bam_polyrad.txt"
     File error_info_bam_supermassa = "~{methodName}_error_bam_supermassa.txt"
+    File times = "~{methodName}_times.txt"
 
   }
 }
 
 task CreateTables{
   input{
+    Array[File] times
     Float cmBymb
     Int depth
     Int seed
@@ -1432,6 +1448,7 @@ task CreateTables{
 
           library(reshape2)
           library(vcfR)
+          system("cp ~{sep= " " times } .")
           system("cp ~{sep= " " map_df } .")
           system("cp ~{sep= " " map_GQ } .")
           system("cp ~{sep= " " map_polyrad } .")
@@ -1535,7 +1552,7 @@ task CreateTables{
             ########################################################################################
             # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
             ########################################################################################
-            df_tot_all <- maps_tot <- coverage_tot <- filters_tot <- vector()
+            df_tot_all <- times <- maps_tot <- coverage_tot <- filters_tot <- vector()
           for(i in 1:length(method)){
             
             if(method[i] == "gatk"){
@@ -1596,12 +1613,28 @@ task CreateTables{
             }
             
             filters_tot <- rbind(filters_tot, filters_bam_tot, filters_vcf_tot)
+
+            ###########################################################################
+            # Table6: CountsFrom; seed; SNPcall; GenoCall
+            ###########################################################################
+
+            CountsFrom <- vector()
+            times_temp <- read.table(paste0(method[i], "_times.txt"), stringsAsFactors = F)
+            temp <- strsplit(times_temp[,1], "_")
+            temp <- do.call(rbind, temp)
+            CountsFrom[which(temp[,3] == "bam")] <- "bam"
+            CountsFrom[which(temp[,3] != "bam")] <- "vcf"
+            SNPcall <- temp[,1]
+            temp[which(temp[,3] == "bam"),3] <- temp[which(temp[,3] == "bam"),4]
+            Genocall <- temp[,3]
+            times <- rbind(times, data.frame(CountsFrom, seed, depth, SNPcall, Genocall, times = times_temp[,2]))
           }
 
           saveRDS(df_tot_all, file = "data1_depths_geno_prob.rds")
           saveRDS(maps_tot, file = "data2_maps.rds")
           saveRDS(coverage_tot, file = "data3_coverage.rds")
-          saveRDS(filters_tot, file = "data4_filters.rds")        
+          saveRDS(filters_tot, file = "data4_filters.rds")
+          saveRDS(times, file= "data6_times.rds")        
           
       RSCRIPT
   >>>
@@ -1615,6 +1648,7 @@ task CreateTables{
     File data2_maps = "data2_maps.rds"
     File data3_coverage = "data3_coverage.rds"
     File data4_filters = "data4_filters.rds"
+    File data6_times   = "data6_times.rds"
   }
 }
 

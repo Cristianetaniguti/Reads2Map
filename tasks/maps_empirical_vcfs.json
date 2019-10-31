@@ -1,0 +1,10 @@
+{
+  "maps_empirical_vcfs.infos": {
+    "tsv_counts": "/home/cristiane/github/errors_workflow/data/populus_vcfs/counts"
+  },
+  "maps_empirical_vcfs.vcfs": {
+    "gatkVCF_F": "/home/cristiane/github/errors_workflow/data/populus_vcfs/gatk.recode.vcf",
+    "freebayesVCF_F": "/home/cristiane/github/errors_workflow/data/populus_vcfs/freebayes.recode.vcf"
+  }
+}
+

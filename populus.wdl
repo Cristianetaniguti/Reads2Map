@@ -102,6 +102,8 @@ workflow populus{
        freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
     }
   }
+
+
 }
 
 task RunBwaAlignment {
@@ -417,5 +419,30 @@ task BamCounts{
   output{
     File gatk_counts = "~{sampleName}_gatk_counts.tsv"
     File freebayes_counts = "~{sampleName}_freebayes_counts.tsv"
+  }
+}
+
+
+task avalVCFs{
+  input{
+    
+  }
+  
+  command <<<
+
+    R --vanilla --no-save <<RSCRIPT
+
+
+
+    RSCRIPT
+
+  >>>
+
+  runtime{
+    docker:"taniguti/onemap"
+  }
+
+  output{
+
   }
 }

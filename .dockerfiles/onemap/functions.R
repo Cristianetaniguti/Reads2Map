@@ -1,4 +1,63 @@
 # Functions
+parmap <- function(input.seq=NULL, cores=3, overlap=4, tol=10E-5){
+  twopts <- input.seq$twopt
+  
+  interv <- length(input.seq$seq.num)/cores
+  
+  seqs <- 1:length(input.seq$seq.num)
+  
+  list_idx <- list(1:cores)
+  
+  init <- 1
+  end <- interv
+  for(i in 1:cores){
+    if(i != cores){
+      list_idx[[i]] <- init:(end+(overlap-1))
+      init <- end
+      end <- end + interv
+    } else{
+      list_idx[[i]] <- init:end
+    }
+  }
+  
+  list_seq <- lapply(list_idx, function(x) make_seq(twopts, input.seq$seq.num[x]))
+  
+  no_cores <- detectCores()
+  
+  clust <- makeCluster(no_cores)
+  
+  new.maps <- parLapply(clust, list_seq, function(x) onemap::map(x, tol=tol))
+  stopCluster(clust)
+  
+  joint.map <- new.maps[[1]]
+  new.seq.num <- new.seq.rf <- new.seq.phases <- vector()
+  diff1 <- vector()
+  for(i in 1:(length(new.maps)-1)){
+    idx.end <- (length(new.maps[[i]]$seq.num) - overlap+1):(length(new.maps[[i]]$seq.num))
+    new.seq.num <- c(new.seq.num, new.maps[[i]]$seq.num[-idx.end])
+    new.seq.rf <- c(new.seq.rf, new.maps[[i]]$seq.rf[-idx.end[-length(idx.end)]])
+    new.seq.phases <- c(new.seq.phases, new.maps[[i]]$seq.phases[-idx.end[-length(idx.end)]])
+    
+    if(i == (length(new.maps)-1)){
+      new.seq.num <- c(new.seq.num, new.maps[[i+1]]$seq.num)
+      new.seq.rf <- c(new.seq.rf, new.maps[[i+1]]$seq.rf)
+      new.seq.phases <- c(new.seq.phases, new.maps[[i+1]]$seq.phases)
+    }
+    
+    end <- new.maps[[i]]$seq.rf[idx.end[-length(idx.end)]]
+    init <- new.maps[[i+1]]$seq.rf[1:overlap-1]
+    diff1 <- c(diff1,end - init)
+  }
+  
+  cat("The overlap markers have mean ", mean(diff1), " of  recombination fraction diff1erences, and variance of ", var(diff1), "\n")
+  
+  joint.map$seq.num <- new.seq.num
+  joint.map$seq.phases <- new.seq.phases
+  joint.map$seq.rf <- new.seq.rf
+  
+  return(list(diff1,joint.map))
+}
+
 phaseToOPGP_OM <- function(x){
   ## code from here taken from the onemap function print.sequence()
   link.phases <- matrix(NA, length(x$seq.num), 2)
@@ -16,7 +75,7 @@ phaseToOPGP_OM <- function(x){
     for (i in 1:length(x$seq.num)) 
       parents[i, ] <- onemap:::return_geno(x$data.name$segr.type[x$seq.num[i]], link.phases[i])
     ## Our code below
-    #transpose the the parents and set to baseline
+    #transpose the parents and set to baseline
     parents[which(parents == 'a')] <-'A'
     parents[which(parents == 'b')] <- 'B'
     
@@ -42,33 +101,45 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj) {
-  segr <- onemap::test_segregation(onemap_obj)
-  distorted <- onemap::select_segreg(segr, distorted = T)
   bins <- onemap::find_bins(onemap_obj)
+  onemap_bins <- create_data_bins(onemap_obj, bins)
+  segr <- onemap::test_segregation(onemap_bins)
+  distorted <- onemap::select_segreg(segr, distorted = T)
+  no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
+  twopts <- rf_2pts(onemap_bins)
+  seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
   filters_tab <- data.frame("n_markers"= total_variants,
                             "distorted_markers"=length(distorted),
                             "redundant_markers"=total_variants - length(bins[[1]]))
-  return(filters_tab)
+  return(list(filters_tab, seq1))
 }
 
-# mudei aqui
-create_maps_report <- function(onemap_obj, tot_mks) {
-  twopts <- rf_2pts(onemap_obj)
+create_maps_report <- function(input.seq, tot_mks) {
   
-  true_mks <- which(onemap_obj[[9]] %in% tot_mks[,2])
-  seq_true <- make_seq(twopts, true_mks)
-  map_df <- map(seq_true, mds.seq = T)
-  while(class(map_df) == "integer"){
-    seq_true <- make_seq(twopts, map_df)
-    map_df <- map(input.seq = seq_true, mds.seq = T)
+  true_mks <- input.seq$seq.num[which(input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2])]
+  seq_true <- make_seq(input.seq$twopt, true_mks) # only true markers are mapped
+  
+  max.cores <- 10 #detectCores() # Change here to the maximun cores available for the process
+  n.mk <- length(input.seq$seq.num)
+  min.group.size <- 60
+  
+  while(n.mk/max.cores < min.group.size){
+    max.cores <- max.cores - 1
   }
+  if(max.cores == 0) {
+    map_df <- map(seq_true)
+  } else {
+    map_df <- parmap(input.seq = seq_true, cores = max.cores, overlap = 10)
+    map_df <- map_df[[2]]
+  }
+  
   phases <- phaseToOPGP_OM(map_df)
-  real_phase <- real_phases[which(real_phases[,1] %in% onemap_obj[[9]][map_df[[1]]]),2]
-  map_info <- data.frame("mk.name"= colnames(onemap_obj[[1]])[map_df[[1]]],
-                         "pos" = onemap_obj[[9]][map_df[[1]]],
+  real_phase <- real_phases[which(real_phases[,1] %in% input.seq$data.name$POS[map_df[[1]]]),2]
+  map_info <- data.frame("mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
+                         "pos" = input.seq$data.name$POS[map_df[[1]]],
                          "rf" = c(0,cumsum(haldane(map_df[[3]]))),
-                         "type"= onemap_obj[[4]][map_df[[1]]],
+                         "type"= input.seq$data.name$segr.type[map_df[[1]]],
                          "est.phases"= phases,
                          "real.phases"= real_phase)
   return (map_info)
@@ -150,7 +221,7 @@ create_gusmap_report <- function(vcf_file){
   
   return(map_info)
 }
-
+# the errors report include markers with distortion and redundants
 create_errors_report <- function(onemap_obj, gab) {
   pos <- which(gab[[9]] %in% onemap_obj[[9]])
   pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
