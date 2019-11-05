@@ -22,9 +22,7 @@ parmap <- function(input.seq=NULL, cores=3, overlap=4, tol=10E-5){
   
   list_seq <- lapply(list_idx, function(x) make_seq(twopts, input.seq$seq.num[x]))
   
-  no_cores <- detectCores()
-  
-  clust <- makeCluster(no_cores)
+  clust <- makeCluster(cores)
   
   new.maps <- parLapply(clust, list_seq, function(x) onemap::map(x, tol=tol))
   stopCluster(clust)
@@ -115,7 +113,7 @@ create_filters_report <- function(onemap_obj) {
   return(list(filters_tab, seq1))
 }
 
-create_maps_report <- function(input.seq, tot_mks) {
+create_maps_report <- function(input.seq, tot_mks,gab) {
   
   true_mks <- input.seq$seq.num[which(input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2])]
   seq_true <- make_seq(input.seq$twopt, true_mks) # only true markers are mapped
@@ -135,18 +133,24 @@ create_maps_report <- function(input.seq, tot_mks) {
   }
   
   phases <- phaseToOPGP_OM(map_df)
+  types <- input.seq$data.name$segr.type[map_df[[1]]]
+  real_type <- rep(NA, length(types))
+  temp_type <- gab$segr.type[which(as.character(gab$POS) %in% input.seq$data.name$POS[map_df[[1]]])]
+  real_type[which(input.seq$data.name$POS[map_df[[1]]] %in% as.character(gab$POS))] <- temp_type
+  real_type[which(is.na(real_type))] <- "non-informative"
   real_phase <- real_phases[which(real_phases[,1] %in% input.seq$data.name$POS[map_df[[1]]]),2]
   map_info <- data.frame("mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
                          "pos" = input.seq$data.name$POS[map_df[[1]]],
                          "rf" = c(0,cumsum(haldane(map_df[[3]]))),
-                         "type"= input.seq$data.name$segr.type[map_df[[1]]],
+                         "type"= types,
+                         "real.type" = real_type,
                          "est.phases"= phases,
                          "real.phases"= real_phase)
   return (map_info)
 }
 
 
-create_gusmap_report <- function(vcf_file){
+create_gusmap_report <- function(vcf_file, gab){
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
   
@@ -211,11 +215,17 @@ create_gusmap_report <- function(vcf_file){
   config[which(config==1)] <- "B3.7"
   config[which(config==2 | config==3)] <- "D1.10"
   config[which(config==4 | config==5)] <- "D2.15"
+
+  real_type <- rep(NA, length(config))
+  temp_type <- gab$segr.type[which(gab$POS %in% pos)]
+  real_type[which(pos %in% as.character(gab$POS))] <- temp_type
+  real_type[which(is.na(real_type))] <- "non-informative"
   
   map_info <- data.frame("mk.name"= mydata$.__enclos_env__$private$SNP_Names[keep.mks],
                          "pos" = pos,
                          "rf" = dist.gus,
                          "type"= config,
+                         "real.type" = real_type,
                          "est.phases"= phases.gus,
                          "real.phases"= real_phase)
   

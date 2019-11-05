@@ -1200,7 +1200,7 @@ task CreateMaps {
 
           ## MAPS REPORT - DF
           out_name <- paste0(method_name, "_map_df.txt")
-          times <-system.time(maps_tab <- create_maps_report(filters_tab[[2]], tot_mks))
+          times <-system.time(maps_tab <- create_maps_report(filters_tab[[2]], tot_mks, gab))
           write_report(maps_tab, out_name)
           times <- data.frame(meth =paste0(method_name, "_map_df"), time = times[3])
 
@@ -1221,7 +1221,7 @@ task CreateMaps {
 
           filters_tab <- create_filters_report(aval.gq)
           out_name <- paste0(method_name, "_map_GQ.txt")
-          times_temp <- system.time(maps_gq_tab <- create_maps_report(filters_tab[[2]], tot_mks))
+          times_temp <- system.time(maps_gq_tab <- create_maps_report(filters_tab[[2]], tot_mks, gab))
           write_report(maps_gq_tab, out_name)
           times_temp <- data.frame(meth =paste0(method_name, "_map_GQ"), time = times_temp[3])
           times <- rbind(times, times_temp)
@@ -1275,7 +1275,7 @@ task CreateMaps {
 
             ## Maps
             out_name <- paste0(method_name, "_map_", metodology, ".txt")
-            times_temp <- system.time(maps_tab <- create_maps_report(input.seq = filters_tab[[2]], tot_mks = tot_mks))
+            times_temp <- system.time(maps_tab <- create_maps_report(input.seq = filters_tab[[2]], tot_mks = tot_mks, gab))
             write_report(maps_tab, out_name)
             times_temp <- data.frame(meth =paste0(method_name, "_map_",metodology), time = times_temp[3])
             times <- rbind(times, times_temp)
@@ -1337,7 +1337,7 @@ task CreateMaps {
 
             ## Maps
             out_name <- paste0(method_name, "_map_bam_", metodology, ".txt")
-            times_temp <- system.time(maps_tab <- create_maps_report(filters_tab[[2]], tot_mks = tot_mks))
+            times_temp <- system.time(maps_tab <- create_maps_report(filters_tab[[2]], tot_mks = tot_mks, gab))
             write_report(maps_tab, out_name)
             times_temp <- data.frame(meth =paste0(method_name, "_map_bam_",metodology), time = times_temp[3])
             times <- rbind(times, times_temp)
@@ -1350,13 +1350,13 @@ task CreateMaps {
 
           ## Gusmap maps
           out_name <- paste0(method_name, "_map_gusmap.txt")
-          times_temp <- system.time(map_gus <- create_gusmap_report(vcf_file))
+          times_temp <- system.time(map_gus <- create_gusmap_report(vcf_file, gab))
           write_report(map_gus, out_name)
           times_temp <- data.frame(meth =paste0(method_name, "_map_gusmap"), time = times_temp[3])
           times <- rbind(times, times_temp)
 
           out_name <- paste0(method_name, "_map_bam_gusmap.txt")
-          times_temp <- system.time(map_gus <- create_gusmap_report(new.vcf))
+          times_temp <- system.time(map_gus <- create_gusmap_report(new.vcf, gab))
           write_report(map_gus, out_name)
           times_temp <- data.frame(meth =paste0(method_name, "_map_bam_gusmap"), time = times_temp[3])
           times <- rbind(times, times_temp)
