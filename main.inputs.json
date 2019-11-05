@@ -4,7 +4,7 @@
     "cmBymb": 4.63,
     "popsize": 47,
     "enzyme":"G*CWGC",
-    "depth": 20,
+    "depth": 100,
     "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
     "ploidy": 2,
     "cross": "F1"

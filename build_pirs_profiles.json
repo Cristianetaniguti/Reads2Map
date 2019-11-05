@@ -1,0 +1,8 @@
+{
+  "pirs_profiles.dataset": {
+    "fastq_file": "File",
+    "ref": "File",
+    "ref_idx": "File"
+  }
+}
+
