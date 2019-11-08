@@ -3,8 +3,7 @@ cromwell-workflow-logs/
 *~
 *Rhistory
 test/
-data/Populus/
-data/populus_vcfs/
+data/
 cromwell-46.jar
 docker/
 metadata/
