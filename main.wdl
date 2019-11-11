@@ -8,6 +8,7 @@ workflow main{
     input{
         ReferenceFasta references
         FamilyTemplate family_template
+	Profiles profiles
         Int number_of_families
     }
 
@@ -35,6 +36,7 @@ workflow main{
         # Calling reads_simu for each seed
         call sub.reads_simu as ReadSimulations{
             input:
+	        profiles = profiles,
                 references=references,
                 family=fam
         }
