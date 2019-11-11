@@ -1,8 +1,13 @@
 {
+   "main.profiles": {
+      "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
+      "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
+      "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
+   },    
   "main.number_of_families": 1,
   "main.family_template": {
     "cmBymb": 4.63,
-    "popsize": 250,
+    "popsize": 47,
     "enzyme":"G*CWGC",
     "depth": 20,
     "doses": "/home/cristiane/github/errors_workflow/data/populus/doses",
@@ -10,14 +15,14 @@
     "cross": "F1"
   },
   "main.references": {
-    "ref_dict": "/home/cristiane/github/errors_workflow/data/populus/sub.dict",
-    "ref_fasta": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa",
-    "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa.fai",
-    "ref_sa": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa.sa",
-    "ref_amb": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa.amb",
-    "ref_bwt": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa.bwt",
-    "ref_ann": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa.ann",
-    "ref_pac": "/home/cristiane/github/errors_workflow/data/populus/Chr10.populus.fa.pac"
+    "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
+    "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
+    "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.fai",
+    "ref_sa": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.sa",
+    "ref_amb": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.amb",
+    "ref_bwt": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.bwt",
+    "ref_ann": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.ann",
+    "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
   }
 }
 
