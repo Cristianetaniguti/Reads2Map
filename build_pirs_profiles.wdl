@@ -163,7 +163,7 @@ task BaseCalling {
     }
 
     command <<<
-      /pirs/baseCalling_Matrix_calculator -r ~{ref} -l 91 -o base_calling -i ~{sam_file} -s ~{vcf}
+      /pirs/baseCalling_Matrix_calculator -r ~{ref} -l 143 -o base_calling -i ~{sam_file} -s ~{vcf}
     >>>
 
    runtime{
