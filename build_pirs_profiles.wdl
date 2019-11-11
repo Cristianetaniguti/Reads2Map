@@ -41,7 +41,8 @@ workflow pirs_profiles{
     call BaseCalling{
         input:
             ref = dataset.ref,
-            sam_file = Soap2sam.sam_file
+            sam_file = Soap2sam.sam_file,
+            vcf = dataset.vcf
     }
 
     call Indel{
@@ -158,10 +159,11 @@ task BaseCalling {
     input{
       File sam_file
       File ref
+      File vcf
     }
 
     command <<<
-      /pirs/baseCalling_Matrix_calculator -r ~{ref} -l 91 -o base_calling -i ~{sam_file}
+      /pirs/baseCalling_Matrix_calculator -r ~{ref} -l 91 -o base_calling -i ~{sam_file} -s ~{vcf}
     >>>
 
    runtime{

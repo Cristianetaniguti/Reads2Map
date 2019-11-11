@@ -1,7 +1,7 @@
 {
   "pirs_profiles.dataset": {
     "ref_lkt": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.lkt",
-    "fastq_file": "/data1/aafgarci/cris/errors_workflow/data/populus/all_samples_sub.fastq",
+    "fastq_file": "/data1/aafgarci/cris/errors_workflow/data/populus/all_samples.fastq",
     "ref_ann": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.ann",
     "ref_rev_pac": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.rev.pac",
     "ref": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa",
@@ -14,7 +14,8 @@
     "ref_rev_fmv": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.rev.fmv",
     "ref_sai": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.sai",
     "ref_hot": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.hot",
-    "ref_pac": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.pac"
+    "ref_pac": "/data1/aafgarci/cris/errors_workflow/data/populus/ref/Chr10.populus.fa.index.pac",
+    "vcf": "/data1/aafgarci/cris/errors_workflow/data/populus/gatk.recode.vcf"
   }
 }
 

@@ -17,4 +17,5 @@ struct Dataset {
     File ref_rev_fmv
     File ref_rev_lkt
     File ref_rev_pac
+    File vcf
 }
