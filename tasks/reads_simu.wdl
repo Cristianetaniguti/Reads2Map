@@ -7,6 +7,7 @@ workflow reads_simu{
   input {
     ReferenceFasta references
     Family family
+    Profiles profiles
   }
 
   call GenerateAlternativeGenome {
@@ -72,7 +73,10 @@ workflow reads_simu{
         maternal_trim = SimulateRADseq.maternal_trim,
         paternal_trim = SimulateRADseq.paternal_trim,
         sampleName    = sampleName,
-        depth         = family.depth
+        depth         = family.depth,
+	base_calling  = profiles.base_calling,
+	indel_error   = profiles.indel_error,
+	gc_bias       = profiles.gc_bias
     }
 
     call RunBwaAlignment {
@@ -646,6 +650,9 @@ task SimulateIlluminaReads {
     File paternal_trim
     Int depth
     String sampleName
+    File base_calling
+    File indel_error
+    File gc_bias
   }
 
   command <<<
@@ -657,7 +664,11 @@ task SimulateIlluminaReads {
       --insert-len-mean=150 \
       --output-prefix=~{sampleName} \
       --output-file-type=gzip \
-      --threads=2
+      --threads=2 \
+      --base-calling-profile=~{base_calling} \
+      --indel-error-profile=~{indel_error} \
+      --gc-bias-profile=~{gc_bias}
+      
   >>>
 
   runtime {

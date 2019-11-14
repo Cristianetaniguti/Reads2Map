@@ -11,4 +11,6 @@ RUN conda install -c bioconda soapaligner \
 
 RUN git clone https://github.com/BGI-shenzhen/BamDeal.git \
     && cd BamDeal \
-    && chmod 755 ./bin/BamDeal_Linux 
+    && chmod 755 ./bin/BamDeal_Linux
+
+RUN apt-get install -y samtools
