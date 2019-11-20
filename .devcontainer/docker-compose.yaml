@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+
+  cromwell-wdl-server:
+    build:
+      context: ..
+      dockerfile: .dockerfiles/cromwell_dev/Dockerfile
+    container_name: cromwell-wdl-server
+    ports:
+      - "8201:8000"
+    command: >
+      "dockerize -wait tcp://cromwell-database:3306 -timeout 120s java \
+        -DLOG_MODE=pretty \
+        -DLOG_LEVEL=INFO -Xms4g -Xmx6g -jar \
+        /app/cromwell.jar server"
+
+  workspace-bash:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    user: vscode
+    container_name: errors-terminal
+    command: sleep infinity
+    volumes:
+      - ..:/workspace
