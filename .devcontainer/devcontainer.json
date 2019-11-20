@@ -1,0 +1,31 @@
+{
+	"name": "WDL - desenvolvimento",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "workspace-bash",
+	"workspaceFolder": "/workspace",
+	"extensions": [
+		"ms-python.python",
+		"VisualStudioExptTeam.vscodeintellicode",
+		"broadinstitute.wdl",
+		"broadinstitute.wdl-devtools"
+	],
+	"settings": {
+		"files.insertFinalNewline": true,
+		"files.trimTrailingWhitespace": true,
+
+		"python.formatting.provider": "black",
+
+		"python.jediEnabled": false,
+
+		"python.linting.enabled": true,
+		"python.linting.flake8Enabled": true,
+		"python.linting.mypyEnabled": true,
+		"python.linting.pylintEnabled": false,
+
+		"python.pythonPath": "/usr/local/bin/python",
+
+		"wdl.cromwell.url": "http://cromwell-wdl-server:8000"
+
+	},
+	"runArgs": [ "-u", "vscode", "--abort-on-container-exit" ]
+}

@@ -23,7 +23,7 @@ workflow populus{
            geno_pac   = references.ref_pac,
            geno_sa    = references.ref_sa
        }
-    
+
        call AddAlignmentHeader{
            input:
            sampleName = samples[1],
@@ -33,17 +33,17 @@ workflow populus{
        }
     }
 
-        
+
     call JointSameSamples{
         input:
         samples_info = dataset.samples_info,
         bam_rg       = AddAlignmentHeader.bam_rg
     }
-         
+
     Array[String] merged_names = read_lines(JointSameSamples.merged_names)
     Array[Pair[File, String]] bam_files = zip(JointSameSamples.merged_files, merged_names)
 
-    scatter (bams in bam_files){        
+    scatter (bams in bam_files){
 
         call HaplotypeCallerERC {
             input:
@@ -192,7 +192,7 @@ task JointSameSamples{
           files <- read.table("~{samples_info}", stringsAsFactors = F)
 
           repet <- names(which(table(files[,2]) > 1))
-          
+
           if(length(repet) != 0){
             idx <- vector()
             for(i in 1:length(repet)){
@@ -205,18 +205,18 @@ task JointSameSamples{
           } else {
             files2 <- files
           }
-         
+
           for(i in 1:dim(files2)[1]){
-            system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam ")) 
+            system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam "))
           }
-          
+
           system("ls *merged.bam > merged_names")
           df <- read.table("merged_names")
           for(i in 1:length(df[,1]))
               system(paste0("samtools index ", df[i,1]))
           df.new <- sapply(strsplit(as.character(df[,1]), "[.]"), "[",1)
           write.table(df.new, "merged_names", quote = F, col.names=F, row.names=F)
-         
+
         RSCRIPT
     >>>
 
