@@ -10,7 +10,7 @@ services:
     ports:
       - "8201:8000"
     command: >
-      "dockerize -wait tcp://cromwell-database:3306 -timeout 120s java \
+      "java \
         -DLOG_MODE=pretty \
         -DLOG_LEVEL=INFO -Xms4g -Xmx6g -jar \
         /app/cromwell.jar server"
