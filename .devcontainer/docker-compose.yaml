@@ -24,3 +24,5 @@ services:
     command: sleep infinity
     volumes:
       - ..:/workspace
+      - ~/.gitconfig:/home/vscode/.gitconfig
+      - ~/.ssh:/home/vscode/.ssh
