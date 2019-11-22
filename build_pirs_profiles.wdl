@@ -3,7 +3,7 @@ version 1.0
 import "structs/build_pirs_profilesS.wdl"
 
 workflow pirs_profiles{
-    input{
+    input {
         Dataset dataset
     }
 
@@ -23,8 +23,7 @@ workflow pirs_profiles{
             ref_rev_pac = dataset.ref_rev_pac,
             ref_rev_bwt = dataset.ref_rev_bwt,
             ref_rev_fmv = dataset.ref_rev_fmv,
-            ref_rev_lkt = dataset.ref_rev_lkt,
-            ref_rev_pac = dataset.ref_rev_pac
+            ref_rev_lkt = dataset.ref_rev_lkt
     }
 
     call GCDepth{
@@ -64,12 +63,12 @@ task SoapAlign{
     input{
         File fastq
         File ref
-        File ref_amb 
+        File ref_amb
         File ref_fmv
         File ref_pac
         File ref_sa
         File ref_sai
-        File ref_ann 
+        File ref_ann
         File ref_hot
         File ref_bwt
         File ref_lkt
@@ -77,7 +76,6 @@ task SoapAlign{
         File ref_rev_bwt
         File ref_rev_fmv
         File ref_rev_lkt
-        File ref_rev_pac
     }
 
     command <<<
@@ -87,7 +85,7 @@ task SoapAlign{
     runtime{
 	docker:"cristaniguti/soap-pirs"
     }
-    
+
     output{
         File file_soap = "align.soap"
     }
@@ -102,12 +100,12 @@ task GCDepth{
 
     command <<<
          /opt/conda/bin/soap.coverage -cvg -onlyuniq -i ~{file_soap}  -refsingle ~{ref} -o align_soap.dresult -depthsingle align_soap.depth > align_soap.deplog 2> align_soap.deperr
-        
+
         /pirs/gc_coverage_bias -r ~{ref} -o GC_bias -w 100,150,200 align_soap.depth
     >>>
 
     runtime{
-	docker:"cristaniguti/soap-pirs"    
+	docker:"cristaniguti/soap-pirs"
     }
 
     output{
@@ -128,7 +126,7 @@ task Soap2sam{
     >>>
 
     runtime{
-        docker:"cristaniguti/soap-pirs" 
+        docker:"cristaniguti/soap-pirs"
     }
 
     output{
@@ -146,7 +144,7 @@ task Indel{
     >>>
 
     runtime{
-	    docker:"cristaniguti/soap-pirs"    
+	    docker:"cristaniguti/soap-pirs"
     }
 
     output{
