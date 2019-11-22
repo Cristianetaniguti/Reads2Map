@@ -1,0 +1,17 @@
+[Info]
+File = /cromwell-executions/pirs_profiles/759b45d8-d0f5-42f7-a4d3-a7c665bab330/call-Indel/inputs/-1667833560/align.sam.gz
+Read_Length = 0
+Read_1_Count = 
+Read_2_Count = 
+MaxInDel_Length = 3
+<<END
+
+[Overall]
+Read	Type	BaseCount	BaseRatio	ReadCnt	ReadCntRatio
+
+Indel	Count1	Count2	BaseRatio1	BaseRatio2
+<<END
+
+[InDel]
+Cycle	-3	-2	-1	1	2	3
+<<END

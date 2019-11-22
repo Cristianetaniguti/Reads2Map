@@ -3,7 +3,10 @@ cromwell-workflow-logs/
 *~
 *Rhistory
 test/
-data/
+data/Oryza_sativa
+data/populus
+data/populus_vcfs
+data/toy_sample
 cromwell-46.jar
 docker/
 metadata/

@@ -4,13 +4,13 @@
       "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
       "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
    },    
-  "main.number_of_families": 1,
+  "main.number_of_families": 2,
   "main.family_template": {
     "cmBymb": 4.63,
     "popsize": 47,
     "enzyme":"G*CWGC",
     "depth": 20,
-    "doses": "/home/cristiane/github/errors_workflow/data/populus/doses",
+    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
     "ploidy": 2,
     "cross": "F1"
   },
