@@ -9,17 +9,17 @@ workflow pirs_profiles {
 
   call SoapAlign {
     input:
-      fastq = dataset.fastq_file,
-      ref   = dataset.ref,
-      ref_amb = dataset.ref_amb,
-      ref_fmv = dataset.ref_fmv,
-      ref_pac = dataset.ref_pac,
-      ref_sa = dataset.ref_sa,
-      ref_sai = dataset.ref_sai,
-      ref_ann = dataset.ref_ann,
-      ref_hot = dataset.ref_hot,
-      ref_bwt = dataset.ref_bwt,
-      ref_lkt = dataset.ref_lkt,
+      fastq       = dataset.fastq_file,
+      ref         = dataset.ref,
+      ref_amb     = dataset.ref_amb,
+      ref_fmv     = dataset.ref_fmv,
+      ref_pac     = dataset.ref_pac,
+      ref_sa      = dataset.ref_sa,
+      ref_sai     = dataset.ref_sai,
+      ref_ann     = dataset.ref_ann,
+      ref_hot     = dataset.ref_hot,
+      ref_bwt     = dataset.ref_bwt,
+      ref_lkt     = dataset.ref_lkt,
       ref_rev_pac = dataset.ref_rev_pac,
       ref_rev_bwt = dataset.ref_rev_bwt,
       ref_rev_fmv = dataset.ref_rev_fmv,
@@ -29,7 +29,7 @@ workflow pirs_profiles {
   call GCDepth {
     input:
       file_soap = SoapAlign.file_soap,
-      ref = dataset.ref
+      ref       = dataset.ref
   }
 
   call Soap2sam {
@@ -39,9 +39,9 @@ workflow pirs_profiles {
 
   call BaseCalling {
     input:
-      ref = dataset.ref,
+      ref      = dataset.ref,
       sam_file = Soap2sam.sam_file,
-      vcf = dataset.vcf
+      vcf      = dataset.vcf
   }
 
   call Indel {
@@ -50,11 +50,11 @@ workflow pirs_profiles {
   }
 
   output {
-    File indel_profile = Indel.indel_profile
+    File indel_profile        = Indel.indel_profile
     File base_calling_profile = BaseCalling.base_calling_profile
-    File GC_bias_100 = GCDepth.GC_bias_100
-    File GC_bias_150 = GCDepth.GC_bias_150
-    File GC_bias_200 = GCDepth.GC_bias_200
+    File GC_bias_100          = GCDepth.GC_bias_100
+    File GC_bias_150          = GCDepth.GC_bias_150
+    File GC_bias_200          = GCDepth.GC_bias_200
   }
 }
 

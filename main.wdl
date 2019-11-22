@@ -23,22 +23,22 @@ workflow main{
   # from the family_template and the random seed of the previous task.
   scatter(seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
-      "cmBymb": family_template.cmBymb,
+      "cmBymb" : family_template.cmBymb,
       "popsize": family_template.popsize,
-      "enzyme": family_template.enzyme,
-      "seed": seed,
-      "depth": family_template.depth,
-      "doses": family_template.doses,
-      "ploidy": family_template.ploidy,
-      "cross": family_template.cross
+      "enzyme" : family_template.enzyme,
+      "seed"   : seed,
+      "depth"  : family_template.depth,
+      "doses"  : family_template.doses,
+      "ploidy" : family_template.ploidy,
+      "cross"  : family_template.cross
     }
 
     # Calling reads_simu for each seed
     call sub.reads_simu as ReadSimulations{
       input:
-        profiles = profiles,
-        references=references,
-        family=fam
+        profiles   = profiles,
+        references = references,
+        family     = fam
     }
   }
 
@@ -56,12 +56,12 @@ workflow main{
   # Here you can reference outputs from the sub workflow. Remember that
   # it will be an array of the same type of the original.
   output {
-    File data1_depths_geno_prob = JointTables.data1_depths_geno_prob
-    File data2_maps = JointTables.data2_maps
-    File data3_coverage = JointTables.data3_coverage
-    File data4_filters = JointTables.data4_filters
+    File data1_depths_geno_prob   = JointTables.data1_depths_geno_prob
+    File data2_maps               = JointTables.data2_maps
+    File data3_coverage           = JointTables.data3_coverage
+    File data4_filters            = JointTables.data4_filters
     File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
-    File data6_times = JointTables.data6_times
+    File data6_times              = JointTables.data6_times
   }
 }
 
@@ -132,11 +132,11 @@ task JointTables{
   }
 
   output{
-    File data1_depths_geno_prob = "data1_~{depth}.rds"
-    File data2_maps = "data2_~{depth}.rds"
-    File data3_coverage = "data3_~{depth}.rds"
-    File data4_filters = "data4_~{depth}.rds"
+    File data1_depths_geno_prob   = "data1_~{depth}.rds"
+    File data2_maps               = "data2_~{depth}.rds"
+    File data3_coverage           = "data3_~{depth}.rds"
+    File data4_filters            = "data4_~{depth}.rds"
     File data5_SNPcall_efficiency = "data5_~{depth}.rds"
-    File data6_times = "data6_~{depth}.rds"
+    File data6_times              = "data6_~{depth}.rds"
   }
 }
