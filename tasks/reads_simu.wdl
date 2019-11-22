@@ -12,8 +12,8 @@ workflow reads_simu{
 
   call GenerateAlternativeGenome {
     input:
-    seed       = family.seed,
-    ref_genome = references.ref_fasta
+      seed       = family.seed,
+      ref_genome = references.ref_fasta
   }
 
   call CreatePedigreeSimulatorInputs {
@@ -74,9 +74,9 @@ workflow reads_simu{
         paternal_trim = SimulateRADseq.paternal_trim,
         sampleName    = sampleName,
         depth         = family.depth,
-	base_calling  = profiles.base_calling,
-	indel_error   = profiles.indel_error,
-	gc_bias       = profiles.gc_bias
+        base_calling  = profiles.base_calling,
+        indel_error   = profiles.indel_error,
+        gc_bias       = profiles.gc_bias
     }
 
     call RunBwaAlignment {
@@ -154,14 +154,14 @@ workflow reads_simu{
 
     call BamCounts{
       input:
-       sampleName     = bams.right,
-       bam_file       = bams.left,
-       bam_idx        = AddAlignmentHeader.bam_rg_index,
-       ref            = references.ref_fasta,
-       ref_fai        = references.ref_fasta_index,
-       ref_dict       = references.ref_dict,
-       gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
-       freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
+        sampleName     = bams.right,
+        bam_file       = bams.left,
+        bam_idx        = AddAlignmentHeader.bam_rg_index,
+        ref            = references.ref_fasta,
+        ref_fai        = references.ref_fasta_index,
+        ref_dict       = references.ref_dict,
+        gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
+        freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
     }
   }
 
@@ -174,25 +174,25 @@ workflow reads_simu{
       gatk_pos         = CalculateVcfMetrics.gatk_pos
   }
 
-  Array[String] methods = ["gatk", "freebayes"]
-  Array[File] vcfs = [VcftoolsApplyFilters.gatkVCF_F, VcftoolsApplyFilters.freebayesVCF_F]
+  Array[String] methods                     = ["gatk", "freebayes"]
+  Array[File] vcfs                          = [VcftoolsApplyFilters.gatkVCF_F, VcftoolsApplyFilters.freebayesVCF_F]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
   scatter (vcf in program_and_vcf){
     call CreateMaps{
       input:
-        tot_mks    = CreatePedigreeSimulatorInputs.tot_mks,
-        simu_vcf   = PedigreeSim2vcf.simu_vcf,
-        methodName = vcf.left,
-        vcf_file   = vcf.right,
-        freebayes_ref_depth = BamCounts4Onemap.freebayes_ref_bam,
-        freebayes_alt_depth = BamCounts4Onemap.freebayes_alt_bam,
-        gatk_ref_depth = BamCounts4Onemap.gatk_ref_bam,
-        gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
-        gatk_example_alleles = BamCounts4Onemap.gatk_example_alleles,
+        tot_mks                   = CreatePedigreeSimulatorInputs.tot_mks,
+        simu_vcf                  = PedigreeSim2vcf.simu_vcf,
+        methodName                = vcf.left,
+        vcf_file                  = vcf.right,
+        freebayes_ref_depth       = BamCounts4Onemap.freebayes_ref_bam,
+        freebayes_alt_depth       = BamCounts4Onemap.freebayes_alt_bam,
+        gatk_ref_depth            = BamCounts4Onemap.gatk_ref_bam,
+        gatk_alt_depth            = BamCounts4Onemap.gatk_alt_bam,
+        gatk_example_alleles      = BamCounts4Onemap.gatk_example_alleles,
         freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles,
-        cross = family.cross,
-        real_phases = CreatePedigreeSimulatorInputs.real_phases
+        cross                     = family.cross,
+        real_phases               = CreatePedigreeSimulatorInputs.real_phases
     }
   }
 
@@ -239,12 +239,12 @@ workflow reads_simu{
     }
 
   output {
-    File data1_depths_geno_prob = CreateTables.data1_depths_geno_prob
-    File data2_maps = CreateTables.data2_maps
-    File data3_coverage = CreateTables.data3_coverage
-    File data4_filters = CreateTables.data4_filters
+    File data1_depths_geno_prob   = CreateTables.data1_depths_geno_prob
+    File data2_maps               = CreateTables.data2_maps
+    File data3_coverage           = CreateTables.data3_coverage
+    File data4_filters            = CreateTables.data4_filters
     File data5_SNPcall_efficiency = CalculateVcfMetrics.data5_SNPcall_efficiency
-    File data6_times = CreateTables.data6_times
+    File data6_times              = CreateTables.data6_times
   }
 }
 
@@ -348,9 +348,9 @@ task CreatePedigreeSimulatorInputs {
         ploidys <- ploidys[c(1,length(doses),2:(length(doses)-1))]
 
         founder1.df <- matrix(NA, ncol = ploidy, nrow = length(ref.alleles))
-        
+
         founder2.df <- matrix(NA, ncol = ploidy, nrow = length(ref.alleles))
-        
+
         idx <- 1:length(ref.alleles)
         for(i in 1:length(doses)){
           size <- round((doses[i]/100)*length(ref.alleles))
@@ -668,7 +668,7 @@ task SimulateIlluminaReads {
       --base-calling-profile=~{base_calling} \
       --indel-error-profile=~{indel_error} \
       --gc-bias-profile=~{gc_bias}
-      
+
   >>>
 
   runtime {
@@ -1236,7 +1236,7 @@ task CreateMaps {
           write_report(maps_gq_tab, out_name)
           times_temp <- data.frame(meth =paste0(method_name, "_map_GQ"), time = times_temp[3])
           times <- rbind(times, times_temp)
-          
+
           out_name <- paste0(method_name, "_error_GQ.txt")
           errors_tab <- create_errors_report(aval.gq, gab)
           write_report(errors_tab, out_name)
@@ -1480,10 +1480,10 @@ task CreateTables{
           system("cp ~{sep= " " error_info_bam_supermassa } .")
           system("cp ~{sep = " " filters_dfAndGQ } .")
           system("cp ~{sep = " " filters_polyrad } .")
-          system("cp ~{sep = " " filters_supermassa } .")   
+          system("cp ~{sep = " " filters_supermassa } .")
           system("cp ~{sep = " " filters_updog } .")
-          system("cp ~{sep = " " filters_bam_polyrad } .")   
-          system("cp ~{sep = " " filters_bam_supermassa } .")    
+          system("cp ~{sep = " " filters_bam_polyrad } .")
+          system("cp ~{sep = " " filters_bam_supermassa } .")
           system("cp ~{sep = " " filters_bam_updog  } .")
 
           tot_mks <- read.table("~{tot_mks}")
@@ -1503,7 +1503,7 @@ task CreateTables{
             for(i in 1:length(depth_matrix)){
               depth2 <- read.table(depth_matrix[[i]], header = T, stringsAsFactors = F)
               depth3 <- as.data.frame(apply(depth2, 2, as.integer))
-              depth3 <- cbind(MKS= rownames(depth2), depth3) 
+              depth3 <- cbind(MKS= rownames(depth2), depth3)
               depth3 <- depth3[,sort(colnames(depth3))]
               allele[[i]] <- melt(depth3)
               colnames(allele[[i]]) <- c("mks", "ind", paste0(alle_name[i]))
@@ -1537,35 +1537,35 @@ task CreateTables{
               } else {
                 map.file <- paste0(snpcall, "_map_bam_", genotype_meth[j],".txt")
               }
-              
+
               map_df <- read.table(map.file, header = T)
-              
+
               poscM <- (as.numeric(as.character(map_df[,2]))/1000000)*~{cmBymb}
-              poscM.norm <- poscM-poscM[1] 
+              poscM.norm <- poscM-poscM[1]
               map_df <- cbind(map_df, poscM, poscM.norm)
-              
+
               # Difference between distances real and estimated
               map_df <- cbind(map_df, diff= sqrt((map_df["poscM.norm"] - map_df["rf"])^2)[,1])
-              
+
               coverage_df <- map_df[,2][length(map_df[,2])]*100/tot_mks[,2][length(tot_mks[,2])]
-              map_df <- cbind(seed, depth, CountsFrom, ErrorProb= genotype_meth[j], 
+              map_df <- cbind(seed, depth, CountsFrom, ErrorProb= genotype_meth[j],
                               SNPcall=snpcall, map_df)
-              coverage_df <- cbind(seed, depth, CountsFrom, ErrorProb= genotype_meth[j], 
+              coverage_df <- cbind(seed, depth, CountsFrom, ErrorProb= genotype_meth[j],
                                   SNPcall=snpcall, coverage = coverage_df)
-              
+
               coverage_df_tot <- rbind(coverage_df_tot, coverage_df)
               map_df_tot <- rbind(map_df_tot, map_df)
             }
             return(list(map_df_tot, coverage_df_tot))
           }
 
-            
+
             ########################################################################################
             # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
             ########################################################################################
             df_tot_all <- times <- maps_tot <- coverage_tot <- filters_tot <- vector()
           for(i in 1:length(method)){
-            
+
             if(method[i] == "gatk"){
               alt.depth.bam <- "~{gatk_alt_depth_bam}"
               ref.depth.bam <- "~{gatk_ref_depth_bam}"
@@ -1577,37 +1577,37 @@ task CreateTables{
               alt.depth <- "~{freebayes_alt_depth}"
               ref.depth <- "~{freebayes_ref_depth}"
             }
-            
+
             ## Depths by bam
-            
+
             df_tot_bam <- joint_depths(alt.depth.bam,ref.depth.bam, "bam", method[i], depth, seed, meth.bam)
-            
+
             ## Depths by softwares
             df_tot <- joint_depths(alt.depth,ref.depth, "vcf", method[i], depth, seed, meth.geno)
-            
+
             df_tot_all <- rbind(df_tot_all, df_tot, df_tot_bam)
-            
+
             ########################################################
             # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; real_phases
             # Table3: seed; CountsFrom; ErrorProb; SNPcall; coverage
             ########################################################
-            
+
             map_df_tot <- joint_maps("vcf", meth.geno, method[i])
             map_bam_tot <- joint_maps("bam", meth.bam, method[i])
             map_df_gusmap <- joint_maps("vcf", "gusmap", method[i])
             map_bam_gusmap <- joint_maps("bam", "gusmap", method[i])
-            
+
             maps_tot <- rbind(maps_tot, map_df_tot[[1]], map_bam_tot[[1]],
                               map_df_gusmap[[1]], map_bam_gusmap[[1]])
             maps_tot <- as.data.frame(maps_tot)
             coverage_tot <- rbind(coverage_tot, map_df_tot[[2]],
                                   map_bam_tot[[2]], map_df_gusmap[[2]],
                                   map_bam_gusmap[[2]])
-            
+
             ##########################################################################
             # Table4: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
             ##########################################################################
-            
+
             filters_vcf_tot <- filters_bam_tot <- vector()
             for(j in 1:length(meth.filt)){
               filters_vcf <- read.table(paste0(method[i], "_filters_", meth.filt[j], ".txt"), header = T)
@@ -1615,14 +1615,14 @@ task CreateTables{
                                   filters_vcf)
               filters_vcf_tot <- rbind(filters_vcf_tot, filters_vcf)
             }
-            
+
             for(j in 1:length(meth.bam)){
               filters_bam <- read.table(paste0(method[i], "_filters_bam_", meth.bam[j], ".txt"), header = T)
               filters_bam <- cbind(CountsFrom = "bam", seed= seed, depth, SNPcall = method[i], GenoCall = meth.bam[j],
                                   filters_bam)
               filters_bam_tot <- rbind(filters_bam_tot, filters_bam)
             }
-            
+
             filters_tot <- rbind(filters_tot, filters_bam_tot, filters_vcf_tot)
 
             ###########################################################################
@@ -1645,8 +1645,8 @@ task CreateTables{
           saveRDS(maps_tot, file = "data2_maps.rds")
           saveRDS(coverage_tot, file = "data3_coverage.rds")
           saveRDS(filters_tot, file = "data4_filters.rds")
-          saveRDS(times, file= "data6_times.rds")        
-          
+          saveRDS(times, file= "data6_times.rds")
+
       RSCRIPT
   >>>
 

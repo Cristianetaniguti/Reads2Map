@@ -1,109 +1,108 @@
 version 1.0
 
-import "./structs/empiricalS.wdl"
+import "structs/populusS.wdl"
 
 workflow empirical{
 
-    input{
-        dataset dataset
-        ReferenceFasta references
-    }
+  input{
+    dataset dataset
+    ReferenceFasta references
+  }
 
-    Array[Array[File]] inputSamples = read_tsv(dataset.samples_info)
+  Array[Array[File]] inputSamples = read_tsv(dataset.samples_info)
 
-    scatter (samples in inputSamples){
-       call RunBwaAlignment{
-           input:
-           sampleName = samples[2],
-           reads1     = samples[0],
-           ref        = references.ref_fasta,
-           geno_amb   = references.ref_amb,
-           geno_ann   = references.ref_ann,
-           geno_bwt   = references.ref_bwt,
-           geno_pac   = references.ref_pac,
-           geno_sa    = references.ref_sa
-       }
-    
-       call AddAlignmentHeader{
-           input:
-           sampleName = samples[1],
-           libName    = samples[2],
-           bam_file   = RunBwaAlignment.bam_file,
-           bam_idx    = RunBwaAlignment.bam_idx
-       }
-    }
-
-        
-    call JointSameSamples{
-        input:
-        samples_info = dataset.samples_info,
-        bam_rg       = AddAlignmentHeader.bam_rg
-    }
-         
-    Array[String] merged_names = read_lines(JointSameSamples.merged_names)
-    Array[Pair[File, String]] bam_files = zip(JointSameSamples.merged_files, merged_names)
-
-    scatter (bams in bam_files){        
-
-        call HaplotypeCallerERC {
-            input:
-            ref        = references.ref_fasta,
-            geno_fai   = references.ref_fasta_index,
-            sampleName = bams.right,
-            bam_rg     = bams.left,
-            bam_rg_idx = JointSameSamples.merged_files_idx,
-            geno_dict  = references.ref_dict
-        }
-
-    }
-
-    call CreateGatkDatabase {
-        input:
-        path_gatkDatabase = "my_database",
-        GVCFs             = HaplotypeCallerERC.GVCF,
-        GVCFs_idx         = HaplotypeCallerERC.GVCF_idx
-    }
-
-    call GenotypeGVCFs {
-        input:
-        workspace_tar       = CreateGatkDatabase.workspace_tar,
-        output_vcf_filename = dataset.name + "_gatk.vcf",
-        ref                 = references.ref_fasta,
-        geno_fai            = references.ref_fasta_index,
-        geno_dict           = references.ref_dict
-    }
-
-
-    call RunFreebayes {
-       input:
-       freebayesVCFname = dataset.name + "_freebayes.vcf",
-       ref              = references.ref_fasta,
-       ref_fai          = references.ref_fasta_index,
-       merged_files     = JointSameSamples.merged_files
-    }
-
-    call VcftoolsApplyFilters{
-       input:
-       freebayesVCF = RunFreebayes.freebayesVCF,
-       gatkVCF      = GenotypeGVCFs.gatkVCF
-    }
-
-    scatter (bams in bam_files) {
-
-    call BamCounts{
+  scatter (samples in inputSamples){
+    call RunBwaAlignment{
       input:
-       sampleName     = bams.right,
-       bam_file       = bams.left,
-       bam_idx        = JointSameSamples.merged_files_idx,
-       ref            = references.ref_fasta,
-       ref_fai        = references.ref_fasta_index,
-       ref_dict       = references.ref_dict,
-       gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
-       freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
+        sampleName = samples[2],
+        reads1     = samples[0],
+        ref        = references.ref_fasta,
+        geno_amb   = references.ref_amb,
+        geno_ann   = references.ref_ann,
+        geno_bwt   = references.ref_bwt,
+        geno_pac   = references.ref_pac,
+        geno_sa    = references.ref_sa
+    }
+
+    call AddAlignmentHeader{
+      input:
+        sampleName = samples[1],
+        libName    = samples[2],
+        bam_file   = RunBwaAlignment.bam_file,
+        bam_idx    = RunBwaAlignment.bam_idx
     }
   }
 
-  call BamCounts4Onemap{
+
+  call JointSameSamples{
+    input:
+      samples_info = dataset.samples_info,
+      bam_rg       = AddAlignmentHeader.bam_rg
+  }
+
+  Array[String] merged_names = read_lines(JointSameSamples.merged_names)
+  Array[Pair[File, String]] bam_files = zip(JointSameSamples.merged_files, merged_names)
+
+  scatter (bams in bam_files){
+
+    call HaplotypeCallerERC {
+      input:
+        ref        = references.ref_fasta,
+        geno_fai   = references.ref_fasta_index,
+        sampleName = bams.right,
+        bam_rg     = bams.left,
+        bam_rg_idx = JointSameSamples.merged_files_idx,
+        geno_dict  = references.ref_dict
+    }
+
+  }
+
+  call CreateGatkDatabase {
+    input:
+      path_gatkDatabase = "my_database",
+      GVCFs             = HaplotypeCallerERC.GVCF,
+      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx
+  }
+
+  call GenotypeGVCFs {
+    input:
+      workspace_tar       = CreateGatkDatabase.workspace_tar,
+      output_vcf_filename = dataset.name + "_gatk.vcf",
+      ref                 = references.ref_fasta,
+      geno_fai            = references.ref_fasta_index,
+      geno_dict           = references.ref_dict
+  }
+
+
+  call RunFreebayes {
+    input:
+      freebayesVCFname = dataset.name + "_freebayes.vcf",
+      ref              = references.ref_fasta,
+      ref_fai          = references.ref_fasta_index,
+      merged_files     = JointSameSamples.merged_files
+  }
+
+  call VcftoolsApplyFilters{
+    input:
+      freebayesVCF = RunFreebayes.freebayesVCF,
+      gatkVCF      = GenotypeGVCFs.gatkVCF
+  }
+
+  scatter (bams in bam_files) {
+    call BamCounts{
+      input:
+        sampleName     = bams.right,
+        bam_file       = bams.left,
+        bam_idx        = JointSameSamples.merged_files_idx,
+        ref            = references.ref_fasta,
+        ref_fai        = references.ref_fasta_index,
+        ref_dict       = references.ref_dict,
+        gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
+        freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
+    }
+  }
+
+  call BamCounts4Onemap {
     input:
       sampleName       = GenerateSampleNames.names,
       freebayes_counts = BamCounts.freebayes_counts,
@@ -222,58 +221,57 @@ task AddAlignmentHeader {
 # Joint same sample bam files
 task JointSameSamples{
 
-    input{
-        File samples_info
-        Array[File] bam_rg
-    }
+  input{
+    File samples_info
+    Array[File] bam_rg
+  }
 
-    command <<<
+  command <<<
 
-        R --vanilla --no-save <<RSCRIPT
+    R --vanilla --no-save <<RSCRIPT
 
-          system("cp ~{sep=" "  bam_rg} .")
+      system("cp ~{sep=" "  bam_rg} .")
 
-          files <- read.table("~{samples_info}", stringsAsFactors = F)
+      files <- read.table("~{samples_info}", stringsAsFactors = F)
 
-          repet <- names(which(table(files[,2]) > 1))
-          
-          if(length(repet) != 0){
-            idx <- vector()
-            for(i in 1:length(repet)){
-              idx <- c(idx,which(files[,2] == repet[i]))
-              files1 <- files[which(files[,2] == repet[i]),3]
-              files1 <- paste0(files1, "_rg.bam")
-              system(paste0("samtools merge ", repet[i], ".merged.bam"," ", paste(files1, collapse = " ") , collapse=" "))
-            }
-            files2 <- files[-idx,]
-          } else {
-            files2 <- files
-          }
-         
-          for(i in 1:dim(files2)[1]){
-            system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam ")) 
-          }
-          
-          system("ls *merged.bam > merged_names")
-          df <- read.table("merged_names")
-          for(i in 1:length(df[,1]))
-              system(paste0("samtools index ", df[i,1]))
-          df.new <- sapply(strsplit(as.character(df[,1]), "[.]"), "[",1)
-          write.table(df.new, "merged_names", quote = F, col.names=F, row.names=F)
-         
-        RSCRIPT
-    >>>
+      repet <- names(which(table(files[,2]) > 1))
 
-    runtime{
-      docker: "cristaniguti/r-samtools"
-    }
+      if(length(repet) != 0){
+        idx <- vector()
+        for(i in 1:length(repet)){
+          idx <- c(idx,which(files[,2] == repet[i]))
+          files1 <- files[which(files[,2] == repet[i]),3]
+          files1 <- paste0(files1, "_rg.bam")
+          system(paste0("samtools merge ", repet[i], ".merged.bam"," ", paste(files1, collapse = " ") , collapse=" "))
+        }
+        files2 <- files[-idx,]
+      } else {
+        files2 <- files
+      }
 
-    output{
-        Array[File] merged_files = glob("*.merged.bam")
-        Array[File] merged_files_idx = glob("*.merged.bam.bai")
-        File merged_names = "merged_names"
-    }
+      for(i in 1:dim(files2)[1]){
+        system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam "))
+      }
 
+      system("ls *merged.bam > merged_names")
+      df <- read.table("merged_names")
+      for(i in 1:length(df[,1]))
+          system(paste0("samtools index ", df[i,1]))
+      df.new <- sapply(strsplit(as.character(df[,1]), "[.]"), "[",1)
+      write.table(df.new, "merged_names", quote = F, col.names=F, row.names=F)
+
+    RSCRIPT
+  >>>
+
+  runtime{
+    docker: "cristaniguti/r-samtools"
+  }
+
+  output{
+    Array[File] merged_files = glob("*.merged.bam")
+    Array[File] merged_files_idx = glob("*.merged.bam.bai")
+    File merged_names = "merged_names"
+  }
 }
 
 # GATK to generate gVCF with variants
@@ -468,7 +466,7 @@ task BamCounts4Onemap{
   input{
     Array[File] freebayes_counts
     Array[File] gatk_counts
-    File sampleName
+    Array[String] sampleName
   }
 
   command <<<
@@ -482,7 +480,7 @@ task BamCounts4Onemap{
       methods <- c("freebayes", "gatk")
 
       for(method in methods){
-  
+
       file.counts <- read.table(paste0(names[1],"_", method,"_counts.tsv"), skip = 1448, header=T, stringsAsFactors = F)
 
       ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
@@ -510,7 +508,7 @@ task BamCounts4Onemap{
         }
 
       }
-  
+
       rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
       colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
 
@@ -546,7 +544,7 @@ task avalVCFs{
     File gatk_ref_depth
     File gatk_alt_depth
   }
-  
+
   command <<<
 
     R --vanilla --no-save <<RSCRIPT
@@ -642,7 +640,7 @@ task avalVCFs{
       out_name <- paste0(method_name, "_filters_", metodology, ".txt")
       filters_tab <- create_filters_report(error_aval)
       write_report(filters_tab[[1]], out_name)
-      
+
       ## Maps
       out_name <- paste0(method_name, "_map_", metodology, ".RData")
       map_out <- parmap(input.seq = filters_tab[[2]], cores = max.cores, overlap = 10)

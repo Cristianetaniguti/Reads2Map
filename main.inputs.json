@@ -3,8 +3,8 @@
       "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
       "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
       "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
-   },    
-  "main.number_of_families": 2,
+   },
+  "main.number_of_families": 1,
   "main.family_template": {
     "cmBymb": 4.63,
     "popsize": 47,
@@ -25,4 +25,3 @@
     "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
   }
 }
-
