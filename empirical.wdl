@@ -466,7 +466,7 @@ task BamCounts4Onemap{
   input{
     Array[File] freebayes_counts
     Array[File] gatk_counts
-    File sampleName
+    Array[String] sampleName
   }
 
   command <<<
