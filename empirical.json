@@ -11,7 +11,6 @@
   },
   "empirical.dataset": {
     "samples_info": "/data1/aafgarci/cris/errors_workflow/data/Populus/Populus_rad_seq/populus_data/samples_info",
-    "name": "populus",
-    "bamNames":"/data1/aafgarci/cris/errors_workflow/data/Populus/Populus_rad_seq/populus_data/bamNames"
+    "name": "populus"
   }
 }
