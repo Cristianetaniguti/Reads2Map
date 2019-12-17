@@ -1,16 +1,18 @@
 {
   "empirical.references": {
-    "ref_fasta": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa",
-    "ref_dict": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.dict",
-    "ref_ann": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa.ann",
-    "ref_sa": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa.sa",
-    "ref_amb": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa.amb",
-    "ref_bwt": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa.bwt",
-    "ref_fasta_index": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa.fai",
-    "ref_pac": "/data1/aafgarci/cris/errors_workflow/data/Populus/Ptrichocarpa_444_v3.0.fa.pac"
+    "ref_fasta": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa",
+    "ref_dict": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.dict",
+    "ref_ann": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa.ann",
+    "ref_sa": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa.sa",
+    "ref_amb": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa.amb",
+    "ref_bwt": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa.fai",
+    "ref_pac": "/home/cristiane/github/errors_workflow/data/populus_sub/Chr10.populus.fa.pac"
   },
   "empirical.dataset": {
-    "samples_info": "/data1/aafgarci/cris/errors_workflow/data/Populus/Populus_rad_seq/populus_data/samples_info",
-    "name": "populus"
+    "samples_info": "/home/cristiane/github/errors_workflow/data/populus_sub/sample_info_subsub",
+      "name": "populus",
+      "parent1": "PT_F",
+      "parent2": "PT_M"
   }
 }

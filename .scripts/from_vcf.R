@@ -12,13 +12,13 @@ library(ggplot2)
 # Functions
 source("functions.R")
 
-vcf_file <- "gatk_sub.vcf"
-SNPCall <- "gatk"
-cross <- "outcross"
-CountsFrom <- "vcf"
-max.cores <- 6
-parent1 <- "PT_F"
-parent2 <- "PT_M"
+  vcf_file <- "gatk_sub.vcf"
+  SNPCall <- "gatk"
+  cross <- "outcross"
+  CountsFrom <- "vcf"
+  max.cores <- 6
+  parent1 <- "PT_F"
+  parent2 <- "PT_M"
 
 ## READING FINAL VCF FROM PIPELINE
 vcf <- read.vcfR(vcf_file)
@@ -31,11 +31,17 @@ df <- onemap_read_vcfR(vcfR.object=vcf,
 df <- filter_missing(df, threshold = 0.25)
 
 # check depths
-create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
                       recovering = FALSE, GTfrom = "vcf", alpha=0.1)
+ggsave(filename = paste0(SNPCall,"_", GenoCall= "df","_", CountsFrom="vcf","_vcf_depths.png"), p)
+
+p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+                           recovering = FALSE, GTfrom = "onemap", alpha=0.1)
+ggsave(filename = paste0(SNPCall,"_",GenoCall="df","_",CountsFrom="vcf","_onemap_depths.png"), p)
+
 
 ## FILTERS REPORT
-out_name <- paste0(CountsFrom, "_", SNPCall, "_filters_dfAndGQ.txt")
+out_name <- paste0(SNPCall, "_filters_", CountsFrom,"_dfAndGQ.txt")
 filters_tab <- create_filters_report(onemap_obj = df, CountsFrom, SNPCall=SNPCall, GenoCall="df")
 write_report(filters_tab[[1]], out_name)
 
@@ -93,9 +99,14 @@ for (metodology in names(metodologies)){
   cat(metodology, "\n")
   error_aval <- metodologies[[metodology]]
   ## Filters
-  out_name <- paste0(SNPCall, "_filters_", metodology, ".txt")
+  out_name <- paste0(SNPCall, "_filters_", CountsFrom, "_",metodology, ".txt")
   filters_tab <- create_filters_report(error_aval, CountsFrom = CountsFrom, SNPCall = SNPCall, GenoCall = metodology)
   write_report(filters_tab[[1]], out_name)
+  
+  # check depths
+  p <- create_depths_profile(onemap.obj = error_aval, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+                             recovering = FALSE, GTfrom = "onemap", alpha=0.1)
+  ggsave(filename = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom,"_onemap_depths.png"), p)
   
   ## Maps
   create_map_report(input.seq = filters_tab[[2]], CountsFrom = CountsFrom, SNPCall = SNPCall, GenoCall= metodology)
@@ -146,19 +157,25 @@ for (metodology in names(metodologies)){
   filters_tab <- create_filters_report(error_aval)
   write_report(filters_tab, out_name)
   
-  # Group
-  lgs <- group(filters_tab[[2]])
-  lg1 <- make_seq(lgs,1)
+  # check depths
+  p <- create_depths_profile(onemap.obj = error_aval, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+                             recovering = FALSE, GTfrom = "onemap", alpha=0.1)
+  ggsave(filename = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom,"_onemap_depths.png"), p)
   
   ## Maps
-  create_map_report(input.seq = lg1, CountsFrom = CountsFrom, SNPCall = SNPCall, GenoCall= metodology)
+  create_map_report(input.seq = filters_tab[[2]], CountsFrom = CountsFrom, SNPCall = SNPCall, GenoCall= metodology)
 }
 
 ## Gusmap maps
 out_name <- paste0(SNPCall, "_map_gusmap.txt")
-map_gus <- create_gusmap_report(vcf_file)
+map_gus <- create_gusmap_report(vcf_file, SNPCall, parent1, parent2)
 write_report(map_gus, out_name)
 
 out_name <- paste0(SNPCall, "_map_bam_gusmap.txt")
-map_gus <- create_gusmap_report(new.vcf)
+map_gus <- create_gusmap_report(new.vcf, SNPCall, parent1, parent2)
 write_report(map_gus, out_name)
+
+
+## Joint tables
+
+

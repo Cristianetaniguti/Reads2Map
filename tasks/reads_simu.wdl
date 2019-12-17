@@ -1115,7 +1115,6 @@ task BamCounts4Onemap{
         }
 
     RSCRIPT
-
   >>>
 
   runtime{

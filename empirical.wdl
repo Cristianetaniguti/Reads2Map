@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/populusS.wdl"
+import "structs/empiricalS.wdl"
 
 workflow empirical{
 
@@ -104,7 +104,7 @@ workflow empirical{
 
   call BamCounts4Onemap {
     input:
-      sampleName       = GenerateSampleNames.names,
+      samples_info       = dataset.samples_info,
       freebayes_counts = BamCounts.freebayes_counts,
       gatk_counts      = BamCounts.gatk_counts
   }
@@ -112,7 +112,6 @@ workflow empirical{
   Array[String] methods = ["gatk", "freebayes"]
   Array[File] vcfs = [VcftoolsApplyFilters.gatkVCF_F, VcftoolsApplyFilters.freebayesVCF_F]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
-
 
   scatter (vcf in program_and_vcf){
     call avalVCFs{
@@ -122,28 +121,10 @@ workflow empirical{
         freebayes_ref_depth = BamCounts4Onemap.freebayes_ref_bam,
         freebayes_alt_depth = BamCounts4Onemap.freebayes_alt_bam,
         gatk_ref_depth = BamCounts4Onemap.gatk_ref_bam,
-        gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam
+        gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
+        parent1 = dataset.parent1,
+        parent2 = dataset.parent2
     }
-  }
-
-  output{
-    File filters_dfAndGQ = avalVCFs.filters_dfAndGQ
-    File filters_polyrad = avalVCFs.filters_polyrad
-    File filters_supermassa = avalVCFs.filters_supermassa
-    File filters_updog = avalVCFs.filters_updog
-    File filters_bam_polyrad = avalVCFs.filters_bam_polyrad
-    File filters_bam_supermassa = avalVCFs.filters_bam_supermassa
-    File filters_bam_updog = avalVCFs.filters_bam_updog
-    File map_df = avalVCFs.map_df
-    File map_GQ = avalVCFs.map_GQ
-    File map_polyrad = avalVCFs.map_polyrad
-    File map_supermassa = avalVCFs.map_supermassa
-    File map_updog = avalVCFs.map_updog
-    File map_bam_polyrad = avalVCFs.map_bam_polyrad
-    File map_bam_supermassa = avalVCFs.map_bam_supermassa
-    File map_bam_updog = avalVCFs.map_bam_updog
-    File map_gusmap = avalVCFs.map_gusmap
-    File map_bam_gusmap = avalVCFs.map_bam_gusmap
   }
 }
 
@@ -466,7 +447,7 @@ task BamCounts4Onemap{
   input{
     Array[File] freebayes_counts
     Array[File] gatk_counts
-    Array[String] sampleName
+    File samples_info
   }
 
   command <<<
@@ -474,9 +455,8 @@ task BamCounts4Onemap{
       library(R.utils)
       system("cp ~{sep=" "  freebayes_counts} .")
       system("cp ~{sep=" "  gatk_counts} .")
-      names <- c("~{sep=" , "  sampleName}")
-      names <- unlist(strsplit(names, split = " , "))
-
+      info <- read.table("~{samples_info}", stringsAsFactors=F)
+      names <- info[,2]
       methods <- c("freebayes", "gatk")
 
       for(method in methods){
@@ -518,6 +498,8 @@ task BamCounts4Onemap{
       write.table(ref_depth_matrix2, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
       write.table(alt_depth_matrix2, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
     }
+
+    RSCRIPT
   >>>
 
   runtime{
@@ -543,6 +525,8 @@ task avalVCFs{
     File freebayes_alt_depth
     File gatk_ref_depth
     File gatk_alt_depth
+    String parent1
+    String parent2
   }
 
   command <<<
@@ -556,47 +540,62 @@ task avalVCFs{
     source("/opt/scripts/functions_empirical.R")
 
     vcf_file <- "~{vcf_file}"
-    method_name <- "~{methodName}"
+    SNPCall <- "~{methodName}"
+    cross <- "outcross"
+    max.cores <- 3
+    parent1 <- "~{parent1}"
+    parent2 <- "~{parent2}"
+
+    # PACKAGES
+    library(supermassa4onemap)
+    library(onemap)
+    library(updog)
+    library(reshape2)
+    library(vcfR)
+    library(doParallel)
+    library(GUSMap)
+    library(ggplot2)
+
     ## READING FINAL VCF FROM PIPELINE
     vcf <- read.vcfR(vcf_file)
     df <- onemap_read_vcfR(vcfR.object=vcf,
                           cross= cross,
-                          parent1="PT_F",
-                          parent2="PT_M")
+                          parent1= parent1,
+                          parent2= parent2)
+
+    # removing markers with more than 75% of missing data
+    df <- filter_missing(df, threshold = 0.25)
+
+    # check depths
+    p <- create_depths_profile(onemap.obj = df, vcf.file = vcf_file, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+                          recovering = FALSE, GTfrom = "vcf", alpha=0.1)
+    ggsave(filename = paste0(SNPCall,"_", GenoCall= "df","_",CountsFrom="vcf","_vcf_depths.png"), p)
+
+    p <- create_depths_profile(onemap.obj = df, vcf.file = vcf_file, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+                              recovering = FALSE, GTfrom = "onemap", alpha=0.1)
+    ggsave(filename = paste0(SNPCall,"_",GenoCall="df","_",CountsFrom="vcf","_onemap_depths.png"), p)
 
 
     ## FILTERS REPORT
-    out_name <- paste0(method_name, "_filters_dfAndGQ.txt")
-    filters_tab <- create_filters_report(df)
+    out_name <- paste0(SNPCall, "_filters_vcf_dfAndGQ.txt")
+    filters_tab <- create_filters_report(onemap_obj = df, CountsFrom = "vcf", SNPCall=SNPCall, GenoCall="df")
     write_report(filters_tab[[1]], out_name)
 
-    max.cores <- 10 #detectCores() # Change here to the maximun cores available for the process
-    n.mk <- length(filters_tab[[2]][[1]])
-    min.group.size <- 60
-
-    while(n.mk/max.cores < min.group.size){
-      max.cores <- max.cores - 1
-    }
-
-    out_name <- paste0(method_name, "_map_df.RData")
-    map_out <- parmap(input.seq = filters_tab[[2]], cores = max.cores, overlap = 10)
-    save(map_out, out_name)
+    # MAPS REPORT - DF
+    create_map_report(input.seq = filters_tab[[2]], CountsFrom = "vcf", SNPCall = SNPCall, GenoCall="df")
 
     # MAPS REPORT - GQ
     aval.gq <- extract_depth(vcfR.object=vcf,
                             onemap.object=df,
                             vcf.par="GQ",
-                            parent1="PT_F",
-                            parent2="PT_M",
-                            f1 = f1,
+                            parent1=parent1,
+                            parent2=parent2,
                             recovering=FALSE)
 
     aval.gq <- create_probs(df, genotypes_errors=aval.gq)
-    filters_tab <- create_filters_report(aval.gq)
+    filters_tab <- create_filters_report(aval.gq, CountsFrom = "vcf", SNPCall=SNPCall, GenoCall="df")
 
-    out_name <- paste0(method_name, "_map_GQ.RData")
-    map_out <- parmap(input.seq = filters_tab[[2]], cores = max.cores, overlap = 10)
-    save(map_out, out_name)
+    create_map_report(filters_tab[[2]], CountsFrom = "vcf", SNPCall = SNPCall, GenoCall="GQ")
 
     # OTHER TOOLS
     ## With depths from vcf
@@ -605,9 +604,8 @@ task avalVCFs{
       vcfR.object=vcf,
       onemap.object=df,
       vcf.par="AD",
-      parent1="PT_F",
-      parent2="PT_M",
-      f1 = f1,
+      parent1=parent1,
+      parent2=parent2,
       recovering=TRUE,
       mean_phred=20,
       cores=max.cores,
@@ -617,9 +615,8 @@ task avalVCFs{
       vcfR.object=vcf,
       onemap.object = df,
       vcf.par = "AD",
-      parent1 = "PT_F",
-      parent2 = "PT_M",
-      f1 = f1,
+      parent1 = parent1,
+      parent2 = parent2,
       recovering = TRUE,
       mean_phred = 20,
       cores = max.cores,
@@ -628,28 +625,31 @@ task avalVCFs{
     polyrad.aval <- polyRAD_error(
       vcf=vcf_file,
       onemap.obj=df,
-      parent1="PT_F",
-      parent2="PT_M",
-      f1 = f1,
+      parent1=parent1,
+      parent2=parent2,
       crosstype=cross)
 
     metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
     for (metodology in names(metodologies)){
+      cat(metodology, "\n")
       error_aval <- metodologies[[metodology]]
       ## Filters
-      out_name <- paste0(method_name, "_filters_", metodology, ".txt")
-      filters_tab <- create_filters_report(error_aval)
+      out_name <- paste0(SNPCall, "_filters_vcf_", metodology, ".txt")
+      filters_tab <- create_filters_report(error_aval, CountsFrom = "vcf", SNPCall = SNPCall, GenoCall = metodology)
       write_report(filters_tab[[1]], out_name)
-
+      
+      # check depths
+      p <- create_depths_profile(onemap.obj = error_aval, vcf.file = vcf_file, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+                                recovering = FALSE, GTfrom = "onemap", alpha=0.1)
+      ggsave(filename = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom = "vcf","_onemap_depths.png"), p)
+      
       ## Maps
-      out_name <- paste0(method_name, "_map_", metodology, ".RData")
-      map_out <- parmap(input.seq = filters_tab[[2]], cores = max.cores, overlap = 10)
-      save(map_out, out_name)
+      create_map_report(input.seq = filters_tab[[2]], CountsFrom = "vcf", SNPCall = SNPCall, GenoCall= metodology)
     }
 
     ## Depths from bam
-    depths.alt <- read.table(paste0(method_name, "_alt_depth_bam.txt"), header = T)
-    depths.ref <- read.table(paste0(method_name, "_ref_depth_bam.txt"), header = T)
+    depths.alt <- read.table(paste0(SNPCall, "_alt_depth_bam.txt"), header = T)
+    depths.ref <- read.table(paste0(SNPCall, "_ref_depth_bam.txt"), header = T)
 
     depths <- list("ref"=depths.ref, "alt"=depths.alt)
 
@@ -657,9 +657,8 @@ task avalVCFs{
       vcfR.object=vcf,
       onemap.object=df,
       vcf.par="AD",
-      parent1="PT_F",
-      parent2="PT_M",
-      f1 = f1,
+      parent1=parent1,
+      parent2=parent2,
       recovering=TRUE,
       mean_phred=20,
       cores=max.cores,
@@ -669,49 +668,44 @@ task avalVCFs{
       vcfR.object=vcf,
       onemap.object = df,
       vcf.par = "AD",
-      parent1 = "PT_F",
-      parent2 = "PT_M",
-      f1 = f1,
+      parent1 = parent1,
+      parent2 = parent2,
       recovering = TRUE,
       mean_phred = 20,
       cores = max.cores,
       depths = depths)
 
-    new.vcf <- make_vcf(vcf_file, depths, method_name)
+    new.vcf <- make_vcf(vcf_file, depths, SNPCall)
 
     polyrad.aval.bam <- polyRAD_error(
       vcf=new.vcf,
       onemap.obj=df,
-      parent1="PT_F",
-      parent2="PT_M",
-      f1 = f1,
+      parent1=parent1,
+      parent2=parent2,
       crosstype=cross)
 
     metodologies <- list(updog = updog.aval.bam, supermassa= supermassa.aval.bam, polyrad=polyrad.aval.bam)
     for (metodology in names(metodologies)){
       error_aval <- metodologies[[metodology]]
       ## Filters
-      out_name <- paste0(method_name, "_filters_bam_", metodology, ".txt")
+      out_name <- paste0(SNPCall, "_filters_bam_", metodology, ".txt")
       filters_tab <- create_filters_report(error_aval)
       write_report(filters_tab, out_name)
-
+      
       ## Maps
-      out_name <- paste0(method_name, "_map_bam_", metodology, ".RData")
-      map_out <- parmap(input.seq = filters_tab[[2]], cores = max.cores, overlap = 10)
-      save(map_out, out_name)
+      create_map_report(input.seq = filters_tab[[2]], CountsFrom = "bam", SNPCall = SNPCall, GenoCall= metodology)
     }
 
     ## Gusmap maps
-    out_name <- paste0(method_name, "_map_gusmap.txt")
-    map_gus <- create_gusmap_report(vcf_file)
+    out_name <- paste0(SNPCall, "_map_gusmap.txt")
+    map_gus <- create_gusmap_report(vcf_file, SNPCall, parent1, parent2)
     write_report(map_gus, out_name)
 
-    out_name <- paste0(method_name, "_map_bam_gusmap.txt")
-    map_gus <- create_gusmap_report(new.vcf)
+    out_name <- paste0(SNPCall, "_map_bam_gusmap.txt")
+    map_gus <- create_gusmap_report(new.vcf, SNPCall, parent1, parent2)
     write_report(map_gus, out_name)
-
+    
     RSCRIPT
-
   >>>
 
   runtime{
@@ -719,22 +713,58 @@ task avalVCFs{
   }
 
   output{
-    File filters_dfAndGQ = "~{methodName}_filters_dfAndGQ.txt"
-    File filters_polyrad = "~{methodName}_filters_polyrad.txt"
-    File filters_supermassa = "~{methodName}_filters_supermassa.txt"
-    File filters_updog = "~{methodName}_filters_updog.txt"
+    File depths_df_vcf = "~{methodName}_df_vcf_vcf_depths.png"
+    File depths_df_onemap = "~{methodName}_df_vcf_onemap_depths.png"
+    File depths_updog_vcf = "~{methodName}_updog_vcf_onemap_depths.png"
+    File depths_supermassa_vcf = "~{methodName}_supermassa_vcf_onemap_depths.png"
+    File depths_polyrad_vcf = "~{methodName}_polyrad_vcf_onemap_depths.png"
+    File depths_updog_bam = "~{methodName}_updog_bam_onemap_depths.png"
+    File depths_supermassa_bam = "~{methodName}_supermassa_bam_onemap_depths.png"
+    File depths_polyrad_bam = "~{methodName}_polyrad_bam_onemap_depths.png"
+    File heatmap_vcf_df = "~{methodName}_vcf_df_heatmap.png"
+    File heatmap_vcf_GQ = "~{methodName}_vcf_GQ_heatmap.png"
+    File heatmap_vcf_updog = "~{methodName}_vcf_updog_heatmap.png"
+    File heatmap_vcf_supermassa = "~{methodName}_vcf_supermassa_heatmap.png"
+    File heatmap_vcf_polyrad = "~{methodName}_vcf_polyrad_heatmap.png"
+    File heatmap_bam_df = "~{methodName}_bam_df_heatmap.png"
+    File heatmap_bam_GQ = "~{methodName}_bam_GQ_heatmap.png"
+    File heatmap_bam_updog = "~{methodName}_bam_updog_heatmap.png"
+    File heatmap_bam_supermassa = "~{methodName}_bam_supermassa_heatmap.png"
+    File heatmap_bam_polyrad = "~{methodName}_bam_polyrad_heatmap.png"
+    File times_vcf_df = "~{methodName}_vcf_df_times.txt"
+    File times_vcf_GQ = "~{methodName}_vcf_GQ_times.txt"
+    File times_vcf_updog = "~{methodName}_vcf_updog_times.txt"
+    File times_vcf_supermassa = "~{methodName}_vcf_supermassa_times.txt"
+    File times_vcf_polyrad = "~{methodName}_vcf_polyrad_times.txt"
+    File times_bam_updog = "~{methodName}_bam_updog_times.txt"
+    File times_bam_supermassa = "~{methodName}_bam_supermassa_times.txt"
+    File times_bam_polyrad = "~{methodName}_bam_polyrad_times.txt"
+    File filters_vcf_dfAndGQ = "~{methodName}_filters_vcf_dfAndGQ.txt"
+    File filters_vcf_polyrad = "~{methodName}_filters_vcf_polyrad.txt"
+    File filters_vcf_supermassa = "~{methodName}_filters_vcf_supermassa.txt"
+    File filters_vcf_updog = "~{methodName}_filters_vcf_updog.txt"
     File filters_bam_polyrad = "~{methodName}_filters_bam_polyrad.txt"
     File filters_bam_supermassa = "~{methodName}_filters_bam_supermassa.txt"
     File filters_bam_updog = "~{methodName}_filters_bam_updog.txt"
-    File map_df = "~{methodName}_map_df.RData"
-    File map_GQ = "~{methodName}_map_GQ.RData"
-    File map_polyrad = "~{methodName}_map_polyrad.RData"
-    File map_supermassa = "~{methodName}_map_supermassa.RData"
-    File map_updog = "~{methodName}_map_updog.RData"
-    File map_bam_polyrad = "~{methodName}_map_bam_polyrad.RData"
-    File map_bam_supermassa = "~{methodName}_map_bam_supermassa.txt"
-    File map_bam_updog = "~{methodName}_map_bam_updog.txt"
-    File map_gusmap = "~{methodName}_map_gusmap.txt"
-    File map_bam_gusmap = "~{methodName}_map_bam_gusmap.txt"
+    File RData_vcf_df = "~{methodName}_vcf_df.RData"
+    File RData_vcf_GQ = "~{methodName}_vcf_GQ.RData"
+    File RData_vcf_polyrad = "~{methodName}_vcf_polyrad.RData"
+    File RData_vcf_supermassa = "~{methodName}_vcf_supermassa.RData"
+    File RData_vcf_updog = "~{methodName}_vcf_updog.RData"
+    File RData_bam_polyrad = "~{methodName}_bam_polyrad.RData"
+    File RData_bam_supermassa = "~{methodName}_bam_supermassa.RData"
+    File RData_bam_updog = "~{methodName}_bam_updog.RData"
+    File RData_gusmap = "~{methodName}_vcf_gusmap.RData"
+    File RData_bam_gusmap = "~{methodName}_bam_gusmap.RData"
+    File map_vcf_df = "~{methodName}_vcf_df_map.txt"
+    File map_vcf_GQ = "~{methodName}_vcf_GQ_map.txt"
+    File map_vcf_polyrad = "~{methodName}_vcf_polyrad_map.txt"
+    File map_vcf_supermassa = "~{methodName}_vcf_supermassa_map.txt"
+    File map_vcf_updog = "~{methodName}_vcf_updog_map.txt"
+    File map_bam_polyrad = "~{methodName}_bam_polyrad_map.txt"
+    File map_bam_supermassa = "~{methodName}_bam_supermassa_map.txt"
+    File map_bam_updog = "~{methodName}_bam_updog_map.txt"
+    File map_gusmap = "~{methodName}_vcf_gusmap_map.txt"
+    File map_bam_gusmap = "~{methodName}_bam_gusmap_map.txt"
   }
 }

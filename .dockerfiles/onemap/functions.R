@@ -118,18 +118,35 @@ create_maps_report <- function(input.seq, tot_mks,gab) {
   true_mks <- input.seq$seq.num[which(input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2])]
   seq_true <- make_seq(input.seq$twopt, true_mks) # only true markers are mapped
   
-  max.cores <- 10 #detectCores() # Change here to the maximun cores available for the process
-  n.mk <- length(input.seq$seq.num)
-  min.group.size <- 60
+  # max.cores <- 10 #detectCores() # Change here to the maximun cores available for the process
+  # n.mk <- length(input.seq$seq.num)
+  # min.group.size <- 60
   
-  while(n.mk/max.cores < min.group.size){
-    max.cores <- max.cores - 1
-  }
-  if(max.cores == 0) {
-    map_df <- map(seq_true)
+  # while(n.mk/max.cores < min.group.size){
+  #   max.cores <- max.cores - 1
+  # }
+  # if(max.cores == 0) {
+  #   map_df <- map(seq_true)
+  # } else {
+  #   map_df <- parmap(input.seq = seq_true, cores = max.cores, overlap = 10)
+  #   map_df <- map_df[[2]]
+  # }
+
+   if(length(seq_true$seq.num) > 60){
+    size <- 50
+    overlap <- 20
+    around <- 10
+  
+    batch_size <- pick_batch_sizes(seq_true,
+                                 size = size,
+                                 overlap = overlap,
+                                 around = around)
+  
+    map_df <- map_overlapping_batches(seq_true, size = batch_size, 
+                                     phase_cores = 4, overlap = overlap)
+
   } else {
-    map_df <- parmap(input.seq = seq_true, cores = max.cores, overlap = 10)
-    map_df <- map_df[[2]]
+    map_df <- map(seq_true)
   }
   
   phases <- phaseToOPGP_OM(map_df)
@@ -146,7 +163,7 @@ create_maps_report <- function(input.seq, tot_mks,gab) {
                          "real.type" = real_type,
                          "est.phases"= phases,
                          "real.phases"= real_phase)
-  return (map_info)
+  return(map_info)
 }
 
 

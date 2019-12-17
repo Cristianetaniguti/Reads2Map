@@ -32,6 +32,16 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 - ploidy: the ploidy of the specie, by now only diploid (2) species are supported
 - cross: cross type: "F1" or "F2"
 
+#### Test dataset for simulations
+
+As example, in the folder `data/toy_sample` is available a subset of populus chromosome 10 (find the entire genome [here](https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa)), its index files and the `doses` files needed by the workflow. The path to this folder must be defined in `main.inputs.json`.
+
+```
+# Execute the workflow
+java -jar cromwell.jar run -i main.inputs.json main.wdl
+```
+
+**Warning**: See section `WLD Configurations` to choose the better available option for you or create a personalized one.
 
 ### Run with empirical data
 
@@ -52,7 +62,7 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 
 - name: specie name
 
-#### Test dataset
+#### Test dataset for empirical analysis
 
 You can download black cottonwood genome assembly (FASTA) and RADseq reads (two FASTQs) from NCBI for testing.
 
@@ -98,6 +108,12 @@ I_3_55.sub.fastq I_3_55 I_3_55.Lib1_C09_AGAAGTC
 I_3_66.sub.fastq I_3_66 I_3_66.Lib1_D06_GCCAACT
 ```
 
+```
+# Execute the workflow
+java -jar cromwell.jar run -i empirical.json empirical.wdl
+```
+
+**Warning**: See section `WLD Configurations` to choose the better available option for you or create a personalized one.
 
 ### WDL configurations
 

@@ -1,96 +1,108 @@
 # Functions
-parmap <- function(input.seq=NULL, cores=3, overlap=4, tol=10E-5, avoid_link_errors = TRUE){
-  twopts <- input.seq$twopt
+create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
+  # Check genome position
+  pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
+  sort.pos <- sort(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))
+  if(all(pos != sort.pos)){
+    cat("The markers are not ordered by genome position")
+    input.seq <- make_seq(input.seq$twopt, input.seq$seq.num[order(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))])
+  } 
   
-  interv <- length(input.seq$seq.num)/cores
+  if(length(input.seq$seq.num) > 60){
+    size <- 50
+    overlap <- 20
+    around <- 10
+    
+    batch_size <- pick_batch_sizes(input.seq,
+                                 size = size,
+                                 overlap = overlap,
+                                 around = around)
   
-  seqs <- 1:length(input.seq$seq.num)
-  
-  list_idx <- list(1:cores)
-  
-  init <- 1
-  end <- interv
-  for(i in 1:cores){
-    if(i != cores){
-      list_idx[[i]] <- init:(end+(overlap-1))
-      init <- end
-      end <- end + interv
-    } else{
-      list_idx[[i]] <- init:end
-    }
-  }
-  
-  list_seq <- lapply(list_idx, function(x) make_seq(twopts, input.seq$seq.num[x]))
-  
-
-  clust <- makeCluster(cores)
-  clusterExport(clust, c("avoid_unlinked", "twopts"))
-  if(avoid_link_errors){
-    new.maps <- parLapply(clust, list_seq, function(x) avoid_unlinked(x, tol=tol))      
+    time_par <- system.time(map_out <- map_overlapping_batches(input.seq, 
+                                                             size = batch_size, phase_cores = 4, overlap = overlap))  
   } else {
-    new.maps <- parLapply(clust, list_seq, function(x) onemap::map(x, tol=tol))
-  }
-
-  stopCluster(clust)
-  
-  joint.map <- new.maps[[1]]
-  new.seq.num <- new.seq.rf <- new.seq.phases <- vector()
-  diff1 <- vector()
-  for(i in 1:(length(new.maps)-1)){
-    idx.end <- (length(new.maps[[i]]$seq.num) - overlap+1):(length(new.maps[[i]]$seq.num))
-    new.seq.num <- c(new.seq.num, new.maps[[i]]$seq.num[-idx.end])
-    new.seq.rf <- c(new.seq.rf, new.maps[[i]]$seq.rf[-idx.end[-length(idx.end)]])
-    new.seq.phases <- c(new.seq.phases, new.maps[[i]]$seq.phases[-idx.end[-length(idx.end)]])
-    
-    if(i == (length(new.maps)-1)){
-      new.seq.num <- c(new.seq.num, new.maps[[i+1]]$seq.num)
-      new.seq.rf <- c(new.seq.rf, new.maps[[i+1]]$seq.rf)
-      new.seq.phases <- c(new.seq.phases, new.maps[[i+1]]$seq.phases)
-    }
-    
-    end <- new.maps[[i]]$seq.rf[idx.end[-length(idx.end)]]
-    init <- new.maps[[i+1]]$seq.rf[1:overlap-1]
-    diff1 <- c(diff1,end - init)
+    time_par <- system.time(map_out <- map(input.seq))
   }
   
-  cat("The overlap markers have mean ", mean(diff1), " of  recombination fraction diff1erences, and variance of ", var(diff1), "\n")
+  file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
+  p <- rf_graph_table(map_out)
+  ggsave(p, filename = paste0(file.name,".png"))
   
-  joint.map$seq.num <- new.seq.num
-  joint.map$seq.phases <- new.seq.phases
-  joint.map$seq.rf <- new.seq.rf
-  
-  return(list(diff1,joint.map))
+  times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
+  write_report(times_df, paste0(file.name,"_times.txt"))
+  sizes_df <- data.frame(CountsFrom, SNPCall, GenoCall, "mks" = colnames(map_out$data.name$geno)[map_out$seq.num],
+                         "pos" = map_out$data.name$POS[map_out$seq.num], rf = cumsum(c(0,kosambi(map_out$seq.rf))),
+                         type = map_out$data.name$segr.type[map_out$seq.num], phases = phaseToOPGP_OM(map_out))
+  write_report(sizes_df, paste0(file.name,"_map.txt"))
+  save(map_out, file = paste0(file.name,".RData"))
 }
 
-avoid_unlinked <- function(input.seq, tol){
-    map_df <- onemap::map(input.seq, mds.seq = T)
-    while(class(map_df) == "integer"){
-        seq_true <- onemap::make_seq(twopts, map_df)
-        map_df <- onemap::map(input.seq = seq_true, mds.seq = T)
-    }
-    return(map_df)
+phaseToOPGP_OM <- function(x){
+  ## code from here taken from the onemap function print.sequence()
+  link.phases <- matrix(NA, length(x$seq.num), 2)
+  link.phases[1, ] <- rep(1, 2)
+  for (i in 1:length(x$seq.phases)) {
+    switch(EXPR = x$seq.phases[i],
+           link.phases[i + 1, ] <- link.phases[i, ] * c(1, 1),
+           link.phases[i +  1, ] <- link.phases[i, ] * c(1, -1),
+           link.phases[i + 1, ] <- link.phases[i, ] * c(-1, 1),
+           link.phases[i + 1, ] <- link.phases[i, ] * c(-1, -1))
+  }
+  if (class(x$data.name)[2] == "outcross") {
+    link.phases <- apply(link.phases, 1, function(x) paste(as.character(x), collapse = "."))
+    parents <- matrix("", length(x$seq.num), 4)
+    for (i in 1:length(x$seq.num)) 
+      parents[i, ] <- onemap:::return_geno(x$data.name$segr.type[x$seq.num[i]], link.phases[i])
+    ## Our code below
+    #transpose the parents and set to baseline
+    parents[which(parents == 'a')] <-'A'
+    parents[which(parents == 'b')] <- 'B'
+    
+    parents = t(parents)
+    if(parents[1,which(apply(parents[1:2,],2,function(x) !(all(x=='A'))))[1]] == 'B')
+      parents[1:2,] <- parents[2:1,]
+    if(parents[3,which(apply(parents[3:4,],2,function(x) !(all(x=='A'))))[1]] == 'B')
+      parents[3:4,] <- parents[4:3,]
+    
+    phases <- GUSMap:::parHapToOPGP(parents)
+    phases[which(phases == 1 | phases == 4)] <- 17 
+    phases[which(phases == 2 | phases == 3)] <- 18
+    phases[which(phases == 5 | phases == 8)] <- 19
+    phases[which(phases == 6 | phases == 7)] <- 20
+    phases[which(phases == 9 | phases == 12)] <- 21
+    phases[which(phases == 10 | phases == 11)] <- 22
+    phases[which(phases == 13 | phases == 16)] <- 23 
+    phases[which(phases == 14 | phases == 15)] <- 24 
+    
+    ## Now from the parental haplotypes, determine the OPGPs
+    return(phases)
+  }
 }
 
-
-create_filters_report <- function(onemap_obj) {
+create_filters_report <- function(onemap_obj, CountsFrom, SNPCall, GenoCall) {
   bins <- onemap::find_bins(onemap_obj)
   onemap_bins <- create_data_bins(onemap_obj, bins)
-  segr <- onemap::test_segregation(onemap_obj)
+  segr <- onemap::test_segregation(onemap_bins)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
   twopts <- rf_2pts(onemap_bins)
   seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
-  filters_tab <- data.frame("n_markers"= total_variants,
-                            "distorted_markers"=length(distorted),
-                            "redundant_markers"=total_variants - length(bins[[1]]))
-  return(list(filters_tab, seq1))
+  lgs <- group(seq1)
+  lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups)))))
+  filters_tab <- data.frame(CountsFrom,
+                            SNPCall,
+                            GenoCall,
+                            "n_markers"= total_variants,
+                            "distorted_markers"= length(distorted),
+                            "redundant_markers"= total_variants - length(bins[[1]]),
+                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
+  return(list(filters_tab, lg1))
 }
 
-write_report <- function(filters_tab, out_name) {
-  write.table(filters_tab, file=out_name, row.names=F, quote=F)
+write_report <- function(tab, out_name) {
+  write.table(tab, file=out_name, row.names=F, quote=F)
 }
-
 
 make_vcf <- function(vcf.old, depths, method){
   # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
@@ -136,20 +148,21 @@ make_vcf <- function(vcf.old, depths, method){
   return(paste0("temp.",seed, ".vcf"))
 }
 
-create_gusmap_report <- function(vcf_file){
+create_gusmap_report <- function(vcf_file, parent1, parent2){
+  file.name <- sapply(strsplit(vcf_file, "[.]"), function(x) x[-length(x)])
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
   
-  ped.file <- read.csv(paste0(method_name,"_ped.csv"))
+  ped.file <- read.csv(paste0(file.name,"_ped.csv"))
   ID <- c(1:(dim(ped.file)[1]))
-  idx.P1 <- which(as.character(ped.file$SampleID) == "PT_F")
-  idx.P2 <- which(as.character(ped.file$SampleID) == "PT_M")
+  idx.P1 <- which(as.character(ped.file$SampleID) == parent1)
+  idx.P2 <- which(as.character(ped.file$SampleID) == parent2)
   
   mother <- c(rep(idx.P1,dim(ped.file)[1]))
   father <- c(rep(idx.P2,dim(ped.file)[1]))
   fam <- c(rep("F1", dim(ped.file)[1]))
-  idx.P1 <- which(as.character(ped.file$SampleID) == "PT_F")
-  idx.P2 <- which(as.character(ped.file$SampleID) == "PT_M")
+  idx.P1 <- which(as.character(ped.file$SampleID) == parent1)
+  idx.P2 <- which(as.character(ped.file$SampleID) == parent2)
   mother[c(idx.P1, idx.P2)] <- ""
   father[c(idx.P1, idx.P2)] <- ""
   fam[c(idx.P1, idx.P2)] <- c("", "")
@@ -160,13 +173,13 @@ create_gusmap_report <- function(vcf_file){
   
   write.csv(ped.file, file = "ped.file.csv")
   
-  RAdata <- readRA(paste0(method_name,".recode.vcf.ra.tab"), pedfile = "ped.file.csv", 
+  RAdata <- readRA(paste0(file.name,".vcf.ra.tab"), pedfile = "ped.file.csv", 
                    filter = list(MAF=0.05, MISS=0.75, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.75,
                                  BIN = 0, DEPTH = 0, PVALUE = 0.01))
-
+  
   
   pos <- mydata$.__enclos_env__$private$pos
   depth_Ref_m <- mydata$.__enclos_env__$private$ref[[1]]
@@ -195,7 +208,7 @@ create_gusmap_report <- function(vcf_file){
   phases.gus[which(phases.gus == 10 | phases.gus == 11)] <- 22
   phases.gus[which(phases.gus == 13 | phases.gus == 16)] <- 23
   phases.gus[which(phases.gus == 14 | phases.gus == 15)] <- 24
-
+  
   config[which(config==1)] <- "B3.7"
   config[which(config==2 | config==3)] <- "D1.10"
   config[which(config==4 | config==5)] <- "D2.15"

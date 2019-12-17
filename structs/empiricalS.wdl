@@ -14,5 +14,6 @@ struct ReferenceFasta {
 struct dataset {
   File samples_info
   String name
-  File bamNames
+  String parent1
+  String parent2
 }
