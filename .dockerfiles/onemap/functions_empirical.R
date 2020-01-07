@@ -1,4 +1,13 @@
-# Functions
+                                        # Functions
+repeat_map <- function(input.seq){
+    map_out <- map(input.seq, rm_unlinked=TRUE)
+    while(class(map_out) == "integer"){
+        new.seq <- make_seq(input.seq$twopt, map_out)
+        map_out <- map(new.seq, rm_unlinked=T)
+    }
+    return(map_out)
+    }
+
 create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   # Check genome position
   pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
@@ -21,12 +30,12 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
     time_par <- system.time(map_out <- map_overlapping_batches(input.seq, 
                                                              size = batch_size, phase_cores = 4, overlap = overlap))  
   } else {
-    time_par <- system.time(map_out <- map(input.seq))
+      time_par <- system.time(map_out <- repeat_map(input.seq))
   }
   
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
   p <- rf_graph_table(map_out)
-  ggsave(p, filename = paste0(file.name,".png"))
+  ggsave(p, filename = paste0(file.name,"_heatmap.png"))
   
   times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
   write_report(times_df, paste0(file.name,"_times.txt"))
@@ -80,8 +89,9 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj, CountsFrom, SNPCall, GenoCall) {
-  bins <- onemap::find_bins(onemap_obj)
-  onemap_bins <- create_data_bins(onemap_obj, bins)
+    onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
+  bins <- onemap::find_bins(onemap_mis)
+  onemap_bins <- create_data_bins(onemap_mis, bins)
   segr <- onemap::test_segregation(onemap_bins)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
@@ -93,6 +103,7 @@ create_filters_report <- function(onemap_obj, CountsFrom, SNPCall, GenoCall) {
   filters_tab <- data.frame(CountsFrom,
                             SNPCall,
                             GenoCall,
+                            "higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
                             "n_markers"= total_variants,
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
@@ -105,7 +116,7 @@ write_report <- function(tab, out_name) {
 }
 
 make_vcf <- function(vcf.old, depths, method){
-  # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
+  # The input of polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
   idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
   idx.i <- strsplit(idx, split = ":")[[1]][1]
   seed <- sample(1:10000, 1)
@@ -148,8 +159,8 @@ make_vcf <- function(vcf.old, depths, method){
   return(paste0("temp.",seed, ".vcf"))
 }
 
-create_gusmap_report <- function(vcf_file, parent1, parent2){
-  file.name <- sapply(strsplit(vcf_file, "[.]"), function(x) x[-length(x)])
+create_gusmap_report <- function(vcf_file,SNPCall,  parent1, parent2){
+  file.name <- SNPCall
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
   
@@ -173,7 +184,7 @@ create_gusmap_report <- function(vcf_file, parent1, parent2){
   
   write.csv(ped.file, file = "ped.file.csv")
   
-  RAdata <- readRA(paste0(file.name,".vcf.ra.tab"), pedfile = "ped.file.csv", 
+  RAdata <- readRA(paste0(file.name,".recode.vcf.ra.tab"), pedfile = "ped.file.csv", 
                    filter = list(MAF=0.05, MISS=0.75, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
@@ -213,7 +224,8 @@ create_gusmap_report <- function(vcf_file, parent1, parent2){
   config[which(config==2 | config==3)] <- "D1.10"
   config[which(config==4 | config==5)] <- "D2.15"
   
-  map_info <- data.frame("mk.name"= mydata$.__enclos_env__$private$SNP_Names,
+  map_info <- data.frame("SNPCall"= SNPCall,
+                         "mk.name"= mydata$.__enclos_env__$private$SNP_Names,
                          "pos" = pos,
                          "rf" = dist.gus,
                          "type"= config,
