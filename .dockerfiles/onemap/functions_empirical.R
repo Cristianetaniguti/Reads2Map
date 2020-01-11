@@ -11,7 +11,7 @@ repeat_map <- function(input.seq){
 create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   # Check genome position
   pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
-  sort.pos <- sort(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))
+  sort.pos <- sort(pos)
   if(all(pos != sort.pos)){
     cat("The markers are not ordered by genome position")
     input.seq <- make_seq(input.seq$twopt, input.seq$seq.num[order(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))])
@@ -34,8 +34,8 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   }
   
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
-  p <- rf_graph_table(map_out)
-  ggsave(p, filename = paste0(file.name,"_heatmap.png"))
+  #p <- rf_graph_table(map_out)
+  #ggsave(p, filename = paste0(file.name,"_heatmap.png"))
   
   times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
   write_report(times_df, paste0(file.name,"_times.txt"))
@@ -124,7 +124,7 @@ make_vcf <- function(vcf.old, depths, method){
   
   vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
   
-  if(all(rownames(depths[[1]]) == paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
+  if(all(rownames(depths[[1]]) %in% paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
     
     vcf.init <- vcf.tab[,1:8]
     AD.colum <- rep("AD", dim(vcf.init)[1])
@@ -159,7 +159,7 @@ make_vcf <- function(vcf.old, depths, method){
   return(paste0("temp.",seed, ".vcf"))
 }
 
-create_gusmap_report <- function(vcf_file,SNPCall,  parent1, parent2){
+create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent1, parent2){
   file.name <- SNPCall
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
@@ -190,8 +190,7 @@ create_gusmap_report <- function(vcf_file,SNPCall,  parent1, parent2){
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.75,
                                  BIN = 0, DEPTH = 0, PVALUE = 0.01))
-  
-  
+    
   pos <- mydata$.__enclos_env__$private$pos
   depth_Ref_m <- mydata$.__enclos_env__$private$ref[[1]]
   depth_Alt_m <- mydata$.__enclos_env__$private$alt[[1]]
@@ -200,16 +199,20 @@ create_gusmap_report <- function(vcf_file,SNPCall,  parent1, parent2){
   depth_Alt <- list(depth_Alt_m)
   config <- mydata$.__enclos_env__$private$config[[1]]
   
-  phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
-                                       config, epsilon=0.001, reltol=1e-3)
+  time_par1 <- system.time(phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
+                                       config, epsilon=0.001, reltol=1e-3))
   
-  rf_est <- GUSMap:::rf_est_FS(init_r = 0.01, ep = 0.001, 
+  time_par2 <- system.time(rf_est <- GUSMap:::rf_est_FS(init_r = 0.01, ep = 0.001, 
                                ref = depth_Ref, 
                                alt = depth_Alt, 
                                OPGP=list(as.integer(phases.gus)),
-                               nThreads = 1)
+                               nThreads = 1))
+
+  time_par <- time_par1 + time_par2
+  times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
+  write_report(times_df, paste0(file.name,"_", CountsFrom, "_",GenoCall, "_times.txt"))
   
-  rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
+  #rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
   dist.gus <- c(0,cumsum(rf_est$rf))
   phases.gus[which(phases.gus == 1 | phases.gus == 4)] <- 17
   phases.gus[which(phases.gus == 2 | phases.gus == 3)] <- 18
@@ -223,13 +226,18 @@ create_gusmap_report <- function(vcf_file,SNPCall,  parent1, parent2){
   config[which(config==1)] <- "B3.7"
   config[which(config==2 | config==3)] <- "D1.10"
   config[which(config==4 | config==5)] <- "D2.15"
+
+  file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
+  save(mydata, file = paste0(file.name,".RData"))
   
-  map_info <- data.frame("SNPCall"= SNPCall,
-                         "mk.name"= mydata$.__enclos_env__$private$SNP_Names,
+  map_info <- data.frame("CountsFrom" = CountsFrom,
+                         "SNPCall"= SNPCall,
+                         "GenoCall" = GenoCall,
+                         "mks"= mydata$.__enclos_env__$private$SNP_Names,
                          "pos" = pos,
                          "rf" = dist.gus,
                          "type"= config,
-                         "est.phases"= phases.gus)
+                         "phases"= phases.gus)
   
   return(map_info)
 }

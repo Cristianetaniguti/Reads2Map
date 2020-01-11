@@ -78,7 +78,7 @@ done
 # Access all samples in the BioProject	PRJNA395596
 
 # Download the reference genome in https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa
-# Here we only use chromosome 10
+# Here we only use the first 2500 lines of chromosome 10
 ```
 
 samples_info
