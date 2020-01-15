@@ -85,7 +85,8 @@ workflow empirical{
  call VcftoolsApplyFilters{
    input:
      freebayesVCF = RunFreebayes.freebayesVCF,
-     gatkVCF      = GenotypeGVCFs.gatkVCF
+     gatkVCF      = GenotypeGVCFs.gatkVCF,
+     filt_depth   = dataset.filt_depth
  }
 
  scatter (bams in bam_files) {
@@ -131,6 +132,7 @@ workflow empirical{
 
   call JointDatas{
       input:
+       depths_GQ_vcf_rds = avalVCFs.depths_GQ_vcf_rds,
        depths_df_vcf_rds = avalVCFs.depths_df_vcf_rds,
        depths_updog_vcf_rds = avalVCFs.depths_updog_vcf_rds,
        depths_supermassa_vcf_rds = avalVCFs.depths_supermassa_vcf_rds,
@@ -269,7 +271,7 @@ task JointSameSamples{
 
    R --vanilla --no-save <<RSCRIPT
 
-     system("cp ~{sep=" "  bam_rg} .")
+     system("ln -s ~{sep = " . ; ln -s "  bam_rg} .")
 
      files <- read.table("~{samples_info}", stringsAsFactors = F)
 
@@ -434,11 +436,12 @@ task  VcftoolsApplyFilters {
  input {
    File gatkVCF
    File freebayesVCF
+   String? filt_depth
  }
 
  command <<<
-   vcftools --vcf "~{gatkVCF}" --max-missing 0.75 --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk
-   vcftools --vcf "~{freebayesVCF}" --max-missing 0.75 --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes
+   vcftools --vcf "~{gatkVCF}" --max-missing 0.75 --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk ~{filt_depth}
+   vcftools --vcf "~{freebayesVCF}" --max-missing 0.75 --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes ~{filt_depth}
 
  >>>
  runtime {
@@ -511,8 +514,8 @@ task BamCounts4Onemap{
  command <<<
    R --vanilla --no-save <<RSCRIPT
      library(R.utils)
-     system("cp ~{sep=" "  freebayes_counts} .")
-     system("cp ~{sep=" "  gatk_counts} .")
+     system("ln -s ~{sep = " . ; ln -s "  freebayes_counts} .")
+     system("ln -s ~{sep = " . ; ln -s "  gatk_counts} .")
      info <- read.table("~{samples_info}", stringsAsFactors=F)
      names <- info[,2]
      methods <- c("freebayes", "gatk")
@@ -627,7 +630,8 @@ task avalVCFs{
                          parent2= parent2)
 
    # check depths
-   p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", recovering = FALSE, GTfrom = "vcf", alpha=0.1,
+   p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD",
+   recovering = FALSE, GTfrom = "vcf", alpha=0.1,
    rds.file = paste0(SNPCall,"_", GenoCall= "df","_",CountsFrom="vcf","_depths.rds"))
    #ggsave(filename = paste0(SNPCall,"_", GenoCall= "df","_",CountsFrom="vcf","_vcf_depths.png"), p)
 
@@ -649,6 +653,11 @@ task avalVCFs{
 
    aval.gq <- create_probs(df, genotypes_errors=aval.gq)
    filters_tab <- create_filters_report(aval.gq, CountsFrom = "vcf", SNPCall=SNPCall, GenoCall="df")
+
+   # check depths and errors
+   p <- create_depths_profile(onemap.obj = aval.gq, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD",
+   recovering = FALSE, GTfrom = "vcf", alpha=0.1,
+   rds.file = paste0(SNPCall,"_", GenoCall= "GQ","_",CountsFrom="vcf","_depths.rds"))
 
    create_map_report(filters_tab[[2]], CountsFrom = "vcf", SNPCall = SNPCall, GenoCall="GQ")
 
@@ -778,6 +787,7 @@ task avalVCFs{
  }
 
  output{
+   File depths_GQ_vcf_rds = "~{methodName}_GQ_vcf_depths.rds"
    File depths_df_vcf_rds = "~{methodName}_df_vcf_depths.rds"
    File depths_updog_vcf_rds = "~{methodName}_updog_vcf_depths.rds"
    File depths_supermassa_vcf_rds = "~{methodName}_supermassa_vcf_depths.rds"
@@ -827,6 +837,7 @@ task avalVCFs{
 
 task JointDatas{
     input{
+       Array[File] depths_GQ_vcf_rds
        Array[File] depths_df_vcf_rds 
        Array[File] depths_updog_vcf_rds 
        Array[File] depths_supermassa_vcf_rds 
@@ -876,51 +887,52 @@ task JointDatas{
     command <<<
 
        R --vanilla --no-save <<RSCRIPT
-                        
-       system("cp ~{sep = " " depths_df_vcf_rds} .")
-       system("cp ~{sep = " " depths_updog_vcf_rds } .")
-       system("cp ~{sep = " " depths_supermassa_vcf_rds } .")
-       system("cp ~{sep = " " depths_polyrad_vcf_rds } .")
-       system("cp ~{sep = " " depths_updog_bam_rds } .")
-       system("cp ~{sep = " " depths_supermassa_bam_rds } .")
-       system("cp ~{sep = " " depths_polyrad_bam_rds } .")
-       system("cp ~{sep = " " times_vcf_df } .")
-       system("cp ~{sep = " " times_vcf_GQ } .")
-       system("cp ~{sep = " " times_vcf_updog } .")
-       system("cp ~{sep = " " times_vcf_supermassa } .")
-       system("cp ~{sep = " " times_vcf_polyrad } .")
-       system("cp ~{sep = " " times_vcf_gusmap } .")
-       system("cp ~{sep = " " times_bam_updog } .")
-       system("cp ~{sep = " " times_bam_supermassa } .")
-       system("cp ~{sep = " " times_bam_polyrad } .")
-       system("cp ~{sep = " " times_bam_gusmap } .")
-       system("cp ~{sep = " " filters_vcf_dfAndGQ } .")
-       system("cp ~{sep = " " filters_vcf_polyrad } .")
-       system("cp ~{sep = " " filters_vcf_supermassa } .")
-       system("cp ~{sep = " " filters_vcf_updog } .")
-       system("cp ~{sep = " " filters_bam_polyrad } .")
-       system("cp ~{sep = " " filters_bam_supermassa } .")
-       system("cp ~{sep = " " filters_bam_updog } .")
-       system("cp ~{sep = " " RData_vcf_df } .")
-       system("cp ~{sep = " " RData_vcf_GQ } .")
-       system("cp ~{sep = " " RData_vcf_polyrad } .")
-       system("cp ~{sep = " " RData_vcf_supermassa } .")
-       system("cp ~{sep = " " RData_vcf_updog } .")
-       system("cp ~{sep = " " RData_bam_polyrad } .")
-       system("cp ~{sep = " " RData_bam_supermassa } .")
-       system("cp ~{sep = " " RData_bam_updog } .")
-       system("cp ~{sep = " " RData_gusmap } .")
-       system("cp ~{sep = " " RData_bam_gusmap } .")
-       system("cp ~{sep = " " map_vcf_df } .")
-       system("cp ~{sep = " " map_vcf_GQ } .")
-       system("cp ~{sep = " " map_vcf_polyrad } .")
-       system("cp ~{sep = " " map_vcf_supermassa } .")
-       system("cp ~{sep = " " map_vcf_updog } .")
-       system("cp ~{sep = " " map_bam_polyrad } .")
-       system("cp ~{sep = " " map_bam_supermassa } .")
-       system("cp ~{sep = " " map_bam_updog } .")
-       system("cp ~{sep = " " map_gusmap } .")
-       system("cp ~{sep = " " map_bam_gusmap } .")
+
+       system("ln -s ~{sep = " . ; ln -s " depths_GQ_vcf_rds} .")
+       system("ln -s ~{sep = " . ; ln -s " depths_df_vcf_rds} .")
+       system("ln -s ~{sep = " . ; ln -s " depths_updog_vcf_rds } .")
+       system("ln -s ~{sep = " . ; ln -s " depths_supermassa_vcf_rds } .")
+       system("ln -s ~{sep = " . ; ln -s " depths_polyrad_vcf_rds } .")
+       system("ln -s ~{sep = " . ; ln -s " depths_updog_bam_rds } .")
+       system("ln -s ~{sep = " . ; ln -s " depths_supermassa_bam_rds } .")
+       system("ln -s ~{sep = " . ; ln -s " depths_polyrad_bam_rds } .")
+       system("ln -s ~{sep = " . ; ln -s " times_vcf_df } .")
+       system("ln -s ~{sep = " . ; ln -s " times_vcf_GQ } .")
+       system("ln -s ~{sep = " . ; ln -s " times_vcf_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " times_vcf_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " times_vcf_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " times_vcf_gusmap } .")
+       system("ln -s ~{sep = " . ; ln -s " times_bam_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " times_bam_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " times_bam_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " times_bam_gusmap } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_vcf_dfAndGQ } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_vcf_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_vcf_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_vcf_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_bam_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_bam_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " filters_bam_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_vcf_df } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_vcf_GQ } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_vcf_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_vcf_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_vcf_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_bam_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_bam_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_bam_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_gusmap } .")
+       system("ln -s ~{sep = " . ; ln -s " RData_bam_gusmap } .")
+       system("ln -s ~{sep = " . ; ln -s " map_vcf_df } .")
+       system("ln -s ~{sep = " . ; ln -s " map_vcf_GQ } .")
+       system("ln -s ~{sep = " . ; ln -s " map_vcf_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " map_vcf_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " map_vcf_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " map_bam_polyrad } .")
+       system("ln -s ~{sep = " . ; ln -s " map_bam_supermassa } .")
+       system("ln -s ~{sep = " . ; ln -s " map_bam_updog } .")
+       system("ln -s ~{sep = " . ; ln -s " map_gusmap } .")
+       system("ln -s ~{sep = " . ; ln -s "  map_bam_gusmap } .")
 
        ## Map, times and RDatas
                         
@@ -941,16 +953,12 @@ task JointDatas{
                   temp <- read.table(paste0(i,"_",w,"_",j,"_map.txt"), header=T)
                   temp.1 <- read.table(paste0(i,"_",w,"_",j,"_times.txt"), header=T)
                   load(paste0(i,"_",w,"_",j,".RData"))
+                  data_map <- rbind(data_map, temp)
+                  data_times <- rbind(data_times, temp.1)
+                  data_RDatas[[z]] <- map_out
+                  names_list <- c(names_list,paste0(i,"_",w,"_",j))
+                  z <- z + 1
                  }
-                 data_map <- rbind(data_map, temp)
-                 data_times <- rbind(data_times, temp.1)
-                 if(j != "gusmap"){
-                    data_RDatas[[z]] <- map_out
-                 } else {
-                    data_RDatas[[z]] <- mydata
-                 }
-                 names_list <- c(names_list,paste0(i,"_",w,"_",j))
-                 z <- z + 1
                 }
              }
           }
@@ -982,16 +990,16 @@ task JointDatas{
         
        # Depths
         
-        GenoCall <- c("supermassa", "updog", "df", "polyrad")
+        GenoCall <- c("supermassa", "updog", "df", "polyrad", "GQ")
         
         data_depths <- data.frame()
         for(i in SNPCall){
             for(j in GenoCall){
                 for(w in CountsFrom){
-                   if(j == "df" & w == "bam"){
+                   if((j == "df" | j == "GQ") & w == "bam"){
                    } else {
                      temp <- readRDS(paste0(i,"_", j, "_", w, "_depths.rds"))
-                     temp <- data.frame(SNPCall=i, GenoCall=i, CountsFrom=w, temp)
+                     temp <- data.frame(SNPCall=i, GenoCall=j, CountsFrom=w, temp)
                      data_depths <- rbind(data_depths, temp)
                    }
                 }

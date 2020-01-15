@@ -16,4 +16,5 @@ struct dataset {
   String name
   String parent1
   String parent2
+  String? filt_depth
 }

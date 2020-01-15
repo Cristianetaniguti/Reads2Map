@@ -13,6 +13,7 @@
     "samples_info": "/home/cristiane/github/errors_workflow/data/populus_sub/sample_info_subsub",
       "name": "populus",
       "parent1": "PT_F",
-      "parent2": "PT_M"
+      "parent2": "PT_M",
+      "filt_depth": "--min-meanDP 6"
   }
 }

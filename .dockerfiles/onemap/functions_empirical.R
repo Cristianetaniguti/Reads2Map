@@ -1,13 +1,4 @@
                                         # Functions
-repeat_map <- function(input.seq){
-    map_out <- map(input.seq, rm_unlinked=TRUE)
-    while(class(map_out) == "integer"){
-        new.seq <- make_seq(input.seq$twopt, map_out)
-        map_out <- map(new.seq, rm_unlinked=T)
-    }
-    return(map_out)
-    }
-
 create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   # Check genome position
   pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
@@ -30,7 +21,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
     time_par <- system.time(map_out <- map_overlapping_batches(input.seq, 
                                                              size = batch_size, phase_cores = 4, overlap = overlap))  
   } else {
-      time_par <- system.time(map_out <- repeat_map(input.seq))
+      time_par <- system.time(map_out <- map_avoid_unlinked(input.seq))
   }
   
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
@@ -228,7 +219,8 @@ create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent
   config[which(config==4 | config==5)] <- "D2.15"
 
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
-  save(mydata, file = paste0(file.name,".RData"))
+  map_out <- mydata
+  save(map_out, file = paste0(file.name,".RData"))
   
   map_info <- data.frame("CountsFrom" = CountsFrom,
                          "SNPCall"= SNPCall,
