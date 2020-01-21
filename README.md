@@ -64,24 +64,25 @@ java -jar cromwell.jar run -i main.inputs.json main.wdl
 
 #### Test dataset for empirical analysis
 
-You can download black cottonwood genome assembly (FASTA) and RADseq reads (two FASTQs) from NCBI for testing.
+You can download black cottonwood genome assembly (FASTA) and RADseq reads from NCBI for testing.
 
 ```
-# Download a subset of RADseq data from populus study using SRA toolkit (https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/)
+# Download a subset of RADseq data from populus study using the docker image "cristaniguti/sratoolkit" with the SRA toolkit 
 
 for i in SRR6249795 SRR6249808 SRR6249768 SRR6249769 SRR6249770 SRR6249771 SRR6249772 SRR6249773 SRR6249774 SRR6249775 SRR6249776 SRR6249778 SRR6249779 SRR6249780 SRR6249781 SRR6249782 SRR6249783 SRR6249784 SRR6249785 SRR6249786 SRR6249787 SRR6249788; do
-    ./fasterq-dump $i
+    docker run -v $(pwd):/opt/ cristaniguti/sratoolkit ./fasterq-dump $i -O /opt/
     head -n 1200000 $i.fastq > $i.sub.fastq # Just a subset of the reads
 done
 
-# Here there are data enought to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 20 progeny individuals. The original study have eight replicates for each parent and 122 progenies.
+# Here there are enought data to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 20 progeny individuals. The original study have eight replicates for each parent and 122 progenies.
 # Access all samples in the BioProject	PRJNA395596
 
-# Download the reference genome in https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa
+# Download the reference genome in https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa 
 # Here we only use the first 2500 lines of chromosome 10
+
 ```
 
-samples_info
+samples_info_sub
 
 ```
 PT_F.sub.fastq	PT_F	PT_F.Lib1_E09_TGAACAT
@@ -112,6 +113,9 @@ I_3_66.sub.fastq I_3_66 I_3_66.Lib1_D06_GCCAACT
 # Execute the workflow
 java -jar cromwell.jar run -i empirical.json empirical.wdl
 ```
+
+You can also download the full data set running the script "data/populus/download_SRRs.sh" and the "data/populus/sample_info" file.
+
 
 **Warning**: See section `WLD Configurations` to choose the better available option for you or create a personalized one.
 
