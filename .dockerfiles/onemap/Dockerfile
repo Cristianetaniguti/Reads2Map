@@ -24,6 +24,6 @@ RUN R -e "devtools::install_github('Cristianetaniguti/onemap_ht', auth_token ='1
 
 RUN R -e "devtools::install_github('Cristianetaniguti/supermassa4onemap', auth_token ='1bcc1d0962f96c9b4d9afc936b807ab2d0804d01'   )"
 
-COPY ./functions.R /opt/scripts/
+COPY ./functions_simu.R /opt/scripts/
 
 COPY ./functions_empirical.R /opt/scripts

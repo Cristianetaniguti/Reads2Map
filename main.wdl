@@ -46,10 +46,9 @@ workflow main{
     input:
       data1  = ReadSimulations.data1_depths_geno_prob,
       data2  = ReadSimulations.data2_maps,
-      data3  = ReadSimulations.data3_coverage,
-      data4  = ReadSimulations.data4_filters,
+      data3  = ReadSimulations.data3_filters,
       data5  = ReadSimulations.data5_SNPcall_efficiency,
-      data6  = ReadSimulations.data6_times,
+      data4  = ReadSimulations.data4_times,
       depth  = family_template.depth
   }
 
@@ -58,10 +57,9 @@ workflow main{
   output {
     File data1_depths_geno_prob   = JointTables.data1_depths_geno_prob
     File data2_maps               = JointTables.data2_maps
-    File data3_coverage           = JointTables.data3_coverage
-    File data4_filters            = JointTables.data4_filters
+    File data3_filters            = JointTables.data3_filters
     File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
-    File data6_times              = JointTables.data6_times
+    File data4_times              = JointTables.data4_times
   }
 }
 
@@ -95,7 +93,6 @@ task JointTables{
     Array[File] data3
     Array[File] data4
     Array[File] data5
-    Array[File] data6
     Int depth
   }
 
@@ -110,7 +107,6 @@ task JointTables{
     datas[[3]] <- c("~{sep=";" data3}")
     datas[[4]] <- c("~{sep=";" data4}")
     datas[[5]] <- c("~{sep=";" data5}")
-    datas[[6]] <- c("~{sep=";" data6}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
@@ -134,9 +130,8 @@ task JointTables{
   output{
     File data1_depths_geno_prob   = "data1_~{depth}.rds"
     File data2_maps               = "data2_~{depth}.rds"
-    File data3_coverage           = "data3_~{depth}.rds"
-    File data4_filters            = "data4_~{depth}.rds"
+    File data3_filters            = "data3_~{depth}.rds"
     File data5_SNPcall_efficiency = "data5_~{depth}.rds"
-    File data6_times              = "data6_~{depth}.rds"
+    File data4_times              = "data4_~{depth}.rds"
   }
 }
