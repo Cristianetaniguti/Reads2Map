@@ -117,6 +117,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
                            "poscM.norm" = poscM.norm,
                            "diff" = diff)
   } else {
+    real.mks <- real.mks[input.seq$seq.num %in% map_df$seq.num]
     map_info <- data.frame("mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
                            "pos" = input.seq$data.name$POS[map_df[[1]]],
                            "rf" = c(0,cumsum(haldane(map_df[[3]]))),
