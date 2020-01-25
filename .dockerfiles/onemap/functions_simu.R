@@ -254,8 +254,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   }
   
   outname <- paste0("map_", SNPcall, "_", CountsFrom, "_", Genocall, "_", fake)
-  map_out <- mydata
-  save(map_out, file = paste0(outname,".RData"))
+  map_df <- mydata
+  save(map_df, file = paste0(outname,".RData"))
   write_report(map_info, paste0(outname, ".txt"))
 }
 # the errors report include markers with distortion and redundants

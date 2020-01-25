@@ -213,7 +213,8 @@ workflow reads_simu{
         all_maps                  = CreateMaps.all_maps,
         all_errors                = CreateMaps.all_errors,
         all_filters               = CreateMaps.all_filters,
-        times                     = CreateMaps.times
+        times                     = CreateMaps.times,
+        all_RDatas                = CreateMaps.all_RDatas
     }
 
   output {
@@ -222,6 +223,7 @@ workflow reads_simu{
     File data3_filters            = CreateTables.data3_filters
     File data5_SNPcall_efficiency = CalculateVcfMetrics.data5_SNPcall_efficiency
     File data4_times              = CreateTables.data4_times
+    File data6_RDatas             = CreateTables.data6_RDatas
   }
 }
 
@@ -1450,7 +1452,9 @@ task CreateMaps {
           CountsFrom <- c("vcf", "bam")
           
           all_maps <- all_errors <- all_filters <- data.frame()
-          
+          all_RDatas <- list()
+          z <- 1
+          names_RDatas <- vector()
           for(i in 1:length(Genocall)){
             for(j in 1:length(CountsFrom)){
               for(w in 1:length(fake)){
@@ -1458,6 +1462,10 @@ task CreateMaps {
                 } else {
                   cat(paste0("map_",method_name,"_",CountsFrom[j], "_", Genocall[i], "_",fake[w], ".txt"), "\n")
                   temp_map <- read.table(paste0("map_",method_name,"_",CountsFrom[j], "_", Genocall[i], "_",fake[w], ".txt"), header=T)
+                  load(paste0("map_",method_name,"_",CountsFrom[j], "_", Genocall[i], "_",fake[w], ".RData"))
+                  all_RDatas[[z]] <- map_df
+                  names_RDatas <- c(names_RDatas, paste0("map_",method_name,"_",CountsFrom[j], "_", Genocall[i], "_",fake[w]))
+                  z <- z+1
                   all_maps <- rbind(all_maps, temp_map)
                   if(Genocall[i] == "gusmap"){
                 
@@ -1473,10 +1481,12 @@ task CreateMaps {
               }
             }
           }
-          
+
+          names(all_RDatas) <- names_RDatas
           write.table(all_maps, paste0(method_name,"_maps.txt"))
           write.table(all_errors, paste0(method_name,"_errors.txt"))
           write.table(all_filters, paste0(method_name,"_filters.txt"))
+          save(all_RDatas, file= paste0(method_name, "_RDatas.RData"))
 
         RSCRIPT
   >>>
@@ -1490,6 +1500,7 @@ task CreateMaps {
     File all_maps = "~{methodName}_maps.txt"
     File all_errors = "~{methodName}_errors.txt"
     File all_filters = "~{methodName}_filters.txt"
+    File all_RDatas = "~{methodName}_RDatas.RData"
   }
 }
 
@@ -1510,6 +1521,7 @@ task CreateTables{
     Array[File] all_errors
     Array[File] all_filters
     Array[File] times
+    Array[File] all_RDatas
   }
 
   command <<<
@@ -1522,6 +1534,7 @@ task CreateTables{
           system("cp ~{sep= " " all_maps } .")
           system("cp ~{sep= " " all_errors } .")
           system("cp ~{sep= " " all_filters } .")
+          system("cp ~{sep= " " all_RDatas } .")
          
           tot_mks <- read.table("~{tot_mks}")
           method <- c("gatk", "freebayes")
@@ -1557,6 +1570,7 @@ task CreateTables{
             # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
             ########################################################################################
             df_tot_all <- times <- maps_tot <- filters_tot <- vector()
+            tot_RDatas <- list()
             for(i in 1:length(method)){
 
               if(method[i] == "gatk"){
@@ -1599,7 +1613,7 @@ task CreateTables{
               maps_tot <- rbind(maps_tot, map_df)
               
               ##########################################################################
-              # Table4: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
+              # Table3: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
               ##########################################################################
               
               filters_temp <- read.table(paste0(method[i], "_filters.txt"), header = T)
@@ -1608,7 +1622,7 @@ task CreateTables{
               filters_tot <- rbind(filters_tot, filters_temp)
               
               ###########################################################################
-              # Table6: CountsFrom; seed; SNPcall; GenoCall
+              # Table4: CountsFrom; seed; SNPcall; GenoCall
               ###########################################################################
               
               CountsFrom <- vector()
@@ -1622,12 +1636,25 @@ task CreateTables{
               Genocall <- temp[,4]
               real.mks <- temp[,5]
               times <- rbind(times, data.frame(CountsFrom, seed, depth, SNPcall, Genocall, real.mks, times = times_temp[,2]))
+
+              ###########################################################################
+              # Table6: list of RDatas with name CountsFrom; seed; SNPcall; GenoCall
+              ###########################################################################
+
+              load(paste0(method[i], "_RDatas.RData"))
+              tot_RDatas <- c(tot_RDatas, all_RDatas)
+
             }
+
+            names_RDatas <- names(tot_RDatas)
+            new_names <- paste0(seed, "_", depth, "_", names_RDatas)
+            names(tot_RDatas) <- new_names
             
             saveRDS(df_tot_all, file = "data1_depths_geno_prob.rds")
             saveRDS(maps_tot, file = "data2_maps.rds")
             saveRDS(filters_tot, file = "data3_filters.rds")
             saveRDS(times, file= "data4_times.rds")
+            save(tot_RDatas, file = "data6_RDatas.RData")
 
       RSCRIPT
   >>>
@@ -1641,6 +1668,7 @@ task CreateTables{
     File data2_maps = "data2_maps.rds"
     File data3_filters = "data3_filters.rds"
     File data4_times   = "data4_times.rds"
+    File data6_RDatas  = "data6_RDatas.RData"
   }
 }
 

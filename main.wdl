@@ -49,7 +49,8 @@ workflow main{
       data3  = ReadSimulations.data3_filters,
       data5  = ReadSimulations.data5_SNPcall_efficiency,
       data4  = ReadSimulations.data4_times,
-      depth  = family_template.depth
+      depth  = family_template.depth,
+      data6  = ReadSimulations.data6_RDatas
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -59,7 +60,9 @@ workflow main{
     File data2_maps               = JointTables.data2_maps
     File data3_filters            = JointTables.data3_filters
     File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
-    File data4_times              = JointTables.data4_times
+    File data4_times              = JointTables.data4_times    
+    File data6_RDatas             = JointTables.data6_RDatas
+
   }
 }
 
@@ -93,6 +96,7 @@ task JointTables{
     Array[File] data3
     Array[File] data4
     Array[File] data5
+    Array[File] data6
     Int depth
   }
 
@@ -107,17 +111,26 @@ task JointTables{
     datas[[3]] <- c("~{sep=";" data3}")
     datas[[4]] <- c("~{sep=";" data4}")
     datas[[5]] <- c("~{sep=";" data5}")
+    datas[[6]] <- c("~{sep=";" data6}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
-    data_lst <- list()
+    Rdata_lst <- data_lst <- list()
     for(j in 1:length(datas)){
+      if(j == 6){
         for(i in 1:length(datas[[j]])){
-            data_lst[[i]] <- readRDS(datas[[j]][i])
+          load(datas[[j]][i])
+          Rdata_lst[[i]] <- tot_RDatas
         }
-
-      dat <- do.call(rbind, data_lst)
-      saveRDS(dat, paste0("data",j,"_",~{depth},".rds"))
+        Rdatas <- do.call(c, Rdata_lst)
+        save(Rdatas, file = paste0("data",j,"_",~{depth},".RData"))
+      } else {
+        for(i in 1:length(datas[[j]])){
+          data_lst[[i]] <- readRDS(datas[[j]][i])
+        }
+        dat <- do.call(rbind, data_lst)
+        saveRDS(dat, paste0("data",j,"_",~{depth},".rds"))
+      }
     }
 
     RSCRIPT
@@ -133,5 +146,6 @@ task JointTables{
     File data3_filters            = "data3_~{depth}.rds"
     File data5_SNPcall_efficiency = "data5_~{depth}.rds"
     File data4_times              = "data4_~{depth}.rds"
+    File data6_RDatas             = "data6_~{depth}.RData"
   }
 }
