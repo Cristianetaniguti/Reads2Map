@@ -9,6 +9,5 @@ docker/
 metadata/
 *.err
 *.log
-*.sh
 *.swp
 .devcontainer
