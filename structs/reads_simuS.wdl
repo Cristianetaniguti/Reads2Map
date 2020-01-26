@@ -22,6 +22,12 @@ struct Family {
   String cross
 }
 
+struct Profiles{
+  File base_calling
+  File indel_error
+  File gc_bias
+}
+
 struct FamilyTemplate {
   Float cmBymb
   Int? seed
