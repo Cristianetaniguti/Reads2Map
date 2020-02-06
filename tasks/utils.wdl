@@ -70,7 +70,7 @@ task VcftoolsMerge {
 
   command <<<
     echo "~{sep=' ' tbis}"
-    merge-vcf ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
+    vcf-merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
     bgzip ~{prefix}.variants.vcf
     tabix -p vcf ~{prefix}.variants.vcf.gz
   >>>
@@ -80,7 +80,7 @@ task VcftoolsMerge {
 
   output {
     File vcf = "~{prefix}.variants.vcf.gz"
-    File tbi = "~{prefix}.variants.vcf.tbi"
+    File tbi = "~{prefix}.variants.vcf.gz.tbi"
   }
 }
 
@@ -99,7 +99,7 @@ task VcftoolsApplyFilters {
 
   command <<<
     echo ~{tbi_in}
-    vcftools --vcf "~{vcf_in}" \
+    vcftools --gzvcf "~{vcf_in}" \
         --max-missing ~{max_missing} \
         --min-alleles ~{min_alleles} \
         --max-alleles ~{max_alleles} \

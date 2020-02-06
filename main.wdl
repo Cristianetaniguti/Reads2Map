@@ -16,6 +16,7 @@ workflow main{
   # array of integers
   call ProduceFamiliesSeeds {
     input:
+      seed=9000,
       number_of_families=number_of_families
   }
 
@@ -60,7 +61,7 @@ workflow main{
     File data2_maps               = JointTables.data2_maps
     File data3_filters            = JointTables.data3_filters
     File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
-    File data4_times              = JointTables.data4_times    
+    File data4_times              = JointTables.data4_times
     File data6_RDatas             = JointTables.data6_RDatas
 
   }
@@ -69,11 +70,13 @@ workflow main{
 task ProduceFamiliesSeeds {
   input {
     Int number_of_families
+    Int seed
   }
 
   command <<<
     python <<CODE
     import random
+    random.seed(~{seed})
     for x in range(~{number_of_families}):
         print(random.randint(1,101))
     CODE

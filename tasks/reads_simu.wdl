@@ -145,7 +145,7 @@ task BamCounts4Onemap{
       names <- c("~{sep=" , "  sampleName}")
       names <- unlist(strsplit(names, split = " , "))
 
-      methods <- c("gatk", "freebayes")
+      methods <- c("GATK", "freebayes")
 
       for(method in methods){
 
