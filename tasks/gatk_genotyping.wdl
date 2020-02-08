@@ -6,53 +6,75 @@ import "./utils.wdl" as utils
 
 workflow GatkGenotyping {
   input {
-    Alignment alignment
+    Array[Alignment] alignments
     ReferenceFasta references
+    String program
 
   }
 
-  call HaplotypeCallerERC {
-    input:
-      ref        = references.ref_fasta,
-      geno_fai   = references.ref_fasta_index,
-      sampleName = alignment.sample,
-      bam_rg     = alignment.bam,
-      bam_rg_idx = alignment.bai,
-      geno_dict  = references.ref_dict
-  }
+  scatter (alignment in alignments) {
+    call HaplotypeCallerERC {
+      input:
+        ref        = references.ref_fasta,
+        geno_fai   = references.ref_fasta_index,
+        sampleName = alignment.sample,
+        bam_rg     = alignment.bam,
+        bam_rg_idx = alignment.bai,
+        geno_dict  = references.ref_dict
+    }
 
-  call GenotypeGVCFs {
-    input:
-    sample=alignment.sample,
-    vcf_in=HaplotypeCallerERC.GVCF,
-    fasta=references.ref_fasta,
-    fasta_fai=references.ref_fasta_index,
-    fasta_dict=references.ref_dict
-  }
-
-  call utils.BamCounts {
-    input:
+    call GenotypeGVCFs {
+      input:
       sample=alignment.sample,
-      program="gatk",
-      bam=alignment.bam,
-      bai=alignment.bai,
-      ref=references.ref_fasta,
-      ref_fai=references.ref_fasta_index,
-      ref_dict=references.ref_dict,
-      vcf=GenotypeGVCFs.vcf,
-      tbi=GenotypeGVCFs.tbi
+      vcf_in=HaplotypeCallerERC.GVCF,
+      fasta=references.ref_fasta,
+      fasta_fai=references.ref_fasta_index,
+      fasta_dict=references.ref_dict
+    }
   }
 
+  call utils.VcftoolsMerge {
+    input:
+      prefix=program,
+      vcfs=GenotypeGVCFs.vcf,
+      tbis=GenotypeGVCFs.tbi
+  }
+
+  call utils.VcftoolsApplyFilters {
+    input:
+      vcf_in=VcftoolsMerge.vcf,
+      tbi_in=VcftoolsMerge.tbi,
+      max_missing=0.75,
+      min_alleles=2,
+      max_alleles=2,
+      maf=0.05,
+      program=program
+  }
+
+
+  scatter (alignment in alignments) {
+    call utils.BamCounts {
+      input:
+        sample=alignment.sample,
+        program=program,
+        bam=alignment.bam,
+        bai=alignment.bai,
+        ref=references.ref_fasta,
+        ref_fai=references.ref_fasta_index,
+        ref_dict=references.ref_dict,
+        vcf=VcftoolsApplyFilters.vcf,
+        tbi=VcftoolsApplyFilters.tbi
+    }
+  }
 
   output {
-    File vcf = GenotypeGVCFs.vcf
-    File tbi = GenotypeGVCFs.tbi
-    File counts = BamCounts.counts
+    File vcf = VcftoolsApplyFilters.vcf
+    File tbi = VcftoolsApplyFilters.tbi
+    Array[File] counts = BamCounts.counts
   }
 }
 
 
-# GATK to generate gVCF with variants
 task HaplotypeCallerERC {
   input {
     File ref

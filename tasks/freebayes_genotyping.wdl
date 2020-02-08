@@ -7,47 +7,70 @@ import "./utils.wdl" as utils
 
 workflow FreebayesGenotyping {
   input {
-    Alignment alignment
+    Array[Alignment] alignments
     ReferenceFasta references
+    String program
 
   }
 
-  call RunFreebayes {
-    input:
-      sample=alignment.sample,
-      reference=references.ref_fasta,
-      bam=alignment.bam,
-      bai=alignment.bai
-  }
-
-  call utils.TabixVcf {
-    input:
-      sample=alignment.sample,
-      variants=RunFreebayes.vcf
-  }
-
-  call utils.BamCounts {
-    input:
-      sample=alignment.sample,
-      program="freebayes",
-      bam=alignment.bam,
-      bai=alignment.bai,
-      ref=references.ref_fasta,
-      ref_fai=references.ref_fasta_index,
-      ref_dict=references.ref_dict,
-      vcf=TabixVcf.vcf,  # Precisa ser o VCF consolidado
-      tbi=TabixVcf.tbi
+  scatter (alignment in alignments) {
+    call RunFreebayes {
+      input:
+        sample=alignment.sample,
+        reference=references.ref_fasta,
+        bam=alignment.bam,
+        bai=alignment.bai
     }
 
+    call utils.TabixVcf {
+      input:
+        sample=alignment.sample,
+        variants=RunFreebayes.vcf
+    }
+  }
+
+  call utils.VcftoolsMerge {
+    input:
+      prefix=program,
+      vcfs=TabixVcf.vcf,
+      tbis=TabixVcf.tbi
+  }
+
+  call utils.VcftoolsApplyFilters {
+    input:
+      vcf_in=VcftoolsMerge.vcf,
+      tbi_in=VcftoolsMerge.tbi,
+      max_missing=0.75,
+      min_alleles=2,
+      max_alleles=2,
+      maf=0.05,
+      program=program
+  }
+
+
+  scatter (alignment in alignments) {
+    call utils.BamCounts {
+      input:
+        sample=alignment.sample,
+        program=program,
+        bam=alignment.bam,
+        bai=alignment.bai,
+        ref=references.ref_fasta,
+        ref_fai=references.ref_fasta_index,
+        ref_dict=references.ref_dict,
+        vcf=VcftoolsApplyFilters.vcf,
+        tbi=VcftoolsApplyFilters.tbi
+    }
+  }
+
   output {
-    File vcf = TabixVcf.vcf
-    File tbi = TabixVcf.tbi
-    File counts = BamCounts.counts
+    File vcf = VcftoolsApplyFilters.vcf
+    File tbi = VcftoolsApplyFilters.tbi
+    Array[File] counts = BamCounts.counts
   }
 }
 
 
-# Variant calling using freebayes
 task RunFreebayes {
 
   input {

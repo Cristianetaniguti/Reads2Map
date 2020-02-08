@@ -4,7 +4,6 @@ import "../structs/reads_simuS.wdl"
 import "./create_alignment_from_read_simulations.wdl" as simulation
 import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
-import "./apply_joint_qc.wdl" as qc
 import "./utils.wdl" as utils
 
 
@@ -23,39 +22,24 @@ workflow reads_simu {
       profiles=profiles
   }
 
-  # Talvez passar a lista para dentro dos genotipdores e tirar o scatter daqui
-  scatter (alignment in CreateAlignmentFromSimulation.alignments) {
-    call gatk.GatkGenotyping {
-      input:
-        alignment=alignment,
-        references=references
-    }
-
-    call freebayes.FreebayesGenotyping {
-      input:
-        alignment=alignment,
-        references=references
-    }
+  call gatk.GatkGenotyping {
+    input:
+      alignments=CreateAlignmentFromSimulation.alignments,
+      references=references,
+      program="gatk"
   }
 
-  call qc.ApplyJointQC as joint_gatk {
+  call freebayes.FreebayesGenotyping {
     input:
-      program="gatk",
-      vcfs=GatkGenotyping.vcf,
-      tbis=GatkGenotyping.tbi
-  }
-
-  call qc.ApplyJointQC as joint_freebayes{
-    input:
-      program="freebayes",
-      vcfs=FreebayesGenotyping.vcf,
-      tbis=FreebayesGenotyping.tbi
+      alignments=CreateAlignmentFromSimulation.alignments,
+      references=references,
+      program="freebayes"
   }
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF  = joint_freebayes.vcf,
-      gatkVCF       = joint_gatk.vcf,
+      freebayesVCF  = FreebayesGenotyping.vcf,
+      gatkVCF       = GatkGenotyping.vcf,
       tot_mks       = CreateAlignmentFromSimulation.total_markers,
       maternal_trim = CreateAlignmentFromSimulation.maternal_trim,
       seed          = family.seed,
@@ -72,7 +56,7 @@ workflow reads_simu {
   }
 
   Array[String] methods                     = ["gatk", "freebayes"]
-  Array[File] vcfs                          = [joint_gatk.vcf, joint_freebayes.vcf]
+  Array[File] vcfs                          = [GatkGenotyping.vcf, FreebayesGenotyping.vcf]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
   scatter (vcf in program_and_vcf){
