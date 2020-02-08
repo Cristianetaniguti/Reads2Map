@@ -33,7 +33,7 @@ workflow GatkGenotyping {
   call utils.BamCounts {
     input:
       sample=alignment.sample,
-      program="GATK",
+      program="gatk",
       bam=alignment.bam,
       bai=alignment.bai,
       ref=references.ref_fasta,

@@ -23,6 +23,7 @@ workflow reads_simu {
       profiles=profiles
   }
 
+  # Talvez passar a lista para dentro dos genotipdores e tirar o scatter daqui
   scatter (alignment in CreateAlignmentFromSimulation.alignments) {
     call gatk.GatkGenotyping {
       input:
@@ -145,7 +146,7 @@ task BamCounts4Onemap{
       names <- c("~{sep=" , "  sampleName}")
       names <- unlist(strsplit(names, split = " , "))
 
-      methods <- c("GATK", "freebayes")
+      methods <- c("gatk", "freebayes")
 
       for(method in methods){
 

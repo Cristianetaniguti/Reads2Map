@@ -29,13 +29,13 @@ workflow FreebayesGenotyping {
   call utils.BamCounts {
     input:
       sample=alignment.sample,
-      program="Freebayes",
+      program="freebayes",
       bam=alignment.bam,
       bai=alignment.bai,
       ref=references.ref_fasta,
       ref_fai=references.ref_fasta_index,
       ref_dict=references.ref_dict,
-      vcf=TabixVcf.vcf,
+      vcf=TabixVcf.vcf,  # Precisa ser o VCF consolidado
       tbi=TabixVcf.tbi
     }
 
