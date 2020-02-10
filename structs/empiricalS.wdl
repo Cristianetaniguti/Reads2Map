@@ -11,7 +11,7 @@ struct ReferenceFasta {
   File ref_pac
 }
 
-struct dataset {
+struct Dataset {
   File samples_info
   String name
   String parent1

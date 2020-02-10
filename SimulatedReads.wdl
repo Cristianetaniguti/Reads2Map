@@ -3,7 +3,7 @@ version 1.0
 import "./structs/reads_simuS.wdl"
 import "./tasks/reads_simu.wdl" as sub
 
-workflow main{
+workflow SimulatedReads {
 
   input {
     ReferenceFasta references
