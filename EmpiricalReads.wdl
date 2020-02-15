@@ -1,113 +1,46 @@
 version 1.0
 
 import "structs/empiricalS.wdl"
+import "tasks/alignment.wdl" as alg
+import "create_alignment_from_families_files.wdl" as fam
+import "./gatk_genotyping.wdl" as gatk
+import "./freebayes_genotyping.wdl" as freebayes
+# import "./utils.wdl" as utils
 
-workflow empirical{
 
- input{
-   dataset dataset
+workflow EmpiricalReads {
+
+ input {
+   Dataset dataset
    ReferenceFasta references
  }
 
- Array[Array[File]] inputSamples = read_tsv(dataset.samples_info)
-
- scatter (samples in inputSamples){
-   call RunBwaAlignment{
-     input:
-       sampleName = samples[2],
-       reads1     = samples[0],
-       ref        = references.ref_fasta,
-       geno_amb   = references.ref_amb,
-       geno_ann   = references.ref_ann,
-       geno_bwt   = references.ref_bwt,
-       geno_pac   = references.ref_pac,
-       geno_sa    = references.ref_sa
-   }
-
-   call AddAlignmentHeader{
-     input:
-       sampleName = samples[1],
-       libName    = samples[2],
-       bam_file   = RunBwaAlignment.bam_file,
-       bam_idx    = RunBwaAlignment.bam_idx
-   }
- }
+  call fam.CreateAlignmentFromFamilies {
+    input:
+      families_info=dataset.samples_info,
+      references=references
+  }
 
 
- call JointSameSamples{
-   input:
-     samples_info = dataset.samples_info,
-     bam_rg       = AddAlignmentHeader.bam_rg
- }
+  call gatk.GatkGenotyping {
+    input:
+      alignments=CreateAlignmentFromFamilies.alignments,
+      references=references,
+      program="gatk"
+  }
 
- Array[String] merged_names = read_lines(JointSameSamples.merged_names)
- Array[Pair[File, String]] bam_files = zip(JointSameSamples.merged_files, merged_names)
-
- scatter (bams in bam_files){
-
-   call HaplotypeCallerERC {
-     input:
-       ref        = references.ref_fasta,
-       geno_fai   = references.ref_fasta_index,
-       sampleName = bams.right,
-       bam_rg     = bams.left,
-       bam_rg_idx = JointSameSamples.merged_files_idx,
-       geno_dict  = references.ref_dict
-   }
-
- }
-
- call CreateGatkDatabase {
-   input:
-     path_gatkDatabase = "my_database",
-     GVCFs             = HaplotypeCallerERC.GVCF,
-     GVCFs_idx         = HaplotypeCallerERC.GVCF_idx
- }
-
- call GenotypeGVCFs {
-   input:
-     workspace_tar       = CreateGatkDatabase.workspace_tar,
-     output_vcf_filename = dataset.name + "_gatk.vcf",
-     ref                 = references.ref_fasta,
-     geno_fai            = references.ref_fasta_index,
-     geno_dict           = references.ref_dict
- }
-
-
- call RunFreebayes {
-   input:
-     freebayesVCFname = dataset.name + "_freebayes.vcf",
-     ref              = references.ref_fasta,
-     ref_fai          = references.ref_fasta_index,
-     merged_files     = JointSameSamples.merged_files
- }
-
- call VcftoolsApplyFilters{
-   input:
-     freebayesVCF = RunFreebayes.freebayesVCF,
-     gatkVCF      = GenotypeGVCFs.gatkVCF,
-     filt_depth   = dataset.filt_depth
- }
-
- scatter (bams in bam_files) {
-   call BamCounts{
-     input:
-       sampleName     = bams.right,
-       bam_file       = bams.left,
-       bam_idx        = JointSameSamples.merged_files_idx,
-       ref            = references.ref_fasta,
-       ref_fai        = references.ref_fasta_index,
-       ref_dict       = references.ref_dict,
-       gatk_vcf       = VcftoolsApplyFilters.gatkVCF_F,
-       freebayes_vcf  = VcftoolsApplyFilters.freebayesVCF_F
-   }
- }
+  call freebayes.FreebayesGenotyping {
+    input:
+      alignments=CreateAlignmentFromFamilies.alignments,
+      references=references,
+      program="freebayes"
+  }
 
  call BamCounts4Onemap {
    input:
      samples_info       = dataset.samples_info,
-     freebayes_counts = BamCounts.freebayes_counts,
-     gatk_counts      = BamCounts.gatk_counts
+     freebayes_counts   = FreebayesGenotyping.counts,
+     gatk_counts        = GatkGenotyping.counts
  }
 
  Array[String] methods = ["gatk", "freebayes"]
@@ -701,14 +634,14 @@ task avalVCFs{
      out_name <- paste0(SNPCall, "_filters_vcf_", metodology, ".txt")
      filters_tab <- create_filters_report(error_aval, CountsFrom = "vcf", SNPCall = SNPCall, GenoCall = metodology)
      write_report(filters_tab[[1]], out_name)
-     
+
      # check depths
-     p <- create_depths_profile(onemap.obj = error_aval, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+     p <- create_depths_profile(onemap.obj = error_aval, vcfR.object = vcf, parent1 = parent1, parent2 = parent2, vcf.par = "AD",
                                recovering = FALSE, GTfrom = "onemap", alpha=0.1,
                                rds.file = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom = "vcf","_depths.rds"))
-                       
+
      #ggsave(filename = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom = "vcf","_onemap_depths.png"), p)
-     
+
      ## Maps
      create_map_report(input.seq = filters_tab[[2]], CountsFrom = "vcf", SNPCall = SNPCall, GenoCall= metodology)
    }
@@ -742,7 +675,7 @@ task avalVCFs{
      depths = depths)
 
    new.vcf <- make_vcf(vcf_file, depths, SNPCall)
-   new.vcfR <- read.vcfR(new.vcf) 
+   new.vcfR <- read.vcfR(new.vcf)
 
    polyrad.aval.bam <- polyRAD_error(
      vcf=new.vcf,
@@ -761,11 +694,11 @@ task avalVCFs{
      write_report(filters_tab[[1]], out_name)
 
      # check depths
-     p <- create_depths_profile(onemap.obj = error_aval, vcfR.object = new.vcfR, parent1 = parent1, parent2 = parent2, vcf.par = "AD", 
+     p <- create_depths_profile(onemap.obj = error_aval, vcfR.object = new.vcfR, parent1 = parent1, parent2 = parent2, vcf.par = "AD",
                                recovering = FALSE, GTfrom = "onemap", alpha=0.1,
                                rds.file = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom = "bam","_depths.rds"))
      #ggsave(filename = paste0(SNPCall,"_", GenoCall= metodology, "_",CountsFrom = "bam","_onemap_depths.png"), p)
-     
+
      ## Maps
      create_map_report(input.seq = filters_tab[[2]], CountsFrom = "bam", SNPCall = SNPCall, GenoCall= metodology)
    }
@@ -778,7 +711,7 @@ task avalVCFs{
    out_name <- paste0(SNPCall, "_bam_gusmap_map.txt")
    map_gus <- create_gusmap_report(new.vcf, "gusmap", "bam", SNPCall, parent1, parent2)
    write_report(map_gus, out_name)
-   
+
    RSCRIPT
  >>>
 
@@ -827,7 +760,7 @@ task avalVCFs{
    File map_vcf_polyrad = "~{methodName}_vcf_polyrad_map.txt"
    File map_vcf_supermassa = "~{methodName}_vcf_supermassa_map.txt"
    File map_vcf_updog = "~{methodName}_vcf_updog_map.txt"
-   File map_bam_polyrad = "~{methodName}_bam_polyrad_map.txt"              
+   File map_bam_polyrad = "~{methodName}_bam_polyrad_map.txt"
    File map_bam_supermassa = "~{methodName}_bam_supermassa_map.txt"
    File map_bam_updog = "~{methodName}_bam_updog_map.txt"
    File map_gusmap = "~{methodName}_vcf_gusmap_map.txt"
@@ -838,50 +771,50 @@ task avalVCFs{
 task JointDatas{
     input{
        Array[File] depths_GQ_vcf_rds
-       Array[File] depths_df_vcf_rds 
-       Array[File] depths_updog_vcf_rds 
-       Array[File] depths_supermassa_vcf_rds 
-       Array[File] depths_polyrad_vcf_rds 
-       Array[File] depths_updog_bam_rds 
-       Array[File] depths_supermassa_bam_rds 
-       Array[File] depths_polyrad_bam_rds 
-       Array[File] times_vcf_df 
-       Array[File] times_vcf_GQ 
-       Array[File] times_vcf_updog 
-       Array[File] times_vcf_supermassa 
-       Array[File] times_vcf_polyrad 
-       Array[File] times_vcf_gusmap 
-       Array[File] times_bam_gusmap 
-       Array[File] times_bam_updog 
-       Array[File] times_bam_supermassa 
-       Array[File] times_bam_polyrad 
-       Array[File] filters_vcf_dfAndGQ 
-       Array[File] filters_vcf_polyrad 
-       Array[File] filters_vcf_supermassa 
-       Array[File] filters_vcf_updog 
-       Array[File] filters_bam_polyrad 
-       Array[File] filters_bam_supermassa 
-       Array[File] filters_bam_updog 
-       Array[File] RData_vcf_df 
-       Array[File] RData_vcf_GQ 
-       Array[File] RData_vcf_polyrad 
-       Array[File] RData_vcf_supermassa 
-       Array[File] RData_vcf_updog 
-       Array[File] RData_bam_polyrad 
-       Array[File] RData_bam_supermassa 
-       Array[File] RData_bam_updog 
-       Array[File] RData_gusmap 
-       Array[File] RData_bam_gusmap 
-       Array[File] map_vcf_df 
-       Array[File] map_vcf_GQ 
-       Array[File] map_vcf_polyrad 
-       Array[File] map_vcf_supermassa 
-       Array[File] map_vcf_updog 
-       Array[File] map_bam_polyrad 
-       Array[File] map_bam_supermassa 
-       Array[File] map_bam_updog 
-       Array[File] map_gusmap 
-       Array[File] map_bam_gusmap 
+       Array[File] depths_df_vcf_rds
+       Array[File] depths_updog_vcf_rds
+       Array[File] depths_supermassa_vcf_rds
+       Array[File] depths_polyrad_vcf_rds
+       Array[File] depths_updog_bam_rds
+       Array[File] depths_supermassa_bam_rds
+       Array[File] depths_polyrad_bam_rds
+       Array[File] times_vcf_df
+       Array[File] times_vcf_GQ
+       Array[File] times_vcf_updog
+       Array[File] times_vcf_supermassa
+       Array[File] times_vcf_polyrad
+       Array[File] times_vcf_gusmap
+       Array[File] times_bam_gusmap
+       Array[File] times_bam_updog
+       Array[File] times_bam_supermassa
+       Array[File] times_bam_polyrad
+       Array[File] filters_vcf_dfAndGQ
+       Array[File] filters_vcf_polyrad
+       Array[File] filters_vcf_supermassa
+       Array[File] filters_vcf_updog
+       Array[File] filters_bam_polyrad
+       Array[File] filters_bam_supermassa
+       Array[File] filters_bam_updog
+       Array[File] RData_vcf_df
+       Array[File] RData_vcf_GQ
+       Array[File] RData_vcf_polyrad
+       Array[File] RData_vcf_supermassa
+       Array[File] RData_vcf_updog
+       Array[File] RData_bam_polyrad
+       Array[File] RData_bam_supermassa
+       Array[File] RData_bam_updog
+       Array[File] RData_gusmap
+       Array[File] RData_bam_gusmap
+       Array[File] map_vcf_df
+       Array[File] map_vcf_GQ
+       Array[File] map_vcf_polyrad
+       Array[File] map_vcf_supermassa
+       Array[File] map_vcf_updog
+       Array[File] map_bam_polyrad
+       Array[File] map_bam_supermassa
+       Array[File] map_bam_updog
+       Array[File] map_gusmap
+       Array[File] map_bam_gusmap
     }
 
     command <<<
@@ -935,11 +868,11 @@ task JointDatas{
        system("ln -s ~{sep = " . ; ln -s "  map_bam_gusmap } .")
 
        ## Map, times and RDatas
-                        
+
        SNPCall <- c("gatk", "freebayes")
        GenoCall <- c("supermassa", "updog", "df", "polyrad", "GQ", "gusmap")
        CountsFrom <- c("bam", "vcf")
-                        
+
        data_times <- data_map <- temp <- temp.1 <- data.frame()
        z <- 1
 
@@ -962,17 +895,17 @@ task JointDatas{
                 }
              }
           }
-                         
+
         saveRDS(data_map, "data_map.rds")
         saveRDS(data_times, "data_times.rds")
-        
+
         names(data_RDatas) <- names_list
         save(data_RDatas, file = "data_RDatas.RData")
-        
+
         # Filters
-        
+
         GenoCall <- c("supermassa", "updog", "dfAndGQ", "polyrad")
-        
+
         data_filters <- temp <- data.frame()
         for(i in SNPCall){
             for(j in GenoCall){
@@ -985,13 +918,13 @@ task JointDatas{
                 }
             }
         }
-        
+
         saveRDS(data_filters, "data_filters.rds")
-        
+
        # Depths
-        
+
         GenoCall <- c("supermassa", "updog", "df", "polyrad", "GQ")
-        
+
         data_depths <- data.frame()
         for(i in SNPCall){
             for(j in GenoCall){
@@ -1005,9 +938,9 @@ task JointDatas{
                 }
             }
         }
-                     
+
        saveRDS(data_depths, "data_depths.rds")
-                         
+
        RSCRIPT
      >>>
 

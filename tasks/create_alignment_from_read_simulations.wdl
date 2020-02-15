@@ -85,7 +85,7 @@ workflow CreateAlignmentFromSimulation {
     call alg.RunBwaAlignment {
       input:
         sampleName = sampleName,
-        reads1     = SimulateIlluminaReads.reads1,
+        reads1     = [SimulateIlluminaReads.reads1],
         ref        = references.ref_fasta,
         geno_amb   = references.ref_amb,
         geno_ann   = references.ref_ann,

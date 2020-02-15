@@ -7,7 +7,7 @@ task RunBwaAlignment {
   input {
     String sampleName
     File ref
-    File reads1
+    Array[File] reads1
     File geno_amb
     File geno_ann
     File geno_bwt
@@ -19,7 +19,7 @@ task RunBwaAlignment {
     echo ~{geno_amb} ~{geno_ann} ~{geno_bwt} ~{geno_pac} ~{geno_sa}
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
-    bwa mem ~{ref} ~{reads1}  | \
+    bwa mem ~{ref} '<cat ~{sep=" " reads1}'  | \
         java -jar /picard.jar SortSam \
         I=/dev/stdin \
         O=~{sampleName}.sorted.bam \
