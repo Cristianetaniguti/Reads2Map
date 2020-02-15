@@ -46,13 +46,11 @@ workflow reads_simu {
       depth         = family.depth
   }
 
-  call BamCounts4Onemap{
+  call utils.BamCounts4Onemap {
     input:
       sampleName       = CreateAlignmentFromSimulation.names,
       freebayes_counts = FreebayesGenotyping.counts,
-      gatk_counts      = GatkGenotyping.counts,
-      freebayes_pos    = CalculateVcfMetrics.freebayes_pos,
-      gatk_pos         = CalculateVcfMetrics.gatk_pos
+      gatk_counts      = GatkGenotyping.counts
   }
 
   Array[String] methods                     = ["gatk", "freebayes"]
@@ -105,88 +103,6 @@ workflow reads_simu {
     File data5_SNPcall_efficiency = CalculateVcfMetrics.data5_SNPcall_efficiency
     File data4_times              = CreateTables.data4_times
     File data6_RDatas             = CreateTables.data6_RDatas
-  }
-}
-
-
-
-# This task convert the output from BamCounts to the depths input for onemap
-task BamCounts4Onemap{
-  input{
-    Array[File] freebayes_counts
-    Array[File] gatk_counts
-    Array[String] sampleName
-    File freebayes_pos
-    File gatk_pos
-  }
-
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-      library(R.utils)
-      system("cp ~{sep=" "  freebayes_counts} .")
-      system("cp ~{sep=" "  gatk_counts} .")
-      system("cp ~{freebayes_pos} .")
-      system("cp ~{gatk_pos} .")
-      names <- c("~{sep=" , "  sampleName}")
-      names <- unlist(strsplit(names, split = " , "))
-
-      methods <- c("gatk", "freebayes")
-
-      for(method in methods){
-
-          file.counts <- read.table(paste0(names[1],"_", method,"_counts.tsv"), skip = 3, header=T, stringsAsFactors = F)
-
-          ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
-
-          for(j in 1:length(names)){
-            ## From picard tool
-
-            file.counts <- read.table(paste0(names[j],"_", method,"_counts.tsv"), skip = 3, header=T, stringsAsFactors = F)
-
-            ref_depth_matrix2[,j] <- file.counts[,3]
-            alt_depth_matrix2[,j] <- file.counts[,4]
-
-            if(j == 1){
-              ref_allele <- file.counts[,5]
-              alt_allele <- file.counts[,6]
-            } else {
-              idx.ref <- which(ref_allele == "N")
-              idx.alt <- which(alt_allele == "N")
-              if(length(idx.ref)!=0){
-                ref_allele[idx.ref] <- file.counts[idx.ref,5]
-              }
-              if(length(idx.alt)!=0){
-                alt_allele[idx.alt] <- file.counts[idx.alt,6]
-              }
-            }
-
-          }
-
-          rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
-          colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
-
-          alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
-          write.table(alleles, file = paste0(method,"_example4ref_alt_alleles.txt"), col.names = F, row.names = F)
-
-          write.table(ref_depth_matrix2, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-          write.table(alt_depth_matrix2, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-        }
-
-    RSCRIPT
-  >>>
-
-  runtime{
-    docker:"taniguti/onemap"
-  }
-
-  output{
-    File gatk_ref_bam      = "gatk_ref_depth_bam.txt"
-    File gatk_alt_bam      = "gatk_alt_depth_bam.txt"
-    File freebayes_ref_bam = "freebayes_ref_depth_bam.txt"
-    File freebayes_alt_bam = "freebayes_alt_depth_bam.txt"
-    File gatk_example_alleles    = "gatk_example4ref_alt_alleles.txt"
-    File freebayes_example_alleles    = "freebayes_example4ref_alt_alleles.txt"
-
   }
 }
 

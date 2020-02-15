@@ -1,26 +1,24 @@
 version 1.0
 
 import "structs/empiricalS.wdl"
-import "tasks/alignment.wdl" as alg
 import "create_alignment_from_families_files.wdl" as fam
 import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
-# import "./utils.wdl" as utils
+import "./utils.wdl" as utils
 
 
 workflow EmpiricalReads {
 
- input {
-   Dataset dataset
-   ReferenceFasta references
- }
+  input {
+    Dataset dataset
+    ReferenceFasta references
+  }
 
   call fam.CreateAlignmentFromFamilies {
     input:
       families_info=dataset.samples_info,
       references=references
   }
-
 
   call gatk.GatkGenotyping {
     input:
@@ -36,494 +34,104 @@ workflow EmpiricalReads {
       program="freebayes"
   }
 
- call BamCounts4Onemap {
-   input:
-     samples_info       = dataset.samples_info,
-     freebayes_counts   = FreebayesGenotyping.counts,
-     gatk_counts        = GatkGenotyping.counts
- }
+  call utils.BamCounts4Onemap {
+    input:
+      sampleName       = CreateAlignmentFromFamilies.names,
+      freebayes_counts = FreebayesGenotyping.counts,
+      gatk_counts      = GatkGenotyping.counts
+  }
 
- Array[String] methods = ["gatk", "freebayes"]
- Array[File] vcfs = [VcftoolsApplyFilters.gatkVCF_F, VcftoolsApplyFilters.freebayesVCF_F]
- Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
+  Array[String] methods = ["gatk", "freebayes"]
+  Array[File] vcfs = [GatkGenotyping.vcf, FreebayesGenotyping.vcf]
+  Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
- scatter (vcf in program_and_vcf){
-   call avalVCFs{
-     input:
-       methodName = vcf.left,
-       vcf_file   = vcf.right,
-       freebayes_ref_depth = BamCounts4Onemap.freebayes_ref_bam,
-       freebayes_alt_depth = BamCounts4Onemap.freebayes_alt_bam,
-       gatk_ref_depth = BamCounts4Onemap.gatk_ref_bam,
-       gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
-       parent1 = dataset.parent1,
-       parent2 = dataset.parent2,
-       gatk_example_alleles = BamCounts4Onemap.gatk_example_alleles,
-       freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles
-   }
- }
+  scatter (vcf in program_and_vcf){
+    call avalVCFs {
+      input:
+      methodName = vcf.left,
+      vcf_file   = vcf.right,
+      freebayes_ref_depth = BamCounts4Onemap.freebayes_ref_bam,
+      freebayes_alt_depth = BamCounts4Onemap.freebayes_alt_bam,
+      gatk_ref_depth = BamCounts4Onemap.gatk_ref_bam,
+      gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
+      parent1 = dataset.parent1,
+      parent2 = dataset.parent2,
+      gatk_example_alleles = BamCounts4Onemap.gatk_example_alleles,
+      freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles
+    }
+  }
 
   call JointDatas{
-      input:
-       depths_GQ_vcf_rds = avalVCFs.depths_GQ_vcf_rds,
-       depths_df_vcf_rds = avalVCFs.depths_df_vcf_rds,
-       depths_updog_vcf_rds = avalVCFs.depths_updog_vcf_rds,
-       depths_supermassa_vcf_rds = avalVCFs.depths_supermassa_vcf_rds,
-       depths_polyrad_vcf_rds = avalVCFs.depths_polyrad_vcf_rds,
-       depths_updog_bam_rds = avalVCFs.depths_updog_bam_rds,
-       depths_supermassa_bam_rds = avalVCFs.depths_supermassa_bam_rds,
-       depths_polyrad_bam_rds = avalVCFs.depths_polyrad_bam_rds,
-       times_vcf_df = avalVCFs.times_vcf_df,
-       times_vcf_GQ = avalVCFs.times_vcf_GQ,
-       times_vcf_updog = avalVCFs.times_vcf_updog,
-       times_vcf_supermassa = avalVCFs.times_vcf_supermassa,
-       times_vcf_polyrad = avalVCFs.times_vcf_polyrad,
-       times_vcf_gusmap = avalVCFs.times_vcf_gusmap,
-       times_bam_gusmap = avalVCFs.times_bam_gusmap,
-       times_bam_updog = avalVCFs.times_bam_updog,
-       times_bam_supermassa = avalVCFs.times_bam_supermassa,
-       times_bam_polyrad = avalVCFs.times_bam_polyrad,
-       filters_vcf_dfAndGQ = avalVCFs.filters_vcf_dfAndGQ,
-       filters_vcf_polyrad = avalVCFs.filters_vcf_polyrad,
-       filters_vcf_supermassa = avalVCFs.filters_vcf_supermassa,
-       filters_vcf_updog = avalVCFs.filters_vcf_updog,
-       filters_bam_polyrad = avalVCFs.filters_bam_polyrad,
-       filters_bam_supermassa = avalVCFs.filters_bam_supermassa,
-       filters_bam_updog = avalVCFs.filters_bam_updog,
-       RData_vcf_df = avalVCFs.RData_vcf_df,
-       RData_vcf_GQ = avalVCFs.RData_vcf_GQ,
-       RData_vcf_polyrad = avalVCFs.RData_vcf_polyrad,
-       RData_vcf_supermassa = avalVCFs.RData_vcf_supermassa,
-       RData_vcf_updog = avalVCFs.RData_vcf_updog,
-       RData_bam_polyrad = avalVCFs.RData_bam_polyrad,
-       RData_bam_supermassa = avalVCFs.RData_bam_supermassa,
-       RData_bam_updog = avalVCFs.RData_bam_updog,
-       RData_gusmap = avalVCFs.RData_gusmap,
-       RData_bam_gusmap = avalVCFs.RData_bam_gusmap,
-       map_vcf_df = avalVCFs.map_vcf_df,
-       map_vcf_GQ = avalVCFs.map_vcf_GQ,
-       map_vcf_polyrad = avalVCFs.map_vcf_polyrad,
-       map_vcf_supermassa = avalVCFs.map_vcf_supermassa,
-       map_vcf_updog = avalVCFs.map_vcf_updog,
-       map_bam_polyrad = avalVCFs.map_bam_polyrad,
-       map_bam_supermassa = avalVCFs.map_bam_supermassa,
-       map_bam_updog = avalVCFs.map_bam_updog,
-       map_gusmap = avalVCFs.map_gusmap,
-       map_bam_gusmap = avalVCFs.map_bam_gusmap
-       }
+    input:
+      depths_GQ_vcf_rds = avalVCFs.depths_GQ_vcf_rds,
+      depths_df_vcf_rds = avalVCFs.depths_df_vcf_rds,
+      depths_updog_vcf_rds = avalVCFs.depths_updog_vcf_rds,
+      depths_supermassa_vcf_rds = avalVCFs.depths_supermassa_vcf_rds,
+      depths_polyrad_vcf_rds = avalVCFs.depths_polyrad_vcf_rds,
+      depths_updog_bam_rds = avalVCFs.depths_updog_bam_rds,
+      depths_supermassa_bam_rds = avalVCFs.depths_supermassa_bam_rds,
+      depths_polyrad_bam_rds = avalVCFs.depths_polyrad_bam_rds,
+      times_vcf_df = avalVCFs.times_vcf_df,
+      times_vcf_GQ = avalVCFs.times_vcf_GQ,
+      times_vcf_updog = avalVCFs.times_vcf_updog,
+      times_vcf_supermassa = avalVCFs.times_vcf_supermassa,
+      times_vcf_polyrad = avalVCFs.times_vcf_polyrad,
+      times_vcf_gusmap = avalVCFs.times_vcf_gusmap,
+      times_bam_gusmap = avalVCFs.times_bam_gusmap,
+      times_bam_updog = avalVCFs.times_bam_updog,
+      times_bam_supermassa = avalVCFs.times_bam_supermassa,
+      times_bam_polyrad = avalVCFs.times_bam_polyrad,
+      filters_vcf_dfAndGQ = avalVCFs.filters_vcf_dfAndGQ,
+      filters_vcf_polyrad = avalVCFs.filters_vcf_polyrad,
+      filters_vcf_supermassa = avalVCFs.filters_vcf_supermassa,
+      filters_vcf_updog = avalVCFs.filters_vcf_updog,
+      filters_bam_polyrad = avalVCFs.filters_bam_polyrad,
+      filters_bam_supermassa = avalVCFs.filters_bam_supermassa,
+      filters_bam_updog = avalVCFs.filters_bam_updog,
+      RData_vcf_df = avalVCFs.RData_vcf_df,
+      RData_vcf_GQ = avalVCFs.RData_vcf_GQ,
+      RData_vcf_polyrad = avalVCFs.RData_vcf_polyrad,
+      RData_vcf_supermassa = avalVCFs.RData_vcf_supermassa,
+      RData_vcf_updog = avalVCFs.RData_vcf_updog,
+      RData_bam_polyrad = avalVCFs.RData_bam_polyrad,
+      RData_bam_supermassa = avalVCFs.RData_bam_supermassa,
+      RData_bam_updog = avalVCFs.RData_bam_updog,
+      RData_gusmap = avalVCFs.RData_gusmap,
+      RData_bam_gusmap = avalVCFs.RData_bam_gusmap,
+      map_vcf_df = avalVCFs.map_vcf_df,
+      map_vcf_GQ = avalVCFs.map_vcf_GQ,
+      map_vcf_polyrad = avalVCFs.map_vcf_polyrad,
+      map_vcf_supermassa = avalVCFs.map_vcf_supermassa,
+      map_vcf_updog = avalVCFs.map_vcf_updog,
+      map_bam_polyrad = avalVCFs.map_bam_polyrad,
+      map_bam_supermassa = avalVCFs.map_bam_supermassa,
+      map_bam_updog = avalVCFs.map_bam_updog,
+      map_gusmap = avalVCFs.map_gusmap,
+      map_bam_gusmap = avalVCFs.map_bam_gusmap
+    }
 
-       output{
-               File data_depths = JointDatas.data_depths
-               File data_filters = JointDatas.data_filters
-               File data_map = JointDatas.data_map
-               File data_times = JointDatas.data_times
-               File data_RDatas = JointDatas.data_RDatas
-       }
+  output {
+    File data_depths = JointDatas.data_depths
+    File data_filters = JointDatas.data_filters
+    File data_map = JointDatas.data_map
+    File data_times = JointDatas.data_times
+    File data_RDatas = JointDatas.data_RDatas
+  }
 }
 
-task RunBwaAlignment {
-
- input {
-   String sampleName
-   File ref
-   File reads1
-   File geno_amb
-   File geno_ann
-   File geno_bwt
-   File geno_pac
-   File geno_sa
- }
-
- command <<<
-   export PATH=$PATH:/bin
-   export PATH=$PATH:/picard.jar
-
-   bwa mem -t 10 ~{ref} ~{reads1} | \
-     java -jar /picard.jar SortSam \
-       I=/dev/stdin \
-       O=~{sampleName}.sorted.bam \
-       SORT_ORDER=coordinate \
-       CREATE_INDEX=true
-   mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
- >>>
-
- runtime {
-   docker: "kfdrc/bwa-picard:latest-dev"
- }
-
- output {
-   File bam_file = "${sampleName}.sorted.bam"
-   File bam_idx = "${sampleName}.sorted.bam.bai"
- }
-}
-
-# Add info to alignment header
-task AddAlignmentHeader {
- input {
-   String sampleName
-   String libName
-   File bam_file
-   File bam_idx
- }
-
- command <<<
-   mkdir tmp
-   java -jar /gatk/picard.jar AddOrReplaceReadGroups \
-     I=~{bam_file} \
-     O=~{libName}_rg.bam \
-     RGLB=lib-~{libName} \
-     RGPL=illumina \
-     RGID=FLOWCELL1.LANE1.~{libName} \
-     RGSM=~{sampleName} \
-     RGPU=FLOWCELL1.LANE1.~{libName} \
-     CREATE_INDEX=true \
-     TMP_DIR=tmp
-
-   mv ~{libName}_rg.bai ~{libName}_rg.bam.bai
- >>>
-
- runtime {
-   docker: "taniguti/gatk-picard"
- }
-
- output {
-   File bam_rg = "${libName}_rg.bam"
-   File bam_rg_index = "${libName}_rg.bam.bai"
- }
-}
-
-# Joint same sample bam files
-task JointSameSamples{
-
- input{
-   File samples_info
-   Array[File] bam_rg
- }
-
- command <<<
-
-   R --vanilla --no-save <<RSCRIPT
-
-     system("ln -s ~{sep = " . ; ln -s "  bam_rg} .")
-
-     files <- read.table("~{samples_info}", stringsAsFactors = F)
-
-     repet <- names(which(table(files[,2]) > 1))
-
-     if(length(repet) != 0){
-       idx <- vector()
-       for(i in 1:length(repet)){
-         idx <- c(idx,which(files[,2] == repet[i]))
-         files1 <- files[which(files[,2] == repet[i]),3]
-         files1 <- paste0(files1, "_rg.bam")
-         system(paste0("samtools merge ", repet[i], ".merged.bam"," ", paste(files1, collapse = " ") , collapse=" "))
-       }
-       files2 <- files[-idx,]
-     } else {
-       files2 <- files
-     }
-
-     for(i in 1:dim(files2)[1]){
-       system(paste0("mv ", files2[,3][i], "_rg.bam ", files2[,2][i], ".merged.bam "))
-     }
-
-     system("ls *merged.bam > merged_names")
-     df <- read.table("merged_names")
-     for(i in 1:length(df[,1]))
-         system(paste0("samtools index ", df[i,1]))
-     df.new <- sapply(strsplit(as.character(df[,1]), "[.]"), "[",1)
-     write.table(df.new, "merged_names", quote = F, col.names=F, row.names=F)
-
-   RSCRIPT
- >>>
-
- runtime{
-   docker: "cristaniguti/r-samtools"
- }
-
- output{
-   Array[File] merged_files = glob("*.merged.bam")
-   Array[File] merged_files_idx = glob("*.merged.bam.bai")
-   File merged_names = "merged_names"
- }
-}
-
-# GATK to generate gVCF with variants
-task HaplotypeCallerERC {
- input {
-   File ref
-   File geno_fai
-   String sampleName
-   File bam_rg
-   Array[File] bam_rg_idx
-   File geno_dict
- }
-
- command <<<
-
-   cp ~{sep=" " bam_rg_idx} $(dirname ~{bam_rg})
-
-   /gatk/gatk HaplotypeCaller \
-     -ERC GVCF \
-     -R ~{ref} \
-     -I ~{bam_rg} \
-     -O ~{sampleName}_rawLikelihoods.g.vcf \
-     --max-reads-per-alignment-start 0
- >>>
-
- runtime {
-   docker: "taniguti/gatk-picard"
- }
-
- output {
-   File GVCF = "${sampleName}_rawLikelihoods.g.vcf"
-   File GVCF_idx = "${sampleName}_rawLikelihoods.g.vcf.idx"
- }
-}
-
-task CreateGatkDatabase {
-
- input {
-   String path_gatkDatabase
-   Array[File] GVCFs
-   Array[File] GVCFs_idx
- }
-
- command <<<
-   /gatk/gatk GenomicsDBImport \
-     --genomicsdb-workspace-path ~{path_gatkDatabase} \
-     -L Chr10 \
-     -V ~{sep=" -V "  GVCFs}
-
-   tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
- >>>
-
- runtime {
-   docker: "taniguti/gatk-picard"
- }
-
- output {
-   File workspace_tar = "${path_gatkDatabase}.tar"
- }
-}
-
-# Variant calling on gVCF
-task GenotypeGVCFs {
-
- input {
-   File workspace_tar
-   String output_vcf_filename
-   File ref
-   File geno_fai
-   File geno_dict
- }
-
- command <<<
-   tar -xf ~{workspace_tar}
-   WORKSPACE=$( basename ~{workspace_tar} .tar)
-
-   /gatk/gatk GenotypeGVCFs \
-       -R ~{ref} \
-       -O ~{output_vcf_filename} \
-       -G StandardAnnotation \
-       -V gendb://$WORKSPACE
- >>>
-
- runtime {
-   docker: "taniguti/gatk-picard"
- }
-
- output {
-   File gatkVCF = "${output_vcf_filename}"
-   File gatkVCF_index = "${output_vcf_filename}.idx"
- }
-}
-
-
-# Variant calling using freebayes
-task RunFreebayes {
-
- input {
-   String freebayesVCFname
-   File ref
-   File ref_fai
-   Array[File] merged_files
- }
-
- command <<<
-   freebayes --genotype-qualities -f ~{ref} ~{sep=" "  merged_files} > ~{freebayesVCFname}
- >>>
-
- runtime {
-   docker: "taniguti/freebayes"
- }
-
- output {
-   File freebayesVCF = "${freebayesVCFname}"
- }
-}
-
-
-task  VcftoolsApplyFilters {
-
- input {
-   File gatkVCF
-   File freebayesVCF
-   String? filt_depth
- }
-
- command <<<
-   vcftools --vcf "~{gatkVCF}" --max-missing 0.75 --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out gatk ~{filt_depth}
-   vcftools --vcf "~{freebayesVCF}" --max-missing 0.75 --min-alleles 2 --max-alleles 2 --maf 0.05 --recode --out freebayes ~{filt_depth}
-
- >>>
- runtime {
-   docker: "taniguti/vcftools"
- }
-
- output {
-   File gatkVCF_F = "gatk.recode.vcf"
-   File freebayesVCF_F = "freebayes.recode.vcf"
- }
-}
-
-
-# This task extract the allele depths from bam files
-task BamCounts{
- input{
-   String sampleName
-   File bam_file
-   Array[File] bam_idx
-   File ref
-   File ref_fai
-   File ref_dict
-   File gatk_vcf
-   File freebayes_vcf
- }
-
- command <<<
-
-   cp ~{sep=" " bam_idx} $(dirname ~{bam_file})
-
-   java -jar /gatk/picard.jar VcfToIntervalList \
-     I=~{gatk_vcf} \
-     O=gatk.interval.list
-
-   /gatk/gatk CollectAllelicCounts \
-     --input ~{bam_file} \
-     --reference ~{ref} \
-     --intervals gatk.interval.list \
-     --output ~{sampleName}_gatk_counts.tsv
-
-  java -jar /gatk/picard.jar VcfToIntervalList \
-     I=~{freebayes_vcf} \
-     O=freebayes.interval.list
-
-   /gatk/gatk CollectAllelicCounts \
-     --input ~{bam_file} \
-     --reference ~{ref} \
-     --intervals freebayes.interval.list \
-     --output ~{sampleName}_freebayes_counts.tsv
-
- >>>
-
- runtime{
-   docker:"taniguti/gatk-picard"
- }
-
- output{
-   File gatk_counts = "~{sampleName}_gatk_counts.tsv"
-   File freebayes_counts = "~{sampleName}_freebayes_counts.tsv"
- }
-}
-
-task BamCounts4Onemap{
- input{
-   Array[File] freebayes_counts
-   Array[File] gatk_counts
-   File samples_info
- }
-
- command <<<
-   R --vanilla --no-save <<RSCRIPT
-     library(R.utils)
-     system("ln -s ~{sep = " . ; ln -s "  freebayes_counts} .")
-     system("ln -s ~{sep = " . ; ln -s "  gatk_counts} .")
-     info <- read.table("~{samples_info}", stringsAsFactors=F)
-     names <- info[,2]
-     methods <- c("freebayes", "gatk")
-
-     for(method in methods){
-
-     file.counts <- read.table(paste0(names[1],"_", method,"_counts.tsv"), skip = 3, header=T, stringsAsFactors = F)
-
-     ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
-
-     for(j in 1:length(names)){
-       ## From picard tool
-
-       file.counts <- read.table(paste0(names[j],"_", method,"_counts.tsv"), skip = 3, header=T, stringsAsFactors = F)
-
-       ref_depth_matrix2[,j] <- file.counts[,3]
-       alt_depth_matrix2[,j] <- file.counts[,4]
-
-       if(j == 1){
-         ref_allele <- file.counts[,5]
-         alt_allele <- file.counts[,6]
-       } else {
-         idx.ref <- which(ref_allele == "N")
-         idx.alt <- which(alt_allele == "N")
-         if(length(idx.ref)!=0){
-           ref_allele[idx.ref] <- file.counts[idx.ref,5]
-         }
-         if(length(idx.alt)!=0){
-           alt_allele[idx.alt] <- file.counts[idx.alt,6]
-         }
-       }
-
-     }
-
-     rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
-     colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
-
-     alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
-     write.table(alleles, file = paste0(method,"_example4ref_alt_alleles.txt"), col.names = F, row.names = F)
-
-     write.table(ref_depth_matrix2, file = paste0(method,"_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-     write.table(alt_depth_matrix2, file = paste0(method,"_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-   }
-
-   RSCRIPT
- >>>
-
- runtime{
-   docker:"taniguti/onemap"
- }
-
- output{
-   File gatk_ref_bam      = "gatk_ref_depth_bam.txt"
-   File gatk_alt_bam      = "gatk_alt_depth_bam.txt"
-   File freebayes_ref_bam = "freebayes_ref_depth_bam.txt"
-   File freebayes_alt_bam = "freebayes_alt_depth_bam.txt"
-   File gatk_example_alleles    = "gatk_example4ref_alt_alleles.txt"
-   File freebayes_example_alleles    = "freebayes_example4ref_alt_alleles.txt"
- }
-}
-
-
-task avalVCFs{
- input{
-   String methodName
-   File vcf_file
-   File freebayes_ref_depth
-   File freebayes_alt_depth
-   File gatk_ref_depth
-   File gatk_alt_depth
-   String parent1
-   String parent2
-   File gatk_example_alleles
-   File freebayes_example_alleles
- }
+task avalVCFs {
+  input {
+    String methodName
+    File vcf_file
+    File freebayes_ref_depth
+    File freebayes_alt_depth
+    File gatk_ref_depth
+    File gatk_alt_depth
+    String parent1
+    String parent2
+    File gatk_example_alleles
+    File freebayes_example_alleles
+  }
 
  command <<<
 

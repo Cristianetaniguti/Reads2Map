@@ -13,6 +13,7 @@ struct Sample {
 
 struct Data {
     String experiment_name
+    Array[String] names
     Array[Sample] samples
 }
 
@@ -50,6 +51,7 @@ workflow CreateAlignmentFromFamilies {
 
     output {
         Array[Alignment] alignments = AddAlignmentHeader.algn
+        Array[String] names = SepareIndividuals.dataset.names
     }
 }
 
@@ -71,7 +73,7 @@ task SepareIndividuals {
 
         samples = [{"name": k, "reads": v} for k, v in sets.items()]
         experiment_name = "Teste"
-        print(json.dumps({"experiment_name": experiment_name, "samples":samples}))
+        print(json.dumps({"experiment_name": experiment_name, "samples":samples, "names": [i for i in sets]}))
         CODE
     >>>
 
