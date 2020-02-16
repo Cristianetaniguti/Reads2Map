@@ -38,15 +38,15 @@ task BamCounts {
   }
 
   command <<<
-
+    set -e
     java -jar /gatk/picard.jar VcfToIntervalList \
       I=~{vcf} \
-      O=gatk.interval.list
+      O=interval.list
 
     /gatk/gatk CollectAllelicCounts \
       --input ~{bam} \
       --reference ~{ref} \
-      --intervals gatk.interval.list \
+      --intervals interval.list \
       --output "~{sample}_~{program}_counts.tsv"
   >>>
 
@@ -84,12 +84,32 @@ task VcftoolsMerge {
   }
 }
 
+task BcftoolsMerge {
+
+  input {
+    String prefix
+    Array[File] vcfs
+    Array[File] tbis
+  }
+
+  command <<<
+    echo "~{sep=' ' tbis}"
+    bcftools merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
+  >>>
+  runtime {
+    docker: "biocontainers/bcftools:1.3.1"
+  }
+
+  output {
+    File vcf = "~{prefix}.variants.vcf"
+  }
+}
+
 
 task VcftoolsApplyFilters {
 
   input {
     File vcf_in
-    File tbi_in
     Float max_missing
     Int min_alleles
     Int max_alleles
@@ -98,8 +118,7 @@ task VcftoolsApplyFilters {
   }
 
   command <<<
-    echo ~{tbi_in}
-    vcftools --gzvcf "~{vcf_in}" \
+    vcftools --vcf "~{vcf_in}" \
         --max-missing ~{max_missing} \
         --min-alleles ~{min_alleles} \
         --max-alleles ~{max_alleles} \

@@ -33,7 +33,7 @@ workflow GatkGenotyping {
     }
   }
 
-  call utils.VcftoolsMerge {
+  call utils.BcftoolsMerge {
     input:
       prefix=program,
       vcfs=GenotypeGVCFs.vcf,
@@ -42,8 +42,7 @@ workflow GatkGenotyping {
 
   call utils.VcftoolsApplyFilters {
     input:
-      vcf_in=VcftoolsMerge.vcf,
-      tbi_in=VcftoolsMerge.tbi,
+      vcf_in=BcftoolsMerge.vcf,
       max_missing=0.75,
       min_alleles=2,
       max_alleles=2,

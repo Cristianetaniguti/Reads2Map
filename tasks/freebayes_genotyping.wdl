@@ -29,7 +29,7 @@ workflow FreebayesGenotyping {
     }
   }
 
-  call utils.VcftoolsMerge {
+  call utils.BcftoolsMerge {
     input:
       prefix=program,
       vcfs=TabixVcf.vcf,
@@ -38,8 +38,7 @@ workflow FreebayesGenotyping {
 
   call utils.VcftoolsApplyFilters {
     input:
-      vcf_in=VcftoolsMerge.vcf,
-      tbi_in=VcftoolsMerge.tbi,
+      vcf_in=BcftoolsMerge.vcf,
       max_missing=0.75,
       min_alleles=2,
       max_alleles=2,

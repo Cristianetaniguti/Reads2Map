@@ -337,6 +337,7 @@ task RunPedigreeSimulator {
   }
 
   command <<<
+    set -e
     sed -i 's+chromosome.txt+~{chromfile}+g' ~{parfile}
     sed -i 's+mapfile.txt+~{mapfile}+g' ~{parfile}
     sed -i 's+founderfile.txt+~{founderfile}+g' ~{parfile}
@@ -456,7 +457,7 @@ task SimulateRADseq {
   }
 
   command <<<
-
+    set -e
     /ddRADseqTools/Package/rsitesearch.py \
       --genfile=~{maternal_genomes} \
       --fragsfile=~{sampleName}_maternal_fragments.fasta \
