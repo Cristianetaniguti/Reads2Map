@@ -104,6 +104,8 @@ workflow CreateAlignmentFromSimulation {
 
   output {
       Array[Alignment] alignments = AddAlignmentHeader.algn
+      Array[File] bam = AddAlignmentHeader.bam
+      Array[File] bai = AddAlignmentHeader.bai
       File total_markers = CreatePedigreeSimulatorInputs.tot_mks
       Array[File] maternal_trim = SimulateRADseq.maternal_trim
       Array[String] names = GenerateSampleNames.names

@@ -7,7 +7,9 @@ import "./utils.wdl" as utils
 
 workflow FreebayesGenotyping {
   input {
-    Array[Alignment] alignments 
+    Array[Alignment] alignments
+    Array[File] bam
+    Array[File] bai
     ReferenceFasta references
     String program
   }
@@ -15,8 +17,8 @@ workflow FreebayesGenotyping {
   call RunFreebayes {
     input:
       reference=references.ref_fasta,
-      bam=alignments.bam,
-      bai=alignments.bai
+      bam=bam,
+      bai=bai
   }
 
   call utils.TabixVcf {
