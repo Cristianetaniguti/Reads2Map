@@ -7,45 +7,32 @@ import "./utils.wdl" as utils
 
 workflow FreebayesGenotyping {
   input {
-    Array[Alignment] alignments
+    Array[Alignment] alignments 
     ReferenceFasta references
     String program
-
   }
 
-  scatter (alignment in alignments) {
-    call RunFreebayes {
-      input:
-        sample=alignment.sample,
-        reference=references.ref_fasta,
-        bam=alignment.bam,
-        bai=alignment.bai
-    }
-
-    call utils.TabixVcf {
-      input:
-        sample=alignment.sample,
-        variants=RunFreebayes.vcf
-    }
-  }
-
-  call utils.BcftoolsMerge {
+  call RunFreebayes {
     input:
-      prefix=program,
-      vcfs=TabixVcf.vcf,
-      tbis=TabixVcf.tbi
+      reference=references.ref_fasta,
+      bam=alignments.bam,
+      bai=alignments.bai
+  }
+
+  call utils.TabixVcf {
+    input:
+      variants=RunFreebayes.vcf
   }
 
   call utils.VcftoolsApplyFilters {
     input:
-      vcf_in=BcftoolsMerge.vcf,
+      vcf_in=TabixVcf.vcf,
       max_missing=0.75,
       min_alleles=2,
       max_alleles=2,
       maf=0.05,
       program=program
   }
-
 
   scatter (alignment in alignments) {
     call utils.BamCounts {
@@ -69,18 +56,16 @@ workflow FreebayesGenotyping {
   }
 }
 
-
 task RunFreebayes {
 
   input {
-    String sample
     File reference
-    File bam
-    File bai
+    Array[File] bam
+    Array[File] bai
   }
 
   command <<<
-    freebayes --genotype-qualities -f ~{reference} ~{bam} > ~{sample}.freebayes.vcf
+    freebayes --genotype-qualities -f ~{reference} ~{sep=" "  bam} > freebayes.vcf
   >>>
 
   runtime {
@@ -88,6 +73,6 @@ task RunFreebayes {
   }
 
   output {
-    File vcf = "~{sample}.freebayes.vcf"
+    File vcf = "freebayes.vcf"
   }
 }

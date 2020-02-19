@@ -4,13 +4,12 @@ import "../structs/alignment_struct.wdl"
 
 task TabixVcf {
   input {
-    String sample
     File variants
   }
 
   command <<<
-    bgzip -c ~{variants} > ~{sample}.freebayes.vcf.gz
-    tabix -p vcf ~{sample}.freebayes.vcf.gz
+    bgzip -c ~{variants} > freebayes.vcf.gz
+    tabix -p vcf freebayes.vcf.gz
   >>>
 
   runtime {
@@ -18,8 +17,8 @@ task TabixVcf {
   }
 
   output {
-    File vcf = "~{sample}.freebayes.vcf.gz"
-    File tbi = "~{sample}.freebayes.vcf.gz.tbi"
+    File vcf = "freebayes.vcf.gz"
+    File tbi = "freebayes.vcf.gz.tbi"
   }
 }
 
@@ -118,7 +117,7 @@ task VcftoolsApplyFilters {
   }
 
   command <<<
-    vcftools --vcf "~{vcf_in}" \
+    vcftools --gzvcf "~{vcf_in}" \
         --max-missing ~{max_missing} \
         --min-alleles ~{min_alleles} \
         --max-alleles ~{max_alleles} \

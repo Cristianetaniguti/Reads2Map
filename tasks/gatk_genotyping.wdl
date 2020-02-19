@@ -22,27 +22,26 @@ workflow GatkGenotyping {
         bam_rg_idx = alignment.bai,
         geno_dict  = references.ref_dict
     }
+  }
 
-    call GenotypeGVCFs {
-      input:
-      sample=alignment.sample,
-      vcf_in=HaplotypeCallerERC.GVCF,
+  call CreateGatkDatabase{
+    input:
+      path_gatkDatabase = "my_database",
+      GVCFs             = HaplotypeCallerERC.GVCF,
+      GVCFs_idx          = HaplotypeCallerERC.GVCF_idx
+  }
+
+  call GenotypeGVCFs {
+    input:
+      workspace_tar = CreateGatkDatabase.workspace_tar,
       fasta=references.ref_fasta,
       fasta_fai=references.ref_fasta_index,
       fasta_dict=references.ref_dict
-    }
-  }
-
-  call utils.BcftoolsMerge {
-    input:
-      prefix=program,
-      vcfs=GenotypeGVCFs.vcf,
-      tbis=GenotypeGVCFs.tbi
   }
 
   call utils.VcftoolsApplyFilters {
     input:
-      vcf_in=BcftoolsMerge.vcf,
+      vcf_in=GenotypeGVCFs.vcf,
       max_missing=0.75,
       min_alleles=2,
       max_alleles=2,
@@ -103,23 +102,51 @@ task HaplotypeCallerERC {
   }
 }
 
+task CreateGatkDatabase {
+  input {
+    String path_gatkDatabase
+    Array[File] GVCFs
+    Array[File] GVCFs_idx
+  }
+
+  command <<<
+     /gatk/gatk GenomicsDBImport \
+        --genomicsdb-workspace-path ~{path_gatkDatabase} \
+        -L Chr10 \
+        -V ~{sep=" -V "  GVCFs}
+
+     tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
+  >>>
+
+  runtime {
+      docker: "taniguti/gatk-picard"
+  }
+
+  output {
+      File workspace_tar = "${path_gatkDatabase}.tar"
+  }
+}
 
 # Variant calling on gVCF
 task GenotypeGVCFs {
 
   input {
-    String sample
-    File vcf_in
+    File workspace_tar
     File fasta
     File fasta_fai
     File fasta_dict
   }
 
   command <<<
+    tar -xf ~{workspace_tar}
+    WORKSPACE=$( basename ~{workspace_tar} .tar)
+    
     /gatk/gatk GenotypeGVCFs \
         -R ~{fasta} \
-        -O ~{sample}.gatk.vcf.gz \
-        --variant ~{vcf_in}
+        -O gatk.vcf.gz \
+        -G StandardAnnotation \
+        -V gendb://$WORKSPACE
+        
   >>>
 
   runtime {
@@ -127,7 +154,7 @@ task GenotypeGVCFs {
   }
 
   output {
-    File vcf = "~{sample}.gatk.vcf.gz"
-    File tbi = "~{sample}.gatk.vcf.gz.tbi"
+    File vcf = "gatk.vcf.gz"
+    File tbi = "gatk.vcf.gz.tbi"
   }
 }
