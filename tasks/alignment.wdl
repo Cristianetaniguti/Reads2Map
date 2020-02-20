@@ -70,6 +70,5 @@ task AddAlignmentHeader {
     Alignment algn = {"bam": "${sampleName}_rg.bam", "bai": "${sampleName}_rg.bam.bai", "sample": "${sampleName}"}
     File bam = "~{sampleName}_rg.bam"
     File bai = "~{sampleName}_rg.bam.bai"
-
   }
 }

@@ -17,6 +17,7 @@ workflow FreebayesGenotyping {
   call RunFreebayes {
     input:
       reference=references.ref_fasta,
+      reference_idx=references.ref_fasta_index,
       bam=bam,
       bai=bai
   }
@@ -62,12 +63,17 @@ task RunFreebayes {
 
   input {
     File reference
+    File reference_idx
     Array[File] bam
     Array[File] bai
   }
 
   command <<<
-    freebayes --genotype-qualities -f ~{reference} ~{sep=" "  bam} > freebayes.vcf
+   ln -s ~{sep = " . ; ln -s "  bam} .
+   ln -s ~{sep = " . ; ln -s "  bai} .
+
+   freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 6 \
+   --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
   >>>
 
   runtime {
