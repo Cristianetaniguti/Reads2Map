@@ -356,6 +356,12 @@ task CreateMaps {
             cores = 3,
             depths = depths)
 
+          if(tail(strsplit(vcf_file, "[.]")[[1]],1) =="gz") {
+              vcf.temp <- paste0(method_name,".", sample(1000,1), ".vcf")
+              system(paste0("zcat ", vcf_file, " > ", vcf.temp))
+              vcf_file <- vcf.temp
+          }
+
           new.vcf <- make_vcf(vcf_file, depths, method_name)
 
           polyrad.aval.bam <- polyRAD_error(
