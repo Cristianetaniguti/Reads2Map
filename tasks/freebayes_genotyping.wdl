@@ -69,9 +69,6 @@ task RunFreebayes {
   }
 
   command <<<
-   ln -s ~{sep = " . ; ln -s "  bam} .
-   ln -s ~{sep = " . ; ln -s "  bai} .
-
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 6 \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
   >>>
