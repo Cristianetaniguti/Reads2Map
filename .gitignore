@@ -11,3 +11,4 @@ metadata/
 *.log
 *.swp
 .devcontainer
+data/populus/reference
