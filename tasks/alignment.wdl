@@ -27,7 +27,7 @@ task RunBwaAlignment {
     BAMS=()
     for index in ${!reads_list[*]}; do
       echo "${reads_list[$index]} is in ${lib_list[$index]}"
-      bwa_header="@RG\tID:FLOWCELL1.LANE1.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
+      bwa_header="@RG\tID:~{sampleName}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
       bwa mem -R "${bwa_header}" ~{ref} "${reads_list[$index]}" | \
           java -jar /picard.jar SortSam \
             I=/dev/stdin \
