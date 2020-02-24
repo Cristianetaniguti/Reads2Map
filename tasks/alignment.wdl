@@ -8,6 +8,7 @@ task RunBwaAlignment {
     String sampleName
     File ref
     Array[File] reads1
+    Array[String] libraries
     File geno_amb
     File geno_ann
     File geno_bwt
@@ -17,15 +18,38 @@ task RunBwaAlignment {
 
   command <<<
     echo ~{geno_amb} ~{geno_ann} ~{geno_bwt} ~{geno_pac} ~{geno_sa}
+    mkdir tmp
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
-    bwa mem ~{ref} '<cat ~{sep=" " reads1}'  | \
-        java -jar /picard.jar SortSam \
-        I=/dev/stdin \
+
+    reads_list=( ~{sep=" " reads1} )
+    lib_list=( ~{sep=" " libraries} )
+    BAMS=()
+    for index in ${!reads_list[*]}; do
+      echo "${reads_list[$index]} is in ${lib_list[$index]}"
+      bwa_header="@RG\tID:~{sampleName}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
+      bwa mem -R "${bwa_header}" ~{ref} "${reads_list[$index]}" | \
+          java -jar /picard.jar SortSam \
+            I=/dev/stdin \
+            O="~{sampleName}.${lib_list[$index]}.sorted.bam" \
+            TMP_DIR=./tmp \
+            SORT_ORDER=coordinate \
+            CREATE_INDEX=true;
+      mv "~{sampleName}.${lib_list[$index]}.sorted.bai" "~{sampleName}.${lib_list[$index]}.sorted.bam.bai";
+      BAMS+=("I=~{sampleName}.${lib_list[$index]}.sorted.bam")
+    done
+
+    if [ "${#BAMS[@]}" -gt 1 ]; then
+      java -jar /picard.jar MergeSamFiles ${BAMS[@]} \
         O=~{sampleName}.sorted.bam \
-        SORT_ORDER=coordinate \
-        CREATE_INDEX=true
-    mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
+        CREATE_INDEX=true \
+        TMP_DIR=./tmp
+      mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
+    else
+      mv ~{sampleName}*.bam ~{sampleName}.sorted.bam
+      mv ~{sampleName}*.bai ~{sampleName}.sorted.bam.bai
+    fi
+
   >>>
 
   runtime {
@@ -33,8 +57,9 @@ task RunBwaAlignment {
   }
 
   output {
-    File bam_file = "${sampleName}.sorted.bam"
-    File bam_idx = "${sampleName}.sorted.bam.bai"
+    Alignment algn = {"bam": "~{sampleName}.sorted.bam", "bai": "~{sampleName}.sorted.bam.bai", "sample": "~{sampleName}"}
+    File bam = "~{sampleName}.sorted.bam"
+    File bai = "~{sampleName}.sorted.bam.bai"
   }
 }
 

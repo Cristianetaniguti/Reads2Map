@@ -30,15 +30,17 @@ workflow EmpiricalReads {
   call freebayes.FreebayesGenotyping {
     input:
       alignments=CreateAlignmentFromFamilies.alignments,
+      bam=CreateAlignmentFromFamilies.bam,
+      bai=CreateAlignmentFromFamilies.bai,
       references=references,
       program="freebayes"
   }
 
   call utils.BamCounts4Onemap {
     input:
-      sampleName       = CreateAlignmentFromFamilies.names,
-      freebayes_counts = FreebayesGenotyping.counts,
-      gatk_counts      = GatkGenotyping.counts
+      sampleName=CreateAlignmentFromFamilies.names,
+      freebayes_counts=FreebayesGenotyping.counts,
+      gatk_counts=GatkGenotyping.counts
   }
 
   Array[String] methods = ["gatk", "freebayes"]
@@ -48,16 +50,16 @@ workflow EmpiricalReads {
   scatter (vcf in program_and_vcf){
     call avalVCFs {
       input:
-      methodName = vcf.left,
-      vcf_file   = vcf.right,
-      freebayes_ref_depth = BamCounts4Onemap.freebayes_ref_bam,
-      freebayes_alt_depth = BamCounts4Onemap.freebayes_alt_bam,
-      gatk_ref_depth = BamCounts4Onemap.gatk_ref_bam,
-      gatk_alt_depth = BamCounts4Onemap.gatk_alt_bam,
-      parent1 = dataset.parent1,
-      parent2 = dataset.parent2,
-      gatk_example_alleles = BamCounts4Onemap.gatk_example_alleles,
-      freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles
+      methodName=vcf.left,
+      vcf_file=vcf.right,
+      freebayes_ref_depth=BamCounts4Onemap.freebayes_ref_bam,
+      freebayes_alt_depth=BamCounts4Onemap.freebayes_alt_bam,
+      gatk_ref_depth=BamCounts4Onemap.gatk_ref_bam,
+      gatk_alt_depth=BamCounts4Onemap.gatk_alt_bam,
+      parent1=dataset.parent1,
+      parent2=dataset.parent2,
+      gatk_example_alleles=BamCounts4Onemap.gatk_example_alleles,
+      freebayes_example_alleles=BamCounts4Onemap.freebayes_example_alleles
     }
   }
 
