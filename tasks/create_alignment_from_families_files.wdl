@@ -46,6 +46,8 @@ workflow CreateAlignmentFromFamilies {
 
     output {
         Array[Alignment] alignments = RunBwaAlignment.algn
+        Array[File] bam = RunBwaAlignment.bam
+        Array[File] bai = RunBwaAlignment.bai
         Array[String] names = SepareIndividuals.dataset.names
     }
 }
