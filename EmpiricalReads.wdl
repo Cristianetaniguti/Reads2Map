@@ -1,10 +1,10 @@
 version 1.0
 
 import "structs/empiricalS.wdl"
-import "create_alignment_from_families_files.wdl" as fam
-import "./gatk_genotyping.wdl" as gatk
-import "./freebayes_genotyping.wdl" as freebayes
-import "./utils.wdl" as utils
+import "tasks/create_alignment_from_families_files.wdl" as fam
+import "tasks/gatk_genotyping.wdl" as gatk
+import "tasks/freebayes_genotyping.wdl" as freebayes
+import "tasks/utils.wdl" as utils
 
 
 workflow EmpiricalReads {
@@ -283,6 +283,12 @@ task avalVCFs {
      mean_phred = 20,
      cores = max.cores,
      depths = depths)
+
+   if(tail(strsplit(vcf_file, "[.]")[[1]],1) =="gz") {
+       vcf.temp <- paste0(SNPCall,".", sample(1000,1), ".vcf")
+       system(paste0("zcat ", vcf_file, " > ", vcf.temp))
+       vcf_file <- vcf.temp
+   }
 
    new.vcf <- make_vcf(vcf_file, depths, SNPCall)
    new.vcfR <- read.vcfR(new.vcf)
