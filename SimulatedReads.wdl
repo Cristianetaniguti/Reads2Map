@@ -3,7 +3,7 @@ version 1.0
 import "./structs/reads_simuS.wdl"
 import "./tasks/reads_simu.wdl" as sub
 
-workflow main{
+workflow SimulatedReads {
 
   input {
     ReferenceFasta references
@@ -16,6 +16,7 @@ workflow main{
   # array of integers
   call ProduceFamiliesSeeds {
     input:
+      seed=9000,
       number_of_families=number_of_families
   }
 
@@ -23,45 +24,45 @@ workflow main{
   # from the family_template and the random seed of the previous task.
   scatter(seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
-      "cmBymb" : family_template.cmBymb,
+      "cmBymb": family_template.cmBymb,
       "popsize": family_template.popsize,
-      "enzyme" : family_template.enzyme,
-      "seed"   : seed,
-      "depth"  : family_template.depth,
-      "doses"  : family_template.doses,
-      "ploidy" : family_template.ploidy,
-      "cross"  : family_template.cross
+      "enzyme": family_template.enzyme,
+      "seed": seed,
+      "depth": family_template.depth,
+      "doses": family_template.doses,
+      "ploidy": family_template.ploidy,
+      "cross": family_template.cross
     }
 
     # Calling reads_simu for each seed
     call sub.reads_simu as ReadSimulations{
       input:
-        profiles   = profiles,
-        references = references,
-        family     = fam
+        profiles=profiles,
+        references=references,
+        family=fam
     }
   }
 
   call JointTables{
     input:
-      data1  = ReadSimulations.data1_depths_geno_prob,
-      data2  = ReadSimulations.data2_maps,
-      data3  = ReadSimulations.data3_filters,
-      data5  = ReadSimulations.data5_SNPcall_efficiency,
-      data4  = ReadSimulations.data4_times,
-      depth  = family_template.depth,
-      data6  = ReadSimulations.data6_RDatas
+      data1=ReadSimulations.data1_depths_geno_prob,
+      data2=ReadSimulations.data2_maps,
+      data3=ReadSimulations.data3_filters,
+      data5=ReadSimulations.data5_SNPcall_efficiency,
+      data4=ReadSimulations.data4_times,
+      depth=family_template.depth,
+      data6=ReadSimulations.data6_RDatas
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
   # it will be an array of the same type of the original.
   output {
-    File data1_depths_geno_prob   = JointTables.data1_depths_geno_prob
-    File data2_maps               = JointTables.data2_maps
-    File data3_filters            = JointTables.data3_filters
+    File data1_depths_geno_prob = JointTables.data1_depths_geno_prob
+    File data2_maps = JointTables.data2_maps
+    File data3_filters = JointTables.data3_filters
     File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
-    File data4_times              = JointTables.data4_times    
-    File data6_RDatas             = JointTables.data6_RDatas
+    File data4_times = JointTables.data4_times
+    File data6_RDatas = JointTables.data6_RDatas
 
   }
 }
@@ -69,11 +70,13 @@ workflow main{
 task ProduceFamiliesSeeds {
   input {
     Int number_of_families
+    Int seed
   }
 
   command <<<
     python <<CODE
     import random
+    random.seed(~{seed})
     for x in range(~{number_of_families}):
         print(random.randint(1,101))
     CODE

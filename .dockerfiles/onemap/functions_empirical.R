@@ -175,7 +175,7 @@ create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent
   
   write.csv(ped.file, file = "ped.file.csv")
   
-  RAdata <- readRA(paste0(file.name,".recode.vcf.ra.tab"), pedfile = "ped.file.csv", 
+  RAdata <- readRA(paste0(vcf_file,".ra.tab"), pedfile = "ped.file.csv", 
                    filter = list(MAF=0.05, MISS=0.75, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
