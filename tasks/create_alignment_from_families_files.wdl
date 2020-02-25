@@ -79,6 +79,9 @@ task SepareIndividuals {
 
     runtime {
         docker: "python:3.7"
+	mem:"--mem-per-cpu=24042"
+	cpu:1
+	time:"00:30:00"
     }
 
     output {

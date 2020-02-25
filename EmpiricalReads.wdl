@@ -151,7 +151,7 @@ task avalVCFs {
    vcf_file <- "~{vcf_file}"
    SNPCall <- "~{methodName}"
    cross <- "outcross"
-   max.cores <- 3
+   max.cores <- 20
    parent1 <- "~{parent1}"
    parent2 <- "~{parent2}"
 
@@ -333,6 +333,9 @@ task avalVCFs {
 
  runtime{
    docker:"taniguti/onemap"
+   time:"192:00:00"
+   cpu:20
+   mem:"--nodes=1"
  }
 
  output{
@@ -562,6 +565,9 @@ task JointDatas{
 
     runtime{
       docker:"taniguti/onemap"
+      time:"2:00:00"
+      cpu:1
+      mem:"--nodes=1"
     }
 
     output{

@@ -124,6 +124,9 @@ task GenerateAlternativeGenome {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
+    mem:"--nodes=1"
+    cpu:1
+    time:"05:00:00"
   }
 
   output {
@@ -311,6 +314,9 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker: "cristaniguti/r-samtools"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"00:30:00"
   }
 
   output {
@@ -342,6 +348,9 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
+    mem:"--nodes=1"
+    cpu:1
+    time:"05:00:00"
   }
 
   output {
@@ -380,6 +389,9 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "taniguti/onemap"
+    mem:"--nodes=1"
+    cpu:1
+    time:"24:00:00"
   }
 
   output {
@@ -401,6 +413,9 @@ task RunVcf2diploid {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
+    mem:"--nodes=1"
+    cpu:1
+    time:"05:00:00"
   }
 
   output {
@@ -433,6 +448,9 @@ task GenerateSampleNames {
 
   runtime {
     docker: "taniguti/miniconda-alpine"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"00:30:00"
   }
 
   output {
@@ -494,6 +512,9 @@ task SimulateRADseq {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
+    mem:"--nodes=1"
+    cpu=1
+    time:"05:00:00"
   }
 
   output {
@@ -527,7 +548,7 @@ task SimulateIlluminaReads {
       --insert-len-mean=150 \
       --output-prefix=~{sampleName} \
       --output-file-type=gzip \
-      --threads=2 \
+      --threads=20 \
       --base-calling-profile=~{base_calling} \
       --indel-error-profile=~{indel_error} \
       --gc-bias-profile=~{gc_bias}
@@ -537,6 +558,9 @@ task SimulateIlluminaReads {
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     maxRetries: 3
+    mem:"--nodes=1"
+    time:"10:00:00"
+    cpu:20
   }
 
   output {

@@ -12,5 +12,3 @@ metadata/
 *.swp
 .devcontainer
 data/populus/reference
-.configurations/cromwell_sing_slurm2.conf
-.configurations/temp.conf
