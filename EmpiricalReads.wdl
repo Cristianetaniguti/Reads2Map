@@ -207,7 +207,7 @@ task avalVCFs {
    # OTHER TOOLS
    ## With depths from vcf
 
-   updog.aval <- updog_error(
+   updog.aval <- updog_genotype(
      vcfR.object=vcf,
      onemap.object=df,
      vcf.par="AD",
@@ -216,9 +216,12 @@ task avalVCFs {
      recovering=TRUE,
      mean_phred=20,
      cores=max.cores,
-     depths=NULL)
+     depths=NULL,
+     global_error = NULL,
+     use_genotypes_errors = FALSE,
+     use_genotypes_probs = TRUE)
 
-   supermassa.aval <- supermassa4onemap::supermassa_error(
+   supermassa.aval <- supermassa4onemap::supermassa_genotype(
      vcfR.object=vcf,
      onemap.object = df,
      vcf.par = "AD",
@@ -227,14 +230,20 @@ task avalVCFs {
      recovering = TRUE,
      mean_phred = 20,
      cores = max.cores,
-     depths = NULL)
+     depths = NULL,
+     global_error = NULL,
+     use_genotypes_errors = FALSE,
+     use_genotypes_probs = TRUE)
 
-   polyrad.aval <- polyRAD_error(
+   polyrad.aval <- polyRAD_genotype(
      vcf=vcf_file,
      onemap.obj=df,
      parent1=parent1,
      parent2=parent2,
-     crosstype=cross)
+     crosstype=cross,
+     global_error = NULL,
+     use_genotypes_errors = FALSE,
+     use_genotypes_probs = TRUE)
 
    metodologies <- list(updog = updog.aval, supermassa = supermassa.aval, polyrad = polyrad.aval)
    for (metodology in names(metodologies)){
@@ -262,7 +271,7 @@ task avalVCFs {
 
    depths <- list("ref"=depths.ref, "alt"=depths.alt)
 
-   updog.aval.bam <- updog_error(
+   updog.aval.bam <- updog_genotype(
      vcfR.object=vcf,
      onemap.object=df,
      vcf.par="AD",
@@ -271,9 +280,12 @@ task avalVCFs {
      recovering=TRUE,
      mean_phred=20,
      cores=max.cores,
-     depths=depths)
+     depths=depths,
+     global_error = NULL,
+     use_genotypes_errors = FALSE,
+     use_genotypes_probs = TRUE)
 
-   supermassa.aval.bam <- supermassa_error(
+   supermassa.aval.bam <- supermassa_genotype(
      vcfR.object=vcf,
      onemap.object = df,
      vcf.par = "AD",
@@ -282,7 +294,10 @@ task avalVCFs {
      recovering = TRUE,
      mean_phred = 20,
      cores = max.cores,
-     depths = depths)
+     depths = depths,
+     global_error = NULL,
+     use_genotypes_errors = FALSE,
+     use_genotypes_probs = TRUE)
 
    if(tail(strsplit(vcf_file, "[.]")[[1]],1) =="gz") {
        vcf.temp <- paste0(SNPCall,".", sample(1000,1), ".vcf")
@@ -293,12 +308,15 @@ task avalVCFs {
    new.vcf <- make_vcf(vcf_file, depths, SNPCall)
    new.vcfR <- read.vcfR(new.vcf)
 
-   polyrad.aval.bam <- polyRAD_error(
+   polyrad.aval.bam <- polyRAD_genotype(
      vcf=new.vcf,
      onemap.obj=df,
      parent1=parent1,
      parent2=parent2,
-     crosstype=cross)
+     crosstype=cross,
+     global_error = NULL,
+     use_genotypes_errors = FALSE,
+     use_genotypes_probs = TRUE)
 
    metodologies <- list(updog = updog.aval.bam, supermassa= supermassa.aval.bam, polyrad=polyrad.aval.bam)
    for (metodology in names(metodologies)){
