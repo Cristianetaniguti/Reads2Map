@@ -51,6 +51,9 @@ task BamCounts {
 
   runtime{
     docker:"taniguti/gatk-picard"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"01:00:00"
   }
 
   output{
@@ -75,6 +78,9 @@ task VcftoolsMerge {
   >>>
   runtime {
     docker: "taniguti/vcftools"
+    mem:"--nodes=1"
+    cpu:1
+    time:"05:00:00"
   }
 
   output {
@@ -97,6 +103,9 @@ task BcftoolsMerge {
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"01:00:00"
   }
 
   output {
@@ -131,6 +140,9 @@ task VcftoolsApplyFilters {
   >>>
   runtime {
     docker: "taniguti/vcftools"
+    mem:"--nodes=1"
+    cpu:1
+    time:"05:00:00"
   }
 
   output {
@@ -247,6 +259,9 @@ task CalculateVcfMetrics {
 
   runtime {
     docker: "taniguti/onemap"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"02:00:00"
   }
 
   output {
@@ -324,6 +339,9 @@ task BamCounts4Onemap{
 
   runtime{
     docker:"taniguti/onemap"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"02:00:00"
   }
 
   output{

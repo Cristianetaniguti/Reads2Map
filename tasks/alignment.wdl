@@ -28,7 +28,7 @@ task RunBwaAlignment {
     for index in ${!reads_list[*]}; do
       echo "${reads_list[$index]} is in ${lib_list[$index]}"
       bwa_header="@RG\tID:~{sampleName}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      bwa mem -R "${bwa_header}" ~{ref} "${reads_list[$index]}" | \
+      bwa mem -t 20 -R "${bwa_header}" ~{ref} "${reads_list[$index]}" | \
           java -jar /picard.jar SortSam \
             I=/dev/stdin \
             O="~{sampleName}.${lib_list[$index]}.sorted.bam" \
@@ -54,6 +54,9 @@ task RunBwaAlignment {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
+    time:"24:00:00"
+    mem:"--nodes=1"
+    cpu:20
   }
 
   output {
@@ -89,6 +92,9 @@ task AddAlignmentHeader {
 
   runtime {
     docker: "taniguti/gatk-picard"
+    time:"00:30:00"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
   }
 
   output {

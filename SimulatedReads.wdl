@@ -84,6 +84,9 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
+    time:"0:05:00"
+    cpu:1
+    mem:"--mem-per-cpu=14042"
   }
 
   output {
@@ -141,6 +144,9 @@ task JointTables{
 
   runtime{
       docker:"taniguti/onemap"
+      time:"0:30:00"
+      cpu:1
+      mem:"--mem-per-cpu=24042"
   }
 
   output{

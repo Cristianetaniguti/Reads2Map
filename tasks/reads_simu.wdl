@@ -148,6 +148,7 @@ task CreateMaps {
           method_name <- "~{methodName}"
           tot_mks_file <- "~{tot_mks}"
           simu_vcf_file <- "~{simu_vcf}"
+	  max.cores <- 20
           vcf_file <- "~{vcf_file}"
           cross <- "~{cross}"
           cMbyMb <- ~{cmBymb}
@@ -556,6 +557,9 @@ task CreateMaps {
 
   runtime{
     docker:"taniguti/onemap"
+    mem:"--nodes=1"
+    cpu:20
+    time:"192:00:00"
   }
 
   output{
@@ -724,6 +728,9 @@ task CreateTables{
 
   runtime{
     docker:"taniguti/onemap"
+    mem:"--nodes=1"
+    cpu:1
+    time:"01:00:00"
   }
 
   output{
