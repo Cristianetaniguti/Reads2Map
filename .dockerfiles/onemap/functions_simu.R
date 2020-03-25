@@ -61,7 +61,7 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
   return(seq1)
 }
 
-create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, CountsFrom,cMbyMb) {
+create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, CountsFrom,cMbyMb, real_phases) {
   
   if(!fake){
     true_mks <- input.seq$seq.num[which(input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2])]

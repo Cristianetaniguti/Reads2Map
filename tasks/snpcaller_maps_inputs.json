@@ -1,0 +1,13 @@
+{
+  "SNPCallerMaps.cMbyMb": "4.63",
+  "SNPCallerMaps.SNPCall_program": "gatk",
+  "SNPCallerMaps.GenotypeCall_program": "SNPCall",
+  "SNPCallerMaps.cross": "F1",
+  "SNPCallerMaps.onemap_obj": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/DefaultMaps/e73426a8-ed73-4107-9724-b59a0bdbfe29/call-vcf2onemap/execution/gatk_SNPCall_onemap.obj.RData",
+  "SNPCallerMaps.simu_onemap_obj": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCallerGenotyping/32fc36c4-9cb6-42de-85f3-734a01dd1112/call-SimulatedMap/SimulatedMap/2b6a9ac1-e43c-4c4e-b8c1-4388a37a120f/call-vcf2onemap/execution/simu_simu_onemap.obj.RData",
+  "SNPCallerMaps.vcfR_obj": "File",
+  "SNPCallerMaps.real_phases": "File",
+  "SNPCallerMaps.tot_mks": "File",
+  "SNPCallerMaps.CountsFrom": "String"
+}
+

@@ -513,7 +513,7 @@ task SimulateRADseq {
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     mem:"--nodes=1"
-    cpu=1
+    cpu:1
     time:"05:00:00"
   }
 

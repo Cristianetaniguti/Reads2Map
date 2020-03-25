@@ -1,0 +1,11 @@
+{
+  "DefaultMaps.tot_mks": "/home/cristiane/github/errors_workflow/cromwell-executions/SimulatedReads/cd80a3ae-cad9-445d-b263-335e6bd62405/call-ReadSimulations/shard-0/reads_simu/2e0d178e-605a-4e3d-9363-593f3cc19204/call-CreateMaps/shard-0/inputs/-781093754/tot_mks.txt",
+  "DefaultMaps.simu_onemap_obj": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCallerGenotyping/32fc36c4-9cb6-42de-85f3-734a01dd1112/call-SimulatedMap/SimulatedMap/2b6a9ac1-e43c-4c4e-b8c1-4388a37a120f/call-vcf2onemap/execution/simu_simu_onemap.obj.RData",
+  "DefaultMaps.CountsFrom": "vcf",
+  "DefaultMaps.SNPCall_program": "gatk",
+  "DefaultMaps.cMbyMb": "4.63",
+  "DefaultMaps.onemap_obj": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/DefaultMaps/e73426a8-ed73-4107-9724-b59a0bdbfe29/call-vcf2onemap/execution/gatk_SNPCall_onemap.obj.RData",
+  "DefaultMaps.GenotypeCall_program": "SNPCall",
+  "DefaultMaps.real_phases":"/home/cristiane/github/errors_workflow/cromwell-executions/SimulatedReads/cd80a3ae-cad9-445d-b263-335e6bd62405/call-ReadSimulations/shard-0/reads_simu/2e0d178e-605a-4e3d-9363-593f3cc19204/call-CreateMaps/shard-0/inputs/-781093754/real_phases.txt"
+}
+

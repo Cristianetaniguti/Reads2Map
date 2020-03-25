@@ -1,4 +1,19 @@
 {
+  "reads_simu.profiles": {
+    "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
+    "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
+    "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
+  },
+  "reads_simu.family": {
+    "cmBymb": "4.63",
+    "seed": "4747",
+    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
+    "popsize": "47",
+    "ploidy": "2",
+    "enzyme": "G*CWGC",
+    "cross": "F1",
+    "depth": "20"
+  },
   "reads_simu.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
@@ -8,16 +23,6 @@
     "ref_bwt": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.bwt",
     "ref_ann": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.ann",
     "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
-  },
-
-  "reads_simu.family": {
-    "cmBymb": 4.63,
-    "popsize": 47,
-    "seed" : 1515,
-    "enzyme":"G*CWGC",
-    "depth": 20,
-    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
-    "ploidy": 2,
-    "cross": "F1"
   }
 }
+
