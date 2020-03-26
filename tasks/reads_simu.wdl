@@ -12,6 +12,9 @@ import "./snpcaller_maps.wdl" as snpcaller
 import "./updog_maps.wdl" as updog
 import "./polyrad_maps.wdl" as polyrad
 import "./supermassa_maps.wdl" as supermassa
+import "./updogbam_maps.wdl" as updogbam
+import "./polyradbam_maps.wdl" as polyradbam
+import "./supermassabam_maps.wdl" as supermassabam
 
 
 workflow reads_simu {
@@ -115,7 +118,7 @@ workflow reads_simu {
           tot_mks = CreateAlignmentFromSimulation.total_markers,
           real_phases = CreateAlignmentFromSimulation.real_phases,
           SNPCall_program = vcf.left,
-          GenotypeCall_program = "SNPCaller",
+          GenotypeCall_program = "updog",
           CountsFrom = "vcf",
           cMbyMb = family.cmBymb
       }
@@ -128,7 +131,7 @@ workflow reads_simu {
           tot_mks = CreateAlignmentFromSimulation.total_markers,
           real_phases = CreateAlignmentFromSimulation.real_phases,
           SNPCall_program = vcf.left,
-          GenotypeCall_program = "SNPCaller",
+          GenotypeCall_program = "supermassa",
           CountsFrom = "vcf",
           cMbyMb = family.cmBymb
       }
@@ -141,10 +144,62 @@ workflow reads_simu {
           tot_mks = CreateAlignmentFromSimulation.total_markers,
           real_phases = CreateAlignmentFromSimulation.real_phases,
           SNPCall_program = vcf.left,
-          GenotypeCall_program = "SNPCaller",
+          GenotypeCall_program = "polyrad",
           CountsFrom = "vcf",
           cMbyMb = family.cmBymb,
           cross = family.cross
+      }
+      
+      call updogbam.UpdogBamMaps{
+        input:
+          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+          vcfR_obj = vcf2onemap.vcfR_obj,
+          onemap_obj = vcf2onemap.onemap_obj,
+          tot_mks = CreateAlignmentFromSimulation.total_markers,
+          real_phases = CreateAlignmentFromSimulation.real_phases,
+          SNPCall_program = vcf.left,
+          GenotypeCall_program = "updog_bam",
+          CountsFrom = "bam",
+          cMbyMb = family.cmBymb,
+          freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
+          freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
+          gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
+          gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam
+      }
+      
+      call supermassabam.SupermassaBamMaps{
+          input:
+          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+          vcfR_obj = vcf2onemap.vcfR_obj,
+          onemap_obj = vcf2onemap.onemap_obj,
+          tot_mks = CreateAlignmentFromSimulation.total_markers,
+          real_phases = CreateAlignmentFromSimulation.real_phases,
+          SNPCall_program = vcf.left,
+          GenotypeCall_program = "supermassa_bam",
+          CountsFrom = "bam",
+          cMbyMb = family.cmBymb,
+          freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
+          freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
+          gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
+          gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam
+      }
+      
+      call polyradbam.PolyradBamMaps{
+         input:
+          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+          vcf_file = vcf.right,
+          onemap_obj = vcf2onemap.onemap_obj,
+          tot_mks = CreateAlignmentFromSimulation.total_markers,
+          real_phases = CreateAlignmentFromSimulation.real_phases,
+          SNPCall_program = vcf.left,
+          GenotypeCall_program = "polyrad_bam",
+          CountsFrom = "bam",
+          cMbyMb = family.cmBymb,
+          cross = family.cross,
+          freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
+          freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
+          gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
+          gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam
       }
   }
 }

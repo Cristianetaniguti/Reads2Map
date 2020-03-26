@@ -16,7 +16,7 @@ workflow SNPCallerMaps{
      String cMbyMb
     }
     
-  call utilsR.GQProbs{
+  call GQProbs{
     input:
       vcfR_obj = vcfR_obj,
       onemap_obj = onemap_obj,
@@ -59,3 +59,53 @@ workflow SNPCallerMaps{
     File errors_report = ErrorsReport.errors_report
   }
 }
+
+task GQProbs{
+  input{
+    File vcfR_obj
+    File onemap_obj
+    String cross
+  }
+  
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      library(vcfR)
+      
+      cross <- "~{cross}"
+        
+      if(cross == "F1"){
+         f1 = NULL
+      } else if (cross == "F2"){
+         f1 = "F1"
+      }
+      
+      vcf_temp <- load("~{vcfR_obj}")
+      vcf <- get(vcf_temp)
+      
+      onemap_obj <- load("~{onemap_obj}")
+      onemap_obj <- get(onemap_obj)
+      
+      # MAPS REPORT - GQ
+      gq <- extract_depth(vcfR.object=vcf,
+                               onemap.object=onemap_obj,
+                               vcf.par="GQ",
+                               parent1="P1",
+                               parent2="P2",
+                               f1 = f1,
+                               recovering=FALSE)
+          
+      gq_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=gq)
+      save(gq_onemap_obj, file="gq_onemap_obj.RData")
+      
+    RSCRIPT
+  >>>
+  runtime{
+    docker:"taniguti/onemap"
+  }
+  
+  output{
+    File gq_onemap_obj = "gq_onemap_obj.RData"
+  }
+}
+

@@ -15,7 +15,7 @@ workflow UpdogMaps{
     String cMbyMb
   }
   
-  call utilsR.UpdogProbs{
+  call UpdogProbs{
     input:
       vcfR_obj = vcfR_obj,
       onemap_obj = onemap_obj
@@ -70,5 +70,48 @@ workflow UpdogMaps{
       Array[File] filters_report = FiltersReport.filters_report
       Array[File] errors_report = ErrorsReport.errors_report
    }
+}
 
+task UpdogProbs{
+  input{
+    File vcfR_obj
+    File onemap_obj
+  }
+  
+  command <<<
+     R --vanilla --no-save <<RSCRIPT
+       library(onemap)
+        
+       vcf_temp <- load("~{vcfR_obj}")
+       vcf <- get(vcf_temp)
+       
+       onemap_obj_temp <- load("~{onemap_obj}")
+       onemap_obj <- get(onemap_obj_temp)
+       
+       updog_onemap_obj <- updog_genotype(vcfR.object=vcf,
+                                    onemap.object=onemap_obj,
+                                    vcf.par="AD",
+                                    parent1="P1",
+                                    parent2="P2",
+                                    f1 = f1,
+                                    recovering=TRUE,
+                                    mean_phred=20,
+                                    cores=3,
+                                    depths=NULL,
+                                    global_error = NULL,
+                                    use_genotypes_errors = FALSE,
+                                    use_genotypes_probs = TRUE)
+       
+       save(updog_onemap_obj, file="updog_onemap_obj.RData")
+  
+     RSCRIPT
+  >>>
+  
+  runtime{
+    docker:"taniguti/onemap"
+  }
+  
+  output{
+    File updog_onemap_obj = "updog_onemap_obj.RData"
+  }
 }

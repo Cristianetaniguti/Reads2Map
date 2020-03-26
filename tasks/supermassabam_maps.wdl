@@ -2,7 +2,7 @@ version 1.0
 
 import "./utilsR.wdl" as utilsR
 
-workflow SupermassaMaps{
+workflow SupermassaBamMaps{
   input{
     File simu_onemap_obj
     File vcfR_obj
@@ -13,12 +13,21 @@ workflow SupermassaMaps{
     String GenotypeCall_program
     String CountsFrom
     String cMbyMb
+    File freebayes_ref_bam
+    File freebayes_alt_bam
+    File gatk_ref_bam
+    File gatk_alt_bam
   }
   
-  call SupermassaProbs{
+  call SupermassaBamProbs{
     input:
       vcfR_obj = vcfR_obj,
-      onemap_obj = onemap_obj
+      onemap_obj = onemap_obj,
+      SNPCall_program = SNPCall_program,
+      freebayes_ref_bam = freebayes_ref_bam,
+      freebayes_alt_bam = freebayes_alt_bam,
+      gatk_ref_bam = gatk_ref_bam,
+      gatk_alt_bam = gatk_alt_bam
   }
   
   call utilsR.GlobalError{
@@ -29,7 +38,7 @@ workflow SupermassaMaps{
       CountsFrom = CountsFrom
   }
 
-  Array[String] methods                         = ["updog", "updog0.05"]
+  Array[String] methods                         = ["supermassa_bam", "supermassa0.05_bam"]
   Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
@@ -72,24 +81,35 @@ workflow SupermassaMaps{
    }
 }
 
-task SupermassaProbs{
+task SupermassaBamProbs{
   input{
     File vcfR_obj
     File onemap_obj
+    String SNPCall_program
+    File freebayes_ref_bam
+    File freebayes_alt_bam
+    File gatk_ref_bam
+    File gatk_alt_bam
   }
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
        library(supermassa4onemap)
- 
+       
+       ## Depths from bam
+       depths.alt <- read.table(paste0("~{SNPCall_program}", "_alt_depth_bam.txt"), header = T)
+       depths.ref <- read.table(paste0("~{SNPCall_program}", "_ref_depth_bam.txt"), header = T)
+
+       depths <- list("ref" = depths.ref, "alt"=depths.alt)
+        
        vcf_temp <- load("~{vcfR_obj}")
        vcf <- get(vcf_temp)
        
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)
        
-       supermassa_onemap_obj <- supermassa_genotype(vcfR.object=vcf,
+       supermassa_bam_onemap_obj <- supermassa_genotype(vcfR.object=vcf,
                                     onemap.object=onemap_obj,
                                     vcf.par="AD",
                                     parent1="P1",
@@ -98,12 +118,12 @@ task SupermassaProbs{
                                     recovering=TRUE,
                                     mean_phred=20,
                                     cores=3,
-                                    depths=NULL,
+                                    depths=depths,
                                     global_error = NULL,
                                     use_genotypes_errors = FALSE,
                                     use_genotypes_probs = TRUE)
        
-       save(supermassa_onemap_obj, file="supermassa_onemap_obj.RData")
+       save(supermassa_bam_onemap_obj, file="supermassa_bam_onemap_obj.RData")
   
      RSCRIPT
   >>>
@@ -113,6 +133,6 @@ task SupermassaProbs{
   }
   
   output{
-    File supermassa_onemap_obj = "supermassa_onemap_obj.RData"
+    File supermassa_bam_onemap_obj = "supermassa_bam_onemap_obj.RData"
   }
 }

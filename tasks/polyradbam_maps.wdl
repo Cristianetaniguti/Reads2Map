@@ -2,10 +2,10 @@ version 1.0
 
 import "./utilsR.wdl" as utilsR
 
-workflow SupermassaMaps{
+workflow PolyradBamMaps{
   input{
     File simu_onemap_obj
-    File vcfR_obj
+    File vcf_file
     File onemap_obj
     File tot_mks
     File real_phases
@@ -13,12 +13,23 @@ workflow SupermassaMaps{
     String GenotypeCall_program
     String CountsFrom
     String cMbyMb
+    String cross
+    File freebayes_ref_bam
+    File freebayes_alt_bam
+    File gatk_ref_bam
+    File gatk_alt_bam
   }
   
-  call SupermassaProbs{
+  call PolyradBamProbs{
     input:
-      vcfR_obj = vcfR_obj,
-      onemap_obj = onemap_obj
+      vcf_file = vcf_file,
+      onemap_obj = onemap_obj,
+      cross = cross, 
+      SNPCall_program = SNPCall_program,
+      freebayes_ref_bam = freebayes_ref_bam,
+      freebayes_alt_bam = freebayes_alt_bam,
+      gatk_ref_bam = gatk_ref_bam,
+      gatk_alt_bam = gatk_alt_bam
   }
   
   call utilsR.GlobalError{
@@ -29,7 +40,7 @@ workflow SupermassaMaps{
       CountsFrom = CountsFrom
   }
 
-  Array[String] methods                         = ["updog", "updog0.05"]
+  Array[String] methods                         = ["polyrad_bam", "polyrad0.05_bam"]
   Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
@@ -72,38 +83,50 @@ workflow SupermassaMaps{
    }
 }
 
-task SupermassaProbs{
+task PolyradBamProbs{
   input{
-    File vcfR_obj
+    File vcf_file
     File onemap_obj
+    String cross
+    String SNPCall_program
+    File freebayes_ref_bam
+    File freebayes_alt_bam
+    File gatk_ref_bam
+    File gatk_alt_bam
   }
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
-       library(supermassa4onemap)
- 
-       vcf_temp <- load("~{vcfR_obj}")
-       vcf <- get(vcf_temp)
        
+       ## Depths from bam
+       depths.alt <- read.table(paste0("~{SNPCall_program}", "_alt_depth_bam.txt"), header = T)
+       depths.ref <- read.table(paste0("~{SNPCall_program}", "_ref_depth_bam.txt"), header = T)
+
+       depths <- list("ref" = depths.ref, "alt"=depths.alt)
+
+       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
+          vcf.temp <- paste0("~{SNPCall_program}",".", sample(1000,1), ".vcf")
+          system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
+          vcf_file <- vcf.temp
+       }
+
+       new.vcf <- make_vcf(vcf_file, depths, "~{SNPCall_program}")
+        
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)
+
+       polyrad_bam_onemap_obj <- polyRAD_genotype(vcf=new.vcf,
+                                        onemap.obj=onemap_obj,
+                                        parent1="P1",
+                                        parent2="P2",
+                                        f1 = f1,
+                                        crosstype="~{cross}",
+                                        global_error = NULL,
+                                        use_genotypes_errors = FALSE,
+                                        use_genotypes_probs = TRUE)
        
-       supermassa_onemap_obj <- supermassa_genotype(vcfR.object=vcf,
-                                    onemap.object=onemap_obj,
-                                    vcf.par="AD",
-                                    parent1="P1",
-                                    parent2="P2",
-                                    f1 = f1,
-                                    recovering=TRUE,
-                                    mean_phred=20,
-                                    cores=3,
-                                    depths=NULL,
-                                    global_error = NULL,
-                                    use_genotypes_errors = FALSE,
-                                    use_genotypes_probs = TRUE)
-       
-       save(supermassa_onemap_obj, file="supermassa_onemap_obj.RData")
+       save(polyrad_bam_onemap_obj, file="polyrad_bam_onemap_obj.RData")
   
      RSCRIPT
   >>>
@@ -113,6 +136,6 @@ task SupermassaProbs{
   }
   
   output{
-    File supermassa_onemap_obj = "supermassa_onemap_obj.RData"
+    File polyrad_bam_onemap_obj = "polyrad_bam_onemap_obj.RData"
   }
 }

@@ -16,7 +16,7 @@ workflow PolyradMaps{
     String cross
   }
   
-  call utilsR.PolyradProbs{
+  call PolyradProbs{
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
@@ -72,5 +72,52 @@ workflow PolyradMaps{
       Array[File] filters_report = FiltersReport.filters_report
       Array[File] errors_report = ErrorsReport.errors_report
    }
+}
 
+task PolyradProbs{
+  input{
+    File vcf_file
+    File onemap_obj
+    String cross
+  }
+  
+  command <<<
+     R --vanilla --no-save <<RSCRIPT
+       library(onemap)
+        
+       cross <- "~{cross}"
+          
+       if(cross == "F1"){
+          cross <- "outcross"
+          f1 = NULL
+       } else if (cross == "F2"){
+          cross <- "f2 intercross"
+          f1 = "F1"
+       }
+       
+       onemap_obj_temp <- load("~{onemap_obj}")
+       onemap_obj <- get(onemap_obj_temp)
+
+       polyrad_onemap_obj <- polyRAD_genotype(vcf="~{vcf_file}",
+                                        onemap.obj=onemap_obj,
+                                        parent1="P1",
+                                        parent2="P2",
+                                        f1 = f1,
+                                        crosstype= cross,
+                                        global_error = NULL,
+                                        use_genotypes_errors = FALSE,
+                                        use_genotypes_probs = TRUE)
+       
+       save(polyrad_onemap_obj, file="polyrad_onemap_obj.RData")
+  
+     RSCRIPT
+  >>>
+  
+  runtime{
+    docker:"taniguti/onemap"
+  }
+  
+  output{
+    File polyrad_onemap_obj = "polyrad_onemap_obj.RData"
+  }
 }
