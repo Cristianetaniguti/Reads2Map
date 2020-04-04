@@ -131,7 +131,7 @@ task MapsReport{
       map_joint <- map_temp
       map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.txt")
       map_joint <- rbind(map_joint, map_temp)
-      write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt")
+      write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
       
       # Joint RDatas
       RDatas_joint <- list()
@@ -145,7 +145,7 @@ task MapsReport{
       # Joint times data.frames
       times_temp <- data.frame(meth = outname, time = times_temp[3])
       times <- rbind(times, times_temp)
-      write.table(times, "times.txt")
+      write.table(times, "times.txt", col.names = F)
       
       RSCRIPT
   >>>

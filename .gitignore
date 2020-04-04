@@ -12,3 +12,5 @@ metadata/
 *.swp
 .devcontainer
 data/populus/reference
+task/cromwell-executions/
+task/cromwell-workflow-logs/

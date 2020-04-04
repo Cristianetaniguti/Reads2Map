@@ -13,12 +13,14 @@ workflow UpdogMaps{
     String GenotypeCall_program
     String CountsFrom
     String cMbyMb
+    String cross
   }
   
   call UpdogProbs{
     input:
       vcfR_obj = vcfR_obj,
-      onemap_obj = onemap_obj
+      onemap_obj = onemap_obj,
+      cross = cross
   }
   
   call utilsR.GlobalError{
@@ -67,6 +69,7 @@ workflow UpdogMaps{
    output{
       Array[File] RDatas = MapsReport.maps_RData
       Array[File] maps_report = MapsReport.maps_report
+      Array[File] times = MapsReport.times
       Array[File] filters_report = FiltersReport.filters_report
       Array[File] errors_report = ErrorsReport.errors_report
    }
@@ -76,12 +79,23 @@ task UpdogProbs{
   input{
     File vcfR_obj
     File onemap_obj
+    String cross
   }
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
-        
+      
+       cross <- "~{cross}"
+          
+       if(cross == "F1"){
+          cross <- "outcross"
+          f1 = NULL
+       } else if (cross == "F2"){
+          cross <- "f2 intercross"
+          f1 = "F1"
+       }
+       
        vcf_temp <- load("~{vcfR_obj}")
        vcf <- get(vcf_temp)
        

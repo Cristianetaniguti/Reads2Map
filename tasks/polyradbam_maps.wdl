@@ -18,6 +18,8 @@ workflow PolyradBamMaps{
     File freebayes_alt_bam
     File gatk_ref_bam
     File gatk_alt_bam
+    File gatk_example_alleles
+    File freebayes_example_alleles
   }
   
   call PolyradBamProbs{
@@ -29,7 +31,9 @@ workflow PolyradBamMaps{
       freebayes_ref_bam = freebayes_ref_bam,
       freebayes_alt_bam = freebayes_alt_bam,
       gatk_ref_bam = gatk_ref_bam,
-      gatk_alt_bam = gatk_alt_bam
+      gatk_alt_bam = gatk_alt_bam,
+      gatk_example_alleles = gatk_example_alleles,
+      freebayes_example_alleles = freebayes_example_alleles
   }
   
   call utilsR.GlobalError{
@@ -40,7 +44,7 @@ workflow PolyradBamMaps{
       CountsFrom = CountsFrom
   }
 
-  Array[String] methods                         = ["polyrad_bam", "polyrad0.05_bam"]
+  Array[String] methods                         = ["polyrad", "polyrad0.05"]
   Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
@@ -78,8 +82,10 @@ workflow PolyradBamMaps{
    output{
       Array[File] RDatas = MapsReport.maps_RData
       Array[File] maps_report = MapsReport.maps_report
+      Array[File] times = MapsReport.times
       Array[File] filters_report = FiltersReport.filters_report
       Array[File] errors_report = ErrorsReport.errors_report
+      File new_vcf_file = PolyradBamProbs.new_vcf_file
    }
 }
 
@@ -93,11 +99,32 @@ task PolyradBamProbs{
     File freebayes_alt_bam
     File gatk_ref_bam
     File gatk_alt_bam
+    File gatk_example_alleles
+    File freebayes_example_alleles
   }
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
+       source("/opt/scripts/functions_simu.R")
+       
+       system("cp ~{freebayes_ref_bam} .")
+       system("cp ~{freebayes_alt_bam} .")
+       system("cp ~{gatk_ref_bam} .")
+       system("cp ~{gatk_alt_bam} .")
+       system("cp ~{gatk_example_alleles} .")
+       system("cp ~{freebayes_example_alleles} .")
+
+       
+       cross <- "~{cross}"
+          
+       if(cross == "F1"){
+          cross <- "outcross"
+          f1 = NULL
+       } else if (cross == "F2"){
+          cross <- "f2 intercross"
+          f1 = "F1"
+       }
        
        ## Depths from bam
        depths.alt <- read.table(paste0("~{SNPCall_program}", "_alt_depth_bam.txt"), header = T)
@@ -110,8 +137,9 @@ task PolyradBamProbs{
           system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
           vcf_file <- vcf.temp
        }
-
-       new.vcf <- make_vcf(vcf_file, depths, "~{SNPCall_program}")
+      
+       allele_file <- paste0("~{SNPCall_program}","_example4ref_alt_alleles.txt")
+       new.vcf <- make_vcf(vcf_file, depths, "~{SNPCall_program}", allele_file, "new_vcf.vcf")
         
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)
@@ -121,7 +149,7 @@ task PolyradBamProbs{
                                         parent1="P1",
                                         parent2="P2",
                                         f1 = f1,
-                                        crosstype="~{cross}",
+                                        crosstype=cross,
                                         global_error = NULL,
                                         use_genotypes_errors = FALSE,
                                         use_genotypes_probs = TRUE)
@@ -137,5 +165,6 @@ task PolyradBamProbs{
   
   output{
     File polyrad_bam_onemap_obj = "polyrad_bam_onemap_obj.RData"
+    File new_vcf_file = "new_vcf.vcf"
   }
 }

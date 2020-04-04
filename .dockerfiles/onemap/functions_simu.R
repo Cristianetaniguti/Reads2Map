@@ -96,7 +96,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
   real_type[which(is.na(real_type))] <- "non-informative"
   real_phase <- real_phases[which(real_phases[,1] %in% input.seq$data.name$POS[map_df[[1]]]),2]
   pos <- input.seq$data.name$POS[map_df[[1]]]
-  poscM <- (as.numeric(as.character(pos))/1000000)*4.63
+  poscM <- (as.numeric(as.character(pos))/1000000)*cMbyMb
   poscM.norm <- poscM-poscM[1]
   diff= sqrt((poscM.norm - c(0,cumsum(haldane(map_df[[3]]))))^2)
   
@@ -140,11 +140,12 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
 }
 
 
-create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsFrom){
+create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsFrom, tot_mks, real_phases, cMbyMb){
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
+  filelist = list.files(pattern = ".*_ped.csv")
   
-  ped.file <- read.csv(paste0(method_name,"_ped.csv"))
+  ped.file <- read.csv(filelist)
   ID <- c(1:(dim(ped.file)[1]))
   idx.P1 <- which(as.character(ped.file$SampleID) == "P1")
   idx.P2 <- which(as.character(ped.file$SampleID) == "P2")
@@ -163,8 +164,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   ped.file$Family <- fam
   
   write.csv(ped.file, file = "ped.file.csv")
-  
-  RAdata <- readRA(paste0(vcf_file,".ra.tab"), pedfile = "ped.file.csv", 
+  filelist = list.files(pattern = ".*.ra.tab")
+  RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
                    filter = list(MAF=0.05, MISS=1, BIN=0, DEPTH=0, PVALUE=0), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
@@ -217,7 +218,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   temp_type <- gab$segr.type[which(gab$POS %in% pos)]
   real_type[which(pos %in% as.character(gab$POS))] <- temp_type
   real_type[which(is.na(real_type))] <- "non-informative"
-  poscM <- (as.numeric(as.character(pos))/1000000)*4.63
+  poscM <- (as.numeric(as.character(pos))/1000000)*cMbyMb
   poscM.norm <- poscM-poscM[1]
   diff= sqrt((poscM.norm - dist.gus)^2)
   
@@ -286,11 +287,11 @@ create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom)
 }
 
 write_report <- function(filters_tab, out_name) {
-  write.table(filters_tab, file=out_name, row.names=F, quote=F)
+  write.table(filters_tab, file=out_name, row.names=F, quote=F, col.names = F)
 }
 
 
-make_vcf <- function(vcf.old, depths, method){
+make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
   # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
   idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
   idx.i <- strsplit(idx, split = ":")[[1]][1]
@@ -308,7 +309,7 @@ make_vcf <- function(vcf.old, depths, method){
     rs <- rownames(depths[[1]])
     vcf.init[,3] <- rs
   } else {
-    temp.tab <- read.table(paste0(method,"_example4ref_alt_alleles.txt"))
+    temp.tab <- read.table(allele_file)
     vcf.init <- cbind(temp.tab[,1:2],paste0(temp.tab[,1], "_", temp.tab[,2]), temp.tab[,3:4],
                       rep(".", dim(temp.tab)[1]),rep(".", dim(temp.tab)[1]), rep(".", dim(temp.tab)[1]), rep("AD",dim(temp.tab)[1]))
   }
@@ -330,6 +331,6 @@ make_vcf <- function(vcf.old, depths, method){
   
   write.table(vcf.body, file = paste0("temp.body.", seed), quote = FALSE, sep = "\t", row.names = FALSE, col.names = F)
   
-  system(paste0("cat head.",seed," temp.body.",seed," > temp.",seed,".vcf"))
-  return(paste0("temp.",seed, ".vcf"))
+  system(paste0("cat head.",seed," temp.body.",seed," > ", out_vcf))
+  return(out_vcf)
 }

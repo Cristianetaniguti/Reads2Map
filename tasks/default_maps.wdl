@@ -60,8 +60,10 @@ workflow DefaultMaps {
      output{
         Array[File] RDatas = MapsReport.maps_RData
         Array[File] maps_report = MapsReport.maps_report
+        Array[File] times = MapsReport.times
         Array[File] filters_report = FiltersReport.filters_report
         Array[File] errors_report = ErrorsReport.errors_report
+        
      }
      
 }

@@ -13,12 +13,14 @@ workflow SupermassaMaps{
     String GenotypeCall_program
     String CountsFrom
     String cMbyMb
+    String cross
   }
   
   call SupermassaProbs{
     input:
       vcfR_obj = vcfR_obj,
-      onemap_obj = onemap_obj
+      onemap_obj = onemap_obj,
+      cross=cross
   }
   
   call utilsR.GlobalError{
@@ -29,7 +31,7 @@ workflow SupermassaMaps{
       CountsFrom = CountsFrom
   }
 
-  Array[String] methods                         = ["updog", "updog0.05"]
+  Array[String] methods                         = ["supermassa", "supermassa0.05"]
   Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
@@ -67,6 +69,7 @@ workflow SupermassaMaps{
    output{
       Array[File] RDatas = MapsReport.maps_RData
       Array[File] maps_report = MapsReport.maps_report
+      Array[File] times = MapsReport.times
       Array[File] filters_report = FiltersReport.filters_report
       Array[File] errors_report = ErrorsReport.errors_report
    }
@@ -76,6 +79,7 @@ task SupermassaProbs{
   input{
     File vcfR_obj
     File onemap_obj
+    String cross
   }
   
   command <<<
@@ -83,6 +87,16 @@ task SupermassaProbs{
        library(onemap)
        library(supermassa4onemap)
  
+       cross <- "~{cross}"
+          
+       if(cross == "F1"){
+          cross <- "outcross"
+          f1 = NULL
+       } else if (cross == "F2"){
+          cross <- "f2 intercross"
+          f1 = "F1"
+       }
+       
        vcf_temp <- load("~{vcfR_obj}")
        vcf <- get(vcf_temp)
        

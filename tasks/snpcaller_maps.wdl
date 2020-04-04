@@ -55,6 +55,7 @@ workflow SNPCallerMaps{
   output{
     File RDatas = MapsReport.maps_RData
     File maps_report = MapsReport.maps_report
+    File times = MapsReport.times
     File filters_report = FiltersReport.filters_report
     File errors_report = ErrorsReport.errors_report
   }

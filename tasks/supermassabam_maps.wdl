@@ -17,6 +17,7 @@ workflow SupermassaBamMaps{
     File freebayes_alt_bam
     File gatk_ref_bam
     File gatk_alt_bam
+    String cross
   }
   
   call SupermassaBamProbs{
@@ -27,7 +28,8 @@ workflow SupermassaBamMaps{
       freebayes_ref_bam = freebayes_ref_bam,
       freebayes_alt_bam = freebayes_alt_bam,
       gatk_ref_bam = gatk_ref_bam,
-      gatk_alt_bam = gatk_alt_bam
+      gatk_alt_bam = gatk_alt_bam,
+      cross=cross
   }
   
   call utilsR.GlobalError{
@@ -38,7 +40,7 @@ workflow SupermassaBamMaps{
       CountsFrom = CountsFrom
   }
 
-  Array[String] methods                         = ["supermassa_bam", "supermassa0.05_bam"]
+  Array[String] methods                         = ["supermassa", "supermassa0.05"]
   Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
@@ -76,6 +78,7 @@ workflow SupermassaBamMaps{
    output{
       Array[File] RDatas = MapsReport.maps_RData
       Array[File] maps_report = MapsReport.maps_report
+      Array[File] times = MapsReport.times
       Array[File] filters_report = FiltersReport.filters_report
       Array[File] errors_report = ErrorsReport.errors_report
    }
@@ -90,12 +93,28 @@ task SupermassaBamProbs{
     File freebayes_alt_bam
     File gatk_ref_bam
     File gatk_alt_bam
+    String cross
   }
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
        library(supermassa4onemap)
+
+       system("cp ~{freebayes_ref_bam} .")
+       system("cp ~{freebayes_alt_bam} .")
+       system("cp ~{gatk_ref_bam} .")
+       system("cp ~{gatk_alt_bam} .")
+       
+       cross <- "~{cross}"
+          
+       if(cross == "F1"){
+          cross <- "outcross"
+          f1 = NULL
+       } else if (cross == "F2"){
+          cross <- "f2 intercross"
+          f1 = "F1"
+       }
        
        ## Depths from bam
        depths.alt <- read.table(paste0("~{SNPCall_program}", "_alt_depth_bam.txt"), header = T)
