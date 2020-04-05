@@ -133,11 +133,11 @@ You can also download the full data set running the script "data/populus/downloa
 
 Here are some tutorials that better explain how to use the workflows:
 
-* [Introduction](documentation/introduction.html)
-* [Running SimulatedReads workflow](documentation/simulatedreads.html)
-* [Running EmpiricalReads workflow](documentation/empiricalreads.html)
-* [Configurations](documentation/configuration.html)
-* [Usage of sub-workflows](documentation/subworkflows.html)
+* [Introduction](https://cristianetaniguti.github.io/onemap_workflows/documentation/introduction.html)
+* [Running SimulatedReads workflow](https://cristianetaniguti.github.io/onemap_workflows/documentation/simulatedreads.html)
+* [Running EmpiricalReads workflow](https://cristianetaniguti.github.io/onemap_workflows/documentation/empiricalreads.html)
+* [Configurations](https://cristianetaniguti.github.io/onemap_workflows/documentation/configuration.html)
+* [Usage of sub-workflows](https://cristianetaniguti.github.io/onemap_workflows/documentation/subworkflows.html)
 
 You can also have more details about the workflows and how they can be applied:
 
