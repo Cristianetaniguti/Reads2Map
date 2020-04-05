@@ -126,7 +126,7 @@ task JointTables{
       if(j == 6){
         for(i in 1:length(datas[[j]])){
           load(datas[[j]][i])
-          Rdata_lst[[i]] <- tot_RDatas
+          Rdata_lst[[i]] <- RDatas
         }
         Rdatas <- do.call(c, Rdata_lst)
         save(Rdatas, file = paste0("data",j,"_",~{depth},".RData"))

@@ -1,8 +1,11 @@
 ---
-title: "Simulations workflow"
-output: html_document
+title: "SimulationsReads workflow"
+date: "`r Sys.Date()`"
+author: "[Statistical Genetics Lab](http://statgen.esalq.usp.br) <br/> Department of Genetics <br/> Luiz de Queiroz College of Agriculture <br/> University of São Paulo"
+output:
+    rmdformats::readthedown:
+      css: readthedownstatgen.css
 ---
-
 
 Here will be describe how to use the onemap workflows. There are two main workflows:
 

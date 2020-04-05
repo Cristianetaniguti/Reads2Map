@@ -1,19 +1,19 @@
 ## Building linkage maps with onemap_ht
 
-Here you will find workflows written in WDL to perfom linkage map building from simulated and empirical data. The workflow main.wdl provides linkage map simulation using markers from RAD-seq methodology.The workflow empirical.wdl receives fastq files and perform all procedure until the genetic maps. The main goal of the workflow is to measuare the impact of different error probabilities coming from SNP calling methodologies in the linkage map building in OneMap.
+OneMap workflow uses [WDL]() language and [cromwell]() from [Broad Institute]() to offer user friendly and optimazed memory, CPU and time workflows to build linkage maps with OneMap. There are two main workflows called SimulatedReads and EmpiricalReads. The first performs population and RADseq fastq files simulations for a chromosome, SNP and genoytpe calling with five different software and genetic map building with OneMap and Gusmap. EmpiricalReads receives fastq files from empirical data and also performs the SNP and genotype calling and map building.
 
 ## Quickstart
 
-This workflow requires docker hub images. First of all, install [docker](https://docs.docker.com/install/) and [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/).
+This workflow requires docker hub images. First of all, download [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/) and install its requirements and [docker](https://docs.docker.com/install/).
 
-### Run the simulations
+### Run SimulatedReads workflow
 
-* Adapt the path of the inputs in `/main.inputs.json`
+* Adapt the path of the inputs in `/SimulatedReads.input.json`
 
 *number_of_families* : an integer defining the number of families with `popsize` individuals to be simulated
 
 *references*
-- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time)
+- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time, and no N are allowed)
 - ref_fasta_index: index made by samtools faidx
 - ref_dict: index made by picard dict
 - ref_sa: index made by bwa index
@@ -21,6 +21,14 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 - ref_bwt: index made by bwa index
 - ref_ann: index made by bwa index
 - ref_pac: index made by bwa index
+
+You can use the docker images to built the indexes files for the reference genome. See a example for `Chr10.populus.fa`:
+
+```
+docker run -v $(pwd):/opt/ cristaniguti/r-samtools samtools faidx /opt/Chr10.populus.fa
+docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev bwa index /opt/Chr10.populus.fa
+docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev java -jar picard.jar CreateSequenceDictionary R=/opt/Chr10.populus.fa O=/opt/Chr10.populus.dict
+```
 
 *family_template*
 - cmBymb: recombination rate according with other genetic maps of the specie
@@ -34,18 +42,18 @@ This workflow requires docker hub images. First of all, install [docker](https:/
 
 #### Test dataset for simulations
 
-As example, in the folder `data/toy_sample` is available a subset of populus chromosome 10 (find the entire genome [here](https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa)), its index files and the `doses` files needed by the workflow. The path to this folder must be defined in `main.inputs.json`.
+As example, in the folder `data/toy_sample` is available a subset of populus chromosome 10 (find the entire genome [here](https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa)), its index files and the `doses` files needed by the workflow. The path to this folder must be defined in `SimulatedReads.inputs.json`.
 
 ```
 # Execute the workflow
-java -jar cromwell.jar run -i main.inputs.json main.wdl
+java -jar cromwell.jar run -i SimulatedReads.inputs.json SimulatedReads.inputs.wdl
 ```
 
-**Warning**: See section `WLD Configurations` to choose the better available option for you or create a personalized one.
+**Warning**: See section [Configurations](documentation/configurations.html) to choose the better available option for you or create a personalized one.
 
-### Run with empirical data
+### Run EmpiricalReads workflow
 
-* Adapt the path of the inputs in `empirical.json`
+* Adapt the path of the inputs in `EmpiricalReads.inputs.json`
 
 *empirical.references*
 - ref_fasta: chromosome sequence in fasta format (only one chromosome at a time) 
@@ -56,6 +64,8 @@ java -jar cromwell.jar run -i main.inputs.json main.wdl
 - ref_bwt: index made by bwa index
 - ref_ann: index made by bwa index
 - ref_pac: index made by bwa index
+
+You can use docker images to create this indexes, see in `Run SimulatedReads workflow`.
 
 *empirical.dataset*
 - samples_info: tsv file with first column with path to fastq file, second column with sample names and third column with sample names and lane specifications.
@@ -114,58 +124,26 @@ data/populus_sub/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG
 java -jar cromwell.jar run -i empirical.json empirical.wdl
 ```
 
-You can also download the full data set running the script "data/populus/download_SRRs.sh" and the "data/populus/sample_info" file.
+You can also download the full data set running the script "data/populus/download_SRRs.sh" and run the workflow using "data/populus/sample_info" file.
 
 
-**Warning**: See section `WLD Configurations` to choose the better available option for you or create a personalized one.
+**Warning**: See tutorial [Configurations](documentation/configurations.html) to choose the better available option for you or create a personalized one.
 
-### WDL configurations
+## Documentation
 
-There are three possible configurations available in `.configurations` directory:
+Here are some tutorials that better explain how to use the workflows:
 
-* cromwell_cache.conf: to store cache in a mysql database
+* [Introduction](documentation/introduction.html)
+* [Running SimulatedReads workflow](documentation/simulatedreads.html)
+* [Running EmpiricalReads workflow](documentation/empiricalreads.html)
+* [Configurations](documentation/configuration.html)
+* [Usage of sub-workflows](documentation/subworkflows.html)
 
-```
-# Start a mysql instance on port 3307
-# - required just to reuse already processed tasks.
-docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
+You can also have more details about the workflows and how they can be applied:
 
-# Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i main.inputs.json main.wdl
-
-```
-
-* cromwell_sing: to run docker images through singularity (useful to run in HPC)
-
-```
-# For private repos
-export SINGULARITY_DOCKER_USERNAME=fulana
-export SINGULARITY_DOCKER_PASSWORD=senhadafulana
-
-# To store singularity temporary files in a different path than home
-export SINGULARITY_CACHEDIR=/path/to/cache
-export SINGULARITY_TMPDIR=/path/to/cache
-export SINGULARITY_LOCALCACHEDIR=/path/to/cache
-
-# Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_sing.conf -jar cromwell.jar run -i main.inputs.json main.wdl
-
-```
-
-* cromwell_sing_slurm: to run docker images through singularity moderated by slurm system (useful to run in HPC)
-
-```
-# Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_sing_slurm.conf -jar cromwell.jar run -i main.inputs.json main.wdl
-
-```
-
-If you want to run wdl with default configurations simple use:
-
-```
-# Execute the workflow
-java -jar cromwell.jar run -i main.inputs.json main.wdl
-```
+* [Technical note]()
+* [Paper errors]()
+* [Paper MNPs]()
 
 ## Third party softwares
 

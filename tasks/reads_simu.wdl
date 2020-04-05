@@ -12,9 +12,6 @@ import "./snpcaller_maps.wdl" as snpcaller
 import "./updog_maps.wdl" as updog
 import "./polyrad_maps.wdl" as polyrad
 import "./supermassa_maps.wdl" as supermassa
-import "./updogbam_maps.wdl" as updogbam
-import "./polyradbam_maps.wdl" as polyradbam
-import "./supermassabam_maps.wdl" as supermassabam
 import "./gusmap_maps.wdl" as gusmap
 
 

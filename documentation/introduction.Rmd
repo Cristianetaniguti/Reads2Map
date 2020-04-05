@@ -1,0 +1,24 @@
+---
+title: "Introduction - OneMap workflows"
+date: "`r Sys.Date()`"
+author: "[Statistical Genetics Lab](http://statgen.esalq.usp.br) <br/> Department of Genetics <br/> Luiz de Queiroz College of Agriculture <br/> University of São Paulo"
+output:
+    rmdformats::readthedown:
+      css: readthedownstatgen.css
+---
+
+OneMap workflow uses [WDL]() language and [cromwell]() from [Broad Institute]() to offer user friendly and optimazed memory, CPU and time workflows to build linkage maps with OneMap. There are two main workflows called SimulatedReads and EmpiricalReads. The first performs population and RADseq fastq files simulations for a chromosome, SNP and genoytpe calling with five different software and genetic map building with OneMap and Gusmap. EmpiricalReads receives fastq files from empirical data and also performs the SNP and genotype calling and map building.
+
+The main workflows are composed by sub-workflows that can also be useful for users, they are located at `tasks` folder. The sub-workflows are composed by tasks that can be find at the end of each `.wdl` file and at `utils.wdl` and `utilsR.wdl`.
+
+[Docker]() images were built to each one of the tasks, then users need only to download the most recent version of cromwell, install its requirements and docker. If running without sudo permission users can use [singularity]() instead of directly docker. See `.configurations` directory and its [instructions]() to use singulatiry.
+
+The WDL and cromwell system is also made to be easily expansible. Users can change arguments or implement other software into the analysis.
+
+The main goals of OneMap workflows are test software capabilities in ideal scenarios (SimulatedReads) and in empirical data (EmpiricalReads). SimulatedReads also gives a safe method to test new functionalities implemented in OneMap and EmpiricalReads gives a fast and automatically method to select the best software to build linkage maps and answer biological questions for any empirical data.
+
+Output datasets from each main workflow can be easily avaliated in a shiny app called [onemap_workflows_app](). You need to submit your output to the app, and the final page gives the possibility to download the onemap or gusmap object containing the combination of software and paramenters you selected. By now, only one chromosome is avaliated in both workflows, but, downloading the onemap or gusmap object you can repead the map building process in R for other chromosomes without spent all the time needed to compare all the methods. We show a example of these usage in [Quickstart]().
+
+
+
+

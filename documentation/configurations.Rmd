@@ -1,0 +1,59 @@
+---
+title: "Configurations"
+date: "`r Sys.Date()`"
+author: "[Statistical Genetics Lab](http://statgen.esalq.usp.br) <br/> Department of Genetics <br/> Luiz de Queiroz College of Agriculture <br/> University of São Paulo"
+output:
+    rmdformats::readthedown:
+      css: readthedownstatgen.css
+---
+
+There are three possible configurations available in `.configurations` directory:
+
+# Store cache
+
+* `cromwell_cache.conf`: to store cache in a mysql database
+
+```
+# Start a mysql instance on port 3307
+# - required just to reuse already processed tasks.
+docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
+
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i main.inputs.json main.wdl
+
+```
+
+# Docker images through singulatiry
+
+* `cromwell_sing`: to run docker images through singularity (useful to run in HPC)
+
+```
+# For private repos
+export SINGULARITY_DOCKER_USERNAME=fulana
+export SINGULARITY_DOCKER_PASSWORD=senhadafulana
+
+# To store singularity temporary files in a different path than home
+export SINGULARITY_CACHEDIR=/path/to/cache
+export SINGULARITY_TMPDIR=/path/to/cache
+export SINGULARITY_LOCALCACHEDIR=/path/to/cache
+
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_sing.conf -jar cromwell.jar run -i main.inputs.json main.wdl
+
+```
+# Docker images through singularity moderated by slurm system
+
+* `cromwell_sing_slurm`: to run docker images through singularity moderated by slurm system (useful to run in HPC)
+
+```
+# Execute the workflow
+java -jar -Dconfig.file=.configurations/cromwell_sing_slurm.conf -jar cromwell.jar run -i main.inputs.json main.wdl
+
+```
+
+If you want to run wdl with default configurations simple use:
+
+```
+# Execute the workflow
+java -jar cromwell.jar run -i main.inputs.json main.wdl
+```
