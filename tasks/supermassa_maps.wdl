@@ -5,8 +5,8 @@ import "./utilsR.wdl" as utilsR
 workflow SupermassaMaps{
   input{
     File simu_onemap_obj
-    File vcfR_obj
     File onemap_obj
+    File vcf_file
     File tot_mks
     File real_phases
     String SNPCall_program
@@ -15,24 +15,24 @@ workflow SupermassaMaps{
     String cMbyMb
     String cross
   }
-  
+
   call SupermassaProbs{
     input:
-      vcfR_obj = vcfR_obj,
+      vcf_file = vcf_file,
       onemap_obj = onemap_obj,
       cross=cross
   }
   
   call utilsR.GlobalError{
     input:
-      onemap_obj = onemap_obj,
+      onemap_obj = SupermassaProbs.supermassa_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom
   }
 
   Array[String] methods                         = ["supermassa", "supermassa0.05"]
-  Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
+  Array[File] objects                           = [SupermassaProbs.supermassa_onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
   scatter(objects in methods_and_objects){
@@ -77,7 +77,7 @@ workflow SupermassaMaps{
 
 task SupermassaProbs{
   input{
-    File vcfR_obj
+    File vcf_file
     File onemap_obj
     String cross
   }
@@ -85,6 +85,7 @@ task SupermassaProbs{
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
+       library(vcfR)
        library(supermassa4onemap)
  
        cross <- "~{cross}"
@@ -97,8 +98,7 @@ task SupermassaProbs{
           f1 = "F1"
        }
        
-       vcf_temp <- load("~{vcfR_obj}")
-       vcf <- get(vcf_temp)
+       vcf <- read.vcfR("~{vcf_file}")
        
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)

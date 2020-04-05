@@ -5,7 +5,6 @@ task vcf2onemap{
      File vcf_file
      String cross
      String SNPCall_program
-     String GenotypeCall_program
    }
 
    command <<<
@@ -33,8 +32,7 @@ task vcf2onemap{
                                  parent1="P1",
                                  parent2="P2",
                                  f1 = f1)
-                save(onemap.obj, file=paste0("~{SNPCall_program}", "_", 
-                "~{GenotypeCall_program}", "_onemap.obj.RData"))
+          save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf", "_onemap.obj.RData"))
                 
         RSCRIPT
     >>>
@@ -43,7 +41,7 @@ task vcf2onemap{
     }
 
     output{
-      File onemap_obj = "~{SNPCall_program}_~{GenotypeCall_program}_onemap.obj.RData"
+      File onemap_obj = "~{SNPCall_program}_vcf_onemap.obj.RData"
       File vcfR_obj = "vcfR_obj.RData"
     }
 }
@@ -227,7 +225,63 @@ task GlobalError{
 }
 
 
+task BamDepths2Vcf{
+  input{
+    String SNPCall_program
+    File vcf_file
+    File freebayes_ref_bam 
+    File freebayes_alt_bam 
+    File gatk_ref_bam 
+    File gatk_alt_bam 
+    File gatk_example_alleles
+    File freebayes_example_alleles
+  }
+  
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+    
+      library(onemap)
+      library(vcfR)
+      source("/opt/scripts/functions_simu.R")
+       
+      system("cp ~{freebayes_ref_bam} .")
+      system("cp ~{freebayes_alt_bam} .")
+      system("cp ~{gatk_ref_bam} .")
+      system("cp ~{gatk_alt_bam} .")
+      system("cp ~{gatk_example_alleles} .")
+      system("cp ~{freebayes_example_alleles} .")
+      
+       ## Depths from bam
+       depths.alt <- read.table(paste0("~{SNPCall_program}", "_alt_depth_bam.txt"), header = T)
+       depths.ref <- read.table(paste0("~{SNPCall_program}", "_ref_depth_bam.txt"), header = T)
 
+       depths <- list("ref" = depths.ref, "alt"=depths.alt)
+
+       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
+          vcf.temp <- paste0("~{SNPCall_program}",".", sample(1000,1), ".vcf")
+          system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
+          vcf_file <- vcf.temp
+       }
+      
+       allele_file <- paste0("~{SNPCall_program}","_example4ref_alt_alleles.txt")
+       bam_vcf <- make_vcf(vcf_file, depths, "~{SNPCall_program}", allele_file, "bam_vcf.vcf")
+       
+       bam_vcfR <- read.vcfR(bam_vcf)
+       save(bam_vcfR, file="bam_vcfR.RData")
+       
+
+    RSCRIPT
+  >>>
+  
+  runtime{
+    docker:"taniguti/onemap"
+  }
+  
+  output{
+    File bam_vcf = "bam_vcf.vcf"
+    File bam_vcfR = "bam_vcfR.RData"
+  }
+}
 
 
 

@@ -5,8 +5,8 @@ import "./utilsR.wdl" as utilsR
 workflow UpdogMaps{
   input{
     File simu_onemap_obj
-    File vcfR_obj
     File onemap_obj
+    File vcf_file
     File tot_mks
     File real_phases
     String SNPCall_program
@@ -18,21 +18,21 @@ workflow UpdogMaps{
   
   call UpdogProbs{
     input:
-      vcfR_obj = vcfR_obj,
+      vcf_file = vcf_file,
       onemap_obj = onemap_obj,
       cross = cross
   }
   
   call utilsR.GlobalError{
     input:
-      onemap_obj = onemap_obj,
+      onemap_obj = UpdogProbs.updog_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom
   }
 
   Array[String] methods                         = ["updog", "updog0.05"]
-  Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
+  Array[File] objects                           = [UpdogProbs.updog_onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
   scatter(objects in methods_and_objects){
@@ -77,7 +77,7 @@ workflow UpdogMaps{
 
 task UpdogProbs{
   input{
-    File vcfR_obj
+    File vcf_file
     File onemap_obj
     String cross
   }
@@ -85,6 +85,9 @@ task UpdogProbs{
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
+       library(vcfR)
+       
+       vcf <- read.vcfR("~{vcf_file}")
       
        cross <- "~{cross}"
           
@@ -95,9 +98,7 @@ task UpdogProbs{
           cross <- "f2 intercross"
           f1 = "F1"
        }
-       
-       vcf_temp <- load("~{vcfR_obj}")
-       vcf <- get(vcf_temp)
+
        
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)

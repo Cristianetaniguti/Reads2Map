@@ -12,8 +12,7 @@ workflow SimulatedMap{
     input:
       vcf_file = vcf_simu,
       cross = cross,
-      SNPCall_program = "simu",
-      GenotypeCall_program = "simu"
+      SNPCall_program = "simu"
   }
 
   output{

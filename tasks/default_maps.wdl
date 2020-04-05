@@ -12,7 +12,9 @@ workflow DefaultMaps {
      String GenotypeCall_program
      String CountsFrom
      String cMbyMb
+     String cross
     }
+    
     
     call utilsR.GlobalError{
       input:

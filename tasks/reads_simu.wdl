@@ -71,21 +71,20 @@ workflow reads_simu {
       vcf_simu = CreateAlignmentFromSimulation.true_vcf,
       cross = family.cross
   }
-
+  
   Array[String] methods                     = ["gatk", "freebayes"]
   Array[File] vcfs                          = [GatkGenotyping.vcf, FreebayesGenotyping.vcf]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
-  Array[String] fakes                       = ["TRUE", "FALSE"]
 
   scatter (vcf in program_and_vcf){
+  
     call utilsR.vcf2onemap{
       input:
         vcf_file = vcf.right,
         cross = family.cross,
-        SNPCall_program = vcf.left,
-        GenotypeCall_program = "default"
+        SNPCall_program = vcf.left
     }
-    
+  
     call default.DefaultMaps{
       input:
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
@@ -95,14 +94,15 @@ workflow reads_simu {
         SNPCall_program = vcf.left,
         GenotypeCall_program = "default",
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb
+        cMbyMb = family.cmBymb,
+        cross = family.cross
     }
     
     call snpcaller.SNPCallerMaps{
       input:
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-        vcfR_obj = vcf2onemap.vcfR_obj,
         onemap_obj = vcf2onemap.onemap_obj,
+        vcf_file = vcf.right,
         tot_mks = CreateAlignmentFromSimulation.total_markers,
         real_phases = CreateAlignmentFromSimulation.real_phases,
         cross = family.cross,
@@ -111,110 +111,71 @@ workflow reads_simu {
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb
     }
-
-      call updog.UpdogMaps{
-        input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcfR_obj = vcf2onemap.vcfR_obj,
-          onemap_obj = vcf2onemap.onemap_obj,
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "updog",
-          CountsFrom = "vcf",
-          cMbyMb = family.cmBymb,
-          cross = family.cross
-      }
-      
-      call supermassa.SupermassaMaps{
+    
+    call utilsR.BamDepths2Vcf{
+      input:
+        SNPCall_program = vcf.left,
+        vcf_file = vcf.right,
+        freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
+        freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
+        gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
+        gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam,
+        gatk_example_alleles      = BamCounts4Onemap.gatk_example_alleles,
+        freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles
+    }
+    
+    Array[String] counts     = ["vcf", "bam"]
+    Array[File] vcfs_counts  = [vcf.right, BamDepths2Vcf.bam_vcf]
+    Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
+    
+    scatter(vcf_counts in counts_and_vcf){
+        call updog.UpdogMaps{
           input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcfR_obj = vcf2onemap.vcfR_obj,
-          onemap_obj = vcf2onemap.onemap_obj,
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "supermassa",
-          CountsFrom = "vcf",
-          cMbyMb = family.cmBymb,
-          cross = family.cross
-      }
-      
-      call polyrad.PolyradMaps{
-         input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcf_file = vcf.right,
-          onemap_obj = vcf2onemap.onemap_obj,
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "polyrad",
-          CountsFrom = "vcf",
-          cMbyMb = family.cmBymb,
-          cross = family.cross
-      }
-      
-      call updogbam.UpdogBamMaps{
-        input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcfR_obj = vcf2onemap.vcfR_obj,
-          onemap_obj = vcf2onemap.onemap_obj,
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "updog_bam",
-          CountsFrom = "bam",
-          cMbyMb = family.cmBymb,
-          freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
-          freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
-          gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
-          gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam,
-          cross = family.cross
-      }
-      
-      call supermassabam.SupermassaBamMaps{
+            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            onemap_obj = vcf2onemap.onemap_obj,
+            vcf_file = vcf_counts.right, 
+            tot_mks = CreateAlignmentFromSimulation.total_markers,
+            real_phases = CreateAlignmentFromSimulation.real_phases,
+            SNPCall_program = vcf.left,
+            GenotypeCall_program = "updog",
+            CountsFrom = vcf_counts.left,
+            cMbyMb = family.cmBymb,
+            cross = family.cross
+        }
+        
+        call supermassa.SupermassaMaps{
           input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcfR_obj = vcf2onemap.vcfR_obj,
-          onemap_obj = vcf2onemap.onemap_obj,
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "supermassa_bam",
-          CountsFrom = "bam",
-          cMbyMb = family.cmBymb,
-          freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
-          freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
-          gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
-          gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam,
-          cross = family.cross
+            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            onemap_obj = vcf2onemap.onemap_obj,            
+            vcf_file = vcf_counts.right, 
+            tot_mks = CreateAlignmentFromSimulation.total_markers,
+            real_phases = CreateAlignmentFromSimulation.real_phases,
+            SNPCall_program = vcf.left,
+            GenotypeCall_program = "supermassa",
+            CountsFrom = vcf_counts.left,
+            cMbyMb = family.cmBymb,
+            cross = family.cross
+        }
+        
+        call polyrad.PolyradMaps{
+          input:
+            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            onemap_obj = vcf2onemap.onemap_obj,            
+            vcf_file = vcf_counts.right, 
+            tot_mks = CreateAlignmentFromSimulation.total_markers,
+            real_phases = CreateAlignmentFromSimulation.real_phases,
+            SNPCall_program = vcf.left,
+            GenotypeCall_program = "polyrad",
+            CountsFrom = vcf_counts.left,
+            cMbyMb = family.cmBymb,
+            cross = family.cross
+        }
       }
-      
-      call polyradbam.PolyradBamMaps{
-         input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcf_file = vcf.right,
-          onemap_obj = vcf2onemap.onemap_obj,
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "polyrad_bam",
-          CountsFrom = "bam",
-          cMbyMb = family.cmBymb,
-          cross = family.cross,
-          freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
-          freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
-          gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
-          gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam,
-          gatk_example_alleles      = BamCounts4Onemap.gatk_example_alleles,
-          freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles,
-      }
-      
       call gusmap.GusmapMaps{
         input:
           simu_onemap_obj = SimulatedMap.simu_onemap_obj,
           vcf_file = vcf.right,
-          new_vcf_file = PolyradBamMaps.new_vcf_file,
+          new_vcf_file = BamDepths2Vcf.bam_vcf,
           SNPCall_program = vcf.left,
           GenotypeCall_program = "gusmap",
           tot_mks = CreateAlignmentFromSimulation.total_markers,
@@ -234,36 +195,21 @@ workflow reads_simu {
     SNPCaller_filters_report = SNPCallerMaps.filters_report,
     SNPCaller_errors_report = SNPCallerMaps.errors_report,
     SNPCaller_times = SNPCallerMaps.times,
-    Updog_RDatas = flatten(UpdogMaps.RDatas),
-    Updog_maps_report = flatten(UpdogMaps.maps_report),
-    Updog_filters_report = flatten(UpdogMaps.filters_report),
-    Updog_errors_report = flatten(UpdogMaps.errors_report),
-    Updog_times = flatten(UpdogMaps.times),
-    Polyrad_RDatas = flatten(PolyradMaps.RDatas),
-    Polyrad_maps_report = flatten(PolyradMaps.maps_report),
-    Polyrad_filters_report = flatten(PolyradMaps.filters_report),
-    Polyrad_errors_report = flatten(PolyradMaps.errors_report),
-    Polyrad_times = flatten(PolyradMaps.times),
-    Supermassa_RDatas = flatten(SupermassaMaps.RDatas),
-    Supermassa_maps_report = flatten(SupermassaMaps.maps_report),
-    Supermassa_filters_report = flatten(SupermassaMaps.filters_report),
-    Supermassa_errors_report = flatten(SupermassaMaps.errors_report),
-    Supermassa_times = flatten(SupermassaMaps.times),
-    UpdogBam_RDatas = flatten(UpdogBamMaps.RDatas),
-    UpdogBam_maps_report = flatten(UpdogBamMaps.maps_report),
-    UpdogBam_filters_report = flatten(UpdogBamMaps.filters_report),
-    UpdogBam_errors_report = flatten(UpdogBamMaps.errors_report),
-    UpdogBam_times = flatten(UpdogBamMaps.times),
-    PolyradBam_RDatas = flatten(PolyradBamMaps.RDatas),
-    PolyradBam_maps_report = flatten(PolyradBamMaps.maps_report),
-    PolyradBam_filters_report = flatten(PolyradBamMaps.filters_report),
-    PolyradBam_errors_report = flatten(PolyradBamMaps.errors_report),
-    PolyradBam_times = flatten(PolyradBamMaps.times),
-    SupermassaBam_RDatas = flatten(SupermassaBamMaps.RDatas),
-    SupermassaBam_maps_report = flatten(SupermassaBamMaps.maps_report),
-    SupermassaBam_filters_report = flatten(SupermassaBamMaps.filters_report),
-    SupermassaBam_errors_report = flatten(SupermassaBamMaps.errors_report),
-    SupermassaBam_times = flatten(SupermassaBamMaps.times),
+    Updog_RDatas = flatten(flatten(UpdogMaps.RDatas)),
+    Updog_maps_report = flatten(flatten(UpdogMaps.maps_report)),
+    Updog_filters_report = flatten(flatten(UpdogMaps.filters_report)),
+    Updog_errors_report = flatten(flatten(UpdogMaps.errors_report)),
+    Updog_times = flatten(flatten(UpdogMaps.times)),
+    Polyrad_RDatas = flatten(flatten(PolyradMaps.RDatas)),
+    Polyrad_maps_report = flatten(flatten(PolyradMaps.maps_report)),
+    Polyrad_filters_report = flatten(flatten(PolyradMaps.filters_report)),
+    Polyrad_errors_report = flatten(flatten(PolyradMaps.errors_report)),
+    Polyrad_times = flatten(flatten(PolyradMaps.times)),
+    Supermassa_RDatas = flatten(flatten(SupermassaMaps.RDatas)),
+    Supermassa_maps_report = flatten(flatten(SupermassaMaps.maps_report)),
+    Supermassa_filters_report = flatten(flatten(SupermassaMaps.filters_report)),
+    Supermassa_errors_report = flatten(flatten(SupermassaMaps.errors_report)),
+    Supermassa_times = flatten(flatten(SupermassaMaps.times)),
     Gusmap_RDatas = flatten(GusmapMaps.RDatas),
     Gusmap_maps_report = flatten(GusmapMaps.maps_report),
     Gusmap_times = flatten(GusmapMaps.times)
@@ -325,21 +271,6 @@ task JointReports{
     Array[File] Supermassa_filters_report 
     Array[File] Supermassa_errors_report
     Array[File] Supermassa_times
-    Array[File] UpdogBam_RDatas 
-    Array[File] UpdogBam_maps_report 
-    Array[File] UpdogBam_filters_report 
-    Array[File] UpdogBam_errors_report
-    Array[File] UpdogBam_times
-    Array[File] PolyradBam_RDatas 
-    Array[File] PolyradBam_maps_report 
-    Array[File] PolyradBam_filters_report 
-    Array[File] PolyradBam_errors_report
-    Array[File] PolyradBam_times
-    Array[File] SupermassaBam_RDatas 
-    Array[File] SupermassaBam_maps_report 
-    Array[File] SupermassaBam_filters_report 
-    Array[File] SupermassaBam_errors_report
-    Array[File] SupermassaBam_times
     Array[File] Gusmap_RDatas 
     Array[File] Gusmap_maps_report 
     Array[File] Gusmap_times
@@ -347,15 +278,15 @@ task JointReports{
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
-      system("cat ~{sep= ' ' default_maps_report} ~{sep= ' ' SNPCaller_maps_report} ~{sep= ' ' Updog_maps_report} ~{sep= ' ' Polyrad_maps_report} ~{sep= ' ' Supermassa_maps_report} ~{sep= ' ' UpdogBam_maps_report} ~{sep= ' ' PolyradBam_maps_report} ~{sep= ' ' SupermassaBam_maps_report}  ~{sep= ' ' Gusmap_maps_report} > all_maps.txt")
+      system("cat ~{sep= ' ' default_maps_report} ~{sep= ' ' SNPCaller_maps_report} ~{sep= ' ' Updog_maps_report} ~{sep= ' ' Polyrad_maps_report} ~{sep= ' ' Supermassa_maps_report}  ~{sep= ' ' Gusmap_maps_report} > all_maps.txt")
      
-      system("cat ~{sep= ' ' default_filters_report} ~{sep= ' ' SNPCaller_filters_report} ~{sep= ' ' Updog_filters_report} ~{sep= ' ' Polyrad_filters_report} ~{sep= ' ' Supermassa_filters_report} ~{sep= ' ' UpdogBam_filters_report} ~{sep= ' ' PolyradBam_filters_report} ~{sep= ' ' SupermassaBam_filters_report}  > all_filters.txt")
+      system("cat ~{sep= ' ' default_filters_report} ~{sep= ' ' SNPCaller_filters_report} ~{sep= ' ' Updog_filters_report} ~{sep= ' ' Polyrad_filters_report} ~{sep= ' ' Supermassa_filters_report}  > all_filters.txt")
      
-      system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} ~{sep= ' ' Supermassa_errors_report} ~{sep= ' ' UpdogBam_errors_report} ~{sep= ' ' PolyradBam_errors_report} ~{sep= ' ' SupermassaBam_errors_report} > all_errors.txt")
+      system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} ~{sep= ' ' Supermassa_errors_report} > all_errors.txt")
       
-      system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} ~{sep= ' ' Supermassa_times} ~{sep= ' ' UpdogBam_times} ~{sep= ' ' PolyradBam_times} ~{sep= ' ' SupermassaBam_times} ~{sep= ' ' Gusmap_times}  > all_times.txt")
+      system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} ~{sep= ' ' Supermassa_times}  > all_times.txt")
       
-      system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas}  ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' UpdogBam_RDatas} ~{sep= ' ' PolyradBam_RDatas} ~{sep= ' ' SupermassaBam_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
+      system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas}  ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
       
      Genocall <- c("default", "SNPCaller", "updog", "supermassa", "polyrad", "gusmap",
                    "default0.05", "updog0.05", "supermassa0.05", "polyrad0.05")
@@ -496,7 +427,8 @@ task CreateTables{
       ###########################################################################
       load("~{all_RDatas}")
       RDatas <- unlist(all_RDatas, recursive = F)
-      new_names <- paste0(seed, "_", depth, "_", names(all_RDatas))
+      all_names <- unlist(lapply(all_RDatas, names))
+      new_names <- paste0(seed, "_", depth, "_", all_names)
       names(RDatas) <- new_names
     
       saveRDS(all_errors, file = "data1_depths_geno_prob.rds")

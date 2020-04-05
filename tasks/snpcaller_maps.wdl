@@ -6,7 +6,7 @@ workflow SNPCallerMaps{
   input {
      File simu_onemap_obj
      File onemap_obj
-     File vcfR_obj
+     File vcf_file
      File tot_mks
      File real_phases
      String cross
@@ -15,10 +15,11 @@ workflow SNPCallerMaps{
      String CountsFrom
      String cMbyMb
     }
-    
+  
+
   call GQProbs{
     input:
-      vcfR_obj = vcfR_obj,
+      vcf_file = vcf_file,
       onemap_obj = onemap_obj,
       cross = cross
   }
@@ -63,7 +64,7 @@ workflow SNPCallerMaps{
 
 task GQProbs{
   input{
-    File vcfR_obj
+    File vcf_file
     File onemap_obj
     String cross
   }
@@ -81,8 +82,7 @@ task GQProbs{
          f1 = "F1"
       }
       
-      vcf_temp <- load("~{vcfR_obj}")
-      vcf <- get(vcf_temp)
+      vcf <- read.vcfR("~{vcf_file}")
       
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)

@@ -5,8 +5,8 @@ import "./utilsR.wdl" as utilsR
 workflow PolyradMaps{
   input{
     File simu_onemap_obj
-    File vcf_file
     File onemap_obj
+    File vcf_file
     File tot_mks
     File real_phases
     String SNPCall_program
@@ -16,6 +16,7 @@ workflow PolyradMaps{
     String cross
   }
   
+
   call PolyradProbs{
     input:
       vcf_file = vcf_file,
@@ -25,14 +26,14 @@ workflow PolyradMaps{
   
   call utilsR.GlobalError{
     input:
-      onemap_obj = onemap_obj,
+      onemap_obj = PolyradProbs.polyrad_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom
   }
 
   Array[String] methods                         = ["polyrad", "polyrad0.05"]
-  Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
+  Array[File] objects                           = [PolyradProbs.polyrad_onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
   scatter(objects in methods_and_objects){
