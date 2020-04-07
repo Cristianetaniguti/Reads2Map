@@ -138,7 +138,9 @@ task JointTables{
         saveRDS(dat, paste0("data",j,"_",~{depth},".rds"))
       }
     }
-
+    
+    system(paste0("tar -czvf SimulatedReads_~{depth}.tar.gz data*"))
+    
     RSCRIPT
   >>>
 
@@ -150,11 +152,6 @@ task JointTables{
   }
 
   output{
-    File data1_depths_geno_prob   = "data1_~{depth}.rds"
-    File data2_maps               = "data2_~{depth}.rds"
-    File data3_filters            = "data3_~{depth}.rds"
-    File data5_SNPcall_efficiency = "data5_~{depth}.rds"
-    File data4_times              = "data4_~{depth}.rds"
-    File data6_RDatas             = "data6_~{depth}.RData"
+    File results = "SimulatedReads_~{depth}.tar.gz"
   }
 }

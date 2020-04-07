@@ -4,7 +4,7 @@
     "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
     "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
   },
-  "SimulatedReads.number_of_families": 2,
+  "SimulatedReads.number_of_families": 1,
   "SimulatedReads.family_template": {
     "cmBymb": 4.63,
     "popsize": 47,

@@ -101,7 +101,7 @@ task GusmapReport{
       
       # Joint times data.frames
       times <- rbind(times, times_temp)
-      write.table(times, "times.txt", col.names = F)
+      write.table(times, "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
   
     RSCRIPT
   >>>
@@ -113,7 +113,7 @@ task GusmapReport{
   output{
     File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt" 
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
-    File times = "times.txt"
+    File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
 
 }
