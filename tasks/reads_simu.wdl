@@ -281,7 +281,7 @@ task JointReports{
      
       system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} ~{sep= ' ' Supermassa_errors_report} > all_errors.txt")
       
-      system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} ~{sep= ' ' Supermassa_times}  > all_times.txt")
+      system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} ~{sep= ' ' Supermassa_times}  ~{sep= ' ' Gusmap_times} > all_times.txt")
       
       system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas}  ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
       
@@ -385,7 +385,7 @@ task CreateTables{
           alleles <- cbind(mks=rownames(alleles), alleles)
           alleles <- melt(alleles, id.vars = c("mks"))
           colnames(alleles) <- c("mks", "ind", ref_alt[i])
-          alleles <- cbind(seed=seed, depth=depth,SNPCall=SNPCall[z], CountsFrom = CountsFrom[z], alleles)
+          alleles <- cbind(SNPCall=SNPCall[z], CountsFrom = CountsFrom[z], alleles)
           z <- z+ 1
           df_meth <- merge(df_meth, alleles, by = c("SNPCall", "CountsFrom", "ind", "mks"))
           
@@ -393,7 +393,7 @@ task CreateTables{
         data1 <- rbind(data1, df_meth)
       }
       
-      all_errors <- data1
+      all_errors <- cbind(seed, depth, data1)
       
       ########################################################
       # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; real_phases

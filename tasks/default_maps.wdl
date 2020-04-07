@@ -15,7 +15,6 @@ workflow DefaultMaps {
      String cross
     }
     
-    
     call utilsR.GlobalError{
       input:
         onemap_obj = onemap_obj,

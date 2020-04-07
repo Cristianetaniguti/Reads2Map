@@ -2,6 +2,16 @@
 
 OneMap workflow uses [WDL]() language and [cromwell]() from [Broad Institute]() to offer user friendly and optimazed memory, CPU and time workflows to build linkage maps with OneMap. There are two main workflows called SimulatedReads and EmpiricalReads. The first performs population and RADseq fastq files simulations for a chromosome, SNP and genoytpe calling with five different software and genetic map building with OneMap and Gusmap. EmpiricalReads receives fastq files from empirical data and also performs the SNP and genotype calling and map building.
 
+The main workflows are composed by sub-workflows that can also be useful for users, they are located at `tasks` folder. The sub-workflows are composed by tasks that can be find at the end of each `.wdl` file and at `utils.wdl` and `utilsR.wdl`.
+
+[Docker]() images were built to each one of the tasks, then users need only to download the most recent version of cromwell, install its requirements and docker. If running without sudo permission users can use [singularity]() instead of directly docker. See `.configurations` directory and its [instructions]() to use singulatiry.
+
+The WDL and cromwell system is also made to be easily expansible. Users can change arguments or implement other software into the analysis.
+
+The main goals of OneMap workflows are test software capabilities in ideal scenarios (SimulatedReads) and in empirical data (EmpiricalReads). SimulatedReads also gives a safe method to test new functionalities implemented in OneMap and EmpiricalReads gives a fast and automatically method to select the best software to build linkage maps and answer biological questions for any empirical data.
+
+Output datasets from each main workflow can be easily avaliated in a shiny app called [onemap_workflows_app](). You need to submit your output to the app, and the final page gives the possibility to download the onemap or gusmap object containing the combination of software and paramenters you selected. By now, only one chromosome is avaliated in both workflows, but, downloading the onemap or gusmap object you can repead the map building process in R for other chromosomes without spent all the time needed to compare all the methods. We show a example of these usage in `Quickstart` below.
+
 ## Quickstart
 
 This workflow requires docker hub images. First of all, download [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/) and install its requirements and [docker](https://docs.docker.com/install/).
@@ -133,11 +143,11 @@ You can also download the full data set running the script "data/populus/downloa
 
 Here are some tutorials that better explain how to use the workflows:
 
-* [Introduction](https://cristianetaniguti.github.io/onemap_workflows/documentation/introduction.html)
-* [Running SimulatedReads workflow](https://cristianetaniguti.github.io/onemap_workflows/documentation/simulatedreads.html)
-* [Running EmpiricalReads workflow](https://cristianetaniguti.github.io/onemap_workflows/documentation/empiricalreads.html)
-* [Configurations](https://cristianetaniguti.github.io/onemap_workflows/documentation/configuration.html)
-* [Usage of sub-workflows](https://cristianetaniguti.github.io/onemap_workflows/documentation/subworkflows.html)
+* [Introduction](https://cristianetaniguti.github.io/onemap_workflows/introduction.html)
+* [Running SimulatedReads workflow](https://cristianetaniguti.github.io/onemap_workflows/simulatedreads.html)
+* [Running EmpiricalReads workflow](https://cristianetaniguti.github.io/onemap_workflows/empiricalreads.html)
+* [Configurations](https://cristianetaniguti.github.io/onemap_workflows/configuration.html)
+* [Usage of sub-workflows](https://cristianetaniguti.github.io/onemap_workflows/subworkflows.html)
 
 You can also have more details about the workflows and how they can be applied:
 
