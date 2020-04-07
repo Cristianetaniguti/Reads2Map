@@ -99,7 +99,6 @@ task UpdogProbs{
           f1 = "F1"
        }
 
-       
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)
        
@@ -111,7 +110,7 @@ task UpdogProbs{
                                     f1 = f1,
                                     recovering=TRUE,
                                     mean_phred=20,
-                                    cores=3,
+                                    cores=20,
                                     depths=NULL,
                                     global_error = NULL,
                                     use_genotypes_errors = FALSE,
@@ -124,6 +123,9 @@ task UpdogProbs{
   
   runtime{
     docker:"taniguti/onemap"
+    time:"24:00:00"
+    mem:"--nodes=1"
+    cpu:20
   }
   
   output{

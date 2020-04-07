@@ -38,6 +38,9 @@ task vcf2onemap{
     >>>
     runtime{
       docker:"taniguti/onemap"
+      time:"10:00:00"
+      mem:"--nodes=1"
+      cpu:1
     }
 
     output{
@@ -70,6 +73,9 @@ task FiltersReport{
   
   runtime{
     docker: "taniguti/onemap"
+    time:"10:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
   
   output{
@@ -149,7 +155,10 @@ task MapsReport{
   >>>
   
   runtime{
-    docker: "taniguti/onemap" 
+    docker: "taniguti/onemap"
+    time:"72:00:00"
+    mem:"--nodes=1"
+    cpu:4
   }
   
   output{
@@ -188,6 +197,9 @@ task ErrorsReport{
   
   runtime{
     docker: "taniguti/onemap"
+    time:"24:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
   
   output{
@@ -217,6 +229,9 @@ task GlobalError{
   >>>
   runtime{
     docker: "taniguti/onemap"
+    time:"10:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
   
   output{
@@ -275,6 +290,9 @@ task BamDepths2Vcf{
   
   runtime{
     docker:"taniguti/onemap"
+    time:"15:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
   
   output{

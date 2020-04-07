@@ -14,6 +14,9 @@ task TabixVcf {
 
   runtime {
     docker: "taniguti/gatk-picard"
+    time:"05:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
 
   output {
@@ -51,9 +54,9 @@ task BamCounts {
 
   runtime{
     docker:"taniguti/gatk-picard"
-    mem:"--mem-per-cpu=24042"
+    mem:"--nodes=24042"
     cpu:1
-    time:"01:00:00"
+    time:"05:00:00"
   }
 
   output{

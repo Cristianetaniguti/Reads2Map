@@ -315,6 +315,9 @@ task JointReports{
   >>>
   runtime{
     docker:"taniguti/onemap"
+    time:"-5:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
   
   output{
@@ -439,6 +442,9 @@ task CreateTables{
     
     runtime{
       docker:"taniguti/onemap"
+      time:"05:00:00"
+      mem:"--nodes=1"
+      cpu:1
     }
   
   output{

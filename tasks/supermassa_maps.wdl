@@ -111,7 +111,7 @@ task SupermassaProbs{
                                     f1 = f1,
                                     recovering=TRUE,
                                     mean_phred=20,
-                                    cores=3,
+                                    cores=20,
                                     depths=NULL,
                                     global_error = NULL,
                                     use_genotypes_errors = FALSE,
@@ -124,6 +124,9 @@ task SupermassaProbs{
   
   runtime{
     docker:"taniguti/onemap"
+    time:"24:00:00"
+    mem:"--nodes=1"
+    cpu:20
   }
   
   output{
