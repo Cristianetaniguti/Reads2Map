@@ -57,13 +57,7 @@ workflow SimulatedReads {
   # Here you can reference outputs from the sub workflow. Remember that
   # it will be an array of the same type of the original.
   output {
-    File data1_depths_geno_prob = JointTables.data1_depths_geno_prob
-    File data2_maps = JointTables.data2_maps
-    File data3_filters = JointTables.data3_filters
-    File data5_SNPcall_efficiency = JointTables.data5_SNPcall_efficiency
-    File data4_times = JointTables.data4_times
-    File data6_RDatas = JointTables.data6_RDatas
-
+    File results = JointTables.results
   }
 }
 
