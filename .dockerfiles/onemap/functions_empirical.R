@@ -29,12 +29,12 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   #ggsave(p, filename = paste0(file.name,"_heatmap.png"))
   
   times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
-  write_report(times_df, paste0(file.name,"_times.txt"))
+  write_report(times_df, paste0("times_",file.name,".txt"))
   sizes_df <- data.frame(CountsFrom, SNPCall, GenoCall, "mks" = colnames(map_out$data.name$geno)[map_out$seq.num],
                          "pos" = map_out$data.name$POS[map_out$seq.num], rf = cumsum(c(0,kosambi(map_out$seq.rf))),
                          type = map_out$data.name$segr.type[map_out$seq.num], phases = phaseToOPGP_OM(map_out))
-  write_report(sizes_df, paste0(file.name,"_map.txt"))
-  save(map_out, file = paste0(file.name,".RData"))
+  write_report(sizes_df, paste0("map_",file.name,".txt"))
+  save(map_out, file = paste0("map_",file.name,".RData"))
 }
 
 phaseToOPGP_OM <- function(x){
@@ -79,8 +79,8 @@ phaseToOPGP_OM <- function(x){
   }
 }
 
-create_filters_report <- function(onemap_obj, CountsFrom, SNPCall, GenoCall) {
-    onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
+create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall) {
+  onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
   bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
   segr <- onemap::test_segregation(onemap_bins)
@@ -99,15 +99,16 @@ create_filters_report <- function(onemap_obj, CountsFrom, SNPCall, GenoCall) {
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
                             "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
-  return(list(filters_tab, lg1))
+  write_report(filters_tab, paste0("filters_", SNPCall, "_", CountsFrom, "_",GenoCall, ".txt"))
+  return(lg1)
 }
 
 write_report <- function(tab, out_name) {
-  write.table(tab, file=out_name, row.names=F, quote=F)
+  write.table(tab, file=out_name, row.names=F, quote=F, col.names=F)
 }
 
-make_vcf <- function(vcf.old, depths, method){
-  # The input of polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
+make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
+  # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
   idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
   idx.i <- strsplit(idx, split = ":")[[1]][1]
   seed <- sample(1:10000, 1)
@@ -115,7 +116,7 @@ make_vcf <- function(vcf.old, depths, method){
   
   vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
   
-  if(all(rownames(depths[[1]]) %in% paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
+  if(all(rownames(depths[[1]]) == paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
     
     vcf.init <- vcf.tab[,1:8]
     AD.colum <- rep("AD", dim(vcf.init)[1])
@@ -124,7 +125,7 @@ make_vcf <- function(vcf.old, depths, method){
     rs <- rownames(depths[[1]])
     vcf.init[,3] <- rs
   } else {
-    temp.tab <- read.table(paste0(method,"_example4ref_alt_alleles.txt"))
+    temp.tab <- read.table(allele_file)
     vcf.init <- cbind(temp.tab[,1:2],paste0(temp.tab[,1], "_", temp.tab[,2]), temp.tab[,3:4],
                       rep(".", dim(temp.tab)[1]),rep(".", dim(temp.tab)[1]), rep(".", dim(temp.tab)[1]), rep("AD",dim(temp.tab)[1]))
   }
@@ -146,16 +147,16 @@ make_vcf <- function(vcf.old, depths, method){
   
   write.table(vcf.body, file = paste0("temp.body.", seed), quote = FALSE, sep = "\t", row.names = FALSE, col.names = F)
   
-  system(paste0("cat head.",seed," temp.body.",seed," > temp.",seed,".vcf"))
-  return(paste0("temp.",seed, ".vcf"))
+  system(paste0("cat head.",seed," temp.body.",seed," > ", out_vcf))
+  return(out_vcf)
 }
 
-create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent1, parent2){
-  file.name <- SNPCall
+create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1, parent2){
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
+  filelist = list.files(pattern = ".*_ped.csv")
   
-  ped.file <- read.csv(paste0(file.name,"_ped.csv"))
+  ped.file <- read.csv(filelist)
   ID <- c(1:(dim(ped.file)[1]))
   idx.P1 <- which(as.character(ped.file$SampleID) == parent1)
   idx.P2 <- which(as.character(ped.file$SampleID) == parent2)
@@ -174,13 +175,13 @@ create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent
   ped.file$Family <- fam
   
   write.csv(ped.file, file = "ped.file.csv")
-  
-  RAdata <- readRA(paste0(vcf_file,".ra.tab"), pedfile = "ped.file.csv", 
+  filelist = list.files(pattern = ".*.ra.tab")
+  RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
                    filter = list(MAF=0.05, MISS=0.75, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
-                   filter = list(MAF = 0.05, MISS = 0.75,
-                                 BIN = 0, DEPTH = 0, PVALUE = 0.01))
+                   filter = list(MAF = 0.05, MISS = 0.25,
+                                 BIN = 100, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
     
   pos <- mydata$.__enclos_env__$private$pos
   depth_Ref_m <- mydata$.__enclos_env__$private$ref[[1]]
@@ -201,10 +202,9 @@ create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent
 
   time_par <- time_par1 + time_par2
   times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
-  write_report(times_df, paste0(file.name,"_", CountsFrom, "_",GenoCall, "_times.txt"))
   
   #rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
-  dist.gus <- c(0,cumsum(rf_est$rf))
+  dist.gus <- c(0,cumsum(haldane(rf_est$rf)))
   phases.gus[which(phases.gus == 1 | phases.gus == 4)] <- 17
   phases.gus[which(phases.gus == 2 | phases.gus == 3)] <- 18
   phases.gus[which(phases.gus == 5 | phases.gus == 8)] <- 19
@@ -220,7 +220,8 @@ create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent
 
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
   map_out <- mydata
-  save(map_out, file = paste0(file.name,".RData"))
+  save(map_out, file = paste0("map_", file.name,".RData"))
+  write_report(times_df, paste0("times_", file.name,".txt"))
   
   map_info <- data.frame("CountsFrom" = CountsFrom,
                          "SNPCall"= SNPCall,
@@ -230,6 +231,6 @@ create_gusmap_report <- function(vcf_file,GenoCall, CountsFrom, SNPCall,  parent
                          "rf" = dist.gus,
                          "type"= config,
                          "phases"= phases.gus)
-  
+  write_report(map_info, paste0("map_",file.name,".txt"))
   return(map_info)
 }

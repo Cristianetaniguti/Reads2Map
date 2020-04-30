@@ -42,15 +42,17 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
-  bins <- onemap::find_bins(onemap_obj)
-  onemap_bins <- create_data_bins(onemap_obj, bins)
+  onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
+  bins <- onemap::find_bins(onemap_mis)
+  onemap_bins <- create_data_bins(onemap_mis, bins)
   segr <- onemap::test_segregation(onemap_bins)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
   twopts <- rf_2pts(onemap_bins)
   seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
-  filters_tab <- data.frame("n_markers"= total_variants,
+  filters_tab <- data.frame("higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
+                            "n_markers"= total_variants,
                             "distorted_markers"=length(distorted),
                             "redundant_markers"=total_variants - length(bins[[1]]),
                             "SNPcall" = SNPcall,
@@ -113,6 +115,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
                            "SNPcall" = SNPcall,
                            "Genocall" = Genocall,
                            "CountsFrom" = CountsFrom,
+                           "fake" = fake,
                            "poscM" = poscM,
                            "poscM.norm" = poscM.norm,
                            "diff" = diff)
@@ -129,6 +132,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
                            "SNPcall" = SNPcall,
                            "Genocall" = Genocall,
                            "CountsFrom" = CountsFrom,
+                           "fake" = fake,
                            "poscM" = poscM,
                            "poscM.norm" = poscM.norm,
                            "diff" = diff)
@@ -169,8 +173,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                    filter = list(MAF=0.05, MISS=1, BIN=0, DEPTH=0, PVALUE=0), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
-                   filter = list(MAF = 0.05, MISS = 1,
-                                 BIN = 0, DEPTH = 0, PVALUE = 0))
+                   filter = list(MAF = 0.05, MISS = 0.25,
+                                 BIN = 100, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
   
   if(!fake){
     keep.mks <- which(mydata$.__enclos_env__$private$pos %in% tot_mks$pos)
@@ -235,6 +239,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                            "SNPcall" = SNPcall,
                            "Genocall" = Genocall,
                            "CountsFrom" = CountsFrom,
+                           "fake" = fake,
                            "poscM" = poscM,
                            "poscM.norm" = poscM.norm,
                            "diff" = diff)
@@ -250,6 +255,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                            "SNPcall" = SNPcall,
                            "Genocall" = Genocall,
                            "CountsFrom" = CountsFrom,
+                           "fake" = fake,
                            "poscM" = poscM,
                            "poscM.norm" = poscM.norm,
                            "diff" = diff)
@@ -333,4 +339,105 @@ make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
   
   system(paste0("cat head.",seed," temp.body.",seed," > ", out_vcf))
   return(out_vcf)
+}
+
+adapt2app <- function(data){
+  
+  # For errors
+  data[[1]]$errors <- apply(data[[1]][,10:13], 1, function(x) if(all(x==1)) NA else 1 - x[which.max(x)])
+  data[[1]]$ref[which(data[[1]]$ref == ".")] <- NA
+  data[[1]]$ref <- as.numeric(data[[1]]$ref)
+  # The onemap genotype codification do not diferenciate the homozyotes for each parent
+  data[[1]]$gabGT[data[[1]]$gabGT == 3 | data[[1]]$gabGT == 1] <- "homozygous"
+  data[[1]]$gabGT[data[[1]]$gabGT == 2] <- "heterozygote"
+  data[[1]]$methGT[data[[1]]$methGT == "3" | data[[1]]$methGT == "1"] <- "homozygous"
+  data[[1]]$methGT[data[[1]]$methGT == "2"] <- "heterozygote"
+  data[[1]]$methGT[data[[1]]$methGT == "0"] <- "missing"
+  
+  data[[1]]$methGT <- factor(data[[1]]$methGT, labels = c("missing", "homozygous", "heterozygote"), levels = c("missing", "homozygous", "heterozygote"))
+  data[[1]]$gabGT <- factor(data[[1]]$gabGT, labels = c("missing", "homozygous", "heterozygote"), levels = c("missing", "homozygous", "heterozygote"))
+  
+  temp <- levels(data[[1]]$GenoCall)
+  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
+  data[[1]]$GenoCall <- as.character(data[[1]]$GenoCall)
+  data[[1]]$GenoCall[data[[1]]$GenoCall == "default"] <- "OneMap_version2"
+  data[[1]]$GenoCall[data[[1]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data[[1]]$GenoCall <- factor(data[[1]]$GenoCall, labels = temp, levels = temp)
+  
+  ####
+  data[[2]] <- data[[2]][,-3]
+  colnames(data[[2]]) <- c("seed", "depth", "mk.name", "pos" , "rf" , "type", "real.type", 
+                           "est.phases", "real.phases", "real.mks", "SNPCall", "GenoCall", 
+                           "CountsFrom", "fake", "poscM", "poscM.norm", "diff")
+  
+  data[[2]]$fake[which(data[[2]]$real.mks ==99)] <- "without-false"
+  data[[2]]$fake[which(data[[2]]$real.mks < 2)] <- "with-false"
+  
+  data[[2]]$real.mks[which(data[[2]]$real.mks == 99 | data[[2]]$real.mks == 1)] <- "true markers"
+  data[[2]]$real.mks[which(data[[2]]$real.mks == 0)] <- "false positives"
+  
+  temp <- levels(data[[2]]$GenoCall)
+  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
+  data[[2]]$GenoCall <- as.character(data[[2]]$GenoCall)
+  data[[2]]$GenoCall[data[[2]]$GenoCall == "default"] <- "OneMap_version2"
+  data[[2]]$GenoCall[data[[2]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data[[2]]$GenoCall <- factor(data[[2]]$GenoCall, labels = temp, levels = temp)
+  
+  ###
+  colnames(data[[3]]) <- c("seed", "depth", "mis_markers", "n_markers", "distorted_markers", "redundant_markers", "SNPCall", "GenoCall", "CountsFrom")
+  temp <- levels(data[[3]]$GenoCall)
+  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
+  data[[3]]$GenoCall <- as.character(data[[3]]$GenoCall)
+  data[[3]]$GenoCall[data[[3]]$GenoCall == "default"] <- "OneMap_version2"
+  data[[3]]$GenoCall[data[[3]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data[[3]]$GenoCall <- factor(data[[3]]$GenoCall, labels = temp, levels = temp)
+  
+  ###
+  data[[4]] <- as.data.frame(data[[4]])
+  data[[4]]$fake <- as.character(data[[4]]$fake)
+  data[[4]]$fake[which(data[[4]]$fake =="FALSE")] <- "without-false"
+  data[[4]]$fake[which(data[[4]]$fake =="TRUE")] <- "with-false"
+  data[[4]]$fake <- as.factor(data[[4]]$fake)
+  
+  temp <- levels(data[[4]]$GenoCall)
+  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
+  data[[4]]$GenoCall <- as.character(data[[4]]$GenoCall)
+  data[[4]]$GenoCall[data[[4]]$GenoCall == "default"] <- "OneMap_version2"
+  data[[4]]$GenoCall[data[[4]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data[[4]]$GenoCall <- factor(data[[4]]$GenoCall, labels = temp, levels = temp)
+  
+  #####
+  data[[5]] <- data[[5]][,-7] ## Ajustar
+  names(data[[5]]) <- c("depth", "seed", "SNPCall", "(1)", "(2)", "(3)", "(4)", "(5)") ## Ajustars
+  data[[5]] <- gather(data[[5]], key,value,-SNPCall, -depth)
+  
+  data[[3]]$GenoCall <- factor(data[[3]]$GenoCall)
+  data[[3]] <- gather(data[[3]],key,value, -CountsFrom, -seed, -depth, -SNPCall, -GenoCall)
+  data[[3]]$key <- factor(data[[3]]$key)
+  
+  # Defining the options
+  cout <- table(data[[1]]$seed, data[[1]]$depth)
+  depthNames <- colnames(cout)
+  depths <- seeds <- seedsNames <- vector()
+  for(i in 1:length(depthNames)){
+    for(j in 1:nrow(cout)){
+      if(cout[j,i] > 0){
+        temp <- rownames(cout)[j]
+        seedsNames <- c(seedsNames, paste0("Depth ", depthNames[i], " seed ", temp))
+        depths <- c(depths, depthNames[i])
+        seeds <- c(seeds, temp)
+      }
+    }
+  }
+  
+  depth_choice <- as.list(unique(data[[1]]$depth))
+  names(depth_choice) <- as.character(unique(data[[1]]$depth))
+  seeds_choice <- as.list(1:length(seedsNames))
+  names(seeds_choice) <- as.character(seedsNames)
+  
+  result_list <- list("data1" = data[[1]], "data2"= data[[2]], 
+                      "data3"=data[[3]], "data4"=data[[4]], 
+                      "data5"=data[[5]], "choices" = list(depths, seeds, seeds_choice, depth_choice))
+  
+  return(result_list)
 }

@@ -12,7 +12,9 @@ workflow SimulatedMap{
     input:
       vcf_file = vcf_simu,
       cross = cross,
-      SNPCall_program = "simu"
+      SNPCall_program = "simu",
+      parent1 = "P1",
+      parent2 = "P2"
   }
 
   output{

@@ -5,6 +5,8 @@ task vcf2onemap{
      File vcf_file
      String cross
      String SNPCall_program
+     String parent1
+     String parent2
    }
 
    command <<<
@@ -29,8 +31,8 @@ task vcf2onemap{
           
           onemap.obj <- onemap_read_vcfR(vcfR.object=vcf,
                                  cross= cross,
-                                 parent1="P1",
-                                 parent2="P2",
+                                 parent1="~{parent1}",
+                                 parent2="~{parent2}",
                                  f1 = f1)
           save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf", "_onemap.obj.RData"))
                 
@@ -55,12 +57,17 @@ task FiltersReport{
     String SNPCall_program 
     String GenotypeCall_program 
     String CountsFrom 
+    String which_workflow
   }
   
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
-      source("/opt/scripts/functions_simu.R")
+      if("~{which_workflow}" == "simulation"){
+        source("/opt/scripts/functions_simu.R")
+      } else { 
+        source("/opt/scripts/functions_empirical.R")
+      } 
       
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
@@ -302,7 +309,83 @@ task BamDepths2Vcf{
 }
 
 
+task CheckDepths{
+  input{
+    File onemap_obj
+    File vcfR_obj
+    String parent1
+    String parent2
+    String SNPCall_program
+    String GenotypeCall_program
+    String CountsFrom
+  }
+  
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      
+      temp <- load("~{onemap_obj}")
+      df <- get(temp) 
+      
+      temp <- load("~{vcfR_obj}")
+      vcf <- get(temp)
+      
+      p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "~{parent1}", 
+      parent2 = "~{parent2}", vcf.par = "AD",recovering = FALSE, GTfrom = "vcf", alpha=0.1,
+      rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+      
+      df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+      df <- cbind(SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}", 
+                  GenoCall="~{GenotypeCall_program}", df)
+      write.table(df, file="~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.txt")
+      
+      #ggsave(filename = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.png"), p)
+    
+    RSCRIPT
+  >>>
+  
+  runtime{
+    docker:"taniguti/onemap"
+  }
 
+  output{
+    File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.txt"
+  }
+
+}
+
+task MapsReportEmp{
+  input{
+   File sequence_obj
+   String SNPCall_program
+   String GenotypeCall_program
+   String CountsFrom
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      source("/opt/scripts/functions_empirical.R")
+      
+      temp <- load("~{sequence_obj}")
+      sequence <- get(temp)
+      
+      create_map_report(input.seq = sequence, CountsFrom = "~{CountsFrom}", 
+                        SNPCall = "~{SNPCall_program}", GenoCall="~{GenotypeCall_program}")
+    
+    RSCRIPT
+  >>>
+  
+  runtime{
+    docker:"taniguti/onemap"
+  }
+
+  output{
+    File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt" 
+    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
+    File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+  }
+}
 
 
 

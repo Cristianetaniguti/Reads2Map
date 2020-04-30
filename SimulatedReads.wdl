@@ -51,7 +51,9 @@ workflow SimulatedReads {
       data5=ReadSimulations.data5_SNPcall_efficiency,
       data4=ReadSimulations.data4_times,
       depth=family_template.depth,
-      data6=ReadSimulations.data6_RDatas
+      data6=ReadSimulations.data6_RDatas,
+      data7=ReadSimulations.data7_gusmap,
+      data8=ReadSimulations.data8_names
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -97,13 +99,17 @@ task JointTables{
     Array[File] data4
     Array[File] data5
     Array[File] data6
+    Array[File] data7
+    Array[File] data8
     Int depth
   }
 
   command <<<
 
     R --vanilla --no-save <<RSCRIPT
-
+    library(tidyverse)
+    library(largeList)
+    source("/opt/scripts/functions_simu.R")
     datas <- list()
 
     datas[[1]] <- c("~{sep=";" data1}")
@@ -112,40 +118,64 @@ task JointTables{
     datas[[4]] <- c("~{sep=";" data4}")
     datas[[5]] <- c("~{sep=";" data5}")
     datas[[6]] <- c("~{sep=";" data6}")
+    datas[[7]] <- c("~{sep=";" data7}")
+    datas[[8]] <- c("~{sep=";" data8}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
-
-    Rdata_lst <- data_lst <- list()
+    
+    Rdata_lst <- data_lst <- datas_up <- list()
     for(j in 1:length(datas)){
       if(j == 6){
         for(i in 1:length(datas[[j]])){
-          load(datas[[j]][i])
-          Rdata_lst[[i]] <- RDatas
+          temp <- readList(datas[[j]][i])
+          if(i == 1){
+            saveList(temp, file="sequences.llo", append = F, compress = T)
+          } else {
+            saveList(temp, file="sequences.llo", append = T, compress = T)
+          }
+        }
+      } else  if(j == 7){
+        for(i in 1:length(datas[[j]])){
+          temp <- load(datas[[j]][i])
+          Rdata_lst[[i]] <- get(temp)
         }
         Rdatas <- do.call(c, Rdata_lst)
-        save(Rdatas, file = paste0("data",j,"_",~{depth},".RData"))
+        save(Rdatas, file = "gusmap_RDatas.RData")
       } else {
         for(i in 1:length(datas[[j]])){
           data_lst[[i]] <- readRDS(datas[[j]][i])
         }
-        dat <- do.call(rbind, data_lst)
-        saveRDS(dat, paste0("data",j,"_",~{depth},".rds"))
+        if(j == 8){
+          dat <- do.call(c, data_lst)
+        } else   dat <- do.call(rbind, data_lst)
+        datas_up[[j]] <- dat
       }
     }
     
-    system(paste0("tar -czvf SimulatedReads_~{depth}.tar.gz data*"))
+    result_list <- adapt2app(datas_up)
     
+    saveRDS(result_list[[1]], file="data1.rds")
+    saveRDS(result_list[[2]], file="data2.rds")
+    saveRDS(result_list[[3]], file="data3.rds")
+    saveRDS(result_list[[4]], file="data4.rds")
+    saveRDS(result_list[[5]], file="data5.rds")
+    choices <- result_list[[6]]
+    save(choices, file = "choices.RData")
+    saveRDS(datas_up[[8]], file = "names.rds")
+    
+    system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds choices.RData names.rds")
+
     RSCRIPT
   >>>
 
   runtime{
       docker:"taniguti/onemap"
-      time:"0:30:00"
+      time:"03:00:00"
       cpu:1
       mem:"--mem-per-cpu=24042"
   }
 
   output{
-    File results = "SimulatedReads_~{depth}.tar.gz"
+    File results = "SimulatedReads_results_depth~{depth}.tar.gz"
   }
 }

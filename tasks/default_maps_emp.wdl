@@ -4,15 +4,14 @@ import "./utilsR.wdl" as utilsR
 
 workflow DefaultMaps {
     input {
-     File simu_onemap_obj
      File onemap_obj
-     File tot_mks
-     File real_phases
+     File vcfR_obj
      String SNPCall_program
      String GenotypeCall_program
      String CountsFrom
-     String cMbyMb
      String cross
+     String parent1
+     String parent2
     }
     
     call utilsR.GlobalError{
@@ -28,44 +27,40 @@ workflow DefaultMaps {
     Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
     scatter(objects in methods_and_objects){
+    
+          call utilsR.CheckDepths{
+            input:
+              onemap_obj = objects.right, 
+              vcfR_obj = vcfR_obj, 
+              parent1 = parent1,
+              parent2 = parent2,
+              SNPCall_program = SNPCall_program,
+              GenotypeCall_program = objects.left,
+              CountsFrom = CountsFrom
+        }
          call utilsR.FiltersReport{
               input:
                 onemap_obj = objects.right,
                 SNPCall_program = SNPCall_program,
                 GenotypeCall_program = objects.left,
                 CountsFrom = CountsFrom,
-                which_workflow = "simulation"
+                which_workflow = "empirical"
           }
             
-          call utilsR.MapsReport{
+          call utilsR.MapsReportEmp{
             input:
-              onemap_obj = FiltersReport.onemap_obj_filtered,
-              tot_mks = tot_mks,
-              simu_onemap_obj = simu_onemap_obj,
+              sequence_obj = FiltersReport.onemap_obj_filtered,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = objects.left,
-              CountsFrom = CountsFrom,
-              cMbyMb = cMbyMb,
-              real_phases = real_phases
-            }
-            
-            call utilsR.ErrorsReport{
-              input:
-                onemap_obj = objects.right,
-                simu_onemap_obj = simu_onemap_obj,
-                SNPCall_program = SNPCall_program,
-                GenotypeCall_program = objects.left,
-                CountsFrom = CountsFrom
+              CountsFrom = CountsFrom
             }
      }
      
      output{
-        Array[File] RDatas = MapsReport.maps_RData
-        Array[File] maps_report = MapsReport.maps_report
-        Array[File] times = MapsReport.times
+        Array[File] RDatas = MapsReportEmp.maps_RData
+        Array[File] maps_report = MapsReportEmp.maps_report
+        Array[File] times = MapsReportEmp.times
         Array[File] filters_report = FiltersReport.filters_report
-        Array[File] errors_report = ErrorsReport.errors_report
-        
+        Array[File] errors_report = CheckDepths.errors_report
      }
-     
 }

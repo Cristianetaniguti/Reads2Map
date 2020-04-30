@@ -41,7 +41,8 @@ workflow UpdogMaps{
               onemap_obj = objects.right,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = objects.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              which_workflow = "simulation"
         }
             
         call utilsR.MapsReport{

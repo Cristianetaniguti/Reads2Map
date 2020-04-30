@@ -14,6 +14,8 @@ RUN R -e "install.packages('updog', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('doParallel', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('matrixStats', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('BiocManager', repos='http://brieger.esalq.usp.br/CRAN/'); \
+          install.packages('tidyverse', repos='http://brieger.esalq.usp.br/CRAN/'); \
+          install.packages('largeList', repos='http://brieger.esalq.usp.br/CRAN/'); \
           BiocManager::install('pcaMethods');\
           BiocManager::install('VariantAnnotation');\
           install.packages('polyRAD', repos='http://brieger.esalq.usp.br/CRAN/');\

@@ -4,24 +4,23 @@ import "./utilsR.wdl" as utilsR
 
 workflow PolyradMaps{
   input{
-    File simu_onemap_obj
     File onemap_obj
     File vcf_file
-    File tot_mks
-    File real_phases
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
-    String cMbyMb
     String cross
+    String parent1
+    String parent2
   }
-  
 
   call PolyradProbs{
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
-      cross = cross
+      cross = cross,
+      parent1 = parent1,
+      parent2 = parent2
   }
   
   call utilsR.GlobalError{
@@ -37,43 +36,42 @@ workflow PolyradMaps{
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
     
   scatter(objects in methods_and_objects){
+       call utilsR.CheckDepths{
+           input:
+              onemap_obj = objects.right, 
+              vcfR_obj = PolyradProbs.vcfR_obj, 
+              parent1 = parent1,
+              parent2 = parent2,
+              SNPCall_program = SNPCall_program,
+              GenotypeCall_program = GenotypeCall_program,
+              CountsFrom = CountsFrom
+       }
+       
        call utilsR.FiltersReport{
             input:
               onemap_obj = objects.right,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = objects.left,
               CountsFrom = CountsFrom,
-              which_workflow = "simulation"
+              which_workflow = "empirical"
         }
             
-        call utilsR.MapsReport{
+        call utilsR.MapsReportEmp{
           input:
-            onemap_obj = FiltersReport.onemap_obj_filtered,
-            tot_mks = tot_mks,
-            simu_onemap_obj = simu_onemap_obj,
+            sequence_obj = FiltersReport.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = objects.left,
-            CountsFrom = CountsFrom,
-            cMbyMb = cMbyMb,
-            real_phases = real_phases
+            CountsFrom = CountsFrom
           }
             
-          call utilsR.ErrorsReport{
-            input:
-              onemap_obj = objects.right,
-              simu_onemap_obj = simu_onemap_obj,
-              SNPCall_program = SNPCall_program,
-              GenotypeCall_program = objects.left,
-              CountsFrom = CountsFrom
-          }
    }
      
    output{
-      Array[File] RDatas = MapsReport.maps_RData
-      Array[File] maps_report = MapsReport.maps_report
-      Array[File] times = MapsReport.times
+      Array[File] RDatas = MapsReportEmp.maps_RData
+      Array[File] maps_report = MapsReportEmp.maps_report
+      Array[File] times = MapsReportEmp.times
       Array[File] filters_report = FiltersReport.filters_report
-      Array[File] errors_report = ErrorsReport.errors_report
+      Array[File] errors_report = CheckDepths.errors_report
    }
 }
 
@@ -82,12 +80,15 @@ task PolyradProbs{
     File vcf_file
     File onemap_obj
     String cross
+    String parent1
+    String parent2
   }
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
-        
+       library(vcfR)
+      
        cross <- "~{cross}"
           
        if(cross == "F1"){
@@ -98,13 +99,16 @@ task PolyradProbs{
           f1 = "F1"
        }
        
+       vcf <- read.vcfR("~{vcf_file}")
+       save(vcf, file = "vcfR.RData")
+       
        onemap_obj_temp <- load("~{onemap_obj}")
        onemap_obj <- get(onemap_obj_temp)
 
        polyrad_onemap_obj <- polyRAD_genotype(vcf="~{vcf_file}",
                                         onemap.obj=onemap_obj,
-                                        parent1="P1",
-                                        parent2="P2",
+                                        parent1="~{parent1}",
+                                        parent2="~{parent2}",
                                         f1 = f1,
                                         crosstype= cross,
                                         global_error = NULL,
@@ -125,5 +129,6 @@ task PolyradProbs{
   
   output{
     File polyrad_onemap_obj = "polyrad_onemap_obj.RData"
+    File vcfR_obj = "vcfR.RData"
   }
 }
