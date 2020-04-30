@@ -45,10 +45,10 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
   bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
-  segr <- onemap::test_segregation(onemap_bins)
+  segr <- onemap::test_segregation(onemap_mis)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
-  twopts <- rf_2pts(onemap_bins)
+  twopts <- rf_2pts(onemap_mis) # redundant markers are not removed
   seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
   filters_tab <- data.frame("higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
@@ -170,11 +170,11 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   write.csv(ped.file, file = "ped.file.csv")
   filelist = list.files(pattern = ".*.ra.tab")
   RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
-                   filter = list(MAF=0.05, MISS=1, BIN=0, DEPTH=0, PVALUE=0), sampthres = 0)
+                   filter = list(MAF=0.05, MISS=0.25, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.25,
-                                 BIN = 100, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
+                                 BIN = 0, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
   
   if(!fake){
     keep.mks <- which(mydata$.__enclos_env__$private$pos %in% tot_mks$pos)

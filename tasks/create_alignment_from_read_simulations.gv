@@ -1,0 +1,36 @@
+digraph CreateAlignmentFromSimulation {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  SCATTER_0_VARIABLE_sampleName -> CALL_RunVcf2diploid
+  CALL_CreatePedigreeSimulatorInputs -> CALL_RunPedigreeSimulator
+  CALL_CreatePedigreeSimulatorInputs -> CALL_ConvertPedigreeSimulationToVcf
+  CALL_GenerateSampleNames -> SCATTER_0_VARIABLE_sampleName
+  CALL_RunPedigreeSimulator -> CALL_ConvertPedigreeSimulationToVcf
+  SCATTER_0_VARIABLE_sampleName -> CALL_SimulateRADseq
+  CALL_SimulateRADseq -> CALL_SimulateIlluminaReads
+  SCATTER_0_VARIABLE_sampleName -> CALL_SimulateIlluminaReads
+  CALL_RunVcf2diploid -> CALL_SimulateRADseq
+  CALL_SimulateIlluminaReads -> CALL_RunBwaAlignment
+  CALL_ConvertPedigreeSimulationToVcf -> CALL_GenerateSampleNames
+  SCATTER_0_VARIABLE_sampleName -> CALL_RunBwaAlignment
+  CALL_GenerateAlternativeGenome -> CALL_CreatePedigreeSimulatorInputs
+  CALL_ConvertPedigreeSimulationToVcf -> CALL_RunVcf2diploid
+
+  # Nodes
+  CALL_RunPedigreeSimulator [label="call RunPedigreeSimulator"]
+  CALL_CreatePedigreeSimulatorInputs [label="call CreatePedigreeSimulatorInputs"]
+  CALL_ConvertPedigreeSimulationToVcf [label="call ConvertPedigreeSimulationToVcf"]
+  CALL_GenerateAlternativeGenome [label="call GenerateAlternativeGenome"]
+  subgraph cluster_0 {
+    style="filled,solid";
+    fillcolor=white;
+    SCATTER_0_VARIABLE_sampleName [shape="hexagon" label="scatter over String as sampleName"]
+    CALL_RunBwaAlignment [label="call RunBwaAlignment"]
+    CALL_RunVcf2diploid [label="call RunVcf2diploid"]
+    CALL_SimulateIlluminaReads [label="call SimulateIlluminaReads"]
+    CALL_SimulateRADseq [label="call SimulateRADseq"]
+  }
+  CALL_GenerateSampleNames [label="call GenerateSampleNames"]
+}

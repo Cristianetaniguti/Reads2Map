@@ -4,7 +4,6 @@ import "../structs/reads_simuS.wdl"
 import "../structs/alignment_struct.wdl"
 import "alignment.wdl" as alg
 
-
 workflow CreateAlignmentFromSimulation {
     input {
         ReferenceFasta references
