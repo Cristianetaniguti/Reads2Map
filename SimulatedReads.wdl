@@ -163,7 +163,9 @@ task JointTables{
     save(choices, file = "choices.RData")
     saveRDS(datas_up[[8]], file = "names.rds")
     
-    system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds choices.RData names.rds")
+    system("mkdir SimulatedReads_results_depth~{depth}")
+    system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
+    system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT
   >>>
