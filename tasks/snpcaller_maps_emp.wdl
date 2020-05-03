@@ -12,6 +12,7 @@ workflow SNPCallerMaps{
      String CountsFrom
      String parent1
      String parent2
+     String chromosome
     }
 
   call GQProbs{
@@ -34,18 +35,18 @@ workflow SNPCallerMaps{
       CountsFrom = CountsFrom
   }
   
-  call utilsR.FiltersReport{
+  call utilsR.FiltersReportEmp{
     input:
       onemap_obj = GQProbs.gq_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = "SNPCaller",
       CountsFrom = "vcf",
-      which_workflow = "empirical",
+      chromosome = chromosome
   }
   
   call utilsR.MapsReportEmp{
     input:
-      sequence_obj = FiltersReport.onemap_obj_filtered,
+      sequence_obj = FiltersReportEmp.onemap_obj_filtered,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = "SNPCaller",
       CountsFrom = CountsFrom
@@ -55,7 +56,7 @@ workflow SNPCallerMaps{
     File RDatas = MapsReportEmp.maps_RData
     File maps_report = MapsReportEmp.maps_report
     File times = MapsReportEmp.times
-    File filters_report = FiltersReport.filters_report
+    File filters_report = FiltersReportEmp.filters_report
     File errors_report = CheckDepths.errors_report
   }
 }

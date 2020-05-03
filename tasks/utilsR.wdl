@@ -57,17 +57,12 @@ task FiltersReport{
     String SNPCall_program 
     String GenotypeCall_program 
     String CountsFrom 
-    String which_workflow
   }
   
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
-      if("~{which_workflow}" == "simulation"){
-        source("/opt/scripts/functions_simu.R")
-      } else { 
-        source("/opt/scripts/functions_empirical.R")
-      } 
+      source("/opt/scripts/functions_simu.R")
       
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
@@ -90,6 +85,46 @@ task FiltersReport{
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
 }
+
+task FiltersReportEmp{
+  input{
+    File onemap_obj 
+    String SNPCall_program 
+    String GenotypeCall_program 
+    String CountsFrom 
+    Int chromosome
+  }
+  
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      source("/opt/scripts/functions_empirical.R")
+      
+      
+      temp <- load("~{onemap_obj}")
+      temp.obj <- get(temp)
+      onemap_obj_filtered <- create_filters_report(temp.obj, "~{SNPCall_program}", 
+                                           "~{CountsFrom}", "~{GenotypeCall_program}", ~{chromosome})
+      save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
+
+    RSCRIPT
+  >>>
+  
+  runtime{
+    docker: "taniguti/onemap"
+    time:"10:00:00"
+    mem:"--nodes=1"
+    cpu:1
+  }
+  
+  output{
+    File filters_report = "filters_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+    File onemap_obj_filtered = "onemap_obj_filtered.RData"
+  }
+}
+
+
+
 
 task MapsReport{
   input{

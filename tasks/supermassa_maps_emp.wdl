@@ -12,6 +12,7 @@ workflow SupermassaMaps{
     String cross
     String parent1
     String parent2
+    String chromosome
   }
 
   call SupermassaProbs{
@@ -47,18 +48,18 @@ workflow SupermassaMaps{
               CountsFrom = CountsFrom
        }
        
-       call utilsR.FiltersReport{
+       call utilsR.FiltersReportEmp{
             input:
               onemap_obj = objects.right,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = objects.left,
               CountsFrom = CountsFrom,
-              which_workflow = "simulation"
+              chromosome = chromosome
         }
             
         call utilsR.MapsReportEmp{
           input:
-            sequence_obj = FiltersReport.onemap_obj_filtered,
+            sequence_obj = FiltersReportEmp.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = objects.left,
             CountsFrom = CountsFrom
@@ -69,7 +70,7 @@ workflow SupermassaMaps{
       Array[File] RDatas = MapsReportEmp.maps_RData
       Array[File] maps_report = MapsReportEmp.maps_report
       Array[File] times = MapsReportEmp.times
-      Array[File] filters_report = FiltersReport.filters_report
+      Array[File] filters_report = FiltersReportEmp.filters_report
       Array[File] errors_report = CheckDepths.errors_report
    }
 }
@@ -113,7 +114,7 @@ task SupermassaProbs{
                                     f1 = f1,
                                     recovering=TRUE,
                                     mean_phred=20,
-                                    cores=20,
+                                    cores=3,
                                     depths=NULL,
                                     global_error = NULL,
                                     use_genotypes_errors = FALSE,

@@ -1,6 +1,6 @@
 version 1.0
 
-import "./utilsR.wdl" as utilsR
+import "./utils.wdl" as utils
 
 workflow GusmapMaps{
   input{
@@ -10,6 +10,7 @@ workflow GusmapMaps{
     String GenotypeCall_program
     String parent1
     String parent2
+    String chromosome
   }
 
   Array[String] counts                      = ["vcf", "bam"]
@@ -17,9 +18,16 @@ workflow GusmapMaps{
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
   
   scatter(vcf in counts_and_vcfs){
+  
+    call utils.SelectChrVCF{
+      input:
+        vcf_file = vcf.right,
+        chromosome = chromosome
+    }
+    
     call GusmapReport{
         input:
-          vcf_file = vcf.right,
+          vcf_file = SelectChrVCF.chr_filt,
           SNPCall_program = SNPCall_program,
           GenotypeCall_program = GenotypeCall_program,
           CountsFrom = vcf.left,

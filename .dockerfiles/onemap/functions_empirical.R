@@ -79,15 +79,17 @@ phaseToOPGP_OM <- function(x){
   }
 }
 
-create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall) {
+create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chromosome) {
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
   bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
-  segr <- onemap::test_segregation(onemap_bins)
+  segr <- onemap::test_segregation(onemap_mis)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
-  twopts <- rf_2pts(onemap_bins)
-  seq1 <- make_seq(twopts, no_distorted)
+  twopts <- rf_2pts(onemap_mis) # keep redundant markers
+  chr <- which(onemap_mis$CHROM %in% chromosome)
+  chr_no_dist <- chr[which(chr%in%no_distorted)]
+  seq1 <- make_seq(twopts, chr_no_dist)
   total_variants <- onemap_obj[[3]]
   lgs <- group(seq1)
   lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups)))))
@@ -96,6 +98,8 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall) {
                             GenoCall,
                             "higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
                             "n_markers"= total_variants,
+                            "n_markers_selected_chr" = length(chr),
+                            "selected_chr_no_dist" = length(chr_no_dist),
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
                             "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
@@ -177,11 +181,11 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   write.csv(ped.file, file = "ped.file.csv")
   filelist = list.files(pattern = ".*.ra.tab")
   RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
-                   filter = list(MAF=0.05, MISS=0.75, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
+                   filter = list(MAF=0.05, MISS=0.25, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.25,
-                                 BIN = 100, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
+                                 BIN = 0, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
     
   pos <- mydata$.__enclos_env__$private$pos
   depth_Ref_m <- mydata$.__enclos_env__$private$ref[[1]]

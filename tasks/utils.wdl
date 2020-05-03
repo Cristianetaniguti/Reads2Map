@@ -296,17 +296,22 @@ task BamCounts4Onemap{
       names <- unlist(strsplit(names, split = " , "))
 
       methods <- c("gatk", "freebayes")
-
+      
       for(method in methods){
+      
+          system(paste("grep -n 'CONTIG'", paste0(names[1],"_", method,"_counts.tsv"), "> idx"))
+          idx <- read.table("idx", stringsAsFactors = F)
+          idx <- strsplit(idx[,1], ":")[[1]][1] 
+          idx <- as.numeric(idx) -1
 
-          file.counts <- read.table(paste0(names[1],"_", method,"_counts.tsv"), skip = 3, header=T, stringsAsFactors = F)
+          file.counts <- read.table(paste0(names[1],"_", method,"_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
 
           ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
 
           for(j in 1:length(names)){
             ## From picard tool
 
-            file.counts <- read.table(paste0(names[j],"_", method,"_counts.tsv"), skip = 3, header=T, stringsAsFactors = F)
+            file.counts <- read.table(paste0(names[j],"_", method,"_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
 
             ref_depth_matrix2[,j] <- file.counts[,3]
             alt_depth_matrix2[,j] <- file.counts[,4]
@@ -355,5 +360,27 @@ task BamCounts4Onemap{
     File gatk_example_alleles    = "gatk_example4ref_alt_alleles.txt"
     File freebayes_example_alleles    = "freebayes_example4ref_alt_alleles.txt"
 
+  }
+}
+
+task SelectChrVCF{
+  input{
+    File vcf_file
+    String chromosome
+  }
+  
+  command <<<
+    vcftools --gzvcf ~{vcf_file} --chr ~{chromosome}  --recode --stdout | gzip -c > chr_filt.vcf.gz
+  >>>
+  
+  runtime{
+    docker:"taniguti/vcftools"
+    mem:"--mem-per-cpu=24042"
+    cpu:1
+    time:"02:00:00"
+  }
+  
+  output{
+    File chr_filt = "chr_filt.vcf.gz"
   }
 }

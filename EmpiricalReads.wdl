@@ -72,7 +72,8 @@ workflow EmpiricalReads {
         SNPCall_program = vcf.left,
         GenotypeCall_program = "default",
         CountsFrom = "vcf",
-        cross = dataset.cross
+        cross = dataset.cross,
+        chromosome = dataset.chromosome
     }
     
     call snpcaller.SNPCallerMaps{
@@ -84,7 +85,8 @@ workflow EmpiricalReads {
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
         parent1 = dataset.parent1,
-        parent2 = dataset.parent2
+        parent2 = dataset.parent2,
+        chromosome = dataset.chromosome
     }
     
     call utilsR.BamDepths2Vcf{
@@ -113,7 +115,8 @@ workflow EmpiricalReads {
             CountsFrom = vcf_counts.left,
             cross = dataset.cross,
             parent1 = dataset.parent1,
-            parent2 = dataset.parent2
+            parent2 = dataset.parent2,
+            chromosome = dataset.chromosome
         }
         
         call supermassa.SupermassaMaps{
@@ -125,7 +128,8 @@ workflow EmpiricalReads {
             CountsFrom = vcf_counts.left,
             cross = dataset.cross,
             parent1 = dataset.parent1,
-            parent2 = dataset.parent2
+            parent2 = dataset.parent2,
+            chromosome = dataset.chromosome
         }
         
         call polyrad.PolyradMaps{
@@ -137,7 +141,8 @@ workflow EmpiricalReads {
             CountsFrom = vcf_counts.left,
             cross = dataset.cross,
             parent1 = dataset.parent1,
-            parent2 = dataset.parent2
+            parent2 = dataset.parent2,
+            chromosome = dataset.chromosome
         }
       }
       call gusmap.GusmapMaps{
@@ -147,10 +152,11 @@ workflow EmpiricalReads {
           SNPCall_program = vcf.left,
           GenotypeCall_program = "gusmap",
           parent1 = dataset.parent1,
-          parent2 = dataset.parent2
+          parent2 = dataset.parent2,
+          chromosome = dataset.chromosome
       }
    }
-     call JointReports{
+   call JointReports{
     input:
     default_RDatas = flatten(DefaultMaps.RDatas),
     default_maps_report = flatten(DefaultMaps.maps_report),
@@ -228,43 +234,55 @@ task JointReports{
       
       system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas}  ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
       
+     library(tidyr)
+     library(largeList)
+      
      Genocall <- c("default", "SNPCaller", "updog", "supermassa", "polyrad", "gusmap",
                    "default0.05", "updog0.05", "supermassa0.05", "polyrad0.05")
      fake <- c(TRUE, FALSE)
      CountsFrom <- c("vcf", "bam")
      SNPCall <- c("gatk", "freebayes")
      
+      df <- data.frame(SNPCall, CountsFrom, Genocall)
+      df <- tidyr::expand(df, SNPCall, CountsFrom, Genocall)
+      df <- as.data.frame(df)
+      df <- df[-which((df[,3] == "default" | df[,3] == "default0.05" | df[,3] == "SNPCaller" ) & df[,2] == "bam"),]
+      RDatas_names <- paste0("map_",df[,1],"_",df[,2], "_", df[,3],".RData")
+      
       all_RDatas <- list()
-      z <- 1
-      names_RDatas <- vector()
-      for(i in 1:length(Genocall)){
-        for(j in 1:length(CountsFrom)){
-          for(w in 1:length(fake)){
-            for(y in 1:length(SNPCall)){
-              if(CountsFrom[j] == "bam" & (Genocall[i] == "default" | Genocall[i] == "SNPCaller" |  Genocall[i] == "default0.05")){
-            } else {
-              map_temp <- load(paste0("map_",SNPCall[y],"_",CountsFrom[j], "_", Genocall[i],".RData"))
-              all_RDatas[[z]] <- get(map_temp)
-              names_RDatas <- c(names_RDatas, paste0("map_",SNPCall[y],"_",CountsFrom[j], "_", Genocall[i]))
-              z <- z+1
-              }
-            }
-          }
-        }
+      for(i in 1:length(RDatas_names)){
+         map_temp <- load(RDatas_names[i])
+         all_RDatas[[i]] <- get(map_temp)
       }
-      save(all_RDatas, file= "all_RDatas.RData")
+
+      gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
+      RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
+      
+      # Converting OneMap sequencig objects to list. LargeList do not accept other class
+      # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
+      
+      for(i in 1:length(RDatas)){
+        class(RDatas[[i]]) <- "list"
+      }
+      
+      saveList(RDatas, file = "onemap_RDatas.llo", append=FALSE, compress=TRUE)
+      
+      new_names <- names(all_RDatas)
+      saveRDS(new_names, file = "names.rds")
+      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
           
      RSCRIPT
   >>>
   runtime{
     docker:"taniguti/onemap"
-    time:"-5:00:00"
+    time:"05:00:00"
     mem:"--nodes=1"
     cpu:1
   }
   
   output{
-    File all_RDatas = "all_RDatas.RData"
+    File onemap_RDatas = "onemap_RDatas.RData"
+    File gusmap_RDatas = "gusmap_RDatas.RData"
     File all_maps = "all_maps.txt"
     File all_filters = "all_filters.txt"
     File all_errors = "all_errors.txt"
