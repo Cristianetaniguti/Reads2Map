@@ -187,8 +187,11 @@ workflow EmpiricalReads {
     Gusmap_maps_report = flatten(GusmapMaps.maps_report),
     Gusmap_times = flatten(GusmapMaps.times)
   }
+  
+  output{
+    File EmpiricalReads_results = JointReports.EmpiricalReads_results
+  }
 }
-
 
 task JointReports{
   input{
@@ -224,18 +227,35 @@ task JointReports{
   
   command <<<
      R --vanilla --no-save <<RSCRIPT
-      system("cat ~{sep= ' ' default_maps_report} ~{sep= ' ' SNPCaller_maps_report} ~{sep= ' ' Updog_maps_report} ~{sep= ' ' Polyrad_maps_report} ~{sep= ' ' Supermassa_maps_report}  ~{sep= ' ' Gusmap_maps_report} > all_maps.txt")
+      # I needed to split in groups because of R character limit size
+      system("cat ~{sep= ' ' default_maps_report} ~{sep= ' ' SNPCaller_maps_report} > temp_map1")
+      system("cat ~{sep= ' ' Updog_maps_report} ~{sep= ' ' Polyrad_maps_report} > temp_map2")
+      system("cat ~{sep= ' ' Supermassa_maps_report}  ~{sep= ' ' Gusmap_maps_report} > temp_map3")
+      system("cat temp_map1 temp_map2  temp_map3 > all_maps.txt")
      
-      system("cat ~{sep= ' ' default_filters_report} ~{sep= ' ' SNPCaller_filters_report} ~{sep= ' ' Updog_filters_report} ~{sep= ' ' Polyrad_filters_report} ~{sep= ' ' Supermassa_filters_report}  > all_filters.txt")
+      system("cat ~{sep= ' ' default_filters_report} ~{sep= ' ' SNPCaller_filters_report} > temp_filters1")
+      system("cat ~{sep= ' ' Updog_filters_report} ~{sep= ' ' Polyrad_filters_report} > temp_filters2")
+      system("cat ~{sep= ' ' Supermassa_filters_report} > temp_filters3")
+      system("cat temp_filters1 temp_filters2 temp_filters3 > all_filters.txt")
      
-      system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} ~{sep= ' ' Supermassa_errors_report} > all_errors.txt")
+      system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} > temp_errors1")
+      system("cat ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} > temp_errors2")
+      system("cat ~{sep= ' ' Supermassa_errors_report} > temp_errors3")
+      system("cat temp_errors1 temp_errors2 temp_errors3 > all_errors.txt")
       
-      system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} ~{sep= ' ' Supermassa_times}  ~{sep= ' ' Gusmap_times} > all_times.txt")
+      system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} > temp_times1")
+      system("cat ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} > temp_times2")
+      system("cat ~{sep= ' ' Supermassa_times}  ~{sep= ' ' Gusmap_times} > temp_times3")
+      system("cat temp_times1 temp_times2 temp_times3 > all_times.txt")
       
-      system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas}  ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
+      # RDatas need to be load
+      system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  .")
+      system("cp ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas} .")
+      system("cp ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
       
      library(tidyr)
      library(largeList)
+     library(data.table)
       
      Genocall <- c("default", "SNPCaller", "updog", "supermassa", "polyrad", "gusmap",
                    "default0.05", "updog0.05", "supermassa0.05", "polyrad0.05")
@@ -254,7 +274,8 @@ task JointReports{
          map_temp <- load(RDatas_names[i])
          all_RDatas[[i]] <- get(map_temp)
       }
-
+      
+      names(all_RDatas) <- RDatas_names
       gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
       RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
       
@@ -265,14 +286,39 @@ task JointReports{
         class(RDatas[[i]]) <- "list"
       }
       
-      saveList(RDatas, file = "onemap_RDatas.llo", append=FALSE, compress=TRUE)
+       saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
+       
+       new_names <- names(all_RDatas)
+       saveRDS(new_names, file = "names.rds")
+       save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+       
+       all_errors <- fread("all_errors.txt")
+       colnames(all_errors) <- c("SNPCall", "CountsFrom", "GenoCall", "mks", "ind", "alt", "ref", 
+                                 "gt.onemap", "gt.vcf", "A", "AB", "BA", "B")
+       saveRDS(all_errors, "data1_depths_geno_prob.rds")
+       
+       all_filters <- fread("all_filters.txt")
+       colnames(all_filters) <- c("CountsFrom", "SNPCall", "GenoCall", 
+                                  "miss", "n_markers", "n_markers_selected_chr", 
+                                  "selected_chr_no_dist", "distorted_markers",
+                                  "redundant_markers", "non-grouped_markers")
+       saveRDS(all_filters, "data3_filters.rds")
+       
+       all_maps <- fread("all_maps.txt")
+       colnames(all_maps) <- c("CountsFrom", "SNPCall", "GenoCall", "mks", "pos", "cm", "mk.type", "phase")
+       saveRDS(all_maps, "data2_maps.rds")
+       
+       all_times <- fread("all_times.txt")
+       colnames(all_times) <- c("SNPCall", "CountsFrom", "GenoCall", "time")
+       saveRDS(all_times, "data4_times.rds")
       
-      new_names <- names(all_RDatas)
-      saveRDS(new_names, file = "names.rds")
-      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
-          
+       system("mkdir EmpiricalReads_results")
+       system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.rds data2_maps.rds data3_filters.rds data4.rds data4_times.rds names.rds EmpiricalReads_results")
+       system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
+ 
      RSCRIPT
   >>>
+  
   runtime{
     docker:"taniguti/onemap"
     time:"05:00:00"
@@ -281,12 +327,7 @@ task JointReports{
   }
   
   output{
-    File onemap_RDatas = "onemap_RDatas.RData"
-    File gusmap_RDatas = "gusmap_RDatas.RData"
-    File all_maps = "all_maps.txt"
-    File all_filters = "all_filters.txt"
-    File all_errors = "all_errors.txt"
-    File all_times = "all_times.txt"
+    File EmpiricalReads_results = "EmpiricalReads_results.tar.gz"
   }
 }
 

@@ -92,7 +92,7 @@ task FiltersReportEmp{
     String SNPCall_program 
     String GenotypeCall_program 
     String CountsFrom 
-    Int chromosome
+    String chromosome
   }
   
   command <<<
@@ -100,11 +100,10 @@ task FiltersReportEmp{
       library(onemap)
       source("/opt/scripts/functions_empirical.R")
       
-      
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report(temp.obj, "~{SNPCall_program}", 
-                                           "~{CountsFrom}", "~{GenotypeCall_program}", ~{chromosome})
+                                           "~{CountsFrom}", "~{GenotypeCall_program}", "~{chromosome}")
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
     RSCRIPT
@@ -372,7 +371,7 @@ task CheckDepths{
       df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
       df <- cbind(SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}", 
                   GenoCall="~{GenotypeCall_program}", df)
-      write.table(df, file="~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.txt")
+      write.table(df, file="~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.txt", row.names=F, quote=F, col.names=F)
       
       #ggsave(filename = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.png"), p)
     
