@@ -357,12 +357,7 @@ adapt2app <- function(data){
   data[[1]]$methGT <- factor(data[[1]]$methGT, labels = c("missing", "homozygous", "heterozygote"), levels = c("missing", "homozygous", "heterozygote"))
   data[[1]]$gabGT <- factor(data[[1]]$gabGT, labels = c("missing", "homozygous", "heterozygote"), levels = c("missing", "homozygous", "heterozygote"))
   
-  temp <- levels(data[[1]]$GenoCall)
-  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
-  data[[1]]$GenoCall <- as.character(data[[1]]$GenoCall)
-  data[[1]]$GenoCall[data[[1]]$GenoCall == "default"] <- "OneMap_version2"
-  data[[1]]$GenoCall[data[[1]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
-  data[[1]]$GenoCall <- factor(data[[1]]$GenoCall, labels = temp, levels = temp)
+  data[[1]] <- fix_genocall_names(data[[1]])
   
   ####
   data[[2]] <- data[[2]][,-3]
@@ -376,21 +371,12 @@ adapt2app <- function(data){
   data[[2]]$real.mks[which(data[[2]]$real.mks == 99 | data[[2]]$real.mks == 1)] <- "true markers"
   data[[2]]$real.mks[which(data[[2]]$real.mks == 0)] <- "false positives"
   
-  temp <- levels(data[[2]]$GenoCall)
-  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
-  data[[2]]$GenoCall <- as.character(data[[2]]$GenoCall)
-  data[[2]]$GenoCall[data[[2]]$GenoCall == "default"] <- "OneMap_version2"
-  data[[2]]$GenoCall[data[[2]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
-  data[[2]]$GenoCall <- factor(data[[2]]$GenoCall, labels = temp, levels = temp)
+  data[[2]] <- fix_genocall_names(data[[2]])
   
   ###
   colnames(data[[3]]) <- c("seed", "depth", "mis_markers", "n_markers", "distorted_markers", "redundant_markers", "SNPCall", "GenoCall", "CountsFrom")
-  temp <- levels(data[[3]]$GenoCall)
-  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
-  data[[3]]$GenoCall <- as.character(data[[3]]$GenoCall)
-  data[[3]]$GenoCall[data[[3]]$GenoCall == "default"] <- "OneMap_version2"
-  data[[3]]$GenoCall[data[[3]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
-  data[[3]]$GenoCall <- factor(data[[3]]$GenoCall, labels = temp, levels = temp)
+  
+  data[[3]] <- fix_genocall_names(data[[3]])
   
   ###
   data[[4]] <- as.data.frame(data[[4]])
@@ -399,17 +385,12 @@ adapt2app <- function(data){
   data[[4]]$fake[which(data[[4]]$fake =="TRUE")] <- "with-false"
   data[[4]]$fake <- as.factor(data[[4]]$fake)
   
-  temp <- levels(data[[4]]$GenoCall)
-  temp[1:2] <- c("OneMap_version2", "SNPCaller0.05")
-  data[[4]]$GenoCall <- as.character(data[[4]]$GenoCall)
-  data[[4]]$GenoCall[data[[4]]$GenoCall == "default"] <- "OneMap_version2"
-  data[[4]]$GenoCall[data[[4]]$GenoCall == "default0.05"] <- "SNPCaller0.05"
-  data[[4]]$GenoCall <- factor(data[[4]]$GenoCall, labels = temp, levels = temp)
+  data[[4]] <- fix_genocall_names(data[[4]])
   
   #####
   data[[5]] <- data[[5]][,-7] ## Ajustar
   names(data[[5]]) <- c("depth", "seed", "SNPCall", "(1)", "(2)", "(3)", "(4)", "(5)") ## Ajustars
-  data[[5]] <- gather(data[[5]], key,value,-SNPCall, -depth)
+  data[[5]] <- gather(data[[5]], key,value,-SNPCall, -depth, -seed)
   
   data[[3]]$GenoCall <- factor(data[[3]]$GenoCall)
   data[[3]] <- gather(data[[3]],key,value, -CountsFrom, -seed, -depth, -SNPCall, -GenoCall)
@@ -441,3 +422,16 @@ adapt2app <- function(data){
   
   return(result_list)
 }
+
+fix_genocall_names <- function(data){
+  data$GenoCall <- as.factor(data$GenoCall)
+  temp <- levels(data$GenoCall)
+  idx <- grep(c("default", "default0.05"), temp)
+  temp[idx] <- c("OneMap_version2", "SNPCaller0.05")
+  data$GenoCall <- as.character(data$GenoCall)
+  data$GenoCall[data$GenoCall == "default"] <- "OneMap_version2"
+  data$GenoCall[data$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data$GenoCall <- factor(data$GenoCall, labels = temp, levels = temp)
+  return(data)
+}
+

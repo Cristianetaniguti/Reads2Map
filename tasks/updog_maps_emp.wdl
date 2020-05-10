@@ -44,7 +44,7 @@ workflow UpdogMaps{
               parent1 = parent1,
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = GenotypeCall_program,
+              GenotypeCall_program = objects.left,
               CountsFrom = CountsFrom
        }
        

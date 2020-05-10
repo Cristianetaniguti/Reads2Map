@@ -238,3 +238,15 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   write_report(map_info, paste0("map_",file.name,".txt"))
   return(map_info)
 }
+
+fix_genocall_names <- function(data){
+  data$GenoCall <- as.factor(data$GenoCall)
+  temp <- levels(data$GenoCall)
+  idx <- grep(c("default", "default0.05"), temp)
+  temp[idx] <- c("OneMap_version2", "SNPCaller0.05")
+  data$GenoCall <- as.character(data$GenoCall)
+  data$GenoCall[data$GenoCall == "default"] <- "OneMap_version2"
+  data$GenoCall[data$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data$GenoCall <- factor(data$GenoCall, labels = temp, levels = temp)
+  return(data)
+}

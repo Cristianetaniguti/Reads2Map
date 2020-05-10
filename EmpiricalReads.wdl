@@ -256,7 +256,8 @@ task JointReports{
      library(tidyr)
      library(largeList)
      library(data.table)
-      
+     source("/opt/scripts/functions_empirical.R")
+        
      Genocall <- c("default", "SNPCaller", "updog", "supermassa", "polyrad", "gusmap",
                    "default0.05", "updog0.05", "supermassa0.05", "polyrad0.05")
      fake <- c(TRUE, FALSE)
@@ -295,6 +296,7 @@ task JointReports{
        all_errors <- fread("all_errors.txt")
        colnames(all_errors) <- c("SNPCall", "CountsFrom", "GenoCall", "mks", "ind", "alt", "ref", 
                                  "gt.onemap", "gt.vcf", "A", "AB", "BA", "B")
+       all_errors <- fix_genocall_names(all_errors)
        saveRDS(all_errors, "data1_depths_geno_prob.rds")
        
        all_filters <- fread("all_filters.txt")
@@ -302,14 +304,17 @@ task JointReports{
                                   "miss", "n_markers", "n_markers_selected_chr", 
                                   "selected_chr_no_dist", "distorted_markers",
                                   "redundant_markers", "non-grouped_markers")
+       all_filters <- fix_genocall_names(all_filters)
        saveRDS(all_filters, "data3_filters.rds")
        
        all_maps <- fread("all_maps.txt")
        colnames(all_maps) <- c("CountsFrom", "SNPCall", "GenoCall", "mks", "pos", "cm", "mk.type", "phase")
+       all_maps <- fix_genocall_names(all_maps)
        saveRDS(all_maps, "data2_maps.rds")
        
        all_times <- fread("all_times.txt")
        colnames(all_times) <- c("SNPCall", "CountsFrom", "GenoCall", "time")
+       all_times <- fix_genocall_names(all_times)
        saveRDS(all_times, "data4_times.rds")
       
        system("mkdir EmpiricalReads_results")

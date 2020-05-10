@@ -41,8 +41,7 @@ workflow SupermassaMaps{
               onemap_obj = objects.right,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = objects.left,
-              CountsFrom = CountsFrom,
-              which_workflow = "simulation"
+              CountsFrom = CountsFrom
         }
             
         call utilsR.MapsReport{

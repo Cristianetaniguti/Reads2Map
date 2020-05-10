@@ -29,8 +29,7 @@ workflow SNPCallerMaps{
       onemap_obj = GQProbs.gq_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = "SNPCaller",
-      CountsFrom = "vcf",
-      which_workflow = "simulation"
+      CountsFrom = "vcf"
   }
             
   call utilsR.MapsReport{
