@@ -1,16 +1,6 @@
 ## Building linkage maps with onemap_ht
 
-OneMap workflow uses [WDL]() language and [cromwell]() from [Broad Institute]() to offer user friendly and optimazed memory, CPU and time workflows to build linkage maps with OneMap. There are two main workflows called SimulatedReads and EmpiricalReads. The first performs population and RADseq fastq files simulations for a chromosome, SNP and genoytpe calling with five different software and genetic map building with OneMap and Gusmap. EmpiricalReads receives fastq files from empirical data and also performs the SNP and genotype calling and map building.
-
-The main workflows are composed by sub-workflows that can also be useful for users, they are located at `tasks` folder. The sub-workflows are composed by tasks that can be find at the end of each `.wdl` file and at `utils.wdl` and `utilsR.wdl`.
-
-[Docker]() images were built to each one of the tasks, then users need only to download the most recent version of cromwell, install its requirements and docker. If running without sudo permission users can use [singularity]() instead of directly docker. See `.configurations` directory and its [instructions]() to use singulatiry.
-
-The WDL and cromwell system is also made to be easily expansible. Users can change arguments or implement other software into the analysis.
-
-The main goals of OneMap workflows are test software capabilities in ideal scenarios (SimulatedReads) and in empirical data (EmpiricalReads). SimulatedReads also gives a safe method to test new functionalities implemented in OneMap and EmpiricalReads gives a fast and automatically method to select the best software to build linkage maps and answer biological questions for any empirical data.
-
-Output datasets from each main workflow can be easily avaliated in a shiny app called [onemap_workflows_app](). You need to submit your output to the app, and the final page gives the possibility to download the onemap or gusmap object containing the combination of software and paramenters you selected. By now, only one chromosome is avaliated in both workflows, but, downloading the onemap or gusmap object you can repead the map building process in R for other chromosomes without spent all the time needed to compare all the methods. We show a example of these usage in `Quickstart` below.
+OneMap workflows offers tools to compare performances of the selected software: GATK, freebayes, updog, polyRAD, supermassa and test their influences in building genetic maps with OneMap and GUSMap. The main workflows are the `SimulatedReads.wdl` and the `EmpiricalReads.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq data and performs the SNP and genotype calling and genetic map building with selected softwares.
 
 ## Quickstart
 
@@ -89,9 +79,9 @@ You can download black cottonwood genome assembly (FASTA) and RADseq reads from 
 ```
 # Download a subset of RADseq data from populus study using the docker image "cristaniguti/sratoolkit" with the SRA toolkit 
 
-for i in SRR6249795 SRR6249808 SRR6249768 SRR6249769 SRR6249770 SRR6249771 SRR6249772 SRR6249773 SRR6249774 SRR6249775 SRR6249776 SRR6249778 SRR6249779 SRR6249780 SRR6249781 SRR6249782 SRR6249783 SRR6249784 SRR6249785 SRR6249786 SRR6249787 SRR6249788; do
+for i in SRR6249785 SRR6249786 SRR6249787 SRR6249788; do
     docker run -v $(pwd):/opt/ cristaniguti/sratoolkit ./fasterq-dump $i -O /opt/
-    head -n 1200000 $i.fastq > $i.sub.fastq # Just a subset of the reads
+    head -n 80000 $i.fastq > $i.sub.fastq # Just a subset of the reads
 done
 
 # Here there are enought data to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 20 progeny individuals. The original study have eight replicates for each parent and 122 progenies.
@@ -105,22 +95,6 @@ done
 samples_info_sub
 
 ```
-data/populus_sub/SRR6249768.sub.fastq   II_3_39 II_3_39.Lib2_B08_TAGGCGC
-data/populus_sub/SRR6249769.sub.fastq   II_3_40 II_3_40.Lib2_B09_GGAACTG
-data/populus_sub/SRR6249770.sub.fastq   II_3_29 II_3_29.Lib1_A01_AACAATG
-data/populus_sub/SRR6249771.sub.fastq   II_3_31 II_3_31.Lib2_B07_ATCTGTT
-data/populus_sub/SRR6249772.sub.fastq   II_3_27 II_3_27.Lib2_B05_GGAGACT
-data/populus_sub/SRR6249773.sub.fastq   II_3_28 II_3_28.Lib2_B06_CCTCTAG
-data/populus_sub/SRR6249774.sub.fastq   II_3_25 II_3_25.Lib2_B03_ACTTCTG
-data/populus_sub/SRR6249775.sub.fastq   II_3_26 II_3_26.Lib2_B04_TTGAGGC
-data/populus_sub/SRR6249776.sub.fastq   II_3_43 II_3_43.Lib2_B11_TTCTGAG
-data/populus_sub/SRR6249778.sub.fastq   I_3_38  I_3_38.Lib1_B10_CCTCAGC
-data/populus_sub/SRR6249779.sub.fastq   I_3_34  I_3_34.Lib1_B08_TAGGCGC
-data/populus_sub/SRR6249780.sub.fastq   I_3_53  I_3_53.Lib1_C07_TTCTAGT
-data/populus_sub/SRR6249781.sub.fastq   I_3_50  I_3_50.Lib1_C06_CCTAGAT
-data/populus_sub/SRR6249782.sub.fastq   I_3_45  I_3_45.Lib1_C03_ATGCCGG
-data/populus_sub/SRR6249783.sub.fastq   I_3_42  I_3_42.Lib1_C02_CCTGACT
-data/populus_sub/SRR6249784.sub.fastq   I_3_59  I_3_59.Lib1_C12_ACGTTGT
 data/populus_sub/SRR6249785.sub.fastq   I_3_58  I_3_58.Lib1_C11_TTCCACG
 data/populus_sub/SRR6249786.sub.fastq   I_3_56  I_3_56.Lib1_C10_CCTGCAC
 data/populus_sub/SRR6249787.sub.fastq   I_3_55  I_3_55.Lib1_C09_AGAAGTC
@@ -129,15 +103,15 @@ data/populus_sub/SRR6249795.sub.fastq   PT_F    PT_F.Lib1_E09_TGAACAT
 data/populus_sub/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG
 ```
 
+**Warning**: This analysis demand more computer capacity to run. Then, we suggest you choose a configuration in [Configurations](documentation/configurations.html) before run, as below.
+
 ```
 # Execute the workflow
-java -jar cromwell.jar run -i empirical.json empirical.wdl
+java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i main.inputs.json main.wdl
 ```
 
 You can also download the full data set running the script "data/populus/download_SRRs.sh" and run the workflow using "data/populus/sample_info" file.
 
-
-**Warning**: See tutorial [Configurations](documentation/configurations.html) to choose the better available option for you or create a personalized one.
 
 ## Documentation
 
