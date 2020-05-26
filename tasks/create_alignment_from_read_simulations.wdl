@@ -556,9 +556,9 @@ task SimulateIlluminaReads {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    maxRetries: 3
+    maxRetries: 5
     mem:"--nodes=1"
-    time:"10:00:00"
+    time:"20:00:00"
     cpu:20
   }
 

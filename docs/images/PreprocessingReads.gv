@@ -1,0 +1,19 @@
+digraph PreprocessingReads {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  CALL_RemoveAdapt -> CALL_TarFiles
+  CALL_ProcessRadTags -> SCATTER_0_VARIABLE_sequence
+  SCATTER_0_VARIABLE_sequence -> CALL_RemoveAdapt
+
+  # Nodes
+  CALL_ProcessRadTags [label="call ProcessRadTags"]
+  CALL_TarFiles [label="call TarFiles"]
+  subgraph cluster_0 {
+    style="filled,solid";
+    fillcolor=white;
+    CALL_RemoveAdapt [label="call RemoveAdapt"]
+    SCATTER_0_VARIABLE_sequence [shape="hexagon" label="scatter over File as sequence"]
+  }
+}

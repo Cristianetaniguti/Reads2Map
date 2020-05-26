@@ -1,0 +1,19 @@
+digraph SimulatedReads {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  CALL_ProduceFamiliesSeeds -> SCATTER_0_VARIABLE_seed
+  SCATTER_0_VARIABLE_seed -> CALL_ReadSimulations
+  CALL_ReadSimulations -> CALL_JointTables
+
+  # Nodes
+  CALL_ProduceFamiliesSeeds [label="call ProduceFamiliesSeeds"]
+  subgraph cluster_0 {
+    style="filled,solid";
+    fillcolor=white;
+    CALL_ReadSimulations [label="call ReadSimulations";shape="oval";peripheries=2]
+    SCATTER_0_VARIABLE_seed [shape="hexagon" label="scatter over Int as seed"]
+  }
+  CALL_JointTables [label="call JointTables"]
+}

@@ -89,7 +89,8 @@ task PolyradProbs{
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
        library(vcfR)
-      
+       library(genotyping4onemap)
+       
        cross <- "~{cross}"
           
        if(cross == "F1"){

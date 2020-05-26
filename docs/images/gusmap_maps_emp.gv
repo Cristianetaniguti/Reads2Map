@@ -1,0 +1,18 @@
+digraph GusmapMaps {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  SCATTER_0_VARIABLE_vcf -> CALL_SelectChrVCF
+  SCATTER_0_VARIABLE_vcf -> CALL_GusmapReport
+  CALL_SelectChrVCF -> CALL_GusmapReport
+
+  # Nodes
+  subgraph cluster_0 {
+    style="filled,solid";
+    fillcolor=white;
+    CALL_SelectChrVCF [label="call SelectChrVCF"]
+    CALL_GusmapReport [label="call GusmapReport"]
+    SCATTER_0_VARIABLE_vcf [shape="hexagon" label="scatter over Pair[String, File] as vcf"]
+  }
+}

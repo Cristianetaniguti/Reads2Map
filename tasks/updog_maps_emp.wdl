@@ -88,6 +88,7 @@ task UpdogProbs{
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
        library(vcfR)
+       library(genotyping4onemap)
        
        vcf <- read.vcfR("~{vcf_file}")
        save(vcf, file="vcfR.RData")

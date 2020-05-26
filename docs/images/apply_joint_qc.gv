@@ -1,0 +1,11 @@
+digraph ApplyJointQC {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  CALL_VcftoolsMerge -> CALL_VcftoolsApplyFilters
+
+  # Nodes
+  CALL_VcftoolsApplyFilters [label="call VcftoolsApplyFilters"]
+  CALL_VcftoolsMerge [label="call VcftoolsMerge"]
+}

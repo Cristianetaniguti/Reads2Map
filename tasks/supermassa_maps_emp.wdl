@@ -88,8 +88,8 @@ task SupermassaProbs{
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
        library(vcfR)
-       library(supermassa4onemap)
- 
+       library(genotyping4onemap)
+       
        cross <- "~{cross}"
           
        if(cross == "F1"){

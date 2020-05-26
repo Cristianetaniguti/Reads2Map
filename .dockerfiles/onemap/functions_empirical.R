@@ -181,11 +181,11 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   write.csv(ped.file, file = "ped.file.csv")
   filelist = list.files(pattern = ".*.ra.tab")
   RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
-                   filter = list(MAF=0.05, MISS=0.25, BIN=0, DEPTH=0, PVALUE=0.01), sampthres = 0)
+                   filter = list(MAF=0.05, MISS=0.25, BIN=0, DEPTH=0, PVALUE=0.05), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.25,
-                                 BIN = 0, DEPTH = 0, PVALUE = 0.01, MAXDEPTH=500))
+                                 BIN = 0, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=500))
     
   pos <- mydata$.__enclos_env__$private$pos
   depth_Ref_m <- mydata$.__enclos_env__$private$ref[[1]]

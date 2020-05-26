@@ -1,0 +1,17 @@
+digraph pirs_profiles {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  CALL_SoapAlign -> CALL_Soap2sam
+  CALL_SoapAlign -> CALL_GCDepth
+  CALL_Soap2sam -> CALL_BaseCalling
+  CALL_Soap2sam -> CALL_Indel
+
+  # Nodes
+  CALL_GCDepth [label="call GCDepth"]
+  CALL_Soap2sam [label="call Soap2sam"]
+  CALL_SoapAlign [label="call SoapAlign"]
+  CALL_BaseCalling [label="call BaseCalling"]
+  CALL_Indel [label="call Indel"]
+}

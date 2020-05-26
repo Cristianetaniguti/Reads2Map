@@ -1,0 +1,22 @@
+digraph DefaultMaps {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  CALL_GlobalError -> SCATTER_0_VARIABLE_objects
+  SCATTER_0_VARIABLE_objects -> CALL_CheckDepths
+  SCATTER_0_VARIABLE_objects -> CALL_MapsReportEmp
+  SCATTER_0_VARIABLE_objects -> CALL_FiltersReportEmp
+  CALL_FiltersReportEmp -> CALL_MapsReportEmp
+
+  # Nodes
+  subgraph cluster_0 {
+    style="filled,solid";
+    fillcolor=white;
+    CALL_MapsReportEmp [label="call MapsReportEmp"]
+    CALL_CheckDepths [label="call CheckDepths"]
+    CALL_FiltersReportEmp [label="call FiltersReportEmp"]
+    SCATTER_0_VARIABLE_objects [shape="hexagon" label="scatter over Pair[String, File] as objects"]
+  }
+  CALL_GlobalError [label="call GlobalError"]
+}

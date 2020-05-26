@@ -1,0 +1,15 @@
+digraph SNPCallerMaps {
+  #rankdir=LR;
+  compound=true;
+
+  # Links
+  CALL_GQProbs -> CALL_FiltersReportEmp
+  CALL_FiltersReportEmp -> CALL_MapsReportEmp
+  CALL_GQProbs -> CALL_CheckDepths
+
+  # Nodes
+  CALL_FiltersReportEmp [label="call FiltersReportEmp"]
+  CALL_MapsReportEmp [label="call MapsReportEmp"]
+  CALL_GQProbs [label="call GQProbs"]
+  CALL_CheckDepths [label="call CheckDepths"]
+}

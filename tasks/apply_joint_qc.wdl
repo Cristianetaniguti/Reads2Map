@@ -21,7 +21,6 @@ workflow ApplyJointQC {
     call utils.VcftoolsApplyFilters {
       input:
         vcf_in=VcftoolsMerge.vcf,
-        tbi_in=VcftoolsMerge.tbi,
         max_missing=0.75,
         min_alleles=2,
         max_alleles=2,
