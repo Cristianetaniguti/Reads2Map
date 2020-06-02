@@ -380,6 +380,9 @@ task CheckDepths{
   
   runtime{
     docker:"taniguti/onemap"
+    time:"15:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
 
   output{
@@ -412,6 +415,9 @@ task MapsReportEmp{
   
   runtime{
     docker:"taniguti/onemap"
+    time:"25:00:00"
+    mem:"--nodes=1"
+    cpu:1
   }
 
   output{

@@ -1,6 +1,8 @@
 version 1.0
 
 import "../structs/reads_simuS.wdl"
+import "../structs/snpcalling_empS.wdl"
+
 import "./create_alignment_from_read_simulations.wdl" as simulation
 import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
@@ -21,6 +23,7 @@ workflow reads_simu {
     ReferenceFasta references
     Family family
     Profiles profiles
+    Optional_filt optional_filt
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -34,7 +37,8 @@ workflow reads_simu {
     input:
       alignments=CreateAlignmentFromSimulation.alignments,
       references=references,
-      program="gatk"
+      program="gatk",
+      optional_filt = optional_filt
   }
 
   call freebayes.FreebayesGenotyping {
@@ -43,7 +47,8 @@ workflow reads_simu {
       bam=CreateAlignmentFromSimulation.bam,
       bai=CreateAlignmentFromSimulation.bai,
       references=references,
-      program="freebayes"
+      program="freebayes",
+      optional_filt = optional_filt
   }
 
   call utils.CalculateVcfMetrics {

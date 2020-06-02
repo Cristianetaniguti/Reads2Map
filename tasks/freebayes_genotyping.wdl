@@ -2,6 +2,7 @@ version 1.0
 
 import "../structs/alignment_struct.wdl"
 import "../structs/reads_simuS.wdl"
+import "../structs/snpcalling_empS.wdl"
 import "./utils.wdl" as utils
 
 
@@ -11,6 +12,7 @@ workflow FreebayesGenotyping {
     Array[File] bam
     Array[File] bai
     ReferenceFasta references
+    Optional_filt optional_filt
     String program
   }
 
@@ -33,8 +35,9 @@ workflow FreebayesGenotyping {
       max_missing=0.75,
       min_alleles=2,
       max_alleles=2,
-      maf=0.05,
-      program=program
+      maf=optional_filt.maf,
+      program=program,
+      min_meanDP = optional_filt.min_meanDP
   }
 
   scatter (alignment in alignments) {

@@ -124,18 +124,13 @@ task VcftoolsApplyFilters {
     Float max_missing
     Int min_alleles
     Int max_alleles
-    Float maf
+    Float? maf
     String program
+    Int? min_meanDP
   }
 
   command <<<
-    vcftools --gzvcf "~{vcf_in}" \
-        --max-missing ~{max_missing} \
-        --min-alleles ~{min_alleles} \
-        --max-alleles ~{max_alleles} \
-        --maf ~{maf} \
-        --recode \
-        --out ~{program}
+    vcftools --gzvcf ~{vcf_in} --max-missing ~{max_missing} --min-alleles ~{min_alleles} --max-alleles ~{max_alleles} ~{"--maf " +  maf} ~{"--min-meanDP " +  min_meanDP} --recode --out ~{program}
 
     bgzip ~{program}.recode.vcf
     tabix -p vcf ~{program}.recode.vcf.gz
