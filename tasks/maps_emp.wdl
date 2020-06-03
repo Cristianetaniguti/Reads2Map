@@ -302,7 +302,7 @@ task JointReports{
   
   runtime{
     docker:"taniguti/onemap"
-    time:"05:00:00"
+    time:"24:00:00"
     mem:"--nodes=1"
     cpu:1
   }

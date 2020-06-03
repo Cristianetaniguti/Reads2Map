@@ -127,7 +127,7 @@ task UpdogProbs{
   
   runtime{
     docker:"taniguti/onemap"
-    time:"24:00:00"
+    time:"72:00:00"
     mem:"--nodes=1"
     cpu:20
   }

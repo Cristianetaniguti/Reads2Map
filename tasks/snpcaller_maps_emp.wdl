@@ -105,7 +105,7 @@ task GQProbs{
   >>>
   runtime{
     docker:"taniguti/onemap"
-    time:"48:00:00"
+    time:"72:00:00"
     mem:"--nodes=1"
     cpu:1
   }
