@@ -1,18 +1,18 @@
 {
-  "Maps.freebayes_vcf": "File",
+  "Maps.freebayes_vcf": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-FreebayesGenotyping/FreebayesGenotyping/c2266a4c-2b34-4d78-b26f-78bc1e3efa91/call-VcftoolsApplyFilters/cacheCopy/execution/freebayes.recode.vcf.gz",
   "Maps.dataset": {
-    "parent2": "String",
-    "name": "String",
-    "parent1": "String",
-    "chromosome": "String",
-    "cross": "String"
+      "name": "populus",
+      "parent1": "PT_F",
+      "parent2": "PT_M",
+      "cross": "F1",
+      "chromosome": "Chr10"
   },
-  "Maps.gatk_alt_bam": "File",
-  "Maps.freebayes_ref_bam": "File",
-  "Maps.freebayes_alt_bam": "File",
-  "Maps.freebayes_example_alleles": "File",
-  "Maps.gatk_vcf": "File",
-  "Maps.gatk_ref_bam": "File",
-  "Maps.gatk_example_alleles": "File"
+  "Maps.gatk_alt_bam": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-BamCounts4Onemap/execution/gatk_alt_depth_bam.txt",
+  "Maps.freebayes_ref_bam": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-BamCounts4Onemap/execution/freebayes_ref_depth_bam.txt",
+  "Maps.freebayes_alt_bam": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-BamCounts4Onemap/execution/freebayes_alt_depth_bam.txt",
+  "Maps.freebayes_example_alleles": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-BamCounts4Onemap/execution/freebayes_example4ref_alt_alleles.txt",
+  "Maps.gatk_vcf": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-GatkGenotyping/GatkGenotyping/fa1e0073-f93c-405f-8372-ffba8accfea4/call-VcftoolsApplyFilters/cacheCopy/execution/gatk.recode.vcf.gz",
+  "Maps.gatk_ref_bam": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-BamCounts4Onemap/execution/gatk_ref_depth_bam.txt",
+  "Maps.gatk_example_alleles": "/home/cristiane/github/errors_workflow/tasks/cromwell-executions/SNPCalling/d97399b9-b5ab-46f3-9bd0-6259a551c5a8/call-BamCounts4Onemap/execution/gatk_example4ref_alt_alleles.txt"
 }
 

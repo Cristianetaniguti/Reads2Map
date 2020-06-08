@@ -75,7 +75,7 @@ task FiltersReport{
   
   runtime{
     docker: "taniguti/onemap"
-    time:"72:00:02"
+    time:"120:00:02"
     mem:"--nodes=1"
     cpu:1
   }
@@ -111,7 +111,7 @@ task FiltersReportEmp{
   
   runtime{
     docker: "taniguti/onemap"
-    time:"72:00:02"
+    time:"120:00:02"
     mem:"--nodes=1"
     cpu:1
   }
@@ -197,7 +197,7 @@ task MapsReport{
   
   runtime{
     docker: "taniguti/onemap"
-    time:"72:00:03"
+    time:"120:00:03"
     mem:"--nodes=1"
     cpu:4
   }
@@ -238,7 +238,7 @@ task ErrorsReport{
   
   runtime{
     docker: "taniguti/onemap"
-    time:"72:00:04"
+    time:"120:00:04"
     mem:"--nodes=1"
     cpu:1
   }
@@ -415,7 +415,7 @@ task MapsReportEmp{
   
   runtime{
     docker:"taniguti/onemap"
-    time:"72:00:04"
+    time:"120:00:04"
     mem:"--nodes=1"
     cpu:1
   }

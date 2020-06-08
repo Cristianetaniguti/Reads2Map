@@ -75,7 +75,7 @@ task GusmapReport{
   
   runtime{
     docker: "taniguti/onemap"
-    time:"72:00:00"
+    time:"96:00:00"
     mem:"--nodes=1"
     cpu:1
   }

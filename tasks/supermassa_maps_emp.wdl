@@ -127,7 +127,7 @@ task SupermassaProbs{
   
   runtime{
     docker:"taniguti/onemap"
-    time:"72:00:00"
+    time:"120:00:08"
     mem:"--nodes=1"
     cpu:20
   }
