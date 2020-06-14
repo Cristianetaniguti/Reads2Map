@@ -29,7 +29,8 @@ workflow GatkGenotyping {
     input:
       path_gatkDatabase = "my_database",
       GVCFs             = HaplotypeCallerERC.GVCF,
-      GVCFs_idx          = HaplotypeCallerERC.GVCF_idx
+      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx,
+      ref               = references.ref_fasta
   }
 
   call GenotypeGVCFs {
@@ -112,12 +113,17 @@ task CreateGatkDatabase {
     String path_gatkDatabase
     Array[File] GVCFs
     Array[File] GVCFs_idx
+    File ref
   }
 
   command <<<
+     
+     grep ">" ~{ref} > interval_list_temp
+     sed 's/^.//' interval_list_temp > interval.list 
+      
      /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
-        -L Chr10 \
+        -L interval.list \
         -V ~{sep=" -V "  GVCFs}
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
