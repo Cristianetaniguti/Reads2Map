@@ -1,4 +1,4 @@
-                                        # Functions
+# Functions
 create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   # Check genome position
   pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
@@ -9,19 +9,21 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   } 
   
   if(length(input.seq$seq.num) > 60){
-    size <- 50
+    size <- round(length(input.seq$seq.num)/4,0)
     overlap <- 20
-    around <- 10
+    around <- 5
     
     batch_size <- pick_batch_sizes(input.seq,
-                                 size = size,
-                                 overlap = overlap,
-                                 around = around)
-  
-    time_par <- system.time(map_out <- map_overlapping_batches(input.seq, 
-                                                             size = batch_size, phase_cores = 4, overlap = overlap))  
+                                   size = size,
+                                   overlap = overlap,
+                                   around = around)
+    
+    time_par <- system.time(map_out <- map_avoid_unlinked(input.seq, 
+                                                          size = batch_size, 
+                                                          phase_cores = 4, 
+                                                          overlap = overlap, tol=10^(-3)))  
   } else {
-      time_par <- system.time(map_out <- map_avoid_unlinked(input.seq))
+    time_par <- system.time(map_out <- map_avoid_unlinked(input.seq))
   }
   
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)

@@ -14,7 +14,7 @@ task TabixVcf {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"05:00:00"
+    time:"24:00:00"
     mem:"--nodes=1"
     cpu:1
   }
@@ -54,9 +54,9 @@ task BamCounts {
 
   runtime{
     docker:"taniguti/gatk-picard"
-    mem:"--nodes=24042"
+    mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"48:00:00"
   }
 
   output{
@@ -83,7 +83,7 @@ task VcftoolsMerge {
     docker: "taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -344,7 +344,7 @@ task BamCounts4Onemap{
     docker:"taniguti/onemap"
     mem:"--mem-per-cpu=24042"
     cpu:1
-    time:"02:00:00"
+    time:"48:00:00"
   }
 
   output{

@@ -6,7 +6,7 @@ import "structs/maps_empS.wdl"
 import "tasks/snpcalling_emp.wdl" as snpcalling
 import "tasks/maps_emp.wdl" as maps
 
-workflow EmpiricalReads_div {
+workflow EmpiricalReads {
 
   input {
     Samples_info samples_info

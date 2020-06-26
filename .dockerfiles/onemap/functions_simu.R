@@ -74,7 +74,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
   }
   
   if(length(seq_true$seq.num) > 60){
-    size <- 50
+    size <- round(length(input.seq$seq.num)/4,0)
     overlap <- 20
     around <- 10
     
@@ -84,7 +84,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
                                    around = around)
     
     map_df <- map_overlapping_batches(seq_true, size = batch_size, 
-                                      phase_cores = 4, overlap = overlap)
+                                      phase_cores = 4, overlap = overlap, tol=10^(-3))
     
   } else {
     map_df <- map_avoid_unlinked(seq_true)

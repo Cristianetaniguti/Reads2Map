@@ -23,7 +23,7 @@ RUN R -e "install.packages('updog', repos='http://brieger.esalq.usp.br/CRAN/');\
           devtools::install_github('tpbilton/GUSbase');\
           devtools::install_github('tpbilton/GUSMap')"
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap_ht', auth_token ='1bcc1d0962f96c9b4d9afc936b807ab2d0804d01')"
+RUN R -e "devtools::install_github('Cristianetaniguti/onemap', ref='solving_confli') "
 
 RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap', auth_token ='1bcc1d0962f96c9b4d9afc936b807ab2d0804d01' )"
 
