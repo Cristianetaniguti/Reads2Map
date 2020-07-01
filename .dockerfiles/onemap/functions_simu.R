@@ -74,7 +74,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
   }
   
   if(length(seq_true$seq.num) > 60){
-    size <- round(length(input.seq$seq.num)/4,0)
+    size <- 80
     overlap <- 20
     around <- 10
     

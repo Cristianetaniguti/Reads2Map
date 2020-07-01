@@ -108,7 +108,7 @@ task BcftoolsMerge {
     docker: "biocontainers/bcftools:1.3.1"
     mem:"--mem-per-cpu=24042"
     cpu:1
-    time:"01:00:00"
+    time:"48:00:00"
   }
 
   output {
@@ -140,7 +140,7 @@ task VcftoolsApplyFilters {
     docker: "taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -259,7 +259,7 @@ task CalculateVcfMetrics {
     docker: "taniguti/onemap"
     mem:"--mem-per-cpu=24042"
     cpu:1
-    time:"02:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -372,7 +372,7 @@ task SelectChrVCF{
     docker:"taniguti/vcftools"
     mem:"--mem-per-cpu=24042"
     cpu:1
-    time:"02:00:00"
+    time:"24:00:00"
   }
   
   output{

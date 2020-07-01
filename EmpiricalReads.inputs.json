@@ -1,8 +1,8 @@
 {
-  "EmpiricalReads_div.samples_info": {
+  "EmpiricalReads.samples_info": {
     "samples_info": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/sample_info_subsub"
   },
-  "EmpiricalReads_div.references": {
+  "EmpiricalReads.references": {
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.fa",
     "ref_dict": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.dict",
     "ref_ann": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.fa.ann",
@@ -12,11 +12,11 @@
     "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.fa.fai",
     "ref_pac": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.fa.pac"
   },
-  "EmpiricalReads_div.SNPCalling.optional_filt": {
+  "EmpiricalReads.SNPCalling.optional_filt": {
     "min_meanDP": "2",
     "maf": "0.05"
   },
-  "EmpiricalReads_div.dataset": {
+  "EmpiricalReads.dataset": {
       "name": "populus",
       "parent1": "PT_F",
       "parent2": "PT_M",
