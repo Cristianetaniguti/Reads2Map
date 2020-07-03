@@ -1,7 +1,7 @@
 FROM rocker/rstudio:3.6.2
 
 RUN apt update \
-   && apt-get install -y libcurl4-gnutls-dev libssl-dev libftgl2 libglu1-mesa-dev libftgl2 libfreetype6-dev  libgfortran5 python-pip python-tk libxml2-dev libjpeg-dev libbz2-dev liblzma-dev \
+   && apt-get install -y libcurl4-gnutls-dev libssl-dev libftgl2 libglu1-mesa-dev libftgl2 libfreetype6-dev  libgfortran5 python-pip python-tk libxml2-dev libjpeg-dev libbz2-dev liblzma-dev qpdf \
    && pip install matplotlib==2.0.2 numpy 
 
 RUN R -e "install.packages('updog', repos='http://brieger.esalq.usp.br/CRAN/');\
