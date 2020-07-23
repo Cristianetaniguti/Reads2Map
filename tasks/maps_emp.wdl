@@ -77,8 +77,14 @@ workflow Maps{
         freebayes_example_alleles = freebayes_example_alleles
     }
     
+    call utils.SelectChrVCF{
+      input:
+        vcf_file = BamDepths2Vcf.bam_vcf,
+        chromosome = dataset.chromosome
+    }
+    
     Array[String] counts     = ["vcf", "bam"]
-    Array[File] vcfs_counts  = [vcf.right, BamDepths2Vcf.bam_vcf]
+    Array[File] vcfs_counts  = [vcf.right, SelectChrVCF.chr_filt]
     Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
     
     scatter(vcf_counts in counts_and_vcf){
@@ -124,7 +130,7 @@ workflow Maps{
       call gusmap.GusmapMaps{
         input:
           vcf_file = vcf.right,
-          new_vcf_file = BamDepths2Vcf.bam_vcf,
+          new_vcf_file = SelectChrVCF.chr_filt,
           SNPCall_program = vcf.left,
           GenotypeCall_program = "gusmap",
           parent1 = dataset.parent1,

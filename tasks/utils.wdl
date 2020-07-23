@@ -371,18 +371,18 @@ task SelectChrVCF{
   }
   
   command <<<
-    vcftools --gzvcf ~{vcf_file} --chr ~{chromosome}  --recode --stdout | gzip -c > chr_filt.vcf.gz
+    vcftools --gzvcf ~{vcf_file} --chr ~{chromosome}  --recode --stdout > chr_filt.vcf
     
   >>>
   
   runtime{
     docker:"taniguti/vcftools"
-    mem:"--mem-per-cpu=24042"
+    mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
   
   output{
-    File chr_filt = "chr_filt.vcf.gz"
+    File chr_filt = "chr_filt.vcf"
   }
 }
