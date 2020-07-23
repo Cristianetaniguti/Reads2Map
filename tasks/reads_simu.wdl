@@ -238,6 +238,7 @@ workflow reads_simu {
     File data6_RDatas             = JointReports.data6_RDatas
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
+    File simu_vcf                 = CreateAlignmentFromSimulation.true_vcf
   }
 }
 
@@ -435,11 +436,12 @@ task JointReports{
       save(gusmap_RDatas, file = "gusmap_RDatas.RData")
       
      RSCRIPT
+     
   >>>
   
   runtime{
     docker:"taniguti/onemap"
-    time:"10:00:00"
+    time:"48:00:00"
     mem:"--nodes=1"
     cpu:1
   }

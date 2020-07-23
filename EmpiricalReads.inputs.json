@@ -14,7 +14,8 @@
   },
   "EmpiricalReads.SNPCalling.optional_filt": {
     "min_meanDP": "2",
-    "maf": "0.05"
+    "maf": "0.05",
+    "chromosome": "Chr10"
   },
   "EmpiricalReads.dataset": {
       "name": "populus",

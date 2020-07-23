@@ -104,6 +104,7 @@ task GusmapReport{
       write.table(times, "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
   
     RSCRIPT
+    
   >>>
   
   runtime{

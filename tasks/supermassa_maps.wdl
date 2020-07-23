@@ -120,11 +120,12 @@ task SupermassaProbs{
        save(supermassa_onemap_obj, file="supermassa_onemap_obj.RData")
   
      RSCRIPT
+     
   >>>
   
   runtime{
     docker:"taniguti/onemap"
-    time:"24:00:00"
+    time:"72:00:00"
     mem:"--nodes=1"
     cpu:20
   }

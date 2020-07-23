@@ -102,6 +102,7 @@ task GQProbs{
       save(gq_onemap_obj, file="gq_onemap_obj.RData")
       
     RSCRIPT
+    
   >>>
   runtime{
     docker:"taniguti/onemap"

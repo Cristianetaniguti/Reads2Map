@@ -298,11 +298,12 @@ task JointReports{
        system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
  
      RSCRIPT
+     
   >>>
   
   runtime{
     docker:"taniguti/onemap"
-    time:"24:00:00"
+    time:"48:00:00"
     mem:"--nodes=1"
     cpu:1
   }

@@ -75,13 +75,14 @@ task SepareIndividuals {
         experiment_name = "Teste"
         print(json.dumps({"experiment_name": experiment_name, "samples":samples, "names": names}))
         CODE
+        
     >>>
 
     runtime {
         docker: "python:3.7"
-	mem:"--mem-per-cpu=24042"
+	mem:"--nodes=1"
 	cpu:1
-	time:"00:30:00"
+	time:"24:00:00"
     }
 
     output {

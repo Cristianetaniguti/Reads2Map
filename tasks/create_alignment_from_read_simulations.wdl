@@ -42,6 +42,8 @@ workflow CreateAlignmentFromSimulation {
 
   call ConvertPedigreeSimulationToVcf {
     input:
+      seed       = family.seed,
+      depth      = family.depth,
       genotypes_dat = RunPedigreeSimulator.genotypes_dat,
       map_file      = CreatePedigreeSimulatorInputs.mapfile,
       chrom_file    = CreatePedigreeSimulatorInputs.chromfile,
@@ -119,13 +121,14 @@ task GenerateAlternativeGenome {
 
   command <<<
     /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
+    
   >>>
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"48:00:00"
   }
 
   output {
@@ -307,15 +310,15 @@ task CreatePedigreeSimulatorInputs {
       write.table(parameter, file = paste0("parameters.txt"), quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
       chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
       write.table(chrom, file= "chromosome.txt", quote = F, col.names = T, row.names = F, sep= "\t")
-
      RSCRIPT
+     
   >>>
 
   runtime {
     docker: "cristaniguti/r-samtools"
-    mem:"--mem-per-cpu=24042"
+    mem:"--nodes=1"
     cpu:1
-    time:"00:30:00"
+    time:"24:00:00"
   }
 
   output {
@@ -343,13 +346,14 @@ task RunPedigreeSimulator {
     sed -i 's+mapfile.txt+~{mapfile}+g' ~{parfile}
     sed -i 's+founderfile.txt+~{founderfile}+g' ~{parfile}
     java -jar /usr/jars/PedigreeSim.jar ~{parfile}
+    
   >>>
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
     mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -362,6 +366,8 @@ task RunPedigreeSimulator {
 task ConvertPedigreeSimulationToVcf {
 
   input {
+    Int seed
+    Int depth
     File genotypes_dat
     File map_file
     File chrom_file
@@ -379,22 +385,23 @@ task ConvertPedigreeSimulationToVcf {
     pedsim2vcf(inputfile = "~{genotypes_dat}",
       map.file = "~{map_file}",
       chrom.file = "~{chrom_file}",
-      out.file = "simu.vcf",
+      out.file = paste0("~{seed}","_", "~{depth}", "_simu.vcf"),
       miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1",
       chr = chr, phase = TRUE)
-
+    
     RSCRIPT
+    
   >>>
 
   runtime {
     docker: "taniguti/onemap"
     mem:"--nodes=1"
     cpu:1
-    time:"24:00:00"
+    time:"48:00:00"
   }
 
   output {
-    File simu_vcf = "simu.vcf"
+    File simu_vcf = "~{seed}_~{depth}_simu.vcf"
   }
 }
 
@@ -408,13 +415,14 @@ task RunVcf2diploid {
 
   command <<<
     java -jar /usr/jars/vcf2diploid.jar -id ~{sampleName} -chr ~{ref_genome} -vcf ~{simu_vcf}
+    
   >>>
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
     mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -443,13 +451,14 @@ task GenerateSampleNames {
     for i in bcf_in.header.samples:
         print(i)
     CODE
+    
   >>>
 
   runtime {
     docker: "taniguti/miniconda-alpine"
     mem:"--mem-per-cpu=24042"
     cpu:1
-    time:"00:30:00"
+    time:"24:00:00"
   }
 
   output {
@@ -506,14 +515,14 @@ task SimulateRADseq {
     cutadapt -l 202 \
       -o ~{sampleName}_paternal_trim.fa \
       ~{sampleName}_paternal_fragments.fasta
-
+      
   >>>
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     mem:"--nodes=1"
     cpu:1
-    time:"05:00:00"
+    time:"48:00:00"
   }
 
   output {
@@ -551,14 +560,14 @@ task SimulateIlluminaReads {
       --base-calling-profile=~{base_calling} \
       --indel-error-profile=~{indel_error} \
       --gc-bias-profile=~{gc_bias}
-
+      
   >>>
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     maxRetries: 5
     mem:"--nodes=1"
-    time:"20:00:00"
+    time:"48:00:00"
     cpu:20
   }
 

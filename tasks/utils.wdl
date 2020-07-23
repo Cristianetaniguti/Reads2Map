@@ -10,6 +10,7 @@ task TabixVcf {
   command <<<
     bgzip -c ~{variants} > freebayes.vcf.gz
     tabix -p vcf freebayes.vcf.gz
+    
   >>>
 
   runtime {
@@ -50,6 +51,7 @@ task BamCounts {
       --reference ~{ref} \
       --intervals interval.list \
       --output "~{sample}_~{program}_counts.tsv"
+      
   >>>
 
   runtime{
@@ -78,6 +80,7 @@ task VcftoolsMerge {
     vcf-merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
     bgzip ~{prefix}.variants.vcf
     tabix -p vcf ~{prefix}.variants.vcf.gz
+    
   >>>
   runtime {
     docker: "taniguti/vcftools"
@@ -103,6 +106,7 @@ task BcftoolsMerge {
   command <<<
     echo "~{sep=' ' tbis}"
     bcftools merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
+    
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
@@ -127,14 +131,15 @@ task VcftoolsApplyFilters {
     Float? maf
     String program
     Int? min_meanDP
+    String? chromosome
   }
 
   command <<<
-    vcftools --gzvcf ~{vcf_in} --max-missing ~{max_missing} --min-alleles ~{min_alleles} --max-alleles ~{max_alleles} ~{"--maf " +  maf} ~{"--min-meanDP " +  min_meanDP} --recode --out ~{program}
+    vcftools --gzvcf ~{vcf_in} --max-missing ~{max_missing} --min-alleles ~{min_alleles} --max-alleles ~{max_alleles} ~{"--maf " +  maf} ~{"--min-meanDP " +  min_meanDP} ~{"--chr " +  chromosome} --recode --out ~{program}
 
     bgzip ~{program}.recode.vcf
     tabix -p vcf ~{program}.recode.vcf.gz
-
+    
   >>>
   runtime {
     docker: "taniguti/vcftools"
@@ -252,12 +257,12 @@ task CalculateVcfMetrics {
 
         saveRDS(results_tot, file= "data5_SNPcall_efficiency.rds")
         RSCRIPT
-
+        
   >>>
 
   runtime {
     docker: "taniguti/onemap"
-    mem:"--mem-per-cpu=24042"
+    mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -338,11 +343,12 @@ task BamCounts4Onemap{
         }
 
     RSCRIPT
+    
   >>>
 
   runtime{
     docker:"taniguti/onemap"
-    mem:"--mem-per-cpu=24042"
+    mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -366,6 +372,7 @@ task SelectChrVCF{
   
   command <<<
     vcftools --gzvcf ~{vcf_file} --chr ~{chromosome}  --recode --stdout | gzip -c > chr_filt.vcf.gz
+    
   >>>
   
   runtime{

@@ -48,7 +48,7 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
   segr <- onemap::test_segregation(onemap_mis)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
-  twopts <- rf_2pts(onemap_mis) # redundant markers are not removed
+  twopts <- rf_2pts(onemap_bins) # redundant markers are removed
   seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
   filters_tab <- data.frame("higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
@@ -74,7 +74,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
   }
   
   if(length(seq_true$seq.num) > 60){
-    size <- 80
+    size <- round(length(input.seq$seq.num)/4,0)
     overlap <- 20
     around <- 10
     

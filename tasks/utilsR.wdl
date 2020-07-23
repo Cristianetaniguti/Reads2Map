@@ -37,6 +37,7 @@ task vcf2onemap{
           save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf", "_onemap.obj.RData"))
                 
         RSCRIPT
+        
     >>>
     runtime{
       docker:"taniguti/onemap"
@@ -71,6 +72,7 @@ task FiltersReport{
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
     RSCRIPT
+    
   >>>
   
   runtime{
@@ -107,6 +109,7 @@ task FiltersReportEmp{
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
     RSCRIPT
+    
   >>>
   
   runtime{
@@ -193,6 +196,7 @@ task MapsReport{
       write.table(times, "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
       
       RSCRIPT
+      
   >>>
   
   runtime{
@@ -234,6 +238,7 @@ task ErrorsReport{
                              "~{CountsFrom}")
   
       RSCRIPT
+      
   >>>
   
   runtime{
@@ -267,6 +272,7 @@ task GlobalError{
     save(onemap_obj_globalError, file = "onemap_obj_globalError.RData")
     
     RSCRIPT
+    
   >>>
   runtime{
     docker: "taniguti/onemap"
@@ -327,6 +333,7 @@ task BamDepths2Vcf{
        
 
     RSCRIPT
+    
   >>>
   
   runtime{
@@ -376,6 +383,7 @@ task CheckDepths{
       #ggsave(filename = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.png"), p)
     
     RSCRIPT
+    
   >>>
   
   runtime{
@@ -411,13 +419,14 @@ task MapsReportEmp{
                         SNPCall = "~{SNPCall_program}", GenoCall="~{GenotypeCall_program}")
     
     RSCRIPT
+    
   >>>
   
   runtime{
     docker:"taniguti/onemap"
     time:"120:00:04"
     mem:"--nodes=1"
-    cpu:1
+    cpu:4
   }
 
   output{

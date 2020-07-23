@@ -9,7 +9,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   } 
   
   if(length(input.seq$seq.num) > 60){
-    size <- 80
+    size <- round(length(input.seq$seq.num)/4,0)
     overlap <- 20
     around <- 5
     
@@ -88,7 +88,7 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
   segr <- onemap::test_segregation(onemap_mis)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
-  twopts <- rf_2pts(onemap_mis) # keep redundant markers
+  twopts <- rf_2pts(onemap_bins) # Do not keep redundant markers
   chr <- which(onemap_mis$CHROM %in% chromosome)
   chr_no_dist <- chr[which(chr%in%no_distorted)]
   seq1 <- make_seq(twopts, chr_no_dist)
@@ -197,6 +197,12 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   depth_Alt <- list(depth_Alt_m)
   config <- mydata$.__enclos_env__$private$config[[1]]
   
+  # Up to version 2.0.0 the NA were removed automatically
+  # rm_na <- which(is.na(config))
+  # config <- config[-rm_na]
+  # depth_Ref_m <- depth_Ref_m[,-rm_na]
+  # depth_Alt_m <- depth_Alt_m[,-rm_na]
+  
   time_par1 <- system.time(phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
                                        config, epsilon=0.001, reltol=1e-3))
   
@@ -204,7 +210,7 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
                                ref = depth_Ref, 
                                alt = depth_Alt, 
                                OPGP=list(as.integer(phases.gus)),
-                               nThreads = 1))
+                               nThreads = 4))
 
   time_par <- time_par1 + time_par2
   times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])

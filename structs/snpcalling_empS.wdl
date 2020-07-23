@@ -7,6 +7,7 @@ struct Samples_info {
 struct Optional_filt {
   Int? min_meanDP
   Float? maf
+  String? chromosome
 }
 
 struct References{

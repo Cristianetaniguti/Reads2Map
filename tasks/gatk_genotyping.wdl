@@ -49,7 +49,8 @@ workflow GatkGenotyping {
       max_alleles=2,
       maf=optional_filt.maf,
       program=program,
-      min_meanDP = optional_filt.min_meanDP
+      min_meanDP = optional_filt.min_meanDP,
+      chromosome = optional_filt.chromosome
   }
 
 
@@ -72,6 +73,7 @@ workflow GatkGenotyping {
     File vcf = VcftoolsApplyFilters.vcf
     File tbi = VcftoolsApplyFilters.tbi
     Array[File] counts = BamCounts.counts
+    File vcf_tot = GenotypeGVCFs.vcf
   }
 }
 
@@ -93,13 +95,14 @@ task HaplotypeCallerERC {
       -I ~{bam_rg} \
       -O ~{sampleName}_rawLikelihoods.g.vcf \
       --max-reads-per-alignment-start 0
+      
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
     mem:"--nodes=1"
     cpu:1
-    time:"72:00:00"
+    time:"120:00:00"
   }
 
   output {
@@ -127,13 +130,14 @@ task CreateGatkDatabase {
         -V ~{sep=" -V "  GVCFs}
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
+     
   >>>
 
   runtime {
       docker: "taniguti/gatk-picard"
       mem:"--nodes=1"
       cpu:1
-      time:"72:00:00"
+      time:"120:00:00"
   }
 
   output {
@@ -160,14 +164,14 @@ task GenotypeGVCFs {
         -O gatk.vcf.gz \
         -G StandardAnnotation \
         -V gendb://$WORKSPACE
-        
+    
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
     mem:"--nodes=1"
     cpu:1
-    time:"72:00:00"
+    time:"120:00:00"
   }
 
   output {

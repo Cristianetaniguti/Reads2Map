@@ -37,7 +37,8 @@ workflow FreebayesGenotyping {
       max_alleles=2,
       maf=optional_filt.maf,
       program=program,
-      min_meanDP = optional_filt.min_meanDP
+      min_meanDP = optional_filt.min_meanDP,
+      chromosome = optional_filt.chromosome
   }
 
   scatter (alignment in alignments) {
@@ -59,6 +60,7 @@ workflow FreebayesGenotyping {
     File vcf = VcftoolsApplyFilters.vcf
     File tbi = VcftoolsApplyFilters.tbi
     Array[File] counts = BamCounts.counts
+    File vcf_tot = RunFreebayes.vcf
   }
 }
 
@@ -74,12 +76,13 @@ task RunFreebayes {
   command <<<
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 20 \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
+   
   >>>
 
   runtime {
     docker: "taniguti/freebayes"
     mem:"--nodes=1"
-    time:"24:00:00"
+    time:"72:00:00"
     cpu:20
   }
 

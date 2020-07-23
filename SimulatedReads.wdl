@@ -61,6 +61,7 @@ workflow SimulatedReads {
   # it will be an array of the same type of the original.
   output {
     File results = JointTables.results
+    Array[File] simu_vcf =  ReadSimulations.simu_vcf
   }
 }
 

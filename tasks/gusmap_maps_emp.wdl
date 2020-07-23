@@ -71,6 +71,7 @@ task GusmapReport{
                            "~{GenotypeCall_program}", "~{parent1}", "~{parent2}")
 
     RSCRIPT
+    
   >>>
   
   runtime{

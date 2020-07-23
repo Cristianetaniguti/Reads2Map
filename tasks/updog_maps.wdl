@@ -120,11 +120,12 @@ task UpdogProbs{
        save(updog_onemap_obj, file="updog_onemap_obj.RData")
   
      RSCRIPT
+
   >>>
   
   runtime{
     docker:"taniguti/onemap"
-    time:"24:00:00"
+    time:"96:00:00"
     mem:"--nodes=1"
     cpu:20
   }
