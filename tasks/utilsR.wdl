@@ -323,6 +323,8 @@ task BamDepths2Vcf{
           vcf.temp <- paste0("~{SNPCall_program}",".", sample(1000,1), ".vcf")
           system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
           vcf_file <- vcf.temp
+       } else {
+          vcf_file <- "~{vcf_file}"
        }
       
        allele_file <- paste0("~{SNPCall_program}","_example4ref_alt_alleles.txt")
