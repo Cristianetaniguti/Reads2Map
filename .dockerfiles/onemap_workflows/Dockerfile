@@ -31,7 +31,7 @@ RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/')
           devtools::install_github('tpbilton/GUSbase');\
           devtools::install_github('tpbilton/GUSMap@v2.0.0')"
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap'  )"
+RUN R -e "devtools::install_github('Cristianetaniguti/onemap')"
 
 RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/XML/XML_3.99-0.3.tar.gz';\
           install.packages(packageurl, repos=NULL, type='source');\
@@ -46,7 +46,7 @@ COPY ./functions_empirical.R /opt/scripts
 RUN apt update \
     && pip install matplotlib==2.0.2 numpy
 
-RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap', auth_token ='1bcc1d0962f96c9b4d9afc936b807ab2d0804d01'   )"
+RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap')"
 
 RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/updog/updog_1.2.0.tar.gz';\
           install.packages(packageurl, repos=NULL, type='source')"

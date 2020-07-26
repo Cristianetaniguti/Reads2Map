@@ -80,7 +80,7 @@ task RunFreebayes {
   >>>
 
   runtime {
-    docker: "taniguti/freebayes"
+    docker: "cristaniguti/onemap_workflows"
     mem:"--nodes=1"
     time:"72:00:00"
     cpu:20

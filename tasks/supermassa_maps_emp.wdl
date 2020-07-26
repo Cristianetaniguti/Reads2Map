@@ -127,7 +127,7 @@ task SupermassaProbs{
   >>>
   
   runtime{
-    docker:"taniguti/onemap"
+    docker:"cristaniguti/onemap_workflows"
     time:"120:00:08"
     mem:"--nodes=1"
     cpu:20

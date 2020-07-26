@@ -40,7 +40,7 @@ task vcf2onemap{
         
     >>>
     runtime{
-      docker:"taniguti/onemap"
+      docker:"cristaniguti/onemap_workflows"
       time:"72:00:01"
       mem:"--nodes=1"
       cpu:1
@@ -76,7 +76,7 @@ task FiltersReport{
   >>>
   
   runtime{
-    docker: "taniguti/onemap"
+    docker: "cristaniguti/onemap_workflows"
     time:"120:00:02"
     mem:"--nodes=1"
     cpu:1
@@ -113,7 +113,7 @@ task FiltersReportEmp{
   >>>
   
   runtime{
-    docker: "taniguti/onemap"
+    docker: "cristaniguti/onemap_workflows"
     time:"120:00:02"
     mem:"--nodes=1"
     cpu:1
@@ -200,7 +200,7 @@ task MapsReport{
   >>>
   
   runtime{
-    docker: "taniguti/onemap"
+    docker: "cristaniguti/onemap_workflows"
     time:"120:00:03"
     mem:"--nodes=1"
     cpu:4
@@ -242,7 +242,7 @@ task ErrorsReport{
   >>>
   
   runtime{
-    docker: "taniguti/onemap"
+    docker: "cristaniguti/onemap_workflows"
     time:"120:00:04"
     mem:"--nodes=1"
     cpu:1
@@ -275,7 +275,7 @@ task GlobalError{
     
   >>>
   runtime{
-    docker: "taniguti/onemap"
+    docker: "cristaniguti/onemap_workflows"
     time:"72:00:05"
     mem:"--nodes=1"
     cpu:1
@@ -339,7 +339,7 @@ task BamDepths2Vcf{
   >>>
   
   runtime{
-    docker:"taniguti/onemap"
+    docker:"cristaniguti/onemap_workflows"
     time:"72:00:06"
     mem:"--nodes=1"
     cpu:1
@@ -389,7 +389,7 @@ task CheckDepths{
   >>>
   
   runtime{
-    docker:"taniguti/onemap"
+    docker:"cristaniguti/onemap_workflows"
     time:"72:00:07"
     mem:"--nodes=1"
     cpu:1
@@ -425,7 +425,7 @@ task MapsReportEmp{
   >>>
   
   runtime{
-    docker:"taniguti/onemap"
+    docker:"cristaniguti/onemap_workflows"
     time:"120:00:04"
     mem:"--nodes=1"
     cpu:4

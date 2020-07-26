@@ -124,7 +124,7 @@ task UpdogProbs{
   >>>
   
   runtime{
-    docker:"taniguti/onemap"
+    docker:"cristaniguti/onemap_workflows"
     time:"96:00:00"
     mem:"--nodes=1"
     cpu:20

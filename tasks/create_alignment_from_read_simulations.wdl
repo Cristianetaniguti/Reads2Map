@@ -394,7 +394,7 @@ task ConvertPedigreeSimulationToVcf {
   >>>
 
   runtime {
-    docker: "taniguti/onemap"
+    docker: "cristaniguti/onemap_workflows"
     mem:"--nodes=1"
     cpu:1
     time:"48:00:00"

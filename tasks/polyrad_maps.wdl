@@ -118,7 +118,7 @@ task PolyradProbs{
   >>>
   
   runtime{
-    docker:"taniguti/onemap"
+    docker:"cristaniguti/onemap_workflows"
     time:"72:00:00"
     mem:"--nodes=1"
     cpu:1

@@ -99,7 +99,7 @@ task HaplotypeCallerERC {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "cristaniguti/onemap_workflows"
     mem:"--nodes=1"
     cpu:1
     time:"120:00:00"
@@ -134,7 +134,7 @@ task CreateGatkDatabase {
   >>>
 
   runtime {
-      docker: "taniguti/gatk-picard"
+      docker: "cristaniguti/onemap_workflows"
       mem:"--nodes=1"
       cpu:1
       time:"120:00:00"
@@ -168,7 +168,7 @@ task GenotypeGVCFs {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "cristaniguti/onemap_workflows"
     mem:"--nodes=1"
     cpu:1
     time:"120:00:00"
