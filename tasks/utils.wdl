@@ -189,7 +189,7 @@ task CalculateVcfMetrics {
         filt.idx <- c(filt.idx,which(real.pos >= start[i] & real.pos <= end[i]))
 
         snps.filt <- snps[filt.idx,]
-        filt.pos <- snps.filt[,2]
+        filt.pos <- as.numeric(as.character(snps.filt[,2]))
         ref.filt <- snps.filt[,3]
         alt.filt <- snps.filt[,4]
 
@@ -198,7 +198,7 @@ task CalculateVcfMetrics {
         for(i in methods){
 
           # counting corrected identified markers
-          pos <- get(i)@fix[,2]
+          pos <- as.numeric(as.character(get(i)@fix[,2]))
           chr <- get(i)@fix[,1]
           site_list <- data.frame(chr, pos, pos)
           # Export for next step

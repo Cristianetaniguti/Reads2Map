@@ -100,11 +100,11 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
                             GenoCall,
                             "higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
                             "n_markers"= total_variants,
-                            "n_markers_selected_chr" = length(chr),
+                            "n_markers_selected_chr" = length(chr), # remove
                             "selected_chr_no_dist" = length(chr_no_dist),
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
-                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
+                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num)) #remove
   write_report(filters_tab, paste0("filters_", SNPCall, "_", CountsFrom, "_",GenoCall, ".txt"))
   return(lg1)
 }

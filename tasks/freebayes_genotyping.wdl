@@ -4,6 +4,7 @@ import "../structs/alignment_struct.wdl"
 import "../structs/reads_simuS.wdl"
 import "../structs/snpcalling_empS.wdl"
 import "./utils.wdl" as utils
+import "split_filt_vcf.wdl" as norm_filt
 
 
 workflow FreebayesGenotyping {
@@ -24,21 +25,18 @@ workflow FreebayesGenotyping {
       bai=bai
   }
 
-  call utils.TabixVcf {
+  call norm_filt.SplitFiltVCF{
     input:
-      variants=RunFreebayes.vcf
-  }
-
-  call utils.VcftoolsApplyFilters {
-    input:
-      vcf_in=TabixVcf.vcf,
+      vcf_in=RunFreebayes.vcf,
       max_missing=0.75,
-      min_alleles=2,
-      max_alleles=2,
       maf=optional_filt.maf,
       program=program,
       min_meanDP = optional_filt.min_meanDP,
-      chromosome = optional_filt.chromosome
+      chromosome = optional_filt.chromosome,
+      reference = references.ref_fasta,
+      reference_idx = references.ref_fasta_index,
+      parent1 = optional_filt.parent1,
+      parent2 = optional_filt.parent2
   }
 
   scatter (alignment in alignments) {
@@ -51,14 +49,15 @@ workflow FreebayesGenotyping {
         ref=references.ref_fasta,
         ref_fai=references.ref_fasta_index,
         ref_dict=references.ref_dict,
-        vcf=VcftoolsApplyFilters.vcf,
-        tbi=VcftoolsApplyFilters.tbi
+        vcf=SplitFiltVCF.vcf_bi_chr_norm,
+        tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
+
     }
   }
 
   output {
-    File vcf = VcftoolsApplyFilters.vcf
-    File tbi = VcftoolsApplyFilters.tbi
+    File vcf = SplitFiltVCF.vcf_bi_chr_norm
+    File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
     Array[File] counts = BamCounts.counts
     File vcf_tot = RunFreebayes.vcf
   }
@@ -80,7 +79,7 @@ task RunFreebayes {
   >>>
 
   runtime {
-    docker: "cristaniguti/onemap_workflows"
+    docker: "taniguti/freebayes"
     mem:"--nodes=1"
     time:"72:00:00"
     cpu:20

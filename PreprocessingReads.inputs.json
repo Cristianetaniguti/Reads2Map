@@ -3,6 +3,7 @@
     "adapter": "AGATCGGAAGAG",
     "raw_dict": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/process_radtags_test.tar.gz",
     "enzyme": "hindIII",
-    "enzyme2": "nlaIII"
+    "enzyme2": "nlaIII",
+    "barcode": "barcode_file"
   }
 }

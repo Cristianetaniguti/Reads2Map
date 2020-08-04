@@ -2,7 +2,6 @@ cromwell-executions/
 cromwell-workflow-logs/
 *~
 *Rhistory
-test/
 data/*_ig
 cromwell-46.jar
 docker/
@@ -14,3 +13,6 @@ metadata/
 data/populus/reference
 task/cromwell-executions/
 task/cromwell-workflow-logs/
+new_find_bins
+populus_chr10_vcf
+scratch

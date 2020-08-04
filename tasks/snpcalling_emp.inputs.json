@@ -11,7 +11,9 @@
   },
   "SNPCalling.optional_filt": {
     "min_meanDP": "2",
-    "maf": "0.05"
+    "maf": "0.05",
+    "parent1": "PT_F",
+    "parent2": "PT_M"
   },
   "SNPCalling.samples_info": {
     "samples_info": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/sample_info_subsub"

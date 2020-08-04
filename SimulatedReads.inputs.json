@@ -1,22 +1,11 @@
 {
   "SimulatedReads.ReadSimulations.optional_filt": {
+    "parent2": "P2",
+    "parent1": "P1",
+    "chromosome": "Chr10",
     "maf": "0.05"
   },
-  "SimulatedReads.profiles": {
-    "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
-    "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
-    "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
-  },
-  "SimulatedReads.number_of_families": 2,
-  "SimulatedReads.family_template": {
-    "cmBymb": 4.63,
-    "popsize": 47,
-    "enzyme": "G*CWGC",
-    "depth": 20,
-    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
-    "ploidy": 2,
-    "cross": "F1"
-  },
+  "SimulatedReads.number_of_families": "1",
   "SimulatedReads.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
@@ -26,5 +15,20 @@
     "ref_bwt": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.bwt",
     "ref_ann": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.ann",
     "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
+  },
+  "SimulatedReads.profiles": {
+    "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
+    "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
+    "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
+  },
+  "SimulatedReads.family_template": {
+    "cmBymb": 4.63,
+    "popsize": 47,
+    "enzyme": "G*CWGC",
+    "depth": 10,
+    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
+    "ploidy": 2,
+    "cross": "F1"
   }
 }
+

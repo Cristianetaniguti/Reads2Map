@@ -38,3 +38,11 @@ struct FamilyTemplate {
   Int ploidy
   String cross
 }
+
+struct Optional_filt{
+  Int? min_meanDP
+  Float? maf
+  String chromosome
+  String parent1
+  String parent2
+}
