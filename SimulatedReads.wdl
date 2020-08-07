@@ -54,14 +54,14 @@ workflow SimulatedReads {
       depth=family_template.depth,
       data6=ReadSimulations.data6_RDatas,
       data7=ReadSimulations.data7_gusmap,
-      data8=ReadSimulations.data8_names
+      data8=ReadSimulations.data8_names,
+      data9=ReadSimulations.simu_haplo
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
   # it will be an array of the same type of the original.
   output {
     File results = JointTables.results
-    Array[File] simu_vcf =  ReadSimulations.simu_vcf
   }
 }
 
@@ -103,6 +103,7 @@ task JointTables{
     Array[File] data6
     Array[File] data7
     Array[File] data8
+    Array[File] data9
     Int depth
   }
 
@@ -122,6 +123,7 @@ task JointTables{
     datas[[6]] <- c("~{sep=";" data6}")
     datas[[7]] <- c("~{sep=";" data7}")
     datas[[8]] <- c("~{sep=";" data8}")
+    datas[[9]] <- c("~{sep=";" data9}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
     
@@ -161,12 +163,14 @@ task JointTables{
     saveRDS(result_list[[3]], file="data3.rds")
     saveRDS(result_list[[4]], file="data4.rds")
     saveRDS(result_list[[5]], file="data5.rds")
+    saveRDS(datas_up[[9]], file="simu_haplo.rds")
+    
     choices <- result_list[[6]]
     save(choices, file = "choices.RData")
     saveRDS(datas_up[[8]], file = "names.rds")
     
     system("mkdir SimulatedReads_results_depth~{depth}")
-    system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
+    system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT

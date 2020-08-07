@@ -49,9 +49,11 @@ workflow SNPCalling{
 
   output{
     File gatk_vcf = GatkGenotyping.vcf
-    File gatk_vcf_tot = GatkGenotyping.vcf_tot
+    File gatk_vcf_bi_tot = GatkGenotyping.vcf_bi_tot
+    File gatk_vcf_multi_tot = GatkGenotyping.vcf_multi_tot
     File freebayes_vcf = FreebayesGenotyping.vcf
-    File freebayes_vcf_tot = FreebayesGenotyping.vcf_tot
+    File freebayes_vcf_bi_tot = FreebayesGenotyping.vcf_bi_tot
+    File freebayes_vcf_multi_tot = FreebayesGenotyping.vcf_multi_tot
     File freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam
     File freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam
     File gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam

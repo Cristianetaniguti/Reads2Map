@@ -238,7 +238,7 @@ workflow reads_simu {
     File data6_RDatas             = JointReports.data6_RDatas
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
-    File simu_vcf                 = CreateAlignmentFromSimulation.true_vcf
+    File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
   }
 }
 

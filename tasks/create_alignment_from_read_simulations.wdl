@@ -105,6 +105,7 @@ workflow CreateAlignmentFromSimulation {
       Array[File] maternal_trim = SimulateRADseq.maternal_trim
       Array[String] names = GenerateSampleNames.names
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
+      File simu_haplo = ConvertPedigreeSimulationToVcf.simu_haplo
       File real_phases = CreatePedigreeSimulatorInputs.real_phases
   }
 
@@ -378,6 +379,8 @@ task ConvertPedigreeSimulationToVcf {
     R --vanilla --no-save <<RSCRIPT
 
     library(onemap)
+    library(vcfR)
+    
     mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
     pos <- mks[,2]
     chr <- mks[,1]
@@ -385,9 +388,20 @@ task ConvertPedigreeSimulationToVcf {
     pedsim2vcf(inputfile = "~{genotypes_dat}",
       map.file = "~{map_file}",
       chrom.file = "~{chrom_file}",
-      out.file = paste0("~{seed}","_", "~{depth}", "_simu.vcf"),
+      out.file = "~{seed}_~{depth}_simu.vcf",
       miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1",
       chr = chr, phase = TRUE)
+    
+    vcfR.object <- read.vcfR("~{seed}_~{depth}_simu.vcf")
+    INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
+    inds_sele <- INDS_temp[-c(which(INDS_temp=="P1"), which(INDS_temp=="P2"))]
+    
+    progeny_dat <- vcf2progeny_haplotypes(vcfR.object = vcfR.object, ind.id = inds_sele, 
+                                          parent1 = "P1", parent2 = "P2", 
+                                          crosstype = "outcross")
+    
+    haplo_simu <- cbind(seed="~{seed}", depth="~{depth}",progeny_dat)
+    saveRDS(haplo_simu, file = "~{seed}_~{depth}_haplo_simu.rds")
     
     RSCRIPT
     
@@ -402,6 +416,7 @@ task ConvertPedigreeSimulationToVcf {
 
   output {
     File simu_vcf = "~{seed}_~{depth}_simu.vcf"
+    File simu_haplo = "~{seed}_~{depth}_haplo_simu.rds"
   }
 }
 

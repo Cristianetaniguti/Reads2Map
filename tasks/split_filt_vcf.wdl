@@ -39,7 +39,7 @@ workflow SplitFiltVCF{
     File vcf_bi_chr_norm_tbi = SplitFilters.vcf_bi_chr_tbi
     File vcf_bi_norm = SplitFilters.vcf_bi
     File vcf_multi_chr = SplitFilters.vcf_multi_chr
-    File vcf_multi = SplitFilters.vcf_multi
+    File vcf_multi_norm = SplitFilters.vcf_multi
   }
 }
 
@@ -59,7 +59,7 @@ task BiallelicNormalization{
     docker: "lifebitai/bcftools"
     mem:"--nodes=1"
     time:"72:00:00"
-    cpu:20
+    cpu:1
   }
 
   output {
@@ -108,7 +108,7 @@ task SplitFilters{
     docker: "cristaniguti/vcftools"
     mem:"--nodes=1"
     time:"72:00:00"
-    cpu:20
+    cpu:1
   }
 
   output {

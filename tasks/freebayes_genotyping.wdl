@@ -59,7 +59,8 @@ workflow FreebayesGenotyping {
     File vcf = SplitFiltVCF.vcf_bi_chr_norm
     File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
     Array[File] counts = BamCounts.counts
-    File vcf_tot = RunFreebayes.vcf
+    File vcf_bi_tot = SplitFiltVCF.vcf_bi_norm
+    File vcf_multi_tot = SplitFiltVCF.vcf_multi_norm
   }
 }
 

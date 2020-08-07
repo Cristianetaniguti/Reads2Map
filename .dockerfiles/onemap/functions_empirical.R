@@ -83,7 +83,7 @@ phaseToOPGP_OM <- function(x){
 
 create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chromosome) {
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
-  bins <- onemap::find_bins(onemap_mis)
+  bins <- onemap::find_bins(onemap_mis, exact = FALSE)
   onemap_bins <- create_data_bins(onemap_mis, bins)
   segr <- onemap::test_segregation(onemap_bins)
   distorted <- onemap::select_segreg(segr, distorted = T)

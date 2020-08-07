@@ -35,7 +35,9 @@ workflow EmpiricalReads {
   
   output{
     File EmpiricalReads_results = Maps.EmpiricalReads_results
-    File gatk_vcf = SNPCalling.gatk_vcf_tot
-    File freebayes_vcf = SNPCalling.freebayes_vcf_tot
+    File gatk_vcf_bi = SNPCalling.gatk_vcf_bi_tot
+    File gatk_vcf_multi = SNPCalling.gatk_vcf_multi_tot
+    File freebayes_vcf_bi = SNPCalling.freebayes_vcf_bi_tot
+    File freebayes_vcf_multi = SNPCalling.freebayes_vcf_multi_tot
   }
 }
