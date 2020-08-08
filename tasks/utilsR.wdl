@@ -289,14 +289,11 @@ task GlobalError{
 
 task BamDepths2Vcf{
   input{
-    String SNPCall_program
     File vcf_file
-    File freebayes_ref_bam 
-    File freebayes_alt_bam 
-    File gatk_ref_bam 
-    File gatk_alt_bam 
-    File gatk_example_alleles
-    File freebayes_example_alleles
+    File ref_bam
+    File alt_bam
+    File example_alleles
+    String program
   }
   
   command <<<
@@ -306,33 +303,29 @@ task BamDepths2Vcf{
       library(vcfR)
       source("/opt/scripts/functions_simu.R")
        
-      system("cp ~{freebayes_ref_bam} .")
-      system("cp ~{freebayes_alt_bam} .")
-      system("cp ~{gatk_ref_bam} .")
-      system("cp ~{gatk_alt_bam} .")
-      system("cp ~{gatk_example_alleles} .")
-      system("cp ~{freebayes_example_alleles} .")
+      system("cp ~{ref_bam} .")
+      system("cp ~{alt_bam} .")
+      system("cp ~{example_alleles} .")
       
        ## Depths from bam
-       depths.alt <- read.table(paste0("~{SNPCall_program}", "_alt_depth_bam.txt"), header = T)
-       depths.ref <- read.table(paste0("~{SNPCall_program}", "_ref_depth_bam.txt"), header = T)
+       depths.alt <- read.table("~{alt_bam}", header = T)
+       depths.ref <- read.table("~{ref_bam}", header = T)
 
        depths <- list("ref" = depths.ref, "alt"=depths.alt)
 
        if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
-          vcf.temp <- paste0("~{SNPCall_program}",".", sample(1000,1), ".vcf")
+          vcf.temp <- paste0("vcf.temp",".", sample(1000,1), ".vcf")
           system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
           vcf_file <- vcf.temp
        } else {
           vcf_file <- "~{vcf_file}"
        }
       
-       allele_file <- paste0("~{SNPCall_program}","_example4ref_alt_alleles.txt")
-       bam_vcf <- make_vcf(vcf_file, depths, "~{SNPCall_program}", allele_file, "bam_vcf.vcf")
+       allele_file <- paste0("~{example_alleles}")
+       bam_vcf <- make_vcf(vcf_file, depths, allele_file, "~{program}_bam_vcf.vcf")
        
        bam_vcfR <- read.vcfR(bam_vcf)
-       save(bam_vcfR, file="bam_vcfR.RData")
-       
+       save(bam_vcfR, file="~{program}_bam_vcfR.RData")
 
     RSCRIPT
     
@@ -346,8 +339,8 @@ task BamDepths2Vcf{
   }
   
   output{
-    File bam_vcf = "bam_vcf.vcf"
-    File bam_vcfR = "bam_vcfR.RData"
+    File bam_vcf = "~{program}_bam_vcf.vcf"
+    File bam_vcfR = "~{program}_bam_vcfR.RData"
   }
 }
 

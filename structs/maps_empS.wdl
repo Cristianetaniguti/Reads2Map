@@ -7,3 +7,11 @@ struct Dataset {
   String cross
   String chromosome
 }
+
+struct OptionalFilters{
+  String? Filter1
+  String? Filter2
+  String? Filter3
+  String? Filter4
+  String? Filter5
+}

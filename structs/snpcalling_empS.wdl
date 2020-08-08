@@ -4,9 +4,7 @@ struct Samples_info {
   File samples_info
 }
 
-struct Optional_filt {
-  Int? min_meanDP
-  Float? maf
+struct SplitVCF {
   String chromosome
   String parent1
   String parent2

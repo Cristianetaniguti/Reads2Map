@@ -4,6 +4,7 @@ import "../structs/alignment_struct.wdl"
 import "../structs/reads_simuS.wdl"
 import "../structs/snpcalling_empS.wdl"
 import "./utils.wdl" as utils
+import "./utilsR.wdl" as utilsR
 import "split_filt_vcf.wdl" as norm_filt
 
 workflow GatkGenotyping {
@@ -11,7 +12,8 @@ workflow GatkGenotyping {
     Array[Alignment] alignments
     ReferenceFasta references
     String program
-    Optional_filt optional_filt
+    SplitVCF splitvcf
+    Array[String] sampleNames
   }
 
   scatter (alignment in alignments) {
@@ -45,15 +47,12 @@ workflow GatkGenotyping {
   call norm_filt.SplitFiltVCF{
     input:
       vcf_in=GenotypeGVCFs.vcf,
-      max_missing=0.75,
-      maf=optional_filt.maf,
       program=program,
-      min_meanDP = optional_filt.min_meanDP,
-      chromosome = optional_filt.chromosome,
+      chromosome = splitvcf.chromosome,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
-      parent1 = optional_filt.parent1,
-      parent2 = optional_filt.parent2
+      parent1 = splitvcf.parent1,
+      parent2 = splitvcf.parent2
   }
 
   scatter (alignment in alignments) {
@@ -70,13 +69,31 @@ workflow GatkGenotyping {
         tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
     }
   }
+  
+  call utils.BamCounts4Onemap {
+    input:
+      sampleName=sampleNames,
+      counts=BamCounts.counts,
+      method = program
+  }
+
+  call utilsR.BamDepths2Vcf{
+    input:
+      vcf_file = SplitFiltVCF.vcf_bi_chr_norm,
+      ref_bam = BamCounts4Onemap.ref_bam,
+      alt_bam = BamCounts4Onemap.alt_bam,
+      example_alleles = BamCounts4Onemap.ref_alt_alleles,
+      program = program
+  }
 
   output {
     File vcf = SplitFiltVCF.vcf_bi_chr_norm
     File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
-    Array[File] counts = BamCounts.counts
     File vcf_bi_tot = SplitFiltVCF.vcf_bi_norm
     File vcf_multi_tot = SplitFiltVCF.vcf_multi_norm
+    File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
+    File alt_bam = BamCounts4Onemap.alt_bam
+    File ref_bam = BamCounts4Onemap.ref_bam
   }
 }
 

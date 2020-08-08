@@ -1,10 +1,4 @@
 {
-  "SimulatedReads.ReadSimulations.optional_filt": {
-    "parent2": "P2",
-    "parent1": "P1",
-    "chromosome": "Chr10",
-    "maf": "0.05"
-  },
   "SimulatedReads.number_of_families": "1",
   "SimulatedReads.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
@@ -29,6 +23,14 @@
     "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
     "ploidy": 2,
     "cross": "F1"
+  },
+  "SimulatedReads.ReadSimulations.filters": {
+    "Filter1": "--maf 0.05"
+  },
+  "SimulatedReads.ReadSimulations.splitvcf": {
+    "parent2": "P2",
+    "parent1": "P1",
+    "chromosome": "Chr10"
   }
 }
 

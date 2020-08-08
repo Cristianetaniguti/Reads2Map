@@ -3,10 +3,7 @@ version 1.0
 workflow SplitFiltVCF{
   input {
     File vcf_in
-    Float max_missing
-    Float? maf
     String program
-    Int? min_meanDP
     String chromosome
     File reference
     File reference_idx
@@ -24,10 +21,7 @@ workflow SplitFiltVCF{
   call SplitFilters{
     input:
       vcf_in = BiallelicNormalization.vcf_norm,
-      max_missing = max_missing,
-      maf = maf,
       program = program,
-      min_meanDP = min_meanDP,
       chromosome = chromosome,
       parent1 = parent1,
       parent2 = parent2
@@ -52,7 +46,7 @@ task BiallelicNormalization{
   }
   
   command <<<
-    bcftools norm -m-any ~{vcf_file} | bcftools norm -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
+    bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
   >>>
 
   runtime {
@@ -71,19 +65,16 @@ task BiallelicNormalization{
 task SplitFilters{
   input{
     File vcf_in
-    Float max_missing
-    Float? maf
     String program
-    Int? min_meanDP
     String chromosome
     String parent1
     String parent2
   }
   
   command <<<
-    vcftools --gzvcf ~{vcf_in} --max-missing ~{max_missing} --min-alleles 3  ~{"--maf " +  maf} ~{"--min-meanDP " +  min_meanDP}  --recode --out ~{program}_multi1
+    vcftools --gzvcf ~{vcf_in}  --min-alleles 3 --recode --out ~{program}_multi1
   
-    vcftools --gzvcf ~{vcf_in} --max-missing ~{max_missing} --min-alleles 2 --max-alleles 2 ~{"--maf " +  maf} ~{"--min-meanDP " +  min_meanDP}  --recode --out ~{program}_bi1
+    vcftools --gzvcf ~{vcf_in}  --min-alleles 2 --max-alleles 2 --recode --out ~{program}_bi1
     
     Rscript /opt/scripts/split.R ~{program}_bi1.recode.vcf ~{parent1} ~{parent2} position_multi2.txt
     

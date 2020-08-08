@@ -15,18 +15,27 @@ workflow Maps{
 
   input {
     Dataset dataset
+    OptionalFilters filters
     File gatk_vcf
     File freebayes_vcf
-    File freebayes_ref_bam
-    File freebayes_alt_bam
-    File gatk_ref_bam
-    File gatk_alt_bam
-    File gatk_example_alleles
-    File freebayes_example_alleles
+    File gatk_vcf_bam_counts
+    File freebayes_vcf_bam_counts
+  }
+  
+  call utils.ApplyRandomFilters{
+    input:
+      gatk_vcf = gatk_vcf,
+      freebayes_vcf = freebayes_vcf,
+      gatk_vcf_bam_counts = gatk_vcf_bam_counts,
+      freebayes_vcf_bam_counts = freebayes_vcf_bam_counts,
+      Filter1 = filters.Filter1,
+      Filter2 = filters.Filter2,
+      Filter3 = filters.Filter3,
+      Filter4 = filters.Filter4
   }
   
   Array[String] methods = ["gatk", "freebayes"]
-  Array[File] vcfs = [gatk_vcf, freebayes_vcf]
+  Array[File] vcfs = [ApplyRandomFilters.gatk_vcf_filt, ApplyRandomFilters.freebayes_vcf_filt]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
   
   scatter (vcf in program_and_vcf){
@@ -65,20 +74,15 @@ workflow Maps{
         chromosome = dataset.chromosome
     }
     
-    call utilsR.BamDepths2Vcf{
+    call utils.Gambis{
       input:
-        SNPCall_program = vcf.left,
-        vcf_file = vcf.right,
-        freebayes_ref_bam = freebayes_ref_bam,
-        freebayes_alt_bam = freebayes_alt_bam,
-        gatk_ref_bam = gatk_ref_bam,
-        gatk_alt_bam = gatk_alt_bam,
-        gatk_example_alleles      = gatk_example_alleles,
-        freebayes_example_alleles = freebayes_example_alleles
+        gatk_vcf_bam_counts = ApplyRandomFilters.gatk_vcf_bam_counts_filt,
+        freebayes_vcf_bam_counts = ApplyRandomFilters.freebayes_vcf_bam_counts_filt,
+        method = vcf.left
     }
     
     Array[String] counts     = ["vcf", "bam"]
-    Array[File] vcfs_counts  = [vcf.right, BamDepths2Vcf.chr_filt]
+    Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
     Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
     
     scatter(vcf_counts in counts_and_vcf){
@@ -124,7 +128,7 @@ workflow Maps{
       call gusmap.GusmapMaps{
         input:
           vcf_file = vcf.right,
-          new_vcf_file = BamDepths2Vcf.chr_filt,
+          new_vcf_file = Gambis.choosed_bam,
           SNPCall_program = vcf.left,
           GenotypeCall_program = "gusmap",
           parent1 = dataset.parent1,
@@ -312,3 +316,6 @@ task JointReports{
     File EmpiricalReads_results = "EmpiricalReads_results.tar.gz"
   }
 }
+
+
+

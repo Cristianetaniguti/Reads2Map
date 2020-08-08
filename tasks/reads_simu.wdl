@@ -23,7 +23,8 @@ workflow reads_simu {
     ReferenceFasta references
     Family family
     Profiles profiles
-    Optional_filt optional_filt
+    SplitVCF splitvcf
+    OptionalFilters filters
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -38,7 +39,8 @@ workflow reads_simu {
       alignments=CreateAlignmentFromSimulation.alignments,
       references=references,
       program="gatk",
-      optional_filt = optional_filt
+      splitvcf = splitvcf,
+      sampleNames = CreateAlignmentFromSimulation.names
   }
 
   call freebayes.FreebayesGenotyping {
@@ -48,7 +50,8 @@ workflow reads_simu {
       bai=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
-      optional_filt = optional_filt
+      splitvcf = splitvcf,
+      sampleNames = CreateAlignmentFromSimulation.names
   }
 
   call utils.CalculateVcfMetrics {
@@ -60,13 +63,6 @@ workflow reads_simu {
       seed          = family.seed,
       depth         = family.depth
   }
-
-  call utils.BamCounts4Onemap {
-    input:
-      sampleName       = CreateAlignmentFromSimulation.names,
-      freebayes_counts = FreebayesGenotyping.counts,
-      gatk_counts      = GatkGenotyping.counts
-  }
   
   call simulated_map.SimulatedMap{
     input:
@@ -74,8 +70,20 @@ workflow reads_simu {
       cross = family.cross
   }
   
+  call utils.ApplyRandomFilters{
+    input:
+      gatk_vcf = GatkGenotyping.vcf,
+      freebayes_vcf = FreebayesGenotyping.vcf,
+      gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
+      freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
+      Filter1 = filters.Filter1,
+      Filter2 = filters.Filter2,
+      Filter3 = filters.Filter3,
+      Filter4 = filters.Filter4
+  }
+  
   Array[String] methods                     = ["gatk", "freebayes"]
-  Array[File] vcfs                          = [GatkGenotyping.vcf, FreebayesGenotyping.vcf]
+  Array[File] vcfs = [ApplyRandomFilters.gatk_vcf_filt, ApplyRandomFilters.freebayes_vcf_filt]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
   scatter (vcf in program_and_vcf){
@@ -116,20 +124,15 @@ workflow reads_simu {
         cMbyMb = family.cmBymb
     }
     
-    call utilsR.BamDepths2Vcf{
+    call utils.Gambis{
       input:
-        SNPCall_program = vcf.left,
-        vcf_file = vcf.right,
-        freebayes_ref_bam = BamCounts4Onemap.freebayes_ref_bam,
-        freebayes_alt_bam = BamCounts4Onemap.freebayes_alt_bam,
-        gatk_ref_bam = BamCounts4Onemap.gatk_ref_bam,
-        gatk_alt_bam = BamCounts4Onemap.gatk_alt_bam,
-        gatk_example_alleles      = BamCounts4Onemap.gatk_example_alleles,
-        freebayes_example_alleles = BamCounts4Onemap.freebayes_example_alleles
+        gatk_vcf_bam_counts = ApplyRandomFilters.gatk_vcf_bam_counts_filt,
+        freebayes_vcf_bam_counts = ApplyRandomFilters.freebayes_vcf_bam_counts_filt,
+        method = vcf.left
     }
     
     Array[String] counts     = ["vcf", "bam"]
-    Array[File] vcfs_counts  = [vcf.right, BamDepths2Vcf.bam_vcf]
+    Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
     Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
     
     scatter(vcf_counts in counts_and_vcf){
@@ -179,7 +182,7 @@ workflow reads_simu {
         input:
           simu_onemap_obj = SimulatedMap.simu_onemap_obj,
           vcf_file = vcf.right,
-          new_vcf_file = BamDepths2Vcf.bam_vcf,
+          new_vcf_file = Gambis.choosed_bam,
           SNPCall_program = vcf.left,
           GenotypeCall_program = "gusmap",
           tot_mks = CreateAlignmentFromSimulation.total_markers,
@@ -220,11 +223,11 @@ workflow reads_simu {
     depth                     = family.depth,
     seed                      = family.seed,
     gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
-    gatk_ref_depth_bam        = BamCounts4Onemap.gatk_ref_bam,
+    gatk_ref_depth_bam        = GatkGenotyping.ref_bam,
     gatk_alt_depth            = CalculateVcfMetrics.gatk_alt_depth,
-    gatk_alt_depth_bam        = BamCounts4Onemap.gatk_alt_bam,
-    freebayes_ref_depth_bam   = BamCounts4Onemap.freebayes_ref_bam,
-    freebayes_alt_depth_bam   = BamCounts4Onemap.freebayes_alt_bam,
+    gatk_alt_depth_bam        = GatkGenotyping.alt_bam,
+    freebayes_ref_depth_bam   = FreebayesGenotyping.ref_bam,
+    freebayes_alt_depth_bam   = FreebayesGenotyping.alt_bam,
     freebayes_ref_depth       = CalculateVcfMetrics.freebayes_ref_depth,
     freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth
   }

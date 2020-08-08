@@ -39,10 +39,16 @@ struct FamilyTemplate {
   String cross
 }
 
-struct Optional_filt{
-  Int? min_meanDP
-  Float? maf
+struct SplitVCF{
   String chromosome
   String parent1
   String parent2
+}
+
+struct OptionalFilters{
+  String? Filter1
+  String? Filter2
+  String? Filter3
+  String? Filter4
+  String? Filter5
 }

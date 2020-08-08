@@ -18,16 +18,9 @@ workflow GusmapMaps{
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
   
   scatter(vcf in counts_and_vcfs){
-  
-    call utils.SelectChrVCF{
-      input:
-        vcf_file = vcf.right,
-        chromosome = chromosome
-    }
-    
     call GusmapReport{
         input:
-          vcf_file = SelectChrVCF.chr_filt,
+          vcf_file = vcf.right,
           SNPCall_program = SNPCall_program,
           GenotypeCall_program = GenotypeCall_program,
           CountsFrom = vcf.left,

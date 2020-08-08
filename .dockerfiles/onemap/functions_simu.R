@@ -301,7 +301,7 @@ write_report <- function(filters_tab, out_name) {
 }
 
 
-make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
+make_vcf <- function(vcf.old, depths, allele_file, out_vcf, recovering=F){
   # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
   idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
   idx.i <- strsplit(idx, split = ":")[[1]][1]
@@ -309,21 +309,31 @@ make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
   system(paste0("head -n ", idx.i," ", vcf.old, " > head.",seed))
   
   vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
+  GT <- which(strsplit(vcf.tab[,9], split=":")[[1]]=="GT")
+  GT_matrix <- apply(vcf.tab[,10:dim(vcf.tab)[2]],2, function(x) sapply(strsplit(x, ":"), "[",GT))
   
-  if(all(rownames(depths[[1]]) %in% paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
-    
-    vcf.init <- vcf.tab[,1:8]
-    AD.colum <- rep("AD", dim(vcf.init)[1])
-    vcf.init <- cbind(vcf.init, AD.colum)
-    
-    rs <- rownames(depths[[1]])
-    vcf.init[,3] <- rs
-  } else {
-    temp.tab <- read.table(allele_file)
-    vcf.init <- cbind(temp.tab[,1:2],paste0(temp.tab[,1], "_", temp.tab[,2]), temp.tab[,3:4],
-                      rep(".", dim(temp.tab)[1]),rep(".", dim(temp.tab)[1]), rep(".", dim(temp.tab)[1]), rep("AD",dim(temp.tab)[1]))
+  vcf_old_pos <- paste0(vcf.tab[,1], "_", vcf.tab[,2])
+  idx.rm <- which(duplicated(vcf_old_pos))
+  if(length(idx.rm)>0){
+    vcf_old_pos <- vcf_old_pos[-idx.rm]
+    GT_matrix <-GT_matrix[-idx.rm,]
+    vcf.tab <- vcf.tab[-idx.rm,]
   }
   
+  allele <- read.table(allele_file)
+  allele_pos <- paste0(allele[,1], "_", allele[,2])
+  idx.pos <- match(vcf_old_pos,allele_pos)
+  idx.pos <- idx.pos[!is.na(idx.pos)]
+  allele <- allele[idx.pos,]
+  depths[[1]] <- depths[[1]][idx.pos,]
+  depths[[2]] <- depths[[2]][idx.pos,]
+  
+  vcf.init <- vcf.tab[,1:8]
+  AD.colum <- rep("GT:AD", dim(vcf.init)[1])
+  vcf.init <- cbind(vcf.init, AD.colum)
+  
+  rs <- rownames(depths[[1]])
+  vcf.init[,3] <- rs
   ind.n <- colnames(depths[[1]]) # The names came in different order
   
   header <- strsplit(idx, split = "\t")[[1]]
@@ -333,7 +343,7 @@ make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
   depths[[1]] <- depths[[1]][,order(ind.n)]
   depths[[2]] <- depths[[2]][,order(ind.n)]
   
-  comb.depth <- matrix(paste0(as.matrix(depths[[1]]), ",", as.matrix(depths[[2]])), ncol = ncol(depths[[2]]))
+  comb.depth <- matrix(paste0(GT_matrix, ":",as.matrix(depths[[1]]), ",", as.matrix(depths[[2]])), ncol = ncol(depths[[2]]))
   colnames(comb.depth) <- ind.vcf
   #hmc.file <- cbind(rs, comb.depth)
   
@@ -381,7 +391,7 @@ adapt2app <- function(data){
   colnames(data[[3]]) <- c("seed", "depth", "SNPCall", "GenoCall", "CountsFrom", "n_markers", 
                            "higher than 25% missing", "redundant_markers", "redundant_markers2", 
                            "distorted_markers", "n_markers_filtered")
-
+  
   data[[3]] <- fix_genocall_names(data[[3]])
   
   ###

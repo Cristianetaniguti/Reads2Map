@@ -25,12 +25,8 @@ workflow EmpiricalReads {
       dataset = dataset,
       gatk_vcf = SNPCalling.gatk_vcf,
       freebayes_vcf = SNPCalling.freebayes_vcf,
-      freebayes_ref_bam = SNPCalling.freebayes_ref_bam,
-      freebayes_alt_bam = SNPCalling.freebayes_alt_bam,
-      gatk_ref_bam = SNPCalling.gatk_ref_bam,
-      gatk_alt_bam = SNPCalling.gatk_alt_bam,
-      gatk_example_alleles = SNPCalling.gatk_example_alleles,
-      freebayes_example_alleles = SNPCalling.freebayes_example_alleles
+      gatk_vcf_bam_counts = SNPCalling.gatk_vcf_bi_bam_count,
+      freebayes_vcf_bam_counts = SNPCalling.freebayes_vcf_bi_bam_count  
   }
   
   output{

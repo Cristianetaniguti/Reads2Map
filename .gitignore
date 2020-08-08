@@ -16,3 +16,6 @@ task/cromwell-workflow-logs/
 new_find_bins
 populus_chr10_vcf
 scratch
+log
+shard-0
+bam2vcf_shard-0
