@@ -261,7 +261,7 @@ task CalculateVcfMetrics {
   >>>
 
   runtime {
-    docker: "cristaniguti/onemap_workflows"
+    docker: "gcr.io/taniguti-backups/onemap:v1"
     # mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
@@ -340,7 +340,7 @@ task BamCounts4Onemap{
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"gcr.io/taniguti-backups/onemap:v1"
     # mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
@@ -359,21 +359,17 @@ task ApplyRandomFilters{
     File freebayes_vcf
     File gatk_vcf_bam_counts
     File freebayes_vcf_bam_counts
-    String? Filter1
-    String? Filter2
-    String? Filter3
-    String? Filter4
-    String? Filter5
+    String? filters
   }
 
   command <<<
-    vcftools --gzvcf ~{gatk_vcf} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > gatk_vcf_filt.vcf
+    vcftools --gzvcf ~{gatk_vcf} ~{filters} --recode --stdout > gatk_vcf_filt.vcf
 
-    vcftools --gzvcf ~{freebayes_vcf} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > freebayes_vcf_filt.vcf
+    vcftools --gzvcf ~{freebayes_vcf} ~{filters} --recode --stdout > freebayes_vcf_filt.vcf
 
-    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
+    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{filters} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
 
-    vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
+    vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
 
   runtime{

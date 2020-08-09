@@ -2,8 +2,9 @@ version 1.0
 
 import "./utilsR.wdl" as utilsR
 
-workflow PolyradMaps{
-  input{
+workflow PolyradMaps {
+
+  input {
     File onemap_obj
     File vcf_file
     String SNPCall_program
@@ -36,8 +37,8 @@ workflow PolyradMaps{
   Array[File] objects                           = [PolyradProbs.polyrad_onemap_obj, GlobalError.error_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
-  scatter(item in methods_and_objects){
-       call utilsR.CheckDepths{
+  scatter (item in methods_and_objects) {
+       call utilsR.CheckDepths {
            input:
               onemap_obj = item.right,
               vcfR_obj = PolyradProbs.vcfR_obj,
@@ -48,7 +49,7 @@ workflow PolyradMaps{
               CountsFrom = CountsFrom
        }
 
-       call utilsR.FiltersReportEmp{
+       call utilsR.FiltersReportEmp {
             input:
               onemap_obj = item.right,
               SNPCall_program = SNPCall_program,
@@ -57,7 +58,7 @@ workflow PolyradMaps{
               chromosome = chromosome
         }
 
-        call utilsR.MapsReportEmp{
+        call utilsR.MapsReportEmp {
           input:
             sequence_obj = FiltersReportEmp.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
@@ -67,7 +68,7 @@ workflow PolyradMaps{
 
    }
 
-   output{
+   output {
       Array[File] RDatas = MapsReportEmp.maps_RData
       Array[File] maps_report = MapsReportEmp.maps_report
       Array[File] times = MapsReportEmp.times
@@ -76,7 +77,7 @@ workflow PolyradMaps{
    }
 }
 
-task PolyradProbs{
+task PolyradProbs {
   input{
     File vcf_file
     File onemap_obj
@@ -123,14 +124,14 @@ task PolyradProbs{
 
   >>>
 
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
+  runtime {
+    docker:"gcr.io/taniguti-backups/onemap:v1"
     time:"96:00:00"
     # mem:"--nodes=1"
     cpu:1
   }
 
-  output{
+  output {
     File polyrad_onemap_obj = "polyrad_onemap_obj.RData"
     File vcfR_obj = "vcfR.RData"
   }

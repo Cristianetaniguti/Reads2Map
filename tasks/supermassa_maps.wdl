@@ -2,21 +2,21 @@ version 1.0
 
 import "./utilsR.wdl" as utilsR
 
-workflow SupermassaMaps{
+workflow SupermassaMaps {
   input{
     File simu_onemap_obj
     File onemap_obj
     File vcf_file
-    File tot_mks
-    File real_phases
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
-    String cMbyMb
     String cross
+    File real_phases
+    File tot_mks
+    String cMbyMb
   }
 
-  call SupermassaProbs{
+  call SupermassaProbs {
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
@@ -59,10 +59,10 @@ workflow SupermassaMaps{
           call utilsR.ErrorsReport{
             input:
               onemap_obj = item.right,
-              simu_onemap_obj = simu_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              simu_onemap_obj = simu_onemap_obj
           }
    }
 
@@ -124,7 +124,7 @@ task SupermassaProbs{
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"gcr.io/taniguti-backups/onemap:v1"
     time:"72:00:00"
     # mem:"--nodes=1"
     cpu:20

@@ -24,7 +24,7 @@ workflow reads_simu {
     Family family
     Profiles profiles
     SplitVCF splitvcf
-    OptionalFilters filters
+    String? filters
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -76,10 +76,7 @@ workflow reads_simu {
       freebayes_vcf = FreebayesGenotyping.vcf,
       gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
       freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
-      Filter1 = filters.Filter1,
-      Filter2 = filters.Filter2,
-      Filter3 = filters.Filter3,
-      Filter4 = filters.Filter4
+      filters = filters
   }
 
   Array[String] methods                     = ["gatk", "freebayes"]
@@ -443,7 +440,7 @@ task JointReports{
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"gcr.io/taniguti-backups/onemap:v1"
     time:"48:00:00"
     # mem:"--nodes=1"
     cpu:1

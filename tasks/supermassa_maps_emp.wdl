@@ -15,7 +15,7 @@ workflow SupermassaMaps{
     String chromosome
   }
 
-  call SupermassaProbs{
+  call SupermassaProbs {
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
@@ -129,7 +129,7 @@ task SupermassaProbs {
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"gcr.io/taniguti-backups/onemap:v1"
     time:"120:00:08"
     # mem:"--nodes=1"
     cpu:20

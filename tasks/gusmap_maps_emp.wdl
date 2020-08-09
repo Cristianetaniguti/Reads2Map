@@ -2,21 +2,20 @@ version 1.0
 
 
 workflow GusmapMaps{
-  input{
+  input {
     File vcf_file
     File new_vcf_file
     String SNPCall_program
     String GenotypeCall_program
     String parent1
     String parent2
-    String chromosome
   }
 
   Array[String] counts                      = ["vcf", "bam"]
   Array[File] vcfs                          = [vcf_file, new_vcf_file]
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
 
-  scatter(vcf in counts_and_vcfs){
+  scatter (vcf in counts_and_vcfs) {
     call GusmapReport{
         input:
           vcf_file = vcf.right,
@@ -67,7 +66,7 @@ task GusmapReport{
   >>>
 
   runtime{
-    docker: "cristaniguti/onemap_workflows"
+    docker: "gcr.io/taniguti-backups/onemap:v1"
     time:"96:00:00"
     # mem:"--nodes=1"
     cpu:1

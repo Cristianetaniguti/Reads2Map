@@ -177,7 +177,7 @@ task JointTables{
   >>>
 
   runtime{
-      docker:"cristaniguti/onemap_workflows"
+      docker:"gcr.io/taniguti-backups/onemap:v1"
       time:"03:00:00"
       cpu:1
       mem:"--mem-per-cpu=24042"

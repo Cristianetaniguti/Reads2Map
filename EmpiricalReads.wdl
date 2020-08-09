@@ -13,7 +13,7 @@ workflow EmpiricalReads {
     References references
     Dataset dataset
     SplitVCF splitvcf
-    OptionalFilters filters
+    String? filters
   }
 
   # TODO: Conferir splitvcf

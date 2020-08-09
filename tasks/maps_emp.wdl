@@ -11,166 +11,183 @@ import "gusmap_maps_emp.wdl" as gusmap
 import "utils.wdl" as utils
 import "utilsR.wdl" as utilsR
 
-workflow Maps{
 
-  input {
-    Dataset dataset
-    OptionalFilters filters
-    File gatk_vcf
-    File freebayes_vcf
-    File gatk_vcf_bam_counts
-    File freebayes_vcf_bam_counts
-  }
+struct PopulationAnalysis {
+    String method
+    File vcf
+    File bamcount
+}
 
-  call utils.ApplyRandomFilters{
-    input:
-      gatk_vcf = gatk_vcf,
-      freebayes_vcf = freebayes_vcf,
-      gatk_vcf_bam_counts = gatk_vcf_bam_counts,
-      freebayes_vcf_bam_counts = freebayes_vcf_bam_counts,
-      Filter1 = filters.Filter1,
-      Filter2 = filters.Filter2,
-      Filter3 = filters.Filter3,
-      Filter4 = filters.Filter4
-  }
+workflow Maps {
 
-  Array[String] methods = ["gatk", "freebayes"]
-  Array[File] vcfs = [ApplyRandomFilters.gatk_vcf_filt, ApplyRandomFilters.freebayes_vcf_filt]
-  Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
-
-  scatter (vcf in program_and_vcf){
-    call utilsR.vcf2onemap{
-      input:
-        vcf_file = vcf.right,
-        cross = dataset.cross,
-        SNPCall_program = vcf.left,
-        parent1 = dataset.parent1,
-        parent2 = dataset.parent2
+    input {
+        Dataset dataset
+        File gatk_vcf
+        File freebayes_vcf
+        File gatk_vcf_bam_counts
+        File freebayes_vcf_bam_counts
+        String? filters
     }
 
-    call default.DefaultMaps{
-      input:
-        onemap_obj = vcf2onemap.onemap_obj,
-        vcfR_obj = vcf2onemap.vcfR_obj,
-        parent1 = dataset.parent1,
-        parent2 = dataset.parent2,
-        SNPCall_program = vcf.left,
-        GenotypeCall_program = "default",
-        CountsFrom = "vcf",
-        cross = dataset.cross,
-        chromosome = dataset.chromosome
+    if (defined(filters)) {
+        call utils.ApplyRandomFilters {
+            input:
+                gatk_vcf = gatk_vcf,
+                freebayes_vcf = freebayes_vcf,
+                gatk_vcf_bam_counts = gatk_vcf_bam_counts,
+                freebayes_vcf_bam_counts = freebayes_vcf_bam_counts,
+                filters = filters
+        }
     }
 
-    call snpcaller.SNPCallerMaps{
-      input:
-        onemap_obj = vcf2onemap.onemap_obj,
-        vcf_file = vcf.right,
-        cross = dataset.cross,
-        SNPCall_program = vcf.left,
-        GenotypeCall_program = "SNPCaller",
-        CountsFrom = "vcf",
-        parent1 = dataset.parent1,
-        parent2 = dataset.parent2,
-        chromosome = dataset.chromosome
-    }
+    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt, gatk_vcf])
+    File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, gatk_vcf_bam_counts])
+    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, freebayes_vcf])
+    File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, freebayes_vcf_bam_counts])
 
-    call utils.Gambis{
-      input:
-        gatk_vcf_bam_counts = ApplyRandomFilters.gatk_vcf_bam_counts_filt,
-        freebayes_vcf_bam_counts = ApplyRandomFilters.freebayes_vcf_bam_counts_filt,
-        method = vcf.left
-    }
 
-    Array[String] counts     = ["vcf", "bam"]
-    Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
-    Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
+    # Array[String] methods = ["gatk", "freebayes"]
+    # Array[File] vcfs = [filtered_gatk_vcf, filtered_freebayes_vcf]
+    # Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
-    scatter(vcf_counts in counts_and_vcf){
-        call updog.UpdogMaps{
-          input:
-            onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right,
-            SNPCall_program = vcf.left,
-            GenotypeCall_program = "updog",
-            CountsFrom = vcf_counts.left,
-            cross = dataset.cross,
-            parent1 = dataset.parent1,
-            parent2 = dataset.parent2,
-            chromosome = dataset.chromosome
+    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bamcount": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bamcount": filtered_freebayes_vcf_bamcounts}
+
+    scatter (analysis in [gatk_processing, freebayes_processing]) {
+
+        call utilsR.vcf2onemap {
+            input:
+                vcf_file = analysis.vcf,
+                cross = dataset.cross,
+                SNPCall_program = analysis.method,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2
         }
 
-        call supermassa.SupermassaMaps{
-          input:
-            onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right,
-            SNPCall_program = vcf.left,
-            GenotypeCall_program = "supermassa",
-            CountsFrom = vcf_counts.left,
-            cross = dataset.cross,
-            parent1 = dataset.parent1,
-            parent2 = dataset.parent2,
-            chromosome = dataset.chromosome
+        call default.DefaultMaps {
+            input:
+                onemap_obj = vcf2onemap.onemap_obj,
+                vcfR_obj = vcf2onemap.vcfR_obj,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                SNPCall_program = analysis.method,
+                GenotypeCall_program = "default",
+                CountsFrom = "vcf",
+                cross = dataset.cross,
+                chromosome = dataset.chromosome
         }
 
-        call polyrad.PolyradMaps{
-          input:
-            onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right,
-            SNPCall_program = vcf.left,
-            GenotypeCall_program = "polyrad",
-            CountsFrom = vcf_counts.left,
-            cross = dataset.cross,
-            parent1 = dataset.parent1,
-            parent2 = dataset.parent2,
-            chromosome = dataset.chromosome
+        call snpcaller.SNPCallerMaps {
+            input:
+                onemap_obj = vcf2onemap.onemap_obj,
+                vcf_file = analysis.vcf,
+                cross = dataset.cross,
+                SNPCall_program = analysis.method,
+                GenotypeCall_program = "SNPCaller",
+                CountsFrom = "vcf",
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                chromosome = dataset.chromosome
         }
-      }
-      call gusmap.GusmapMaps{
+
+        call utils.Gambis {
+            input:
+                gatk_vcf_bam_counts = filtered_gatk_vcf_bamcounts,
+                freebayes_vcf_bam_counts = filtered_freebayes_vcf_bamcounts,
+                method = vcf.left
+        }
+
+        Array[String] counts     = ["vcf", "bam"]
+        Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
+        Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
+
+        scatter(vcf_counts in counts_and_vcf){
+            call updog.UpdogMaps {
+                input:
+                    onemap_obj = vcf2onemap.onemap_obj,
+                    vcf_file = vcf_counts.right,
+                    SNPCall_program = vcf.left,
+                    GenotypeCall_program = "updog",
+                    CountsFrom = vcf_counts.left,
+                    cross = dataset.cross,
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome
+            }
+
+            call supermassa.SupermassaMaps {
+                input:
+                    onemap_obj = vcf2onemap.onemap_obj,
+                    vcf_file = vcf_counts.right,
+                    SNPCall_program = vcf.left,
+                    GenotypeCall_program = "supermassa",
+                    CountsFrom = vcf_counts.left,
+                    cross = dataset.cross,
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome
+            }
+
+            call polyrad.PolyradMaps {
+                input:
+                    onemap_obj = vcf2onemap.onemap_obj,
+                    vcf_file = vcf_counts.right,
+                    SNPCall_program = vcf.left,
+                    GenotypeCall_program = "polyrad",
+                    CountsFrom = vcf_counts.left,
+                    cross = dataset.cross,
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome
+            }
+        }
+
+        call gusmap.GusmapMaps {
+            input:
+                vcf_file = vcf.right,
+                new_vcf_file = Gambis.choosed_bam,
+                SNPCall_program = vcf.left,
+                GenotypeCall_program = "gusmap",
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2
+        }
+    }
+
+    call JointReports {
         input:
-          vcf_file = vcf.right,
-          new_vcf_file = Gambis.choosed_bam,
-          SNPCall_program = vcf.left,
-          GenotypeCall_program = "gusmap",
-          parent1 = dataset.parent1,
-          parent2 = dataset.parent2,
-          chromosome = dataset.chromosome
-      }
-   }
-   call JointReports{
-    input:
-    default_RDatas = flatten(DefaultMaps.RDatas),
-    default_maps_report = flatten(DefaultMaps.maps_report),
-    default_filters_report = flatten(DefaultMaps.filters_report),
-    default_errors_report = flatten(DefaultMaps.errors_report),
-    default_times = flatten(DefaultMaps.times),
-    SNPCaller_RDatas = SNPCallerMaps.RDatas,
-    SNPCaller_maps_report = SNPCallerMaps.maps_report,
-    SNPCaller_filters_report = SNPCallerMaps.filters_report,
-    SNPCaller_errors_report = SNPCallerMaps.errors_report,
-    SNPCaller_times = SNPCallerMaps.times,
-    Updog_RDatas = flatten(flatten(UpdogMaps.RDatas)),
-    Updog_maps_report = flatten(flatten(UpdogMaps.maps_report)),
-    Updog_filters_report = flatten(flatten(UpdogMaps.filters_report)),
-    Updog_errors_report = flatten(flatten(UpdogMaps.errors_report)),
-    Updog_times = flatten(flatten(UpdogMaps.times)),
-    Polyrad_RDatas = flatten(flatten(PolyradMaps.RDatas)),
-    Polyrad_maps_report = flatten(flatten(PolyradMaps.maps_report)),
-    Polyrad_filters_report = flatten(flatten(PolyradMaps.filters_report)),
-    Polyrad_errors_report = flatten(flatten(PolyradMaps.errors_report)),
-    Polyrad_times = flatten(flatten(PolyradMaps.times)),
-    Supermassa_RDatas = flatten(flatten(SupermassaMaps.RDatas)),
-    Supermassa_maps_report = flatten(flatten(SupermassaMaps.maps_report)),
-    Supermassa_filters_report = flatten(flatten(SupermassaMaps.filters_report)),
-    Supermassa_errors_report = flatten(flatten(SupermassaMaps.errors_report)),
-    Supermassa_times = flatten(flatten(SupermassaMaps.times)),
-    Gusmap_RDatas = flatten(GusmapMaps.RDatas),
-    Gusmap_maps_report = flatten(GusmapMaps.maps_report),
-    Gusmap_times = flatten(GusmapMaps.times)
-  }
+            default_RDatas = flatten(DefaultMaps.RDatas),
+            default_maps_report = flatten(DefaultMaps.maps_report),
+            default_filters_report = flatten(DefaultMaps.filters_report),
+            default_errors_report = flatten(DefaultMaps.errors_report),
+            default_times = flatten(DefaultMaps.times),
+            SNPCaller_RDatas = SNPCallerMaps.RDatas,
+            SNPCaller_maps_report = SNPCallerMaps.maps_report,
+            SNPCaller_filters_report = SNPCallerMaps.filters_report,
+            SNPCaller_errors_report = SNPCallerMaps.errors_report,
+            SNPCaller_times = SNPCallerMaps.times,
+            Updog_RDatas = flatten(flatten(UpdogMaps.RDatas)),
+            Updog_maps_report = flatten(flatten(UpdogMaps.maps_report)),
+            Updog_filters_report = flatten(flatten(UpdogMaps.filters_report)),
+            Updog_errors_report = flatten(flatten(UpdogMaps.errors_report)),
+            Updog_times = flatten(flatten(UpdogMaps.times)),
+            Polyrad_RDatas = flatten(flatten(PolyradMaps.RDatas)),
+            Polyrad_maps_report = flatten(flatten(PolyradMaps.maps_report)),
+            Polyrad_filters_report = flatten(flatten(PolyradMaps.filters_report)),
+            Polyrad_errors_report = flatten(flatten(PolyradMaps.errors_report)),
+            Polyrad_times = flatten(flatten(PolyradMaps.times)),
+            Supermassa_RDatas = flatten(flatten(SupermassaMaps.RDatas)),
+            Supermassa_maps_report = flatten(flatten(SupermassaMaps.maps_report)),
+            Supermassa_filters_report = flatten(flatten(SupermassaMaps.filters_report)),
+            Supermassa_errors_report = flatten(flatten(SupermassaMaps.errors_report)),
+            Supermassa_times = flatten(flatten(SupermassaMaps.times)),
+            Gusmap_RDatas = flatten(GusmapMaps.RDatas),
+            Gusmap_maps_report = flatten(GusmapMaps.maps_report),
+            Gusmap_times = flatten(GusmapMaps.times)
+    }
 
-  output{
-    File EmpiricalReads_results = JointReports.EmpiricalReads_results
-  }
+    output{
+        File EmpiricalReads_results = JointReports.EmpiricalReads_results
+    }
 }
 
 task JointReports{
@@ -306,7 +323,7 @@ task JointReports{
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"gcr.io/taniguti-backups/onemap:v1"
     time:"48:00:00"
     # mem:"--nodes=1"
     cpu:1
@@ -316,6 +333,3 @@ task JointReports{
     File EmpiricalReads_results = "EmpiricalReads_results.tar.gz"
   }
 }
-
-
-
