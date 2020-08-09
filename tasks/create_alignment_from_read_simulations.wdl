@@ -122,12 +122,12 @@ task GenerateAlternativeGenome {
 
   command <<<
     /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
-    
+
   >>>
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -312,12 +312,12 @@ task CreatePedigreeSimulatorInputs {
       chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
       write.table(chrom, file= "chromosome.txt", quote = F, col.names = T, row.names = F, sep= "\t")
      RSCRIPT
-     
+
   >>>
 
   runtime {
     docker: "cristaniguti/r-samtools"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -347,12 +347,12 @@ task RunPedigreeSimulator {
     sed -i 's+mapfile.txt+~{mapfile}+g' ~{parfile}
     sed -i 's+founderfile.txt+~{founderfile}+g' ~{parfile}
     java -jar /usr/jars/PedigreeSim.jar ~{parfile}
-    
+
   >>>
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -380,7 +380,7 @@ task ConvertPedigreeSimulationToVcf {
 
     library(onemap)
     library(vcfR)
-    
+
     mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
     pos <- mks[,2]
     chr <- mks[,1]
@@ -391,25 +391,25 @@ task ConvertPedigreeSimulationToVcf {
       out.file = "~{seed}_~{depth}_simu.vcf",
       miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1",
       chr = chr, phase = TRUE)
-    
+
     vcfR.object <- read.vcfR("~{seed}_~{depth}_simu.vcf")
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
     inds_sele <- INDS_temp[-c(which(INDS_temp=="P1"), which(INDS_temp=="P2"))]
-    
-    progeny_dat <- vcf2progeny_haplotypes(vcfR.object = vcfR.object, ind.id = inds_sele, 
-                                          parent1 = "P1", parent2 = "P2", 
+
+    progeny_dat <- vcf2progeny_haplotypes(vcfR.object = vcfR.object, ind.id = inds_sele,
+                                          parent1 = "P1", parent2 = "P2",
                                           crosstype = "outcross")
-    
+
     haplo_simu <- cbind(seed="~{seed}", depth="~{depth}",progeny_dat)
     saveRDS(haplo_simu, file = "~{seed}_~{depth}_haplo_simu.rds")
-    
+
     RSCRIPT
-    
+
   >>>
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -430,12 +430,12 @@ task RunVcf2diploid {
 
   command <<<
     java -jar /usr/jars/vcf2diploid.jar -id ~{sampleName} -chr ~{ref_genome} -vcf ~{simu_vcf}
-    
+
   >>>
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -466,7 +466,7 @@ task GenerateSampleNames {
     for i in bcf_in.header.samples:
         print(i)
     CODE
-    
+
   >>>
 
   runtime {
@@ -530,12 +530,12 @@ task SimulateRADseq {
     cutadapt -l 202 \
       -o ~{sampleName}_paternal_trim.fa \
       ~{sampleName}_paternal_fragments.fasta
-      
+
   >>>
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -575,13 +575,13 @@ task SimulateIlluminaReads {
       --base-calling-profile=~{base_calling} \
       --indel-error-profile=~{indel_error} \
       --gc-bias-profile=~{gc_bias}
-      
+
   >>>
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     maxRetries: 5
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     time:"48:00:00"
     cpu:20
   }

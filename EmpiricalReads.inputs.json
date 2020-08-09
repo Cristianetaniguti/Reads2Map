@@ -1,7 +1,7 @@
 {
-  "EmpiricalReads.Maps.filters": {
+  "EmpiricalReads.filters": {
   },
-  "EmpiricalReads.SNPCalling.splitvcf": {
+  "EmpiricalReads.splitvcf": {
     "chromosome": "Chr10",
     "parent1": "PT_F",
     "parent2": "PT_M"

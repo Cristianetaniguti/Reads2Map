@@ -49,13 +49,13 @@ task RunBwaAlignment {
       mv ~{sampleName}*.bam ~{sampleName}.sorted.bam
       mv ~{sampleName}*.bai ~{sampleName}.sorted.bam.bai
     fi
-    
+
   >>>
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
     time:"72:00:00"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:20
   }
 
@@ -88,13 +88,13 @@ task AddAlignmentHeader {
       TMP_DIR=tmp
 
     mv ~{sampleName}_rg.bai ~{sampleName}_rg.bam.bai
-    
+
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
     time:"24:00:00"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
   }
 

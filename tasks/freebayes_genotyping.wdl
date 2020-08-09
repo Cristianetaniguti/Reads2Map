@@ -52,7 +52,7 @@ workflow FreebayesGenotyping {
         tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
     }
   }
-  
+
   call utils.BamCounts4Onemap {
     input:
       sampleName=sampleNames,
@@ -92,12 +92,12 @@ task RunFreebayes {
   command <<<
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 20 \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
-   
+
   >>>
 
   runtime {
     docker: "taniguti/freebayes"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     time:"72:00:00"
     cpu:20
   }

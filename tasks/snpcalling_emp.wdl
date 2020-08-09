@@ -5,8 +5,7 @@ import "../structs/snpcalling_empS.wdl"
 import "create_alignment_from_families_files.wdl" as fam
 import "gatk_genotyping.wdl" as gatk
 import "freebayes_genotyping.wdl" as freebayes
-import "utils.wdl" as utils
-import "utilsR.wdl" as utilsR
+
 
 workflow SNPCalling{
 
@@ -15,7 +14,7 @@ workflow SNPCalling{
     References references
     SplitVCF splitvcf
   }
-  
+
   call fam.CreateAlignmentFromFamilies {
     input:
       families_info=samples_info.samples_info,
@@ -41,7 +40,7 @@ workflow SNPCalling{
       splitvcf = splitvcf,
       sampleNames = CreateAlignmentFromFamilies.names
   }
-      
+
   output{
     File gatk_vcf = GatkGenotyping.vcf
     File gatk_vcf_bi_tot = GatkGenotyping.vcf_bi_tot

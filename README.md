@@ -35,7 +35,7 @@ docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev java -jar picard.jar Crea
 - popsize: number of individuals at the progenie population
 - enzyme: enzyme cute site
 - seed: seed to reproduce the analysis after - warning: some steps are still random, as the reads simulation
-- depth: sequencing depth (remember that the default mode produce pair-end reads, than the double of the depth here defined) 
+- depth: sequencing depth (remember that the default mode produce pair-end reads, than the double of the depth here defined)
 - doses: file containing the percentage of markers with doses 0, 1 and 2 (when cross is F1)
 - ploidy: the ploidy of the specie, by now only diploid (2) species are supported
 - cross: cross type: "F1" or "F2"
@@ -56,7 +56,7 @@ java -jar cromwell.jar run -i SimulatedReads.inputs.json SimulatedReads.inputs.w
 * Adapt the path of the inputs in `EmpiricalReads.inputs.json`
 
 *empirical.references*
-- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time) 
+- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time)
 - ref_fasta_index: index made by samtools faidx
 - ref_dict: index made by picard dict
 - ref_sa: index made by bwa index
@@ -77,7 +77,7 @@ You can use docker images to create this indexes, see in `Run SimulatedReads wor
 You can download black cottonwood genome assembly (FASTA) and RADseq reads from NCBI for testing.
 
 ```
-# Download a subset of RADseq data from populus study using the docker image "cristaniguti/sratoolkit" with the SRA toolkit 
+# Download a subset of RADseq data from populus study using the docker image "cristaniguti/sratoolkit" with the SRA toolkit
 
 for i in SRR6249785 SRR6249786 SRR6249787 SRR6249788; do
     docker run -v $(pwd):/opt/ cristaniguti/sratoolkit ./fasterq-dump $i -O /opt/
@@ -87,7 +87,7 @@ done
 # Here there are enought data to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 20 progeny individuals. The original study have eight replicates for each parent and 122 progenies.
 # Access all samples in the BioProject	PRJNA395596
 
-# Download the reference genome in https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa 
+# Download the reference genome in https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa
 # Here we only use the first 2500 lines of chromosome 10
 
 ```

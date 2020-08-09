@@ -126,7 +126,7 @@ task JointTables{
     datas[[9]] <- c("~{sep=";" data9}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
-    
+
     Rdata_lst <- data_lst <- datas_up <- list()
     for(j in 1:length(datas)){
       if(j == 6){
@@ -155,20 +155,20 @@ task JointTables{
         datas_up[[j]] <- dat
       }
     }
-    
+
     result_list <- adapt2app(datas_up)
-    
+
     saveRDS(result_list[[1]], file="data1.rds")
     saveRDS(result_list[[2]], file="data2.rds")
     saveRDS(result_list[[3]], file="data3.rds")
     saveRDS(result_list[[4]], file="data4.rds")
     saveRDS(result_list[[5]], file="data5.rds")
     saveRDS(datas_up[[9]], file="simu_haplo.rds")
-    
+
     choices <- result_list[[6]]
     save(choices, file = "choices.RData")
     saveRDS(datas_up[[8]], file = "names.rds")
-    
+
     system("mkdir SimulatedReads_results_depth~{depth}")
     system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")

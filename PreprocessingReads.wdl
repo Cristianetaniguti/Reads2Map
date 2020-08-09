@@ -14,7 +14,7 @@ workflow PreprocessingReads{
         raw_dict = spec.raw_dict,
         barcodes = spec.barcodes
     }
-    
+
     scatter(sequence in ProcessRadTags.seq_results){
       call RemoveAdapt{
         input:
@@ -23,7 +23,7 @@ workflow PreprocessingReads{
           sequence_name = basename(sequence)
       }
     }
-    
+
     call TarFiles{
       input:
         sequences = RemoveAdapt.trim_seq
@@ -46,12 +46,12 @@ task ProcessRadTags{
     command <<<
       mkdir raw process_radtags_results
       tar -xf ~{raw_dict} -C raw
-      
+
       process_radtags -p raw/ -o process_radtags_results/ \
                       ~{"-b " + barcodes} \
                       --renz_1 ~{enzyme} ~{"--renz_2 " + enzyme2} \
                       -r -c -q -w 0.5
-      
+
     >>>
 
     runtime{
@@ -70,11 +70,11 @@ task RemoveAdapt{
     String adapter
     String sequence_name
   }
-  
+
   command <<<
     cutadapt -a ~{adapter} -o ~{sequence_name}_trim.fastq.gz ~{sequence} --minimum-length 64
   >>>
-  
+
   runtime{
     docker:"kfdrc/cutadapt"
   }
@@ -88,13 +88,13 @@ task TarFiles{
   input{
     Array[File] sequences
   }
-  
+
   command <<<
     mkdir results
     mv ~{sep=" " sequences} results
     tar -czvf results.tar.gz results
   >>>
-  
+
   runtime{
     docker:"kfdrc/cutadapt"
   }

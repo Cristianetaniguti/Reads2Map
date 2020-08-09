@@ -21,7 +21,7 @@ workflow Maps{
     File gatk_vcf_bam_counts
     File freebayes_vcf_bam_counts
   }
-  
+
   call utils.ApplyRandomFilters{
     input:
       gatk_vcf = gatk_vcf,
@@ -33,11 +33,11 @@ workflow Maps{
       Filter3 = filters.Filter3,
       Filter4 = filters.Filter4
   }
-  
+
   Array[String] methods = ["gatk", "freebayes"]
   Array[File] vcfs = [ApplyRandomFilters.gatk_vcf_filt, ApplyRandomFilters.freebayes_vcf_filt]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
-  
+
   scatter (vcf in program_and_vcf){
     call utilsR.vcf2onemap{
       input:
@@ -47,7 +47,7 @@ workflow Maps{
         parent1 = dataset.parent1,
         parent2 = dataset.parent2
     }
-    
+
     call default.DefaultMaps{
       input:
         onemap_obj = vcf2onemap.onemap_obj,
@@ -60,7 +60,7 @@ workflow Maps{
         cross = dataset.cross,
         chromosome = dataset.chromosome
     }
-    
+
     call snpcaller.SNPCallerMaps{
       input:
         onemap_obj = vcf2onemap.onemap_obj,
@@ -73,23 +73,23 @@ workflow Maps{
         parent2 = dataset.parent2,
         chromosome = dataset.chromosome
     }
-    
+
     call utils.Gambis{
       input:
         gatk_vcf_bam_counts = ApplyRandomFilters.gatk_vcf_bam_counts_filt,
         freebayes_vcf_bam_counts = ApplyRandomFilters.freebayes_vcf_bam_counts_filt,
         method = vcf.left
     }
-    
+
     Array[String] counts     = ["vcf", "bam"]
     Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
     Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
-    
+
     scatter(vcf_counts in counts_and_vcf){
         call updog.UpdogMaps{
           input:
             onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right, 
+            vcf_file = vcf_counts.right,
             SNPCall_program = vcf.left,
             GenotypeCall_program = "updog",
             CountsFrom = vcf_counts.left,
@@ -98,11 +98,11 @@ workflow Maps{
             parent2 = dataset.parent2,
             chromosome = dataset.chromosome
         }
-        
+
         call supermassa.SupermassaMaps{
           input:
-            onemap_obj = vcf2onemap.onemap_obj,            
-            vcf_file = vcf_counts.right, 
+            onemap_obj = vcf2onemap.onemap_obj,
+            vcf_file = vcf_counts.right,
             SNPCall_program = vcf.left,
             GenotypeCall_program = "supermassa",
             CountsFrom = vcf_counts.left,
@@ -111,11 +111,11 @@ workflow Maps{
             parent2 = dataset.parent2,
             chromosome = dataset.chromosome
         }
-        
+
         call polyrad.PolyradMaps{
           input:
-            onemap_obj = vcf2onemap.onemap_obj,            
-            vcf_file = vcf_counts.right, 
+            onemap_obj = vcf2onemap.onemap_obj,
+            vcf_file = vcf_counts.right,
             SNPCall_program = vcf.left,
             GenotypeCall_program = "polyrad",
             CountsFrom = vcf_counts.left,
@@ -167,7 +167,7 @@ workflow Maps{
     Gusmap_maps_report = flatten(GusmapMaps.maps_report),
     Gusmap_times = flatten(GusmapMaps.times)
   }
-  
+
   output{
     File EmpiricalReads_results = JointReports.EmpiricalReads_results
   }
@@ -175,36 +175,36 @@ workflow Maps{
 
 task JointReports{
   input{
-    Array[File] default_RDatas 
-    Array[File] default_maps_report 
-    Array[File] default_filters_report 
+    Array[File] default_RDatas
+    Array[File] default_maps_report
+    Array[File] default_filters_report
     Array[File] default_errors_report
     Array[File] default_times
-    Array[File] SNPCaller_RDatas 
-    Array[File] SNPCaller_maps_report 
-    Array[File] SNPCaller_filters_report 
+    Array[File] SNPCaller_RDatas
+    Array[File] SNPCaller_maps_report
+    Array[File] SNPCaller_filters_report
     Array[File] SNPCaller_errors_report
     Array[File] SNPCaller_times
-    Array[File] Updog_RDatas 
-    Array[File] Updog_maps_report 
-    Array[File] Updog_filters_report 
+    Array[File] Updog_RDatas
+    Array[File] Updog_maps_report
+    Array[File] Updog_filters_report
     Array[File] Updog_errors_report
     Array[File] Updog_times
-    Array[File] Polyrad_RDatas 
-    Array[File] Polyrad_maps_report 
-    Array[File] Polyrad_filters_report 
+    Array[File] Polyrad_RDatas
+    Array[File] Polyrad_maps_report
+    Array[File] Polyrad_filters_report
     Array[File] Polyrad_errors_report
     Array[File] Polyrad_times
-    Array[File] Supermassa_RDatas 
-    Array[File] Supermassa_maps_report 
-    Array[File] Supermassa_filters_report 
+    Array[File] Supermassa_RDatas
+    Array[File] Supermassa_maps_report
+    Array[File] Supermassa_filters_report
     Array[File] Supermassa_errors_report
     Array[File] Supermassa_times
-    Array[File] Gusmap_RDatas 
-    Array[File] Gusmap_maps_report 
+    Array[File] Gusmap_RDatas
+    Array[File] Gusmap_maps_report
     Array[File] Gusmap_times
   }
-  
+
   command <<<
      R --vanilla --no-save <<RSCRIPT
       # I needed to split in groups because of R character limit size
@@ -212,106 +212,106 @@ task JointReports{
       system("cat ~{sep= ' ' Updog_maps_report} ~{sep= ' ' Polyrad_maps_report} > temp_map2")
       system("cat ~{sep= ' ' Supermassa_maps_report}  ~{sep= ' ' Gusmap_maps_report} > temp_map3")
       system("cat temp_map1 temp_map2  temp_map3 > all_maps.txt")
-     
+
       system("cat ~{sep= ' ' default_filters_report} ~{sep= ' ' SNPCaller_filters_report} > temp_filters1")
       system("cat ~{sep= ' ' Updog_filters_report} ~{sep= ' ' Polyrad_filters_report} > temp_filters2")
       system("cat ~{sep= ' ' Supermassa_filters_report} > temp_filters3")
       system("cat temp_filters1 temp_filters2 temp_filters3 > all_filters.txt")
-     
+
       system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} > temp_errors1")
       system("cat ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} > temp_errors2")
       system("cat ~{sep= ' ' Supermassa_errors_report} > temp_errors3")
       system("cat temp_errors1 temp_errors2 temp_errors3 > all_errors.txt")
-      
+
       system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} > temp_times1")
       system("cat ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} > temp_times2")
       system("cat ~{sep= ' ' Supermassa_times}  ~{sep= ' ' Gusmap_times} > temp_times3")
       system("cat temp_times1 temp_times2 temp_times3 > all_times.txt")
-      
+
       # RDatas need to be load
       system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  .")
       system("cp ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas} .")
       system("cp ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
-      
+
      library(tidyr)
      library(largeList)
      library(data.table)
      source("/opt/scripts/functions_empirical.R")
-        
+
      Genocall <- c("default", "SNPCaller", "updog", "supermassa", "polyrad", "gusmap",
                    "default0.05", "updog0.05", "supermassa0.05", "polyrad0.05")
      fake <- c(TRUE, FALSE)
      CountsFrom <- c("vcf", "bam")
      SNPCall <- c("gatk", "freebayes")
-     
+
       df <- data.frame(SNPCall, CountsFrom, Genocall)
       df <- tidyr::expand(df, SNPCall, CountsFrom, Genocall)
       df <- as.data.frame(df)
       df <- df[-which((df[,3] == "default" | df[,3] == "default0.05" | df[,3] == "SNPCaller" ) & df[,2] == "bam"),]
       RDatas_names <- paste0("map_",df[,1],"_",df[,2], "_", df[,3],".RData")
-      
+
       all_RDatas <- list()
       for(i in 1:length(RDatas_names)){
          map_temp <- load(RDatas_names[i])
          all_RDatas[[i]] <- get(map_temp)
       }
-      
+
       names(all_RDatas) <- RDatas_names
       gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
       RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
-      
+
       # Converting OneMap sequencig objects to list. LargeList do not accept other class
       # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
-      
+
       for(i in 1:length(RDatas)){
         class(RDatas[[i]]) <- "list"
       }
-      
+
        saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
-       
+
        new_names <- names(all_RDatas)
        saveRDS(new_names, file = "names.rds")
        save(gusmap_RDatas, file = "gusmap_RDatas.RData")
-       
+
        all_errors <- fread("all_errors.txt")
-       colnames(all_errors) <- c("SNPCall", "CountsFrom", "GenoCall", "mks", "ind", "alt", "ref", 
+       colnames(all_errors) <- c("SNPCall", "CountsFrom", "GenoCall", "mks", "ind", "alt", "ref",
                                  "gt.onemap", "gt.vcf", "A", "AB", "BA", "B")
        all_errors <- fix_genocall_names(all_errors)
        saveRDS(all_errors, "data1_depths_geno_prob.rds")
-       
+
        all_filters <- fread("all_filters.txt")
-       colnames(all_filters) <- c("CountsFrom", "SNPCall", "GenoCall", 
-                                  "miss", "n_markers", "n_markers_selected_chr", 
+       colnames(all_filters) <- c("CountsFrom", "SNPCall", "GenoCall",
+                                  "miss", "n_markers", "n_markers_selected_chr",
                                   "selected_chr_no_dist", "distorted_markers",
                                   "redundant_markers", "non-grouped_markers")
        all_filters <- fix_genocall_names(all_filters)
        saveRDS(all_filters, "data3_filters.rds")
-       
+
        all_maps <- fread("all_maps.txt")
        colnames(all_maps) <- c("CountsFrom", "SNPCall", "GenoCall", "mks", "pos", "cm", "mk.type", "phase")
        all_maps <- fix_genocall_names(all_maps)
        saveRDS(all_maps, "data2_maps.rds")
-       
+
        all_times <- fread("all_times.txt")
        colnames(all_times) <- c("SNPCall", "CountsFrom", "GenoCall", "time")
        all_times <- fix_genocall_names(all_times)
        saveRDS(all_times, "data4_times.rds")
-      
+
        system("mkdir EmpiricalReads_results")
        system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.rds data2_maps.rds data3_filters.rds data4.rds data4_times.rds names.rds EmpiricalReads_results")
        system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
- 
+
      RSCRIPT
-     
+
   >>>
-  
+
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"48:00:00"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
   }
-  
+
   output{
     File EmpiricalReads_results = "EmpiricalReads_results.tar.gz"
   }

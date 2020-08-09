@@ -63,13 +63,13 @@ workflow reads_simu {
       seed          = family.seed,
       depth         = family.depth
   }
-  
+
   call simulated_map.SimulatedMap{
     input:
       vcf_simu = CreateAlignmentFromSimulation.true_vcf,
       cross = family.cross
   }
-  
+
   call utils.ApplyRandomFilters{
     input:
       gatk_vcf = GatkGenotyping.vcf,
@@ -81,13 +81,13 @@ workflow reads_simu {
       Filter3 = filters.Filter3,
       Filter4 = filters.Filter4
   }
-  
+
   Array[String] methods                     = ["gatk", "freebayes"]
   Array[File] vcfs = [ApplyRandomFilters.gatk_vcf_filt, ApplyRandomFilters.freebayes_vcf_filt]
   Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
 
   scatter (vcf in program_and_vcf){
-  
+
     call utilsR.vcf2onemap{
       input:
         vcf_file = vcf.right,
@@ -96,7 +96,7 @@ workflow reads_simu {
         parent1 = "P1",
         parent2 = "P2"
     }
-  
+
     call default.DefaultMaps{
       input:
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
@@ -109,7 +109,7 @@ workflow reads_simu {
         cMbyMb = family.cmBymb,
         cross = family.cross
     }
-    
+
     call snpcaller.SNPCallerMaps{
       input:
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
@@ -123,24 +123,24 @@ workflow reads_simu {
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb
     }
-    
+
     call utils.Gambis{
       input:
         gatk_vcf_bam_counts = ApplyRandomFilters.gatk_vcf_bam_counts_filt,
         freebayes_vcf_bam_counts = ApplyRandomFilters.freebayes_vcf_bam_counts_filt,
         method = vcf.left
     }
-    
+
     Array[String] counts     = ["vcf", "bam"]
     Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
     Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
-    
+
     scatter(vcf_counts in counts_and_vcf){
         call updog.UpdogMaps{
           input:
             simu_onemap_obj = SimulatedMap.simu_onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right, 
+            vcf_file = vcf_counts.right,
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
             SNPCall_program = vcf.left,
@@ -149,12 +149,12 @@ workflow reads_simu {
             cMbyMb = family.cmBymb,
             cross = family.cross
         }
-        
+
         call supermassa.SupermassaMaps{
           input:
             simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-            onemap_obj = vcf2onemap.onemap_obj,            
-            vcf_file = vcf_counts.right, 
+            onemap_obj = vcf2onemap.onemap_obj,
+            vcf_file = vcf_counts.right,
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
             SNPCall_program = vcf.left,
@@ -163,12 +163,12 @@ workflow reads_simu {
             cMbyMb = family.cmBymb,
             cross = family.cross
         }
-        
+
         call polyrad.PolyradMaps{
           input:
             simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-            onemap_obj = vcf2onemap.onemap_obj,            
-            vcf_file = vcf_counts.right, 
+            onemap_obj = vcf2onemap.onemap_obj,
+            vcf_file = vcf_counts.right,
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
             SNPCall_program = vcf.left,
@@ -231,7 +231,7 @@ workflow reads_simu {
     freebayes_ref_depth       = CalculateVcfMetrics.freebayes_ref_depth,
     freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth
   }
-  
+
   output{
     File data1_depths_geno_prob   = JointReports.data1_depths_geno_prob
     File data2_maps               = JointReports.data2_maps
@@ -247,33 +247,33 @@ workflow reads_simu {
 
 task JointReports{
   input{
-    Array[File] default_RDatas 
-    Array[File] default_maps_report 
-    Array[File] default_filters_report 
+    Array[File] default_RDatas
+    Array[File] default_maps_report
+    Array[File] default_filters_report
     Array[File] default_errors_report
     Array[File] default_times
-    Array[File] SNPCaller_RDatas 
-    Array[File] SNPCaller_maps_report 
-    Array[File] SNPCaller_filters_report 
+    Array[File] SNPCaller_RDatas
+    Array[File] SNPCaller_maps_report
+    Array[File] SNPCaller_filters_report
     Array[File] SNPCaller_errors_report
     Array[File] SNPCaller_times
-    Array[File] Updog_RDatas 
-    Array[File] Updog_maps_report 
-    Array[File] Updog_filters_report 
+    Array[File] Updog_RDatas
+    Array[File] Updog_maps_report
+    Array[File] Updog_filters_report
     Array[File] Updog_errors_report
     Array[File] Updog_times
-    Array[File] Polyrad_RDatas 
-    Array[File] Polyrad_maps_report 
-    Array[File] Polyrad_filters_report 
+    Array[File] Polyrad_RDatas
+    Array[File] Polyrad_maps_report
+    Array[File] Polyrad_filters_report
     Array[File] Polyrad_errors_report
     Array[File] Polyrad_times
-    Array[File] Supermassa_RDatas 
-    Array[File] Supermassa_maps_report 
-    Array[File] Supermassa_filters_report 
+    Array[File] Supermassa_RDatas
+    Array[File] Supermassa_maps_report
+    Array[File] Supermassa_filters_report
     Array[File] Supermassa_errors_report
     Array[File] Supermassa_times
-    Array[File] Gusmap_RDatas 
-    Array[File] Gusmap_maps_report 
+    Array[File] Gusmap_RDatas
+    Array[File] Gusmap_maps_report
     Array[File] Gusmap_times
     Int depth
     Int seed
@@ -286,65 +286,65 @@ task JointReports{
     File freebayes_ref_depth
     File freebayes_alt_depth
   }
-  
+
   command <<<
      R --vanilla --no-save <<RSCRIPT
-     
+
       # Joint reports
       # I needed to split in groups because of R character limit size
       system("cat ~{sep= ' ' default_maps_report} ~{sep= ' ' SNPCaller_maps_report} > temp_map1")
       system("cat ~{sep= ' ' Updog_maps_report} ~{sep= ' ' Polyrad_maps_report} > temp_map2")
       system("cat ~{sep= ' ' Supermassa_maps_report}  ~{sep= ' ' Gusmap_maps_report} > temp_map3")
       system("cat temp_map1 temp_map2  temp_map3 > all_maps.txt")
-     
+
       system("cat ~{sep= ' ' default_filters_report} ~{sep= ' ' SNPCaller_filters_report} > temp_filters1")
       system("cat ~{sep= ' ' Updog_filters_report} ~{sep= ' ' Polyrad_filters_report} > temp_filters2")
       system("cat ~{sep= ' ' Supermassa_filters_report} > temp_filters3")
       system("cat temp_filters1 temp_filters2 temp_filters3 > all_filters.txt")
-     
+
       system("cat ~{sep= ' '  default_errors_report} ~{sep= ' ' SNPCaller_errors_report} > temp_errors1")
       system("cat ~{sep= ' ' Updog_errors_report} ~{sep= ' ' Polyrad_errors_report} > temp_errors2")
       system("cat ~{sep= ' ' Supermassa_errors_report} > temp_errors3")
       system("cat temp_errors1 temp_errors2 temp_errors3 > all_errors.txt")
-      
+
       system("cat ~{sep= ' '  default_times} ~{sep= ' ' SNPCaller_times} > temp_times1")
       system("cat ~{sep= ' ' Updog_times} ~{sep= ' ' Polyrad_times} > temp_times2")
       system("cat ~{sep= ' ' Supermassa_times}  ~{sep= ' ' Gusmap_times} > temp_times3")
       system("cat temp_times1 temp_times2 temp_times3 > all_times.txt")
-      
+
       # RDatas need to be load
       system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  .")
       system("cp ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas} .")
       system("cp ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
-      
+
       library(tidyr)
       library(reshape2)
       library(largeList)
-      
+
       depth <- ~{depth}
       seed <- ~{seed}
-      
+
       all_errors <- read.table("all_errors.txt")
-      
+
       # Adding allele counts to the report
       gatk.ref.depth <- read.table("~{gatk_ref_depth}")
-      
+
       chr <- unique(sapply(strsplit(rownames(gatk.ref.depth), "_"), "[",1))
-      
+
       all_errors[,5] <- paste0(chr, "_",all_errors[,5])
       colnames(all_errors) <- c("SNPCall", "GenoCall", "CountsFrom", "ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
-      
-      files <- list(c("~{gatk_ref_depth}", "~{gatk_alt_depth}"), c("~{gatk_ref_depth_bam}", "~{gatk_alt_depth_bam}"),  
-                    c("~{freebayes_ref_depth}", "~{freebayes_alt_depth}"), c("~{freebayes_ref_depth_bam}", 
+
+      files <- list(c("~{gatk_ref_depth}", "~{gatk_alt_depth}"), c("~{gatk_ref_depth_bam}", "~{gatk_alt_depth_bam}"),
+                    c("~{freebayes_ref_depth}", "~{freebayes_alt_depth}"), c("~{freebayes_ref_depth_bam}",
                                                                                "~{freebayes_alt_depth_bam}"))
       ref_alt <- c("ref", "alt")
       SNPCall <- rep(c("gatk", "freebayes"), each=4)
       CountsFrom <- rep(c("vcf", "bam"),2, each=2)
-      
+
       ########################################################################################
       # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
       ########################################################################################
-      
+
       # Binding depth information for each genotype
       z <- 1
       data1 <- data.frame()
@@ -358,45 +358,45 @@ task JointReports{
           alleles <- cbind(SNPCall=SNPCall[z], CountsFrom = CountsFrom[z], alleles)
           z <- z+ 1
           df_meth <- merge(df_meth, alleles, by = c("SNPCall", "CountsFrom", "ind", "mks"))
-          
+
         }
         data1 <- rbind(data1, df_meth)
       }
-      
+
       # Adding seed and depth info
       all_errors <- cbind(seed, depth, data1)
-      
+
       ########################################################
       # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; real_phases
       ########################################################
       # Add seed and mean depth information
       all_maps <- read.table("all_maps.txt")
       all_maps <- cbind(seed=seed, depth=depth, all_maps)
-      
+
       ##########################################################################
       # Table3: CountsFrom; seed; SNPcall; GenoCall; n_mks; distorted; redundant
       ##########################################################################
       all_filters <- read.table("all_filters.txt")
       all_filters <- cbind(seed=seed, depth=depth, all_filters)
-      
+
       ###########################################################################
       # Table4: CountsFrom; seed; SNPcall; GenoCall
       ###########################################################################
       all_times <- read.table("all_times.txt", stringsAsFactors = F)
-      
+
       temp <- strsplit(all_times[,2], "_")
       temp <- do.call(rbind, temp)
       temp <- temp[,-1]
       colnames(temp) <- c("SNPCall", "CountsFrom", "GenoCall", "fake")
       all_times <- cbind(seed=seed, depth=depth, temp, time= all_times[,3])
-    
+
       ###########################################################################
       # Table6: list of RDatas with name CountsFrom; seed; depth; SNPcall; GenoCall
       ###########################################################################
       Genocall <- c("default", "SNPCaller", "updog", "supermassa", "polyrad", "gusmap",
                     "default0.05", "updog0.05", "supermassa0.05", "polyrad0.05")
       fake <- c(TRUE, FALSE)
-      
+
       CountsFrom <- c("vcf", "bam")
       SNPCall <- c("gatk", "freebayes")
       df <- data.frame(SNPCall, CountsFrom, Genocall)
@@ -404,7 +404,7 @@ task JointReports{
       df <- as.data.frame(df)
       df <- df[-which((df[,3] == "default" | df[,3] == "default0.05" | df[,3] == "SNPCaller" ) & df[,2] == "bam"),]
       RDatas_names <- paste0("map_",df[,1],"_",df[,2], "_", df[,3],".RData")
-      
+
       all_RDatas <- list()
       for(i in 1:length(RDatas_names)){
          map_temp <- load(RDatas_names[i])
@@ -415,40 +415,40 @@ task JointReports{
       all_names <- names(all_RDatas)
       new_names <- paste0(seed, "_", depth, "_", all_names)
       names(all_RDatas) <- new_names
-    
+
       # Outputs
       saveRDS(all_errors, file = "data1_depths_geno_prob.rds")
       saveRDS(all_maps, file = "data2_maps.rds")
       saveRDS(all_filters, file = "data3_filters.rds")
       saveRDS(all_times, file= "data4_times.rds")
-      
+
       gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
       RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
-      
+
       # Converting OneMap sequencig objects to list. LargeList do not accept other class
       # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
-      
+
       for(i in 1:length(RDatas)){
         class(RDatas[[i]]) <- "list"
       }
-      
+
       saveList(RDatas, file = "data6_RDatas.llo", append=FALSE, compress=TRUE)
-      
+
       # LargeList package limits to 16 letters each character, therefore, the entire names are stored in a separated vector
       saveRDS(new_names, file = "names.rds")
       save(gusmap_RDatas, file = "gusmap_RDatas.RData")
-      
+
      RSCRIPT
-     
+
   >>>
-  
+
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"48:00:00"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
   }
-  
+
   output{
     File data1_depths_geno_prob = "data1_depths_geno_prob.rds"
     File data2_maps = "data2_maps.rds"

@@ -10,4 +10,3 @@
   "SplitFiltVCF.vcf_in": "/home/cristiane/github/fromHPC/scratch/7932315/up_26_06/onemap_workflows/cromwell-executions/SNPCalling/111ba51a-4c00-4d17-a46c-e6dfe3c5015d/call-GatkGenotyping/GatkGenotyping/d1e49fee-6062-49e7-8db4-33b2cf0ccb78/call-GenotypeGVCFs/execution/gatk.vcf.gz",
   "SplitFiltVCF.parent1": "PT_F"
 }
-

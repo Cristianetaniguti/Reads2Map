@@ -43,7 +43,7 @@ workflow GatkGenotyping {
       fasta_fai=references.ref_fasta_index,
       fasta_dict=references.ref_dict
   }
-  
+
   call norm_filt.SplitFiltVCF{
     input:
       vcf_in=GenotypeGVCFs.vcf,
@@ -69,7 +69,7 @@ workflow GatkGenotyping {
         tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
     }
   }
-  
+
   call utils.BamCounts4Onemap {
     input:
       sampleName=sampleNames,
@@ -115,12 +115,12 @@ task HaplotypeCallerERC {
       -I ~{bam_rg} \
       -O ~{sampleName}_rawLikelihoods.g.vcf \
       --max-reads-per-alignment-start 0
-      
+
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"120:00:00"
   }
@@ -140,22 +140,22 @@ task CreateGatkDatabase {
   }
 
   command <<<
-     
+
      grep ">" ~{ref} > interval_list_temp
-     sed 's/^.//' interval_list_temp > interval.list 
-      
+     sed 's/^.//' interval_list_temp > interval.list
+
      /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
         -L interval.list \
         -V ~{sep=" -V "  GVCFs}
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
-     
+
   >>>
 
   runtime {
       docker: "taniguti/gatk-picard"
-      mem:"--nodes=1"
+      # mem:"--nodes=1"
       cpu:1
       time:"120:00:00"
   }
@@ -178,18 +178,18 @@ task GenotypeGVCFs {
   command <<<
     tar -xf ~{workspace_tar}
     WORKSPACE=$( basename ~{workspace_tar} .tar)
-    
+
     /gatk/gatk GenotypeGVCFs \
         -R ~{fasta} \
         -O gatk.vcf.gz \
         -G StandardAnnotation \
         -V gendb://$WORKSPACE
-    
+
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
-    mem:"--nodes=1"
+    # mem:"--nodes=1"
     cpu:1
     time:"120:00:00"
   }
