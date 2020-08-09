@@ -31,7 +31,8 @@ workflow Maps{
       Filter1 = filters.Filter1,
       Filter2 = filters.Filter2,
       Filter3 = filters.Filter3,
-      Filter4 = filters.Filter4
+      Filter4 = filters.Filter4,
+      Filter5 = filters.Filter5
   }
   
   Array[String] methods = ["gatk", "freebayes"]

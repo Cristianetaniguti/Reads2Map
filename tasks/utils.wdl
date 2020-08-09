@@ -325,16 +325,16 @@ task BamCounts4Onemap{
           }
         }
       }
-        rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
-        colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
+     
+      rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
+      colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
         
-        alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
-        write.table(alleles, file = paste0("~{method}","_ref_alt_alleles.txt"), col.names = F, row.names = F)
+      alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
+      write.table(alleles, file = paste0("~{method}","_ref_alt_alleles.txt"), col.names = F, row.names = F)
         
-        write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-        write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+      write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+      write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
       
-
     RSCRIPT
     
   >>>
