@@ -46,7 +46,6 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
   bins <- onemap::find_bins(onemap_mis, exact=F)
   onemap_bins <- onemap::create_data_bins(onemap_mis, bins)
   bins <- onemap::find_bins_by_probs(onemap_mis, threshold.probs = 0.001, threshold.count = 0.05)
-  onemap_bins2 <- onemap::create_data_bins_by_prob(onemap_mis, bins)
   segr <- onemap::test_segregation(onemap_bins)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
@@ -59,7 +58,6 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
                             "n_markers"= total_variants,
                             "higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
                             "redundant_markers"=onemap_mis$n.mar - onemap_bins$n.mar,
-                            "redundant_markers2"=onemap_mis$n.mar - onemap_bins2$n.mar,
                             "distorted_markers"=length(distorted),
                             "n_markers_filtered" = length(seq1$seq.num))
   
@@ -389,7 +387,7 @@ adapt2app <- function(data){
   
   ###
   colnames(data[[3]]) <- c("seed", "depth", "SNPCall", "GenoCall", "CountsFrom", "n_markers", 
-                           "higher than 25% missing", "redundant_markers", "redundant_markers2", 
+                           "higher than 25% missing", "redundant_markers", 
                            "distorted_markers", "n_markers_filtered")
   
   data[[3]] <- fix_genocall_names(data[[3]])

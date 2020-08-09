@@ -324,7 +324,7 @@ task BamCounts4Onemap{
             alt_allele[idx.alt] <- file.counts[idx.alt,6]
           }
         }
-        
+      }
         rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
         colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
         
@@ -333,7 +333,7 @@ task BamCounts4Onemap{
         
         write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
         write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-      }
+      
 
     RSCRIPT
     
@@ -410,5 +410,26 @@ task Gambis {
   output{
     File choosed_bam = "choosed_bam.vcf"
   }
+}
 
+task FiltChr{
+  input{
+    File vcf_bam
+    String chromosome
+  }
+  
+  command <<<
+    vcftools --gzvcf ~{vcf_bam} --chr ~{chromosome} --recode --stdout > bam_chr.vcf
+  >>>
+  
+  runtime{
+    docker:"taniguti/vcftools"
+    mem:"--nodes=1"
+    cpu:1
+    time:"24:00:00"
+  }
+  
+  output{
+    File bam_chr = "bam_chr.vcf"
+  }
 }
