@@ -15,7 +15,7 @@ import "utilsR.wdl" as utilsR
 struct PopulationAnalysis {
     String method
     File vcf
-    File bamcount
+    File bam
 }
 
 workflow Maps {
@@ -45,13 +45,8 @@ workflow Maps {
     File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, freebayes_vcf])
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, freebayes_vcf_bam_counts])
 
-
-    # Array[String] methods = ["gatk", "freebayes"]
-    # Array[File] vcfs = [filtered_gatk_vcf, filtered_freebayes_vcf]
-    # Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
-
-    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bamcount": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bamcount": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
     scatter (analysis in [gatk_processing, freebayes_processing]) {
 
@@ -90,25 +85,16 @@ workflow Maps {
                 chromosome = dataset.chromosome
         }
 
-        call utils.Gambis {
-            input:
-                gatk_vcf_bam_counts = filtered_gatk_vcf_bamcounts,
-                freebayes_vcf_bam_counts = filtered_freebayes_vcf_bamcounts,
-                method = vcf.left
-        }
+        Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
 
-        Array[String] counts     = ["vcf", "bam"]
-        Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
-        Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
-
-        scatter(vcf_counts in counts_and_vcf){
+        scatter (origin in ["vcf", "bam"]) {
             call updog.UpdogMaps {
                 input:
                     onemap_obj = vcf2onemap.onemap_obj,
-                    vcf_file = vcf_counts.right,
-                    SNPCall_program = vcf.left,
+                    vcf_file = vcfs[origin],
+                    SNPCall_program = analysis.method,
                     GenotypeCall_program = "updog",
-                    CountsFrom = vcf_counts.left,
+                    CountsFrom = origin,
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
@@ -118,10 +104,10 @@ workflow Maps {
             call supermassa.SupermassaMaps {
                 input:
                     onemap_obj = vcf2onemap.onemap_obj,
-                    vcf_file = vcf_counts.right,
-                    SNPCall_program = vcf.left,
+                    vcf_file = vcfs[origin],
+                    SNPCall_program = analysis.method,
                     GenotypeCall_program = "supermassa",
-                    CountsFrom = vcf_counts.left,
+                    CountsFrom = origin,
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
@@ -131,10 +117,10 @@ workflow Maps {
             call polyrad.PolyradMaps {
                 input:
                     onemap_obj = vcf2onemap.onemap_obj,
-                    vcf_file = vcf_counts.right,
-                    SNPCall_program = vcf.left,
+                    vcf_file = vcfs[origin],
+                    SNPCall_program = analysis.method,
                     GenotypeCall_program = "polyrad",
-                    CountsFrom = vcf_counts.left,
+                    CountsFrom = origin,
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
@@ -144,9 +130,9 @@ workflow Maps {
 
         call gusmap.GusmapMaps {
             input:
-                vcf_file = vcf.right,
-                new_vcf_file = Gambis.choosed_bam,
-                SNPCall_program = vcf.left,
+                vcf_file = analysis.vcf,
+                new_vcf_file = analysis.bam,
+                SNPCall_program = analysis.method,
                 GenotypeCall_program = "gusmap",
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2
