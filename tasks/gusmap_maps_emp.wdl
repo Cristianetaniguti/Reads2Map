@@ -1,7 +1,7 @@
 version 1.0
 
 
-workflow GusmapMaps{
+workflow GusmapMaps {
   input {
     File vcf_file
     File new_vcf_file

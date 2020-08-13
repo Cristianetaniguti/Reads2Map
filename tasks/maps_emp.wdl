@@ -4,13 +4,11 @@ import "../structs/maps_empS.wdl"
 
 import "default_maps_emp.wdl" as default
 import "snpcaller_maps_emp.wdl" as snpcaller
-import "updog_maps_emp.wdl" as updog
-import "polyrad_maps_emp.wdl" as polyrad
-import "supermassa_maps_emp.wdl" as supermassa
 import "gusmap_maps_emp.wdl" as gusmap
 import "utils.wdl" as utils
 import "utilsR.wdl" as utilsR
 
+import "./genotyping.wdl" as genotyping
 
 struct PopulationAnalysis {
     String method
@@ -88,7 +86,7 @@ workflow Maps {
         Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
 
         scatter (origin in ["vcf", "bam"]) {
-            call updog.UpdogMaps {
+            call genotyping.SnpBasedGenotypingMaps as UpdogMaps {
                 input:
                     onemap_obj = vcf2onemap.onemap_obj,
                     vcf_file = vcfs[origin],
@@ -101,7 +99,7 @@ workflow Maps {
                     chromosome = dataset.chromosome
             }
 
-            call supermassa.SupermassaMaps {
+            call genotyping.SnpBasedGenotypingMaps as SupermassaMaps {
                 input:
                     onemap_obj = vcf2onemap.onemap_obj,
                     vcf_file = vcfs[origin],
@@ -114,7 +112,7 @@ workflow Maps {
                     chromosome = dataset.chromosome
             }
 
-            call polyrad.PolyradMaps {
+            call genotyping.SnpBasedGenotypingMaps as PolyradMaps {
                 input:
                     onemap_obj = vcf2onemap.onemap_obj,
                     vcf_file = vcfs[origin],

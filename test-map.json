@@ -3,7 +3,7 @@
   "EmpiricalReads.gatk_vcf_bi_bam_count": "/home/taniguti/data/cris/for_lucas/gatk_bam_counts_chr.vcf",
   "EmpiricalReads.gatk_vcf": "/home/taniguti/data/cris/for_lucas/gatk_bi_Chr10.recode.vcf.gz",
   "EmpiricalReads.freebayes_vcf": "/home/taniguti/data/cris/for_lucas/freebayes_bi_Chr10.recode.vcf.gz",
-  "EmpiricalReads.filters": {},
+  "EmpiricalReads.filters": null,
   "EmpiricalReads.dataset": {
     "name": "populus",
     "parent1": "PT_F",

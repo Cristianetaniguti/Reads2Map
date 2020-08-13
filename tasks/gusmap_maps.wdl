@@ -1,6 +1,5 @@
 version 1.0
 
-import "./utilsR.wdl" as utilsR
 
 workflow GusmapMaps{
   input{
