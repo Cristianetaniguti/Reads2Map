@@ -14,7 +14,7 @@ workflow EmpiricalReads {
     String? filters
   }
 
-  call maps.Maps{
+  call maps.Maps {
     input:
       dataset = dataset,
       gatk_vcf = gatk_vcf,

@@ -1,7 +1,5 @@
 version 1.0
 
-import "./structs/reads_simuS.wdl"
-import "./structs/snpcalling_empS.wdl"
 import "./tasks/reads_simu.wdl" as sub
 
 workflow SimulatedReads {
@@ -10,6 +8,7 @@ workflow SimulatedReads {
     ReferenceFasta references
     FamilyTemplate family_template
     Profiles profiles
+    SplitVCF splitvcf
     Int number_of_families
   }
 
@@ -23,7 +22,7 @@ workflow SimulatedReads {
 
   # Here we generate Family objects on the fly, based on the values
   # from the family_template and the random seed of the previous task.
-  scatter(seed in ProduceFamiliesSeeds.seeds) {
+  scatter (seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
       "cmBymb": family_template.cmBymb,
       "popsize": family_template.popsize,
@@ -40,7 +39,8 @@ workflow SimulatedReads {
       input:
         profiles=profiles,
         references=references,
-        family=fam
+        family=fam,
+        splitvcf=splitvcf
     }
   }
 
@@ -84,7 +84,7 @@ task ProduceFamiliesSeeds {
     docker: "python:3.7"
     time:"0:05:00"
     cpu:1
-    mem:"--mem-per-cpu=14042"
+    # mem:"--mem-per-cpu=14042"
   }
 
   output {
@@ -180,7 +180,7 @@ task JointTables{
       docker:"gcr.io/taniguti-backups/onemap:v1"
       time:"03:00:00"
       cpu:1
-      mem:"--mem-per-cpu=24042"
+      # mem:"--mem-per-cpu=24042"
   }
 
   output{

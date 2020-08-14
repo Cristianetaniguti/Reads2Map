@@ -1,7 +1,7 @@
 version 1.0
 
-import "../structs/reads_simuS.wdl"
-import "../structs/snpcalling_empS.wdl"
+# import "../structs/reads_simuS.wdl"
+# import "../structs/snpcalling_empS.wdl"
 
 import "./create_alignment_from_read_simulations.wdl" as simulation
 import "./gatk_genotyping.wdl" as gatk

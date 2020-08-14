@@ -12,7 +12,7 @@ struct ReferenceFasta {
 }
 
 struct Family {
-  Float cmBymb
+  String cmBymb
   Int seed
   Int popsize
   String enzyme
@@ -29,7 +29,7 @@ struct Profiles{
 }
 
 struct FamilyTemplate {
-  Float cmBymb
+  String cmBymb
   Int? seed
   Int popsize
   String enzyme

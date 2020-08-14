@@ -27,7 +27,7 @@
   "SimulatedReads.ReadSimulations.filters": {
     "Filter1": "--maf 0.05"
   },
-  "SimulatedReads.ReadSimulations.splitvcf": {
+  "SimulatedReads.splitvcf": {
     "parent2": "P2",
     "parent1": "P1",
     "chromosome": "Chr10"
