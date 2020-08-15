@@ -122,7 +122,7 @@ task GenerateAlternativeGenome {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -312,7 +312,7 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker: "cristaniguti/r-samtools"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -347,7 +347,7 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -404,7 +404,7 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "gcr.io/taniguti-backups/onemap:v1"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -430,7 +430,7 @@ task RunVcf2diploid {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
@@ -530,7 +530,7 @@ task SimulateRADseq {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
   }
@@ -576,7 +576,7 @@ task SimulateIlluminaReads {
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
     maxRetries: 5
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     time:"48:00:00"
     cpu:20
   }

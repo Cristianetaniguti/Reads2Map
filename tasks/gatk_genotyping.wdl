@@ -90,7 +90,7 @@ workflow GatkGenotyping {
       vcf_bam = BamDepths2Vcf.bam_vcf,
       chromosome = splitvcf.chromosome
   }
-  
+
   output {
     File vcf = SplitFiltVCF.vcf_bi_chr_norm
     File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
@@ -126,7 +126,7 @@ task HaplotypeCallerERC {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"120:00:00"
   }
@@ -161,7 +161,7 @@ task CreateGatkDatabase {
 
   runtime {
       docker: "taniguti/gatk-picard"
-      # mem:"--nodes=1"
+      mem:"--nodes=1"
       cpu:1
       time:"120:00:00"
   }
@@ -195,7 +195,7 @@ task GenotypeGVCFs {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     cpu:1
     time:"120:00:00"
   }

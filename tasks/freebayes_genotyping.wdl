@@ -75,7 +75,7 @@ workflow FreebayesGenotyping {
       vcf_bam = BamDepths2Vcf.bam_vcf,
       chromosome = splitvcf.chromosome
   }
-  
+
   output {
     File vcf = SplitFiltVCF.vcf_bi_chr_norm
     File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
@@ -105,7 +105,7 @@ task RunFreebayes {
 
   runtime {
     docker: "taniguti/freebayes"
-    # mem:"--nodes=1"
+    mem:"--nodes=1"
     time:"72:00:00"
     cpu:20
   }
