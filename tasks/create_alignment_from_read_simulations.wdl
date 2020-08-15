@@ -466,7 +466,7 @@ task GenerateSampleNames {
 
   runtime {
     docker: "taniguti/miniconda-alpine"
-    # mem:"--mem-per-cpu=24042"
+    mem:"--mem-per-cpu=24042"
     cpu:1
     time:"24:00:00"
   }

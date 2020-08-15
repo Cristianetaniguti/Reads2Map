@@ -84,7 +84,7 @@ task ProduceFamiliesSeeds {
     docker: "python:3.7"
     time:"0:05:00"
     cpu:1
-    # mem:"--mem-per-cpu=14042"
+    mem:"--mem-per-cpu=14042"
   }
 
   output {
@@ -180,7 +180,7 @@ task JointTables{
       docker:"gcr.io/taniguti-backups/onemap:v1"
       time:"03:00:00"
       cpu:1
-      # mem:"--mem-per-cpu=24042"
+      mem:"--mem-per-cpu=24042"
   }
 
   output{

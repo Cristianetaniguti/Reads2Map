@@ -110,7 +110,7 @@ task BcftoolsMerge {
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
-    # mem:"--mem-per-cpu=24042"
+    mem:"--mem-per-cpu=24042"
     cpu:1
     time:"48:00:00"
   }
