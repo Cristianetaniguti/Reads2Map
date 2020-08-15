@@ -253,12 +253,9 @@ task ErrorsReport{
   }
 }
 
-task GlobalError{
-  input{
+task GlobalError {
+  input {
     File onemap_obj
-    String SNPCall_program
-    String GenotypeCall_program
-    String CountsFrom
   }
 
   command <<<
@@ -274,7 +271,7 @@ task GlobalError{
     RSCRIPT
 
   >>>
-  runtime{
+  runtime {
     docker: "gcr.io/taniguti-backups/onemap:v1"
     time:"72:00:05"
     # mem:"--nodes=1"

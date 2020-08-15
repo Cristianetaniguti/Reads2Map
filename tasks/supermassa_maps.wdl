@@ -8,7 +8,6 @@ workflow SupermassaMaps {
     File onemap_obj
     File vcf_file
     String SNPCall_program
-    String GenotypeCall_program
     String CountsFrom
     String cross
     File real_phases
@@ -23,12 +22,9 @@ workflow SupermassaMaps {
       cross=cross
   }
 
-  call utilsR.GlobalError{
+  call utilsR.GlobalError {
     input:
-      onemap_obj = SupermassaProbs.supermassa_onemap_obj,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      onemap_obj = SupermassaProbs.supermassa_onemap_obj
   }
 
   Array[String] methods                         = ["supermassa", "supermassa0.05"]

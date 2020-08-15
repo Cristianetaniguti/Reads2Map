@@ -10,7 +10,6 @@ workflow PolyradMaps{
     File tot_mks
     File real_phases
     String SNPCall_program
-    String GenotypeCall_program
     String CountsFrom
     String cMbyMb
     String cross
@@ -26,10 +25,7 @@ workflow PolyradMaps{
 
   call utilsR.GlobalError{
     input:
-      onemap_obj = PolyradProbs.polyrad_onemap_obj,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      onemap_obj = PolyradProbs.polyrad_onemap_obj
   }
 
   Array[String] methods                         = ["polyrad", "polyrad0.05"]

@@ -64,9 +64,7 @@ workflow Maps {
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2,
                 SNPCall_program = analysis.method,
-                GenotypeCall_program = "default",
                 CountsFrom = "vcf",
-                cross = dataset.cross,
                 chromosome = dataset.chromosome
         }
 

@@ -29,10 +29,7 @@ workflow SnpBasedGenotypingMaps {
 
   call utilsR.GlobalError{
     input:
-      onemap_obj = OnemapProbs.onemap_obj_out,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      onemap_obj = OnemapProbs.onemap_obj_out
   }
 
   Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05"]

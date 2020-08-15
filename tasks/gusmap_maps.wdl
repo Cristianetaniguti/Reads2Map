@@ -31,7 +31,7 @@ workflow GusmapMaps{
         }
     }
 
-   output{
+   output {
       Array[File] RDatas = GusmapReport.maps_RData
       Array[File] maps_report = GusmapReport.maps_report
       Array[File] times = GusmapReport.times
@@ -39,12 +39,12 @@ workflow GusmapMaps{
 }
 
 task GusmapReport{
-  input{
+  input {
     File vcf_file
-    File simu_onemap_obj
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
+    File simu_onemap_obj
     File tot_mks
     File real_phases
     String cMbyMb

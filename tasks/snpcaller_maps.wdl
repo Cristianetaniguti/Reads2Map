@@ -28,7 +28,7 @@ workflow SNPCallerMaps{
     input:
       onemap_obj = GQProbs.gq_onemap_obj,
       SNPCall_program = SNPCall_program,
-      GenotypeCall_program = "SNPCaller",
+      GenotypeCall_program = GenotypeCall_program,
       CountsFrom = "vcf"
   }
 
@@ -38,7 +38,7 @@ workflow SNPCallerMaps{
       tot_mks = tot_mks,
       simu_onemap_obj = simu_onemap_obj,
       SNPCall_program = SNPCall_program,
-      GenotypeCall_program = "SNPCaller",
+      GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
       cMbyMb = cMbyMb,
       real_phases = real_phases
@@ -49,7 +49,7 @@ workflow SNPCallerMaps{
       onemap_obj = GQProbs.gq_onemap_obj,
       simu_onemap_obj = simu_onemap_obj,
       SNPCall_program = SNPCall_program,
-      GenotypeCall_program = "SNPCaller",
+      GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom
   }
 

@@ -7,9 +7,7 @@ workflow DefaultMaps {
      File onemap_obj
      File vcfR_obj
      String SNPCall_program
-     String GenotypeCall_program
      String CountsFrom
-     String cross
      String parent1
      String parent2
      String chromosome
@@ -17,10 +15,7 @@ workflow DefaultMaps {
 
     call utilsR.GlobalError{
       input:
-        onemap_obj = onemap_obj,
-        SNPCall_program = SNPCall_program,
-        GenotypeCall_program = GenotypeCall_program,
-        CountsFrom = CountsFrom
+        onemap_obj = onemap_obj
     }
 
     Array[String] methods                         = ["default", "default0.05"]

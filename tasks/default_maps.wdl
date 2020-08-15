@@ -9,18 +9,13 @@ workflow DefaultMaps {
      File tot_mks
      File real_phases
      String SNPCall_program
-     String GenotypeCall_program
      String CountsFrom
      String cMbyMb
-     String cross
     }
 
     call utilsR.GlobalError{
       input:
-        onemap_obj = onemap_obj,
-        SNPCall_program = SNPCall_program,
-        GenotypeCall_program = GenotypeCall_program,
-        CountsFrom = CountsFrom
+        onemap_obj = onemap_obj
     }
 
     Array[String] methods                         = ["default", "default0.05"]

@@ -3,11 +3,11 @@ version 1.0
 import "structs/preprocessingS.wdl"
 
 workflow PreprocessingReads{
-    input{
+    input {
       Specifications spec
     }
 
-    call ProcessRadTags{
+    call ProcessRadTags {
       input:
         enzyme = spec.enzyme,
         enzyme2 = spec.enzyme2,
@@ -15,8 +15,8 @@ workflow PreprocessingReads{
         barcodes = spec.barcodes
     }
 
-    scatter(sequence in ProcessRadTags.seq_results){
-      call RemoveAdapt{
+    scatter (sequence in ProcessRadTags.seq_results) {
+      call RemoveAdapt {
         input:
           sequence = sequence,
           adapter = spec.adapter,
@@ -24,19 +24,19 @@ workflow PreprocessingReads{
       }
     }
 
-    call TarFiles{
+    call TarFiles {
       input:
         sequences = RemoveAdapt.trim_seq
     }
 
-    output{
+    output {
       File results = TarFiles.results
     }
 }
 
 
-task ProcessRadTags{
-    input{
+task ProcessRadTags {
+    input {
       String enzyme
       String? enzyme2
       File raw_dict
@@ -54,17 +54,17 @@ task ProcessRadTags{
 
     >>>
 
-    runtime{
+    runtime {
       docker:"taniguti/stacks"
     }
 
-    output{
+    output {
       Array[File] seq_results = glob("process_radtags_results/*.fq.gz")
     }
 }
 
 
-task RemoveAdapt{
+task RemoveAdapt {
   input{
     File sequence
     String adapter
@@ -75,17 +75,17 @@ task RemoveAdapt{
     cutadapt -a ~{adapter} -o ~{sequence_name}_trim.fastq.gz ~{sequence} --minimum-length 64
   >>>
 
-  runtime{
+  runtime {
     docker:"kfdrc/cutadapt"
   }
 
-  output{
+  output {
     File trim_seq = "~{sequence_name}_trim.fastq.gz"
   }
 }
 
-task TarFiles{
-  input{
+task TarFiles {
+  input {
     Array[File] sequences
   }
 
@@ -95,11 +95,11 @@ task TarFiles{
     tar -czvf results.tar.gz results
   >>>
 
-  runtime{
+  runtime {
     docker:"kfdrc/cutadapt"
   }
 
-  output{
+  output {
     File results = "results.tar.gz"
   }
 }

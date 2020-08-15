@@ -101,10 +101,8 @@ workflow reads_simu {
         tot_mks = CreateAlignmentFromSimulation.total_markers,
         real_phases = CreateAlignmentFromSimulation.real_phases,
         SNPCall_program = vcf.left,
-        GenotypeCall_program = "default",
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb,
-        cross = family.cross
+        cMbyMb = family.cmBymb
     }
 
     call snpcaller.SNPCallerMaps{
@@ -141,7 +139,6 @@ workflow reads_simu {
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
             SNPCall_program = vcf.left,
-            GenotypeCall_program = "updog",
             CountsFrom = vcf_counts.left,
             cMbyMb = family.cmBymb,
             cross = family.cross
@@ -155,7 +152,6 @@ workflow reads_simu {
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
             SNPCall_program = vcf.left,
-            GenotypeCall_program = "supermassa",
             CountsFrom = vcf_counts.left,
             cMbyMb = family.cmBymb,
             cross = family.cross
@@ -169,7 +165,6 @@ workflow reads_simu {
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
             SNPCall_program = vcf.left,
-            GenotypeCall_program = "polyrad",
             CountsFrom = vcf_counts.left,
             cMbyMb = family.cmBymb,
             cross = family.cross
@@ -187,7 +182,7 @@ workflow reads_simu {
           cMbyMb = family.cmBymb
       }
   }
-  call JointReports{
+  call JointReports {
     input:
     default_RDatas            = flatten(DefaultMaps.RDatas),
     default_maps_report       = flatten(DefaultMaps.maps_report),
