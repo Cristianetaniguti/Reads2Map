@@ -5,7 +5,7 @@ import "./tasks/reads_simu.wdl" as sub
 workflow SimulatedReads {
 
   input {
-    ReferenceFasta references
+    Reference references
     FamilyTemplate family_template
     Profiles profiles
     SplitVCF splitvcf

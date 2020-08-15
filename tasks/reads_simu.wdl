@@ -1,7 +1,5 @@
 version 1.0
 
-# import "../structs/reads_simuS.wdl"
-# import "../structs/snpcalling_empS.wdl"
 
 import "./create_alignment_from_read_simulations.wdl" as simulation
 import "./gatk_genotyping.wdl" as gatk
@@ -20,7 +18,7 @@ import "./gusmap_maps.wdl" as gusmap
 workflow reads_simu {
 
   input {
-    ReferenceFasta references
+    Reference references
     Family family
     Profiles profiles
     SplitVCF splitvcf

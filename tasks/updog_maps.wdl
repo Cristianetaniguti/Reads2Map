@@ -126,7 +126,7 @@ task UpdogProbs{
     cpu:20
   }
 
-  output{
+  output {
     File updog_onemap_obj = "updog_onemap_obj.RData"
   }
 }

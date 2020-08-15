@@ -10,21 +10,21 @@ workflow EmpiricalReads {
 
     input {
         Samples_info samples_info
-        References references
+        Reference references
         Dataset dataset
         SplitVCF splitvcf
         String? filters
     }
 
     # TODO: Conferir splitvcf
-    call snpcalling.SNPCalling{
+    call snpcalling.SNPCalling {
         input:
             samples_info = samples_info,
             references = references,
             splitvcf = splitvcf
     }
 
-    call maps.Maps{
+    call maps.Maps {
         input:
             dataset = dataset,
             gatk_vcf = SNPCalling.gatk_vcf,
@@ -34,7 +34,7 @@ workflow EmpiricalReads {
             filters = filters
     }
 
-    output{
+    output {
         File EmpiricalReads_results = Maps.EmpiricalReads_results
         File gatk_vcf_bi = SNPCalling.gatk_vcf_bi_tot
         File gatk_vcf_multi = SNPCalling.gatk_vcf_multi_tot

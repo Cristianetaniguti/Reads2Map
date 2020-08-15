@@ -11,14 +11,14 @@ workflow SplitFiltVCF{
     String parent2
   }
 
-  call BiallelicNormalization{
+  call BiallelicNormalization {
     input:
       vcf_file = vcf_in,
       reference = reference,
       reference_idx = reference_idx
   }
 
-  call SplitFilters{
+  call SplitFilters {
     input:
       vcf_in = BiallelicNormalization.vcf_norm,
       program = program,
@@ -28,7 +28,7 @@ workflow SplitFiltVCF{
   }
 
 
-  output{
+  output {
     File vcf_bi_chr_norm = SplitFilters.vcf_bi_chr
     File vcf_bi_chr_norm_tbi = SplitFilters.vcf_bi_chr_tbi
     File vcf_bi_norm = SplitFilters.vcf_bi
@@ -38,8 +38,8 @@ workflow SplitFiltVCF{
 }
 
 
-task BiallelicNormalization{
-  input{
+task BiallelicNormalization {
+  input {
     File vcf_file
     File reference
     File reference_idx

@@ -6,7 +6,7 @@ import "alignment.wdl" as alg
 
 workflow CreateAlignmentFromSimulation {
     input {
-        ReferenceFasta references
+        Reference references
         Family family
         Profiles profiles
     }
@@ -88,12 +88,7 @@ workflow CreateAlignmentFromSimulation {
         sampleName = sampleName,
         reads1     = [SimulateIlluminaReads.reads1],
         libraries  = ["artificial"],
-        ref        = references.ref_fasta,
-        geno_amb   = references.ref_amb,
-        geno_ann   = references.ref_ann,
-        geno_bwt   = references.ref_bwt,
-        geno_pac   = references.ref_pac,
-        geno_sa    = references.ref_sa
+        references = references
     }
   }
 

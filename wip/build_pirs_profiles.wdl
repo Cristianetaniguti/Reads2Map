@@ -85,13 +85,13 @@ task SoapAlign {
     docker:"cristaniguti/soap-pirs"
   }
 
-  output{
+  output {
     File file_soap = "align.soap"
   }
 }
 
 task GCDepth {
-  input{
+  input {
     File file_soap
     File ref
   }
