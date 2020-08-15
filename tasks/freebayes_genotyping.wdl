@@ -70,12 +70,19 @@ workflow FreebayesGenotyping {
       program = program
   }
 
+  call utils.FiltChr{
+    input:
+      vcf_bam = BamDepths2Vcf.bam_vcf,
+      chromosome = splitvcf.chromosome
+  }
+  
   output {
     File vcf = SplitFiltVCF.vcf_bi_chr_norm
     File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
     File vcf_bi_tot = SplitFiltVCF.vcf_bi_norm
     File vcf_multi_tot = SplitFiltVCF.vcf_multi_norm
-    File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
+    File vcf_bi_bam_counts_tot = BamDepths2Vcf.bam_vcf
+    File vcf_bi_bam_counts = FiltChr.bam_chr
     File alt_bam = BamCounts4Onemap.alt_bam
     File ref_bam = BamCounts4Onemap.ref_bam
   }

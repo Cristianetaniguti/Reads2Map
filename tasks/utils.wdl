@@ -311,16 +311,16 @@ task BamCounts4Onemap{
         ref_depth_matrix2[,j] <- file.counts[,3]
         alt_depth_matrix2[,j] <- file.counts[,4]
 
-        if(j == 1){
+        if (j == 1){
           ref_allele <- file.counts[,5]
           alt_allele <- file.counts[,6]
         } else {
           idx.ref <- which(ref_allele == "N")
           idx.alt <- which(alt_allele == "N")
-          if(length(idx.ref)!=0){
+          if (length(idx.ref)!=0){
             ref_allele[idx.ref] <- file.counts[idx.ref,5]
           }
-          if(length(idx.alt)!=0){
+          if (length(idx.alt)!=0){
             alt_allele[idx.alt] <- file.counts[idx.alt,6]
           }
         }
@@ -406,5 +406,26 @@ task Gambis {
   output{
     File choosed_bam = "choosed_bam.vcf"
   }
+}
 
+task FiltChr {
+  input {
+    File vcf_bam
+    String chromosome
+  }
+
+  command <<<
+    vcftools --gzvcf ~{vcf_bam} --chr ~{chromosome} --recode --stdout > bam_chr.vcf
+  >>>
+
+  runtime {
+    docker:"taniguti/vcftools"
+    # mem:"--nodes=1"
+    cpu:1
+    time:"24:00:00"
+  }
+
+  output {
+    File bam_chr = "bam_chr.vcf"
+  }
 }
