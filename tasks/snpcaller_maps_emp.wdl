@@ -105,7 +105,7 @@ task GQProbs{
 
   >>>
   runtime{
-    docker:"gcr.io/taniguti-backups/onemap:v1"
+    docker:"cristaniguti/onemap_workflows"
     time:"72:00:00"
     mem:"--nodes=1"
     cpu:1
