@@ -1,8 +1,12 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
-import "../structs/reads_simuS.wdl"
+# import "../structs/alignment_struct.wdl"
+# import "../structs/reads_simuS.wdl"
+import "../structs/snpcalling_empS.wdl"
+import "../structs/reference_struct.wdl"
 import "./utils.wdl" as utils
+import "./utilsR.wdl" as utilsR
+import "split_filt_vcf.wdl" as norm_filt
 
 
 workflow FreebayesGenotyping {
@@ -10,8 +14,10 @@ workflow FreebayesGenotyping {
     Array[Alignment] alignments
     Array[File] bam
     Array[File] bai
-    ReferenceFasta references
+    Reference references
+    SplitVCF splitvcf
     String program
+    Array[String] sampleNames
   }
 
   call RunFreebayes {
@@ -22,19 +28,15 @@ workflow FreebayesGenotyping {
       bai=bai
   }
 
-  call utils.TabixVcf {
+  call norm_filt.SplitFiltVCF {
     input:
-      variants=RunFreebayes.vcf
-  }
-
-  call utils.VcftoolsApplyFilters {
-    input:
-      vcf_in=TabixVcf.vcf,
-      max_missing=0.75,
-      min_alleles=2,
-      max_alleles=2,
-      maf=0.05,
-      program=program
+      vcf_in=RunFreebayes.vcf,
+      program=program,
+      chromosome = splitvcf.chromosome,
+      reference = references.ref_fasta,
+      reference_idx = references.ref_fasta_index,
+      parent1 = splitvcf.parent1,
+      parent2 = splitvcf.parent2
   }
 
   scatter (alignment in alignments) {
@@ -47,15 +49,42 @@ workflow FreebayesGenotyping {
         ref=references.ref_fasta,
         ref_fai=references.ref_fasta_index,
         ref_dict=references.ref_dict,
-        vcf=VcftoolsApplyFilters.vcf,
-        tbi=VcftoolsApplyFilters.tbi
+        vcf=SplitFiltVCF.vcf_bi_chr_norm,
+        tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
     }
   }
 
+  call utils.BamCounts4Onemap {
+    input:
+      sampleName=sampleNames,
+      counts=BamCounts.counts,
+      method = program
+  }
+
+  call utilsR.BamDepths2Vcf{
+    input:
+      vcf_file = SplitFiltVCF.vcf_bi_chr_norm,
+      ref_bam = BamCounts4Onemap.ref_bam,
+      alt_bam = BamCounts4Onemap.alt_bam,
+      example_alleles = BamCounts4Onemap.ref_alt_alleles,
+      program = program
+  }
+
+  call utils.FiltChr{
+    input:
+      vcf_bam = BamDepths2Vcf.bam_vcf,
+      chromosome = splitvcf.chromosome
+  }
+
   output {
-    File vcf = VcftoolsApplyFilters.vcf
-    File tbi = VcftoolsApplyFilters.tbi
-    Array[File] counts = BamCounts.counts
+    File vcf = SplitFiltVCF.vcf_bi_chr_norm
+    File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
+    File vcf_bi_tot = SplitFiltVCF.vcf_bi_norm
+    File vcf_multi_tot = SplitFiltVCF.vcf_multi_norm
+    File vcf_bi_bam_counts_tot = BamDepths2Vcf.bam_vcf
+    File vcf_bi_bam_counts = FiltChr.bam_chr
+    File alt_bam = BamCounts4Onemap.alt_bam
+    File ref_bam = BamCounts4Onemap.ref_bam
   }
 }
 
@@ -71,12 +100,13 @@ task RunFreebayes {
   command <<<
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 20 \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
+
   >>>
 
   runtime {
     docker: "taniguti/freebayes"
     mem:"--nodes=1"
-    time:"24:00:00"
+    time:"72:00:00"
     cpu:20
   }
 

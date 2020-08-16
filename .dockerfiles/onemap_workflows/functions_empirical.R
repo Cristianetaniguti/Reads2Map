@@ -34,7 +34,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
   write_report(times_df, paste0("times_",file.name,".txt"))
   sizes_df <- data.frame(CountsFrom, SNPCall, GenoCall, "mks" = colnames(map_out$data.name$geno)[map_out$seq.num],
                          "pos" = map_out$data.name$POS[map_out$seq.num], rf = cumsum(c(0,kosambi(map_out$seq.rf))),
-                         type = map_out$data.name$segr.type[map_out$seq.num], phases = phaseToOPGP_OM(x = map_out))
+                         type = map_out$data.name$segr.type[map_out$seq.num], phases = phaseToOPGP_OM(map_out))
   write_report(sizes_df, paste0("map_",file.name,".txt"))
   save(map_out, file = paste0("map_",file.name,".RData"))
 }
@@ -61,15 +61,10 @@ phaseToOPGP_OM <- function(x){
     parents[which(parents == 'b')] <- 'B'
     
     parents = t(parents)
-    temp <- parents[1,which(apply(parents[1:2,],2,function(x) !(all(x=='A'))))[1]]
-    if(!is.na(temp))
-      if(temp == 'B')
-        parents[1:2,] <- parents[2:1,]
-    
-    temp <- parents[3,which(apply(parents[3:4,],2,function(x) !(all(x=='A'))))[1]]
-    if(!is.na(temp))
-      if(temp == 'B')
-        parents[3:4,] <- parents[4:3,]
+    if(parents[1,which(apply(parents[1:2,],2,function(x) !(all(x=='A'))))[1]] == 'B')
+      parents[1:2,] <- parents[2:1,]
+    if(parents[3,which(apply(parents[3:4,],2,function(x) !(all(x=='A'))))[1]] == 'B')
+      parents[3:4,] <- parents[4:3,]
     
     phases <- GUSMap:::parHapToOPGP(parents)
     phases[which(phases == 1 | phases == 4)] <- 17 
@@ -88,7 +83,7 @@ phaseToOPGP_OM <- function(x){
 
 create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chromosome) {
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
-  bins <- onemap::find_bins(onemap_mis, exact = FALSE)
+  bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
   segr <- onemap::test_segregation(onemap_bins)
   distorted <- onemap::select_segreg(segr, distorted = T)
@@ -105,11 +100,11 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
                             GenoCall,
                             "higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
                             "n_markers"= total_variants,
-                            "n_markers_selected_chr" = length(chr), # remove
+                            "n_markers_selected_chr" = length(chr),
                             "selected_chr_no_dist" = length(chr_no_dist),
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
-                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num)) #remove
+                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
   write_report(filters_tab, paste0("filters_", SNPCall, "_", CountsFrom, "_",GenoCall, ".txt"))
   return(lg1)
 }

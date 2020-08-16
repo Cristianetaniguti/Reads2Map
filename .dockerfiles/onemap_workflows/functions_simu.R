@@ -43,23 +43,21 @@ phaseToOPGP_OM <- function(x){
 
 create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
-  bins <- onemap::find_bins(onemap_mis, exact=F)
-  onemap_bins <- onemap::create_data_bins(onemap_mis, bins)
-  bins <- onemap::find_bins_by_probs(onemap_mis, threshold.probs = 0.001, threshold.count = 0.05)
-  segr <- onemap::test_segregation(onemap_bins)
+  bins <- onemap::find_bins(onemap_mis)
+  onemap_bins <- create_data_bins(onemap_mis, bins)
+  segr <- onemap::test_segregation(onemap_mis)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
   twopts <- rf_2pts(onemap_bins) # redundant markers are removed
   seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
-  filters_tab <- data.frame("SNPcall" = SNPcall,
-                            "Genocall" = Genocall,
-                            "CountsFrom" = CountsFrom,
+  filters_tab <- data.frame("higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
                             "n_markers"= total_variants,
-                            "higher than 25% missing" = onemap_obj$n.mar - onemap_mis$n.mar,
-                            "redundant_markers"=onemap_mis$n.mar - onemap_bins$n.mar,
                             "distorted_markers"=length(distorted),
-                            "n_markers_filtered" = length(seq1$seq.num))
+                            "redundant_markers"=total_variants - length(bins[[1]]),
+                            "SNPcall" = SNPcall,
+                            "Genocall" = Genocall,
+                            "CountsFrom" = CountsFrom)
   
   write_report(filters_tab, paste0("filters_", SNPcall, "_", CountsFrom, "_",Genocall, ".txt"))
   return(seq1)
@@ -299,7 +297,7 @@ write_report <- function(filters_tab, out_name) {
 }
 
 
-make_vcf <- function(vcf.old, depths, allele_file, out_vcf, recovering=F){
+make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
   # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
   idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
   idx.i <- strsplit(idx, split = ":")[[1]][1]
@@ -307,31 +305,21 @@ make_vcf <- function(vcf.old, depths, allele_file, out_vcf, recovering=F){
   system(paste0("head -n ", idx.i," ", vcf.old, " > head.",seed))
   
   vcf.tab <- read.table(vcf.old, stringsAsFactors = F)
-  GT <- which(strsplit(vcf.tab[,9], split=":")[[1]]=="GT")
-  GT_matrix <- apply(vcf.tab[,10:dim(vcf.tab)[2]],2, function(x) sapply(strsplit(x, ":"), "[",GT))
   
-  vcf_old_pos <- paste0(vcf.tab[,1], "_", vcf.tab[,2])
-  idx.rm <- which(duplicated(vcf_old_pos))
-  if(length(idx.rm)>0){
-    vcf_old_pos <- vcf_old_pos[-idx.rm]
-    GT_matrix <-GT_matrix[-idx.rm,]
-    vcf.tab <- vcf.tab[-idx.rm,]
+  if(all(rownames(depths[[1]]) == paste0(vcf.tab[,1], "_", vcf.tab[,2]))){
+    
+    vcf.init <- vcf.tab[,1:8]
+    AD.colum <- rep("AD", dim(vcf.init)[1])
+    vcf.init <- cbind(vcf.init, AD.colum)
+    
+    rs <- rownames(depths[[1]])
+    vcf.init[,3] <- rs
+  } else {
+    temp.tab <- read.table(allele_file)
+    vcf.init <- cbind(temp.tab[,1:2],paste0(temp.tab[,1], "_", temp.tab[,2]), temp.tab[,3:4],
+                      rep(".", dim(temp.tab)[1]),rep(".", dim(temp.tab)[1]), rep(".", dim(temp.tab)[1]), rep("AD",dim(temp.tab)[1]))
   }
   
-  allele <- read.table(allele_file)
-  allele_pos <- paste0(allele[,1], "_", allele[,2])
-  idx.pos <- match(vcf_old_pos,allele_pos)
-  idx.pos <- idx.pos[!is.na(idx.pos)]
-  allele <- allele[idx.pos,]
-  depths[[1]] <- depths[[1]][idx.pos,]
-  depths[[2]] <- depths[[2]][idx.pos,]
-  
-  vcf.init <- vcf.tab[,1:8]
-  AD.colum <- rep("GT:AD", dim(vcf.init)[1])
-  vcf.init <- cbind(vcf.init, AD.colum)
-  
-  rs <- rownames(depths[[1]])
-  vcf.init[,3] <- rs
   ind.n <- colnames(depths[[1]]) # The names came in different order
   
   header <- strsplit(idx, split = "\t")[[1]]
@@ -341,7 +329,7 @@ make_vcf <- function(vcf.old, depths, allele_file, out_vcf, recovering=F){
   depths[[1]] <- depths[[1]][,order(ind.n)]
   depths[[2]] <- depths[[2]][,order(ind.n)]
   
-  comb.depth <- matrix(paste0(GT_matrix, ":",as.matrix(depths[[1]]), ",", as.matrix(depths[[2]])), ncol = ncol(depths[[2]]))
+  comb.depth <- matrix(paste0(as.matrix(depths[[1]]), ",", as.matrix(depths[[2]])), ncol = ncol(depths[[2]]))
   colnames(comb.depth) <- ind.vcf
   #hmc.file <- cbind(rs, comb.depth)
   
@@ -386,9 +374,7 @@ adapt2app <- function(data){
   data[[2]] <- fix_genocall_names(data[[2]])
   
   ###
-  colnames(data[[3]]) <- c("seed", "depth", "SNPCall", "GenoCall", "CountsFrom", "n_markers", 
-                           "higher than 25% missing", "redundant_markers", 
-                           "distorted_markers", "n_markers_filtered")
+  colnames(data[[3]]) <- c("seed", "depth", "mis_markers", "n_markers", "distorted_markers", "redundant_markers", "SNPCall", "GenoCall", "CountsFrom")
   
   data[[3]] <- fix_genocall_names(data[[3]])
   

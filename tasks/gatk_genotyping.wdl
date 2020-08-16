@@ -1,15 +1,18 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
-import "../structs/reads_simuS.wdl"
+import "../structs/snpcalling_empS.wdl"
+import "../structs/reference_struct.wdl"
 import "./utils.wdl" as utils
+import "./utilsR.wdl" as utilsR
+import "split_filt_vcf.wdl" as norm_filt
 
 workflow GatkGenotyping {
   input {
     Array[Alignment] alignments
-    ReferenceFasta references
+    Reference references
     String program
-
+    SplitVCF splitvcf
+    Array[String] sampleNames
   }
 
   scatter (alignment in alignments) {
@@ -28,7 +31,8 @@ workflow GatkGenotyping {
     input:
       path_gatkDatabase = "my_database",
       GVCFs             = HaplotypeCallerERC.GVCF,
-      GVCFs_idx          = HaplotypeCallerERC.GVCF_idx
+      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx,
+      ref               = references.ref_fasta
   }
 
   call GenotypeGVCFs {
@@ -39,16 +43,16 @@ workflow GatkGenotyping {
       fasta_dict=references.ref_dict
   }
 
-  call utils.VcftoolsApplyFilters {
+  call norm_filt.SplitFiltVCF{
     input:
       vcf_in=GenotypeGVCFs.vcf,
-      max_missing=0.75,
-      min_alleles=2,
-      max_alleles=2,
-      maf=0.05,
-      program=program
+      program=program,
+      chromosome = splitvcf.chromosome,
+      reference = references.ref_fasta,
+      reference_idx = references.ref_fasta_index,
+      parent1 = splitvcf.parent1,
+      parent2 = splitvcf.parent2
   }
-
 
   scatter (alignment in alignments) {
     call utils.BamCounts {
@@ -60,15 +64,42 @@ workflow GatkGenotyping {
         ref=references.ref_fasta,
         ref_fai=references.ref_fasta_index,
         ref_dict=references.ref_dict,
-        vcf=VcftoolsApplyFilters.vcf,
-        tbi=VcftoolsApplyFilters.tbi
+        vcf=SplitFiltVCF.vcf_bi_chr_norm,
+        tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
     }
   }
 
+  call utils.BamCounts4Onemap {
+    input:
+      sampleName=sampleNames,
+      counts=BamCounts.counts,
+      method = program
+  }
+
+  call utilsR.BamDepths2Vcf{
+    input:
+      vcf_file = SplitFiltVCF.vcf_bi_chr_norm,
+      ref_bam = BamCounts4Onemap.ref_bam,
+      alt_bam = BamCounts4Onemap.alt_bam,
+      example_alleles = BamCounts4Onemap.ref_alt_alleles,
+      program = program
+  }
+
+  call utils.FiltChr{
+    input:
+      vcf_bam = BamDepths2Vcf.bam_vcf,
+      chromosome = splitvcf.chromosome
+  }
+
   output {
-    File vcf = VcftoolsApplyFilters.vcf
-    File tbi = VcftoolsApplyFilters.tbi
-    Array[File] counts = BamCounts.counts
+    File vcf = SplitFiltVCF.vcf_bi_chr_norm
+    File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
+    File vcf_bi_tot = SplitFiltVCF.vcf_bi_norm
+    File vcf_multi_tot = SplitFiltVCF.vcf_multi_norm
+    File vcf_bi_bam_counts_tot = BamDepths2Vcf.bam_vcf
+    File vcf_bi_bam_counts = FiltChr.bam_chr
+    File alt_bam = BamCounts4Onemap.alt_bam
+    File ref_bam = BamCounts4Onemap.ref_bam
   }
 }
 
@@ -90,13 +121,14 @@ task HaplotypeCallerERC {
       -I ~{bam_rg} \
       -O ~{sampleName}_rawLikelihoods.g.vcf \
       --max-reads-per-alignment-start 0
+
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
     mem:"--nodes=1"
     cpu:1
-    time:"15:00:00"
+    time:"120:00:00"
   }
 
   output {
@@ -110,22 +142,28 @@ task CreateGatkDatabase {
     String path_gatkDatabase
     Array[File] GVCFs
     Array[File] GVCFs_idx
+    File ref
   }
 
   command <<<
+
+     grep ">" ~{ref} > interval_list_temp
+     sed 's/^.//' interval_list_temp > interval.list
+
      /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
-        -L Chr10 \
+        -L interval.list \
         -V ~{sep=" -V "  GVCFs}
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
+
   >>>
 
   runtime {
       docker: "taniguti/gatk-picard"
       mem:"--nodes=1"
       cpu:1
-      time:"15:00:00"
+      time:"120:00:00"
   }
 
   output {
@@ -146,20 +184,20 @@ task GenotypeGVCFs {
   command <<<
     tar -xf ~{workspace_tar}
     WORKSPACE=$( basename ~{workspace_tar} .tar)
-    
+
     /gatk/gatk GenotypeGVCFs \
         -R ~{fasta} \
         -O gatk.vcf.gz \
         -G StandardAnnotation \
         -V gendb://$WORKSPACE
-        
+
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
     mem:"--nodes=1"
     cpu:1
-    time:"15:00:00"
+    time:"120:00:00"
   }
 
   output {

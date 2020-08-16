@@ -17,4 +17,6 @@ struct Dataset {
   String parent1
   String parent2
   String? filt_depth
+  String cross
+  String chromosome
 }

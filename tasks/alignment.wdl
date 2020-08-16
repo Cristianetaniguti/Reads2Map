@@ -1,23 +1,18 @@
 version 1.0
 
 import "../structs/alignment_struct.wdl"
+import "../structs/reference_struct.wdl"
 
 task RunBwaAlignment {
 
   input {
     String sampleName
-    File ref
     Array[File] reads1
     Array[String] libraries
-    File geno_amb
-    File geno_ann
-    File geno_bwt
-    File geno_pac
-    File geno_sa
+    Reference references
   }
 
   command <<<
-    echo ~{geno_amb} ~{geno_ann} ~{geno_bwt} ~{geno_pac} ~{geno_sa}
     mkdir tmp
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
@@ -28,7 +23,7 @@ task RunBwaAlignment {
     for index in ${!reads_list[*]}; do
       echo "${reads_list[$index]} is in ${lib_list[$index]}"
       bwa_header="@RG\tID:~{sampleName}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      bwa mem -t 20 -R "${bwa_header}" ~{ref} "${reads_list[$index]}" | \
+      bwa mem -t 20 -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
           java -jar /picard.jar SortSam \
             I=/dev/stdin \
             O="~{sampleName}.${lib_list[$index]}.sorted.bam" \
@@ -54,7 +49,7 @@ task RunBwaAlignment {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    time:"24:00:00"
+    time:"72:00:00"
     mem:"--nodes=1"
     cpu:20
   }
@@ -88,12 +83,13 @@ task AddAlignmentHeader {
       TMP_DIR=tmp
 
     mv ~{sampleName}_rg.bai ~{sampleName}_rg.bam.bai
+
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"00:30:00"
-    mem:"--mem-per-cpu=24042"
+    time:"24:00:00"
+    mem:"--nodes=1"
     cpu:1
   }
 

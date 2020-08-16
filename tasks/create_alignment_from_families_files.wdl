@@ -1,7 +1,6 @@
 version 1.0
 
 import "alignment.wdl" as alg
-import "../structs/reads_simuS.wdl"
 
 
 
@@ -21,7 +20,7 @@ struct Data {
 workflow CreateAlignmentFromFamilies {
     input {
         File families_info
-        ReferenceFasta references
+        Reference references
     }
 
     call SepareIndividuals {
@@ -32,15 +31,10 @@ workflow CreateAlignmentFromFamilies {
     scatter (sample in SepareIndividuals.dataset.samples) {
         call alg.RunBwaAlignment {
             input:
-                sampleName = sample.name,
-                reads1     = sample.reads,
-                libraries  = sample.libraries,
-                ref        = references.ref_fasta,
-                geno_amb   = references.ref_amb,
-                geno_ann   = references.ref_ann,
-                geno_bwt   = references.ref_bwt,
-                geno_pac   = references.ref_pac,
-                geno_sa    = references.ref_sa
+                sampleName  = sample.name,
+                reads1      = sample.reads,
+                libraries   = sample.libraries,
+                references  = references
         }
     }
 
@@ -75,13 +69,14 @@ task SepareIndividuals {
         experiment_name = "Teste"
         print(json.dumps({"experiment_name": experiment_name, "samples":samples, "names": names}))
         CODE
+
     >>>
 
     runtime {
         docker: "python:3.7"
-	mem:"--mem-per-cpu=24042"
+	mem:"--nodes=1"
 	cpu:1
-	time:"00:30:00"
+	time:"24:00:00"
     }
 
     output {
