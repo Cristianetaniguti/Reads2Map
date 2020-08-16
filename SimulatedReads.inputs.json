@@ -1,5 +1,5 @@
 {
-  "SimulatedReads.number_of_families": "2",
+  "SimulatedReads.number_of_families": "1",
   "SimulatedReads.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
@@ -16,21 +16,20 @@
     "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
   },
   "SimulatedReads.family_template": {
-    "cmBymb": 4.63,
-    "popsize": 47,
-    "enzyme": "G*CWGC",
-    "depth": 20,
+    "cmBymb": "4.63",
+    "seed": "9000",
     "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
+    "popsize": 47,
     "ploidy": 2,
-    "cross": "F1"
+    "enzyme": "G*CWGC",
+    "cross": "F1",
+    "depth": 20
   },
-  "SimulatedReads.ReadSimulations.filters": {
-    "Filter1": "--maf 0.05"
-  },
-  "SimulatedReads.ReadSimulations.splitvcf": {
-    "parent2": "P2",
+  "SimulatedReads.ReadSimulations.filters": "--maf 0.05",
+  "SimulatedReads.splitvcf": {
+    "chromosome": "Chr10",
     "parent1": "P1",
-    "chromosome": "Chr10"
+    "parent2": "P2"
   }
 }
 

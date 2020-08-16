@@ -11,14 +11,14 @@ workflow SplitFiltVCF{
     String parent2
   }
 
-  call BiallelicNormalization{
+  call BiallelicNormalization {
     input:
       vcf_file = vcf_in,
       reference = reference,
       reference_idx = reference_idx
   }
 
-  call SplitFilters{
+  call SplitFilters {
     input:
       vcf_in = BiallelicNormalization.vcf_norm,
       program = program,
@@ -27,8 +27,8 @@ workflow SplitFiltVCF{
       parent2 = parent2
   }
 
-  
-  output{
+
+  output {
     File vcf_bi_chr_norm = SplitFilters.vcf_bi_chr
     File vcf_bi_chr_norm_tbi = SplitFilters.vcf_bi_chr_tbi
     File vcf_bi_norm = SplitFilters.vcf_bi
@@ -38,13 +38,13 @@ workflow SplitFiltVCF{
 }
 
 
-task BiallelicNormalization{
-  input{
+task BiallelicNormalization {
+  input {
     File vcf_file
     File reference
     File reference_idx
   }
-  
+
   command <<<
     bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
   >>>
@@ -70,22 +70,22 @@ task SplitFilters{
     String parent1
     String parent2
   }
-  
+
   command <<<
     vcftools --gzvcf ~{vcf_in}  --min-alleles 3 --recode --out ~{program}_multi1
-  
+
     vcftools --gzvcf ~{vcf_in}  --min-alleles 2 --max-alleles 2 --recode --out ~{program}_bi1
-    
+
     Rscript /opt/scripts/split.R ~{program}_bi1.recode.vcf ~{parent1} ~{parent2} position_multi2.txt
-    
+
     vcftools --vcf ~{program}_bi1.recode.vcf --positions position_multi2.txt --recode --out ~{program}_multi2
-    
+
     vcftools --vcf ~{program}_bi1.recode.vcf --exclude-positions position_multi2.txt --recode --out ~{program}_bi
-    
-    vcf-concat ~{program}_multi1.recode.vcf ~{program}_multi2.recode.vcf  > ~{program}_multi.recode.vcf 
-    
+
+    vcf-concat ~{program}_multi1.recode.vcf ~{program}_multi2.recode.vcf  > ~{program}_multi.recode.vcf
+
     vcftools --gzvcf ~{program}_multi.recode.vcf ~{"--chr " +  chromosome} --recode --out ~{program}_multi_~{chromosome}
-    
+
     vcftools --vcf ~{program}_bi.recode.vcf ~{"--chr " +  chromosome} --recode --out ~{program}_bi_~{chromosome}
 
     bgzip ~{program}_multi.recode.vcf

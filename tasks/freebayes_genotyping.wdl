@@ -1,8 +1,9 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
-import "../structs/reads_simuS.wdl"
+# import "../structs/alignment_struct.wdl"
+# import "../structs/reads_simuS.wdl"
 import "../structs/snpcalling_empS.wdl"
+import "../structs/reference_struct.wdl"
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
 import "split_filt_vcf.wdl" as norm_filt
@@ -13,7 +14,7 @@ workflow FreebayesGenotyping {
     Array[Alignment] alignments
     Array[File] bam
     Array[File] bai
-    ReferenceFasta references
+    Reference references
     SplitVCF splitvcf
     String program
     Array[String] sampleNames
@@ -27,7 +28,7 @@ workflow FreebayesGenotyping {
       bai=bai
   }
 
-  call norm_filt.SplitFiltVCF{
+  call norm_filt.SplitFiltVCF {
     input:
       vcf_in=RunFreebayes.vcf,
       program=program,
@@ -52,7 +53,7 @@ workflow FreebayesGenotyping {
         tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
     }
   }
-  
+
   call utils.BamCounts4Onemap {
     input:
       sampleName=sampleNames,
@@ -74,7 +75,7 @@ workflow FreebayesGenotyping {
       vcf_bam = BamDepths2Vcf.bam_vcf,
       chromosome = splitvcf.chromosome
   }
-  
+
   output {
     File vcf = SplitFiltVCF.vcf_bi_chr_norm
     File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
@@ -99,7 +100,7 @@ task RunFreebayes {
   command <<<
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 20 \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
-   
+
   >>>
 
   runtime {

@@ -2,13 +2,32 @@ FROM ubuntu:18.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt update \
-   && apt-get install -y libcurl4-gnutls-dev libssl-dev libftgl2 libglu1-mesa-dev libftgl2 libfreetype6-dev  gcc-8-base libgfortran5 python-pip python-tk libxml2-dev libnlopt-dev devscripts software-properties-common
+RUN apt-get update \
+    && apt-get install -y \
+        libcurl4-gnutls-dev \
+        libssl-dev \
+        libftgl2 \
+        libglu1-mesa-dev \
+        libftgl2 \
+        libfreetype6-dev  \
+        gcc-8-base \
+        libgfortran5 \
+        python-pip \
+        python-tk \
+        libxml2-dev \
+        libnlopt-dev \
+        devscripts \
+        software-properties-common \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 \
     && add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/' \
-    && apt update \
-    && apt install -y r-base
+    && apt-get update \
+    && apt-get install -y \
+        r-base \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('devtools', repos='http://brieger.esalq.usp.br/CRAN/');\
@@ -37,7 +56,7 @@ RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/XML/XML_
           install.packages(packageurl, repos=NULL, type='source');\
           BiocManager::install('VariantAnnotation', ask=F)"
 
-RUN apt update \
+RUN apt-get update \
     && pip install matplotlib==2.0.2 numpy
 
 RUN R -e "devtools::install_github('Cristianetaniguti/onemap', ref='up_read'      )"
@@ -50,3 +69,6 @@ RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap')"
 
 RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/updog/updog_1.2.0.tar.gz';\
           install.packages(packageurl, repos=NULL, type='source')"
+
+# library(onemap)
+# packageVersion("onemap") == 2.2.0

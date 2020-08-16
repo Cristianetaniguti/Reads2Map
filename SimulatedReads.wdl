@@ -1,15 +1,14 @@
 version 1.0
 
-import "./structs/reads_simuS.wdl"
-import "./structs/snpcalling_empS.wdl"
 import "./tasks/reads_simu.wdl" as sub
 
 workflow SimulatedReads {
 
   input {
-    ReferenceFasta references
+    Reference references
     FamilyTemplate family_template
     Profiles profiles
+    SplitVCF splitvcf
     Int number_of_families
   }
 
@@ -23,7 +22,7 @@ workflow SimulatedReads {
 
   # Here we generate Family objects on the fly, based on the values
   # from the family_template and the random seed of the previous task.
-  scatter(seed in ProduceFamiliesSeeds.seeds) {
+  scatter (seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
       "cmBymb": family_template.cmBymb,
       "popsize": family_template.popsize,
@@ -40,7 +39,8 @@ workflow SimulatedReads {
       input:
         profiles=profiles,
         references=references,
-        family=fam
+        family=fam,
+        splitvcf=splitvcf
     }
   }
 
@@ -126,7 +126,7 @@ task JointTables{
     datas[[9]] <- c("~{sep=";" data9}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
-    
+
     Rdata_lst <- data_lst <- datas_up <- list()
     for(j in 1:length(datas)){
       if(j == 6){
@@ -155,20 +155,20 @@ task JointTables{
         datas_up[[j]] <- dat
       }
     }
-    
+
     result_list <- adapt2app(datas_up)
-    
+
     saveRDS(result_list[[1]], file="data1.rds")
     saveRDS(result_list[[2]], file="data2.rds")
     saveRDS(result_list[[3]], file="data3.rds")
     saveRDS(result_list[[4]], file="data4.rds")
     saveRDS(result_list[[5]], file="data5.rds")
     saveRDS(datas_up[[9]], file="simu_haplo.rds")
-    
+
     choices <- result_list[[6]]
     save(choices, file = "choices.RData")
     saveRDS(datas_up[[8]], file = "names.rds")
-    
+
     system("mkdir SimulatedReads_results_depth~{depth}")
     system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")

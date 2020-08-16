@@ -8,32 +8,37 @@ import "tasks/maps_emp.wdl" as maps
 
 workflow EmpiricalReads {
 
-  input {
-    Samples_info samples_info
-    References references
-    Dataset dataset
-  }
+    input {
+        Samples_info samples_info
+        Reference references
+        Dataset dataset
+        SplitVCF splitvcf
+        String? filters
+    }
 
-  call snpcalling.SNPCalling{
-    input:
-      samples_info = samples_info,
-      references = references
-  }
+    # TODO: Conferir splitvcf
+    call snpcalling.SNPCalling {
+        input:
+            samples_info = samples_info,
+            references = references,
+            splitvcf = splitvcf
+    }
 
-  call maps.Maps{
-    input:
-      dataset = dataset,
-      gatk_vcf = SNPCalling.gatk_vcf,
-      freebayes_vcf = SNPCalling.freebayes_vcf,
-      gatk_vcf_bam_counts = SNPCalling.gatk_vcf_bi_bam_count,
-      freebayes_vcf_bam_counts = SNPCalling.freebayes_vcf_bi_bam_count  
-  }
-  
-  output{
-    File EmpiricalReads_results = Maps.EmpiricalReads_results
-    File gatk_vcf_bi = SNPCalling.gatk_vcf_bi_tot
-    File gatk_vcf_multi = SNPCalling.gatk_vcf_multi_tot
-    File freebayes_vcf_bi = SNPCalling.freebayes_vcf_bi_tot
-    File freebayes_vcf_multi = SNPCalling.freebayes_vcf_multi_tot
-  }
+    call maps.Maps {
+        input:
+            dataset = dataset,
+            gatk_vcf = SNPCalling.gatk_vcf,
+            freebayes_vcf = SNPCalling.freebayes_vcf,
+            gatk_vcf_bam_counts = SNPCalling.gatk_vcf_bi_bam_count,
+            freebayes_vcf_bam_counts = SNPCalling.freebayes_vcf_bi_bam_count,
+            filters = filters
+    }
+
+    output {
+        File EmpiricalReads_results = Maps.EmpiricalReads_results
+        File gatk_vcf_bi = SNPCalling.gatk_vcf_bi_tot
+        File gatk_vcf_multi = SNPCalling.gatk_vcf_multi_tot
+        File freebayes_vcf_bi = SNPCalling.freebayes_vcf_bi_tot
+        File freebayes_vcf_multi = SNPCalling.freebayes_vcf_multi_tot
+    }
 }

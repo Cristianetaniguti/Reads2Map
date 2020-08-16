@@ -6,7 +6,7 @@ import "alignment.wdl" as alg
 
 workflow CreateAlignmentFromSimulation {
     input {
-        ReferenceFasta references
+        Reference references
         Family family
         Profiles profiles
     }
@@ -88,12 +88,7 @@ workflow CreateAlignmentFromSimulation {
         sampleName = sampleName,
         reads1     = [SimulateIlluminaReads.reads1],
         libraries  = ["artificial"],
-        ref        = references.ref_fasta,
-        geno_amb   = references.ref_amb,
-        geno_ann   = references.ref_ann,
-        geno_bwt   = references.ref_bwt,
-        geno_pac   = references.ref_pac,
-        geno_sa    = references.ref_sa
+        references = references
     }
   }
 
@@ -122,7 +117,7 @@ task GenerateAlternativeGenome {
 
   command <<<
     /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
-    
+
   >>>
 
   runtime {
@@ -312,7 +307,7 @@ task CreatePedigreeSimulatorInputs {
       chrom <- data.frame("chromosome"= "Chr10", "length"= pos.map[which.max(pos.map)], "centromere"=pos.map[which.max(pos.map)]/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
       write.table(chrom, file= "chromosome.txt", quote = F, col.names = T, row.names = F, sep= "\t")
      RSCRIPT
-     
+
   >>>
 
   runtime {
@@ -347,7 +342,7 @@ task RunPedigreeSimulator {
     sed -i 's+mapfile.txt+~{mapfile}+g' ~{parfile}
     sed -i 's+founderfile.txt+~{founderfile}+g' ~{parfile}
     java -jar /usr/jars/PedigreeSim.jar ~{parfile}
-    
+
   >>>
 
   runtime {
@@ -380,7 +375,7 @@ task ConvertPedigreeSimulationToVcf {
 
     library(onemap)
     library(vcfR)
-    
+
     mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
     pos <- mks[,2]
     chr <- mks[,1]
@@ -391,20 +386,20 @@ task ConvertPedigreeSimulationToVcf {
       out.file = "~{seed}_~{depth}_simu.vcf",
       miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1",
       chr = chr, phase = TRUE)
-    
+
     vcfR.object <- read.vcfR("~{seed}_~{depth}_simu.vcf")
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
     inds_sele <- INDS_temp[-c(which(INDS_temp=="P1"), which(INDS_temp=="P2"))]
-    
-    progeny_dat <- vcf2progeny_haplotypes(vcfR.object = vcfR.object, ind.id = inds_sele, 
-                                          parent1 = "P1", parent2 = "P2", 
+
+    progeny_dat <- vcf2progeny_haplotypes(vcfR.object = vcfR.object, ind.id = inds_sele,
+                                          parent1 = "P1", parent2 = "P2",
                                           crosstype = "outcross")
-    
+
     haplo_simu <- cbind(seed="~{seed}", depth="~{depth}",progeny_dat)
     saveRDS(haplo_simu, file = "~{seed}_~{depth}_haplo_simu.rds")
-    
+
     RSCRIPT
-    
+
   >>>
 
   runtime {
@@ -430,7 +425,7 @@ task RunVcf2diploid {
 
   command <<<
     java -jar /usr/jars/vcf2diploid.jar -id ~{sampleName} -chr ~{ref_genome} -vcf ~{simu_vcf}
-    
+
   >>>
 
   runtime {
@@ -466,7 +461,7 @@ task GenerateSampleNames {
     for i in bcf_in.header.samples:
         print(i)
     CODE
-    
+
   >>>
 
   runtime {
@@ -530,7 +525,7 @@ task SimulateRADseq {
     cutadapt -l 202 \
       -o ~{sampleName}_paternal_trim.fa \
       ~{sampleName}_paternal_fragments.fasta
-      
+
   >>>
 
   runtime {
@@ -575,7 +570,7 @@ task SimulateIlluminaReads {
       --base-calling-profile=~{base_calling} \
       --indel-error-profile=~{indel_error} \
       --gc-bias-profile=~{gc_bias}
-      
+
   >>>
 
   runtime {

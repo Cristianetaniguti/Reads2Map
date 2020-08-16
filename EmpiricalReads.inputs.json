@@ -1,11 +1,5 @@
 {
-  "EmpiricalReads.Maps.filters": {
-  },
-  "EmpiricalReads.SNPCalling.splitvcf": {
-    "chromosome": "Chr10",
-    "parent1": "PT_F",
-    "parent2": "PT_M"
-  },
+  "EmpiricalReads.filters": "--maf 0.05",
   "EmpiricalReads.references": {
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.fa",
     "ref_dict": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/Chr09-10.populus.dict",
@@ -20,11 +14,16 @@
     "samples_info": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/sample_info_subsub"
   },
   "EmpiricalReads.dataset": {
-      "name": "populus",
-      "parent1": "PT_F",
-      "parent2": "PT_M",
-      "cross": "F1",
-      "chromosome": "Chr10"
+    "parent2": "PT_M",
+    "name": "toy_sample",
+    "parent1": "PT_F",
+    "chromosome": "Chr10",
+    "cross": "F1"
+  },
+  "EmpiricalReads.splitvcf": {
+    "chromosome": "Chr10",
+    "parent1": "PT_F",
+    "parent2": "PT_M"
   }
 }
 

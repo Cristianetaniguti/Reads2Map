@@ -10,7 +10,7 @@ task TabixVcf {
   command <<<
     bgzip -c ~{variants} > freebayes.vcf.gz
     tabix -p vcf freebayes.vcf.gz
-    
+
   >>>
 
   runtime {
@@ -51,7 +51,7 @@ task BamCounts {
       --reference ~{ref} \
       --intervals interval.list \
       --output "~{sample}_~{program}_counts.tsv"
-      
+
   >>>
 
   runtime{
@@ -80,7 +80,7 @@ task VcftoolsMerge {
     vcf-merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
     bgzip ~{prefix}.variants.vcf
     tabix -p vcf ~{prefix}.variants.vcf.gz
-    
+
   >>>
   runtime {
     docker: "taniguti/vcftools"
@@ -106,7 +106,7 @@ task BcftoolsMerge {
   command <<<
     echo "~{sep=' ' tbis}"
     bcftools merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
-    
+
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
@@ -139,7 +139,7 @@ task VcftoolsApplyFilters {
 
     bgzip ~{program}.recode.vcf
     tabix -p vcf ~{program}.recode.vcf.gz
-    
+
   >>>
   runtime {
     docker: "taniguti/vcftools"
@@ -257,7 +257,7 @@ task CalculateVcfMetrics {
 
         saveRDS(results_tot, file= "data5_SNPcall_efficiency.rds")
         RSCRIPT
-        
+
   >>>
 
   runtime {
@@ -293,50 +293,50 @@ task BamCounts4Onemap{
       system("cp ~{sep=" "  counts} .")
       names <- c("~{sep=" , "  sampleName}")
       names <- unlist(strsplit(names, split = " , "))
-      
+
       system(paste("grep -n 'CONTIG'", paste0(names[1],"_", "~{method}","_counts.tsv"), "> idx"))
       idx <- read.table("idx", stringsAsFactors = F)
-      idx <- strsplit(idx[,1], ":")[[1]][1] 
+      idx <- strsplit(idx[,1], ":")[[1]][1]
       idx <- as.numeric(idx) -1
-      
+
       file.counts <- read.table(paste0(names[1],"_", "~{method}","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
-      
+
       ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
-      
+
       for(j in 1:length(names)){
         ## From picard tool
-        
+
         file.counts <- read.table(paste0(names[j],"_", "~{method}","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
-        
+
         ref_depth_matrix2[,j] <- file.counts[,3]
         alt_depth_matrix2[,j] <- file.counts[,4]
-        
-        if(j == 1){
+
+        if (j == 1){
           ref_allele <- file.counts[,5]
           alt_allele <- file.counts[,6]
         } else {
           idx.ref <- which(ref_allele == "N")
           idx.alt <- which(alt_allele == "N")
-          if(length(idx.ref)!=0){
+          if (length(idx.ref)!=0){
             ref_allele[idx.ref] <- file.counts[idx.ref,5]
           }
-          if(length(idx.alt)!=0){
+          if (length(idx.alt)!=0){
             alt_allele[idx.alt] <- file.counts[idx.alt,6]
           }
         }
+
+        rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
+        colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
+
+        alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
+        write.table(alleles, file = paste0("~{method}","_ref_alt_alleles.txt"), col.names = F, row.names = F)
+
+        write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
+        write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
       }
-     
-      rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
-      colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
-        
-      alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
-      write.table(alleles, file = paste0("~{method}","_ref_alt_alleles.txt"), col.names = F, row.names = F)
-        
-      write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-      write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-      
+
     RSCRIPT
-    
+
   >>>
 
   runtime{
@@ -359,30 +359,26 @@ task ApplyRandomFilters{
     File freebayes_vcf
     File gatk_vcf_bam_counts
     File freebayes_vcf_bam_counts
-    String? Filter1
-    String? Filter2
-    String? Filter3
-    String? Filter4
-    String? Filter5
+    String? filters
   }
-  
+
   command <<<
-    vcftools --gzvcf ~{gatk_vcf} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > gatk_vcf_filt.vcf
-    
-    vcftools --gzvcf ~{freebayes_vcf} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > freebayes_vcf_filt.vcf
-    
-    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
-    
-    vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{Filter1} ~{Filter2}  ~{Filter3} ~{Filter4} ~{Filter5} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
+    vcftools --gzvcf ~{gatk_vcf} ~{filters} --recode --stdout > gatk_vcf_filt.vcf
+
+    vcftools --gzvcf ~{freebayes_vcf} ~{filters} --recode --stdout > freebayes_vcf_filt.vcf
+
+    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{filters} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
+
+    vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
-  
+
   runtime{
     docker:"taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
-  
+
   output{
     File gatk_vcf_filt = "gatk_vcf_filt.vcf"
     File freebayes_vcf_filt = "freebayes_vcf_filt.vcf"
@@ -397,39 +393,39 @@ task Gambis {
     File freebayes_vcf_bam_counts
     String method
   }
-  
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
       if("~{method}" == "gatk") choosed_bam = "~{gatk_vcf_bam_counts}" else choosed_bam = "~{freebayes_vcf_bam_counts}"
-      
+
       system(paste("cp", choosed_bam, "choosed_bam.vcf"))
 
     RSCRIPT
   >>>
-  
+
   output{
     File choosed_bam = "choosed_bam.vcf"
   }
 }
 
-task FiltChr{
-  input{
+task FiltChr {
+  input {
     File vcf_bam
     String chromosome
   }
-  
+
   command <<<
     vcftools --gzvcf ~{vcf_bam} --chr ~{chromosome} --recode --stdout > bam_chr.vcf
   >>>
-  
-  runtime{
+
+  runtime {
     docker:"taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
   }
-  
-  output{
+
+  output {
     File bam_chr = "bam_chr.vcf"
   }
 }
