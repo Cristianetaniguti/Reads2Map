@@ -9,11 +9,15 @@ import "./utilsR.wdl" as utilsR
 import "./simulated_map.wdl" as simulated_map
 import "./default_maps.wdl" as default
 import "./snpcaller_maps.wdl" as snpcaller
-import "./updog_maps.wdl" as updog
-import "./polyrad_maps.wdl" as polyrad
-import "./supermassa_maps.wdl" as supermassa
 import "./gusmap_maps.wdl" as gusmap
+import "./genotyping-simulated.wdl" as genotyping
 
+
+struct PopulationAnalysis {
+    String method
+    File vcf
+    File bam
+}
 
 workflow reads_simu {
 
@@ -68,37 +72,45 @@ workflow reads_simu {
       cross = family.cross
   }
 
-  call utils.ApplyRandomFilters{
-    input:
-      gatk_vcf = GatkGenotyping.vcf,
-      freebayes_vcf = FreebayesGenotyping.vcf,
-      gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
-      freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
-      filters = filters
-  }
+    if (defined(filters)) {
+        call utils.ApplyRandomFilters {
+            input:
+                gatk_vcf = GatkGenotyping.vcf,
+                freebayes_vcf = FreebayesGenotyping.vcf,
+                gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
+                freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
+                filters = filters
+        }
+    }
 
-  Array[String] methods                     = ["gatk", "freebayes"]
-  Array[File] vcfs = [ApplyRandomFilters.gatk_vcf_filt, ApplyRandomFilters.freebayes_vcf_filt]
-  Array[Pair[String, File]] program_and_vcf = zip(methods, vcfs)
+    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf])
+    File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_bi_bam_counts])
+    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf])
+    File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_bi_bam_counts])
 
-  scatter (vcf in program_and_vcf){
+
+    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+
+
+  scatter (analysis in [gatk_processing, freebayes_processing]){
 
     call utilsR.vcf2onemap{
       input:
-        vcf_file = vcf.right,
+        vcf_file = analysis.vcf,
         cross = family.cross,
-        SNPCall_program = vcf.left,
+        SNPCall_program = analysis.method,
         parent1 = "P1",
         parent2 = "P2"
     }
 
-    call default.DefaultMaps{
+    call default.DefaultMaps {
       input:
-        simu_onemap_obj = SimulatedMap.simu_onemap_obj,
         onemap_obj = vcf2onemap.onemap_obj,
+        simu_onemap_obj = SimulatedMap.simu_onemap_obj,
         tot_mks = CreateAlignmentFromSimulation.total_markers,
         real_phases = CreateAlignmentFromSimulation.real_phases,
-        SNPCall_program = vcf.left,
+        SNPCall_program = analysis.method,
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb
     }
@@ -107,79 +119,75 @@ workflow reads_simu {
       input:
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
         onemap_obj = vcf2onemap.onemap_obj,
-        vcf_file = vcf.right,
+        vcf_file = analysis.vcf,
         tot_mks = CreateAlignmentFromSimulation.total_markers,
         real_phases = CreateAlignmentFromSimulation.real_phases,
         cross = family.cross,
-        SNPCall_program = vcf.left,
+        SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb
     }
 
-    call utils.Gambis{
-      input:
-        gatk_vcf_bam_counts = ApplyRandomFilters.gatk_vcf_bam_counts_filt,
-        freebayes_vcf_bam_counts = ApplyRandomFilters.freebayes_vcf_bam_counts_filt,
-        method = vcf.left
-    }
+    Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
 
-    Array[String] counts     = ["vcf", "bam"]
-    Array[File] vcfs_counts  = [vcf.right, Gambis.choosed_bam]
-    Array[Pair[String, File]] counts_and_vcf = zip(counts, vcfs_counts)
-
-    scatter(vcf_counts in counts_and_vcf){
-        call updog.UpdogMaps{
+    scatter (origin in ["vcf", "bam"]){
+        call genotyping.SnpBasedGenotypingSimulatedMaps as UpdogMaps {
           input:
             simu_onemap_obj = SimulatedMap.simu_onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right,
+            vcf_file = vcfs[origin],
+            genotyping_program = "updog",
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
-            SNPCall_program = vcf.left,
-            CountsFrom = vcf_counts.left,
+            SNPCall_program = analysis.method,
+            CountsFrom = origin,
             cMbyMb = family.cmBymb,
             cross = family.cross
         }
 
-        call supermassa.SupermassaMaps{
+        call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
           input:
             simu_onemap_obj = SimulatedMap.simu_onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right,
+            vcf_file = vcfs[origin],
+            genotyping_program = "supermassa",
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
-            SNPCall_program = vcf.left,
-            CountsFrom = vcf_counts.left,
+            SNPCall_program = analysis.method,
+            CountsFrom = origin,
             cMbyMb = family.cmBymb,
             cross = family.cross
         }
 
-        call polyrad.PolyradMaps{
+        call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
           input:
             simu_onemap_obj = SimulatedMap.simu_onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcf_counts.right,
+            vcf_file = vcfs[origin],
+            genotyping_program = "polyrad",
             tot_mks = CreateAlignmentFromSimulation.total_markers,
             real_phases = CreateAlignmentFromSimulation.real_phases,
-            SNPCall_program = vcf.left,
-            CountsFrom = vcf_counts.left,
+            SNPCall_program = analysis.method,
+            CountsFrom = origin,
             cMbyMb = family.cmBymb,
             cross = family.cross
         }
       }
-      call gusmap.GusmapMaps{
+
+      call gusmap.GusmapMaps {
         input:
           simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-          vcf_file = vcf.right,
-          new_vcf_file = Gambis.choosed_bam,
-          SNPCall_program = vcf.left,
+          vcf_file = analysis.vcf,
+          new_vcf_file = analysis.bam,
+          SNPCall_program = analysis.method,
           GenotypeCall_program = "gusmap",
           tot_mks = CreateAlignmentFromSimulation.total_markers,
           real_phases = CreateAlignmentFromSimulation.real_phases,
           cMbyMb = family.cmBymb
       }
   }
+
   call JointReports {
     input:
     default_RDatas            = flatten(DefaultMaps.RDatas),
@@ -222,7 +230,7 @@ workflow reads_simu {
     freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth
   }
 
-  output{
+  output {
     File data1_depths_geno_prob   = JointReports.data1_depths_geno_prob
     File data2_maps               = JointReports.data2_maps
     File data3_filters            = JointReports.data3_filters
@@ -236,7 +244,7 @@ workflow reads_simu {
 }
 
 task JointReports{
-  input{
+  input {
     Array[File] default_RDatas
     Array[File] default_maps_report
     Array[File] default_filters_report
@@ -432,14 +440,14 @@ task JointReports{
 
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/onemap_workflows"
     time:"48:00:00"
     mem:"--nodes=1"
     cpu:1
   }
 
-  output{
+  output {
     File data1_depths_geno_prob = "data1_depths_geno_prob.rds"
     File data2_maps = "data2_maps.rds"
     File data3_filters = "data3_filters.rds"
