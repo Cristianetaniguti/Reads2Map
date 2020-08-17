@@ -106,6 +106,8 @@ data/populus_sub/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG
 **Warning**: This analysis demand more computer capacity to run. Then, we suggest you choose a configuration in [Configurations](documentation/configurations.html) before run, as below.
 
 ```
+# Open mySQL cointainer
+docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
 # Execute the workflow
 java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i main.inputs.json main.wdl
 ```
