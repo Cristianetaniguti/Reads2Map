@@ -35,7 +35,7 @@ workflow SimulatedReads {
     }
 
     # Calling reads_simu for each seed
-    call sub.reads_simu as ReadSimulations{
+    call sub.reads_simu as ReadSimulations {
       input:
         profiles=profiles,
         references=references,
