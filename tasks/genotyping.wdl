@@ -15,6 +15,7 @@ workflow SnpBasedGenotypingMaps {
     String parent1
     String parent2
     String chromosome
+    File? multi_obj
   }
 
   call OnemapProbs {

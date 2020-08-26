@@ -13,6 +13,7 @@ workflow SNPCallerMaps{
      String parent1
      String parent2
      String chromosome
+     File? multi_obj
     }
 
   call GQProbs{

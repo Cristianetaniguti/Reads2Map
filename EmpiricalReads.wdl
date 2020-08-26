@@ -29,6 +29,8 @@ workflow EmpiricalReads {
             dataset = dataset,
             gatk_vcf = SNPCalling.gatk_vcf_bi,
             freebayes_vcf = SNPCalling.freebayes_vcf_bi,
+            gatk_multi = SNPCalling.gatk_vcf_multi,
+            freebayes_multi = SNPCalling.freebayes_vcf_multi,
             gatk_vcf_bam_counts = SNPCalling.gatk_vcf_bi_bam_count,
             freebayes_vcf_bam_counts = SNPCalling.freebayes_vcf_bi_bam_count,
             filters = filters

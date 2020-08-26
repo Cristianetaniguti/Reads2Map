@@ -25,6 +25,8 @@ workflow Maps {
         File gatk_vcf_bam_counts
         File freebayes_vcf_bam_counts
         String? filters
+        File? gatk_multi
+        File? freebayes_multi
     }
 
     if (defined(filters)) {
@@ -58,6 +60,21 @@ workflow Maps {
                 parent2 = dataset.parent2
         }
 
+        if (defined(gatk_multi)){
+           call utilsR.MultiVcf2onemap{
+             input:
+               gatk_multi = gatk_multi,
+               freebayes_multi = freebayes_multi,
+               cross = dataset.cross,
+               SNPCall_program = analysis.method,
+               parent1 = dataset.parent1,
+               parent2 = dataset.parent2,
+          }
+          File multi_out = MultiVcf2onemap.onemap_obj
+        }
+        
+        File? multi_obj = multi_out
+        
         call default.DefaultMaps {
             input:
                 onemap_obj = vcf2onemap.onemap_obj,
@@ -66,7 +83,8 @@ workflow Maps {
                 parent2 = dataset.parent2,
                 SNPCall_program = analysis.method,
                 CountsFrom = "vcf",
-                chromosome = dataset.chromosome
+                chromosome = dataset.chromosome,
+                multi_obj = multi_obj
         }
 
         call snpcaller.SNPCallerMaps {
@@ -79,7 +97,8 @@ workflow Maps {
                 CountsFrom = "vcf",
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2,
-                chromosome = dataset.chromosome
+                chromosome = dataset.chromosome,
+                multi_obj = multi_obj
         }
 
         Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -95,7 +114,8 @@ workflow Maps {
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome
+                    chromosome = dataset.chromosome,
+                    multi_obj = multi_obj
             }
 
             call genotyping.SnpBasedGenotypingMaps as SupermassaMaps {
@@ -108,7 +128,8 @@ workflow Maps {
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome
+                    chromosome = dataset.chromosome,
+                    multi_obj = multi_obj
             }
 
             call genotyping.SnpBasedGenotypingMaps as PolyradMaps {
@@ -121,7 +142,8 @@ workflow Maps {
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome
+                    chromosome = dataset.chromosome,
+                    multi_obj = multi_obj
             }
         }
 

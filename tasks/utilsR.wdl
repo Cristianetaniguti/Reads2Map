@@ -34,6 +34,7 @@ task vcf2onemap{
                                  parent1="~{parent1}",
                                  parent2="~{parent2}",
                                  f1 = f1)
+                                 
           save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf", "_onemap.obj.RData"))
 
         RSCRIPT
@@ -51,6 +52,68 @@ task vcf2onemap{
       File vcfR_obj = "vcfR_obj.RData"
     }
 }
+
+
+task MultiVcf2onemap{
+   input{
+     File? gatk_multi
+     File? freebayes_multi
+     String cross
+     String SNPCall_program
+     String parent1
+     String parent2
+   }
+
+   command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+          library(onemap)
+          library(vcfR)
+
+          cross <- "~{cross}"
+
+          if(cross == "F1"){
+            cross <- "outcross"
+            f1 = NULL
+          } else if (cross == "F2"){
+            cross <- "f2 intercross"
+            f1 = "F1"
+          }
+
+          SNPCall <- "~{SNPCall_program}"
+          if(SNPCall == "gatk"){
+            vcf_file <- "~{gatk_multi}"
+          } else{
+            vcf_file <- "~{freebayes_multi}"
+          }
+          
+          ## READING VCF FROM PIPELINE
+          vcf <- read.vcfR(vcf_file)
+
+          onemap.obj <- onemap_read_vcfR(vcfR.object=vcf,
+                                 cross= cross,
+                                 parent1="~{parent1}",
+                                 parent2="~{parent2}",
+                                 f1 = f1,
+                                 only_biallelic = F)
+                                 
+          save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf_multi_onemap.obj.RData"))
+
+        RSCRIPT
+
+    >>>
+    runtime{
+      docker:"cristaniguti/onemap_workflows"
+      time:"72:00:01"
+      mem:"--nodes=1"
+      cpu:1
+    }
+
+    output{
+      File onemap_obj = "~{SNPCall_program}_vcf_multi_onemap.obj.RData"
+    }
+}
+
 
 task FiltersReport{
   input{
@@ -427,3 +490,48 @@ task MapsReportEmp{
     File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
 }
+
+
+task AddMultiallelics{
+  input{
+   File? onemap_obj_multi
+   File onemap_obj_bi
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      
+      temp <- load("~{onemap_obj_multi}")
+      onemap_obj_multi <- get(temp)
+      
+      temp <- load("~{onemap_obj_bi}")
+      onemap_obj_bi <- get(temp)
+
+      onemap_obj <- create_probs(onemap_obj_multi, global_error = 0.05) # All multiallelics receives global_error = 0.05
+      
+      onemap_both <- combine_onemap(onemap_obj_bi, onemap_obj_multi)
+      
+      onemap_both <- sort_by_pos(onemap_both)
+      
+      save(onemap_both, file=paste0("onemap_obj_both.RData"))
+                
+    RSCRIPT
+
+  >>>
+
+  runtime{
+    docker:"cristaniguti/onemap_workflows"
+    time:"120:00:04"
+    mem:"--nodes=1"
+    cpu:4
+  }
+
+  output{
+      File onemap_obj_both = "onemap_obj_both.RData"
+  }
+}
+
+
+
+
