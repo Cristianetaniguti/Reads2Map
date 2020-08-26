@@ -34,7 +34,8 @@ workflow Maps {
                 freebayes_vcf = freebayes_vcf,
                 gatk_vcf_bam_counts = gatk_vcf_bam_counts,
                 freebayes_vcf_bam_counts = freebayes_vcf_bam_counts,
-                filters = filters
+                filters = filters,
+                chromosome = dataset.chromosome
         }
     }
 

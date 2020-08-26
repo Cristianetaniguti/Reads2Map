@@ -58,8 +58,8 @@ workflow reads_simu {
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF  = FreebayesGenotyping.vcf,
-      gatkVCF       = GatkGenotyping.vcf,
+      freebayesVCF  = FreebayesGenotyping.vcf_bi,
+      gatkVCF       = GatkGenotyping.vcf_bi,
       tot_mks       = CreateAlignmentFromSimulation.total_markers,
       maternal_trim = CreateAlignmentFromSimulation.maternal_trim,
       seed          = family.seed,
@@ -75,17 +75,18 @@ workflow reads_simu {
     if (defined(filters)) {
         call utils.ApplyRandomFilters {
             input:
-                gatk_vcf = GatkGenotyping.vcf,
-                freebayes_vcf = FreebayesGenotyping.vcf,
+                gatk_vcf = GatkGenotyping.vcf_bi,
+                freebayes_vcf = FreebayesGenotyping.vcf_bi,
                 gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
                 freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
-                filters = filters
+                filters = filters,
+                chromosome = splitvcf.chromosome
         }
     }
 
-    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf])
+    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_bi])
     File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_bi_bam_counts])
-    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf])
+    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_bi])
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_bi_bam_counts])
 
 

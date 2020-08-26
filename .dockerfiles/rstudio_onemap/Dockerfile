@@ -34,3 +34,6 @@ RUN apt update \
     && apt install -y devscripts
 
 RUN R -e "install.packages('vcfR_1.10.0.tar.gz', repos=NULL, type='source')"
+
+RUN R -e  "install.packages('ggpubr', repos='http://brieger.esalq.usp.br/CRAN/'); \
+          install.packages('config', repos='http://brieger.esalq.usp.br/CRAN/')"

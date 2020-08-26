@@ -4,7 +4,6 @@ workflow SplitFiltVCF{
   input {
     File vcf_in
     String program
-    String chromosome
     File reference
     File reference_idx
     String parent1
@@ -22,18 +21,16 @@ workflow SplitFiltVCF{
     input:
       vcf_in = BiallelicNormalization.vcf_norm,
       program = program,
-      chromosome = chromosome,
       parent1 = parent1,
       parent2 = parent2
   }
 
 
   output {
-    File vcf_bi_chr_norm = SplitFilters.vcf_bi_chr
-    File vcf_bi_chr_norm_tbi = SplitFilters.vcf_bi_chr_tbi
-    File vcf_bi_norm = SplitFilters.vcf_bi
-    File vcf_multi_chr = SplitFilters.vcf_multi_chr
-    File vcf_multi_norm = SplitFilters.vcf_multi
+    File vcf_bi = SplitFilters.vcf_bi
+    File vcf_bi_tbi = SplitFilters.vcf_bi_tbi
+    File vcf_multi = SplitFilters.vcf_multi
+    File vcf_multi_tbi = SplitFilters.vcf_multi_tbi
   }
 }
 
@@ -66,7 +63,6 @@ task SplitFilters{
   input{
     File vcf_in
     String program
-    String chromosome
     String parent1
     String parent2
   }
@@ -84,15 +80,11 @@ task SplitFilters{
 
     vcf-concat ~{program}_multi1.recode.vcf ~{program}_multi2.recode.vcf  > ~{program}_multi.recode.vcf
 
-    vcftools --gzvcf ~{program}_multi.recode.vcf ~{"--chr " +  chromosome} --recode --out ~{program}_multi_~{chromosome}
-
-    vcftools --vcf ~{program}_bi.recode.vcf ~{"--chr " +  chromosome} --recode --out ~{program}_bi_~{chromosome}
-
     bgzip ~{program}_multi.recode.vcf
-    bgzip ~{program}_bi_~{chromosome}.recode.vcf
-    tabix -p vcf ~{program}_bi_~{chromosome}.recode.vcf.gz
-    bgzip ~{program}_multi_~{chromosome}.recode.vcf
     bgzip ~{program}_bi.recode.vcf
+    tabix -p vcf ~{program}_bi.recode.vcf.gz
+    tabix ~{program}_multi.recode.vcf.gz
+
   >>>
 
   runtime {
@@ -104,10 +96,9 @@ task SplitFilters{
 
   output {
     File vcf_multi = "~{program}_multi.recode.vcf.gz"
+    File vcf_multi_tbi = "~{program}_multi.recode.vcf.gz.tbi"
     File vcf_bi = "~{program}_bi.recode.vcf.gz"
-    File vcf_multi_chr = "~{program}_multi_~{chromosome}.recode.vcf.gz"
-    File vcf_bi_chr = "~{program}_bi_~{chromosome}.recode.vcf.gz"
-    File vcf_bi_chr_tbi = "~{program}_bi_~{chromosome}.recode.vcf.gz.tbi"
+    File vcf_bi_tbi = "~{program}_bi.recode.vcf.gz.tbi"
   }
 }
 

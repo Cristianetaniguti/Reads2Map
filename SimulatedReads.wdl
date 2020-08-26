@@ -16,7 +16,7 @@ workflow SimulatedReads {
   # array of integers
   call ProduceFamiliesSeeds {
     input:
-      seed=9000,
+      global_seed=family_template.global_seed,
       number_of_families=number_of_families
   }
 
@@ -68,13 +68,13 @@ workflow SimulatedReads {
 task ProduceFamiliesSeeds {
   input {
     Int number_of_families
-    Int seed
+    Int global_seed
   }
 
   command <<<
     python <<CODE
     import random
-    random.seed(~{seed})
+    random.seed(~{global_seed})
     for x in range(~{number_of_families}):
         print(random.randint(1,101))
     CODE

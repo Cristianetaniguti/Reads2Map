@@ -47,7 +47,6 @@ workflow GatkGenotyping {
     input:
       vcf_in=GenotypeGVCFs.vcf,
       program=program,
-      chromosome = splitvcf.chromosome,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
       parent1 = splitvcf.parent1,
@@ -64,8 +63,8 @@ workflow GatkGenotyping {
         ref=references.ref_fasta,
         ref_fai=references.ref_fasta_index,
         ref_dict=references.ref_dict,
-        vcf=SplitFiltVCF.vcf_bi_chr_norm,
-        tbi=SplitFiltVCF.vcf_bi_chr_norm_tbi
+        vcf=SplitFiltVCF.vcf_bi,
+        tbi=SplitFiltVCF.vcf_bi_tbi
     }
   }
 
@@ -78,26 +77,19 @@ workflow GatkGenotyping {
 
   call utilsR.BamDepths2Vcf{
     input:
-      vcf_file = SplitFiltVCF.vcf_bi_chr_norm,
+      vcf_file = SplitFiltVCF.vcf_bi,
       ref_bam = BamCounts4Onemap.ref_bam,
       alt_bam = BamCounts4Onemap.alt_bam,
       example_alleles = BamCounts4Onemap.ref_alt_alleles,
       program = program
   }
 
-  call utils.FiltChr{
-    input:
-      vcf_bam = BamDepths2Vcf.bam_vcf,
-      chromosome = splitvcf.chromosome
-  }
-
   output {
-    File vcf = SplitFiltVCF.vcf_bi_chr_norm
-    File tbi = SplitFiltVCF.vcf_bi_chr_norm_tbi
-    File vcf_bi_tot = SplitFiltVCF.vcf_bi_norm
-    File vcf_multi_tot = SplitFiltVCF.vcf_multi_norm
-    File vcf_bi_bam_counts_tot = BamDepths2Vcf.bam_vcf
-    File vcf_bi_bam_counts = FiltChr.bam_chr
+    File vcf_bi = SplitFiltVCF.vcf_bi
+    File tbi_bi = SplitFiltVCF.vcf_bi_tbi
+    File vcf_multi = SplitFiltVCF.vcf_multi
+    File tbi_multi  = SplitFiltVCF.vcf_multi_tbi
+    File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
     File alt_bam = BamCounts4Onemap.alt_bam
     File ref_bam = BamCounts4Onemap.ref_bam
   }

@@ -17,13 +17,14 @@
   },
   "SimulatedReads.family_template": {
     "cmBymb": "4.63",
-    "seed": "9000",
+    "global_seed": "7000",
     "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
     "popsize": 47,
     "ploidy": 2,
     "enzyme": "G*CWGC",
     "cross": "F1",
-    "depth": 20
+    "depth": 20,
+    "chromosome": "Chr10"
   },
   "SimulatedReads.ReadSimulations.filters": "--maf 0.05",
   "SimulatedReads.splitvcf": {

@@ -360,16 +360,17 @@ task ApplyRandomFilters{
     File gatk_vcf_bam_counts
     File freebayes_vcf_bam_counts
     String? filters
+    String? chromosome
   }
 
   command <<<
-    vcftools --gzvcf ~{gatk_vcf} ~{filters} --recode --stdout > gatk_vcf_filt.vcf
+    vcftools --gzvcf ~{gatk_vcf} ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_filt.vcf
 
-    vcftools --gzvcf ~{freebayes_vcf} ~{filters} --recode --stdout > freebayes_vcf_filt.vcf
+    vcftools --gzvcf ~{freebayes_vcf} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_filt.vcf
 
-    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{filters} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
+    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
 
-    vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
+    vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
 
   runtime{

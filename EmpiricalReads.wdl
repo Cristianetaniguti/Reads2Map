@@ -27,8 +27,8 @@ workflow EmpiricalReads {
     call maps.Maps {
         input:
             dataset = dataset,
-            gatk_vcf = SNPCalling.gatk_vcf,
-            freebayes_vcf = SNPCalling.freebayes_vcf,
+            gatk_vcf = SNPCalling.gatk_vcf_bi,
+            freebayes_vcf = SNPCalling.freebayes_vcf_bi,
             gatk_vcf_bam_counts = SNPCalling.gatk_vcf_bi_bam_count,
             freebayes_vcf_bam_counts = SNPCalling.freebayes_vcf_bi_bam_count,
             filters = filters
@@ -36,9 +36,9 @@ workflow EmpiricalReads {
 
     output {
         File EmpiricalReads_results = Maps.EmpiricalReads_results
-        File gatk_vcf_bi = SNPCalling.gatk_vcf_bi_tot
-        File gatk_vcf_multi = SNPCalling.gatk_vcf_multi_tot
-        File freebayes_vcf_bi = SNPCalling.freebayes_vcf_bi_tot
-        File freebayes_vcf_multi = SNPCalling.freebayes_vcf_multi_tot
+        File gatk_vcf_bi = SNPCalling.gatk_vcf_bi
+        File gatk_vcf_multi = SNPCalling.gatk_vcf_multi
+        File freebayes_vcf_bi = SNPCalling.freebayes_vcf_bi
+        File freebayes_vcf_multi = SNPCalling.freebayes_vcf_multi
     }
 }

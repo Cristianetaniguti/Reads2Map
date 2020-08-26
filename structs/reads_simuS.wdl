@@ -26,6 +26,8 @@ struct FamilyTemplate {
   File doses
   Int ploidy
   String cross
+  String chromosome
+  Int global_seed
 }
 
 struct SplitVCF{

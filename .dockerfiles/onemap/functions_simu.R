@@ -440,7 +440,7 @@ adapt2app <- function(data){
 fix_genocall_names <- function(data){
   data$GenoCall <- as.factor(data$GenoCall)
   temp <- levels(data$GenoCall)
-  idx <- grep(c("default", "default0.05"), temp)
+  idx <- grep(paste0("default","|", "default0.05"), temp)
   temp[idx] <- c("OneMap_version2", "SNPCaller0.05")
   data$GenoCall <- as.character(data$GenoCall)
   data$GenoCall[data$GenoCall == "default"] <- "OneMap_version2"
