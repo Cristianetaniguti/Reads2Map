@@ -16,6 +16,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String CountsFrom
     String cMbyMb
     String cross
+    File? multi_obj
   }
 
   call OnemapProbsSimulated {
@@ -36,10 +37,20 @@ workflow SnpBasedGenotypingSimulatedMaps {
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
+  
+       if (defined(multi_obj)) {
+           call utilsR.AddMultiallelics{
+             input:
+               onemap_obj_multi = multi_obj,
+               onemap_obj_bi = item.right
+           }
+       }
+        
+       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])  
 
        call utilsR.FiltersReport {
             input:
-              onemap_obj = item.right,
+              onemap_obj = select_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom
@@ -59,7 +70,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
 
         call utilsR.ErrorsReport{
             input:
-              onemap_obj = item.right,
+              onemap_obj = select_onemap_obj,
               simu_onemap_obj = simu_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,

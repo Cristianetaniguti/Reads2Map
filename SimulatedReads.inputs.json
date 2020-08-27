@@ -1,5 +1,6 @@
 {
-  "SimulatedReads.number_of_families": "1",
+  "SimulatedReads.ReadSimulations.multiallelics": "true",
+  "SimulatedReads.number_of_families": "2",
   "SimulatedReads.references": {
     "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
     "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",

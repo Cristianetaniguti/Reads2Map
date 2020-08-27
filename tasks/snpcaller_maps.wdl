@@ -14,6 +14,7 @@ workflow SNPCallerMaps{
      String GenotypeCall_program
      String CountsFrom
      String cMbyMb
+     File? multi_obj
     }
 
 
@@ -23,10 +24,20 @@ workflow SNPCallerMaps{
       onemap_obj = onemap_obj,
       cross = cross
   }
+  
+  if (defined(multi_obj)) {
+      call utilsR.AddMultiallelics{
+          input:
+            onemap_obj_multi = multi_obj,
+            onemap_obj_bi = GQProbs.gq_onemap_obj
+      }
+  }
+        
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
 
   call utilsR.FiltersReport{
     input:
-      onemap_obj = GQProbs.gq_onemap_obj,
+      onemap_obj = select_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = "vcf"
@@ -46,7 +57,7 @@ workflow SNPCallerMaps{
 
   call utilsR.ErrorsReport{
     input:
-      onemap_obj = GQProbs.gq_onemap_obj,
+      onemap_obj = select_onemap_obj,
       simu_onemap_obj = simu_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,

@@ -27,6 +27,7 @@ workflow reads_simu {
     Profiles profiles
     SplitVCF splitvcf
     String? filters
+    Boolean multiallelics
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -105,6 +106,21 @@ workflow reads_simu {
         parent2 = "P2"
     }
 
+    if (multiallelics){
+      call utilsR.MultiVcf2onemap{
+         input:
+            gatk_multi = GatkGenotyping.vcf_multi,
+            freebayes_multi = FreebayesGenotyping.vcf_multi,
+            cross = family.cross,
+            SNPCall_program = analysis.method,
+            parent1 = "P1",
+            parent2 = "P2",
+      }
+      File multi_out = MultiVcf2onemap.onemap_obj
+    }
+        
+    File? multi_obj = multi_out
+
     call default.DefaultMaps {
       input:
         onemap_obj = vcf2onemap.onemap_obj,
@@ -113,7 +129,8 @@ workflow reads_simu {
         real_phases = CreateAlignmentFromSimulation.real_phases,
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb
+        cMbyMb = family.cmBymb,
+        multi_obj = multi_obj
     }
 
     call snpcaller.SNPCallerMaps{
@@ -127,7 +144,8 @@ workflow reads_simu {
         SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb
+        cMbyMb = family.cmBymb,
+        multi_obj = multi_obj
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -144,7 +162,8 @@ workflow reads_simu {
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
-            cross = family.cross
+            cross = family.cross,
+            multi_obj = multi_obj
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -158,7 +177,8 @@ workflow reads_simu {
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
-            cross = family.cross
+            cross = family.cross,
+            multi_obj = multi_obj
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -172,7 +192,8 @@ workflow reads_simu {
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
-            cross = family.cross
+            cross = family.cross,
+            multi_obj = multi_obj,
         }
       }
 

@@ -59,7 +59,7 @@ RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/XML/XML_
 RUN apt-get update \
     && pip install matplotlib==2.0.2 numpy
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap', ref='up_read'       )"
+RUN R -e "devtools::install_github('Cristianetaniguti/onemap', ref='up_read'  )"
 
 COPY ./functions_simu.R /opt/scripts/
 

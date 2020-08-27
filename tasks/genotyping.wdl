@@ -49,9 +49,19 @@ workflow SnpBasedGenotypingMaps {
               CountsFrom = CountsFrom
        }
 
+       if (defined(multi_obj)) {
+          call utilsR.AddMultiallelics{
+            input:
+              onemap_obj_multi = multi_obj,
+              onemap_obj_bi = item.right
+         }
+       }
+        
+       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
+
        call utilsR.FiltersReportEmp {
             input:
-              onemap_obj = item.right,
+              onemap_obj = select_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,

@@ -72,23 +72,29 @@ task ProduceFamiliesSeeds {
   }
 
   command <<<
-    python <<CODE
-    import random
-    random.seed(~{global_seed})
-    for x in range(~{number_of_families}):
-        print(random.randint(1,101))
-    CODE
+    R --vanilla --no-save <<RSCRIPT
+    
+    n_families <- as.numeric("~{number_of_families}")
+    seed <- as.numeric("~{global_seed}")
+    
+    for(i in 1:n_families){
+      set.seed(seed + i)
+      out <- c(out, cat(sample(1:10000,1)))
+    }
+    out <- t(out)
+    write.table(out, file="seeds.txt")
+    RSCRIPT
   >>>
 
   runtime {
-    docker: "python:3.7"
+    docker: "r-base:4.0.0"
     time:"0:05:00"
     cpu:1
     mem:"--mem-per-cpu=14042"
   }
 
   output {
-    Array[Int] seeds = read_lines(stdout())
+    Array[Int] seeds = read_lines("seeds.txt")
   }
 }
 
