@@ -1,31 +1,31 @@
 {
-  "SimulatedReads.ReadSimulations.multiallelics": "true",
-  "SimulatedReads.number_of_families": "1",
+  "SimulatedReads.number_of_families": "2",
   "SimulatedReads.references": {
-    "ref_dict": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.dict",
-    "ref_fasta": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa",
-    "ref_fasta_index": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa.fai",
-    "ref_sa": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa.sa",
-    "ref_amb": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa.amb",
-    "ref_bwt": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa.bwt",
-    "ref_ann": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa.ann",
-    "ref_pac": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/populus/reference/Chr10.populus.fa.pac"
+    "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
+    "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
+    "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.fai",
+    "ref_sa": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.sa",
+    "ref_amb": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.amb",
+    "ref_bwt": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.bwt",
+    "ref_ann": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.ann",
+    "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
   },
   "SimulatedReads.profiles": {
-    "base_calling": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/profiles/humNew.PE100.matrix.gz",
-    "indel_error": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/profiles/phixv2.InDel.matrix",
-    "gc_bias": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/profiles/humNew.gcdep_150.dat"
+    "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
+    "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
+    "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
   },
   "SimulatedReads.family_template": {
     "cmBymb": "4.63",
-    "global_seed": "1818",
-    "doses": "/home/cristiane/github/onemap_workflows_up_08/onemap_workflows/data/toy_sample/doses",
-    "popsize": 150,
+    "global_seed": "7000",
+    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
+    "popsize": 47,
     "ploidy": 2,
     "enzyme": "G*CWGC",
     "cross": "F1",
-    "depth": 5,
-    "chromosome": "Chr10"
+    "depth": 20,
+    "chromosome": "Chr10",
+    "multiallelics": "true" 
   },
   "SimulatedReads.ReadSimulations.filters": "--maf 0.05",
   "SimulatedReads.splitvcf": {
