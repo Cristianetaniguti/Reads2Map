@@ -76,7 +76,7 @@ task ProduceFamiliesSeeds {
     import random
     random.seed(~{global_seed})
     for x in range(~{number_of_families}):
-        print(random.randint(1,101))
+        print(random.randint(1,101+x))
     CODE
   >>>
 
