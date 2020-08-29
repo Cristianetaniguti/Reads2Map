@@ -17,6 +17,7 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
+    File? multi
 }
 
 workflow reads_simu {
@@ -27,7 +28,6 @@ workflow reads_simu {
     Profiles profiles
     SplitVCF splitvcf
     String? filters
-    Boolean multiallelics
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -91,8 +91,8 @@ workflow reads_simu {
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_bi_bam_counts])
 
 
-    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"multi":GatkGenotyping.vcf_multi, "method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"multi":FreebayesGenotyping.vcf_multi, "method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
 
   scatter (analysis in [gatk_processing, freebayes_processing]){
@@ -106,11 +106,11 @@ workflow reads_simu {
         parent2 = "P2"
     }
 
-    if (multiallelics){
+    if (family.multiallelics){
       call utilsR.MultiVcf2onemap{
          input:
-            gatk_multi = GatkGenotyping.vcf_multi,
-            freebayes_multi = FreebayesGenotyping.vcf_multi,
+            gatk_multi = analysis.multi,
+            freebayes_multi = analysis.multi,
             cross = family.cross,
             SNPCall_program = analysis.method,
             parent1 = "P1",
