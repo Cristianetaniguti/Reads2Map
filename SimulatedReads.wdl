@@ -31,7 +31,8 @@ workflow SimulatedReads {
       "depth": family_template.depth,
       "doses": family_template.doses,
       "ploidy": family_template.ploidy,
-      "cross": family_template.cross
+      "cross": family_template.cross,
+      "multiallelics": family_template.multiallelics
     }
 
     # Calling reads_simu for each seed
