@@ -13,9 +13,4 @@ metadata/
 data/populus/
 task/cromwell-executions/
 task/cromwell-workflow-logs/
-new_find_bins
-populus_chr10_vcf
-scratch
-log
-shard-0
-bam2vcf_shard-0
+.configurations/cromwell-gcp.conf
