@@ -116,7 +116,7 @@ task GenerateAlternativeGenome {
   }
 
   command <<<
-    /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.001 -d 0.0001 -v 0 -o alt --random-seed ~{seed}
+    /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.005 -d 0.0005 -v 0 -o alt --random-seed ~{seed}
 
   >>>
 

@@ -18,7 +18,8 @@
     "name": "toy_sample",
     "parent1": "PT_F",
     "chromosome": "Chr10",
-    "cross": "F1"
+    "cross": "F1",
+    "multiallelics": "yes"
   },
   "EmpiricalReads.splitvcf": {
     "chromosome": "Chr10",

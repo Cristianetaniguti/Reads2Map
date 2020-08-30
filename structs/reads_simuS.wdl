@@ -9,7 +9,7 @@ struct Family {
   File doses
   Int ploidy
   String cross
-  Boolean multiallelics
+  String multiallelics
 }
 
 struct Profiles{
@@ -29,7 +29,7 @@ struct FamilyTemplate {
   String cross
   String chromosome
   Int global_seed
-  Boolean multiallelics
+  String multiallelics
 }
 
 struct SplitVCF{

@@ -19,4 +19,5 @@ struct Dataset {
   String? filt_depth
   String cross
   String chromosome
+  String multiallelics
 }

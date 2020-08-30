@@ -14,6 +14,7 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
+    File? multi
 }
 
 workflow Maps {
@@ -46,8 +47,8 @@ workflow Maps {
     File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, freebayes_vcf])
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, freebayes_vcf_bam_counts])
 
-    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"multi": gatk_multi,"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"multi": freebayes_multi,"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
     scatter (analysis in [gatk_processing, freebayes_processing]) {
 
@@ -60,20 +61,16 @@ workflow Maps {
                 parent2 = dataset.parent2
         }
 
-        if (defined(gatk_multi)){
+        if (dataset.multiallelics == "yes"){
            call utilsR.MultiVcf2onemap{
              input:
-               gatk_multi = gatk_multi,
-               freebayes_multi = freebayes_multi,
+               multi = analysis.multi,
                cross = dataset.cross,
                SNPCall_program = analysis.method,
                parent1 = dataset.parent1,
                parent2 = dataset.parent2,
           }
-          File multi_out = MultiVcf2onemap.onemap_obj
         }
-        
-        File? multi_obj = multi_out
         
         call default.DefaultMaps {
             input:
@@ -84,7 +81,8 @@ workflow Maps {
                 SNPCall_program = analysis.method,
                 CountsFrom = "vcf",
                 chromosome = dataset.chromosome,
-                multi_obj = multi_obj
+                multi_obj = MultiVcf2onemap.onemap_obj,
+                multiallelics = dataset.multiallelics
         }
 
         call snpcaller.SNPCallerMaps {
@@ -98,7 +96,8 @@ workflow Maps {
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2,
                 chromosome = dataset.chromosome,
-                multi_obj = multi_obj
+                multi_obj = MultiVcf2onemap.onemap_obj,
+                multiallelics = dataset.multiallelics
         }
 
         Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -115,7 +114,8 @@ workflow Maps {
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
-                    multi_obj = multi_obj
+                    multi_obj = MultiVcf2onemap.onemap_obj,
+                    multiallelics = dataset.multiallelics
             }
 
             call genotyping.SnpBasedGenotypingMaps as SupermassaMaps {
@@ -129,7 +129,8 @@ workflow Maps {
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
-                    multi_obj = multi_obj
+                    multi_obj = MultiVcf2onemap.onemap_obj,
+                    multiallelics = dataset.multiallelics
             }
 
             call genotyping.SnpBasedGenotypingMaps as PolyradMaps {
@@ -143,7 +144,8 @@ workflow Maps {
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
-                    multi_obj = multi_obj
+                    multi_obj = MultiVcf2onemap.onemap_obj,
+                    multiallelics = dataset.multiallelics
             }
         }
 

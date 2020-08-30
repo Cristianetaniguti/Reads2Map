@@ -11,7 +11,7 @@ workflow DefaultMaps {
      String SNPCall_program
      String CountsFrom
      String cMbyMb
-     File? multi_obj
+     File? multi_obj  
     }
 
     call utilsR.GlobalError{

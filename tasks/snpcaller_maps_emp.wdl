@@ -14,6 +14,7 @@ workflow SNPCallerMaps{
      String parent2
      String chromosome
      File? multi_obj
+     String multiallelics
     }
 
   call GQProbs{
@@ -36,7 +37,7 @@ workflow SNPCallerMaps{
       CountsFrom = CountsFrom
   }
 
-  if (defined(multi_obj)) {
+  if (multiallelics == "yes") {
      call utilsR.AddMultiallelics{
          input:
            onemap_obj_multi = multi_obj,

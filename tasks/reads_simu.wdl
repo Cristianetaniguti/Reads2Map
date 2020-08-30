@@ -106,20 +106,16 @@ workflow reads_simu {
         parent2 = "P2"
     }
 
-    if (family.multiallelics){
+    if (family.multiallelics == "true"){
       call utilsR.MultiVcf2onemap{
          input:
-            gatk_multi = analysis.multi,
-            freebayes_multi = analysis.multi,
+            multi = analysis.multi,
             cross = family.cross,
             SNPCall_program = analysis.method,
             parent1 = "P1",
             parent2 = "P2",
       }
-      File multi_out = MultiVcf2onemap.onemap_obj
     }
-        
-    File? multi_obj = multi_out
 
     call default.DefaultMaps {
       input:
@@ -130,7 +126,7 @@ workflow reads_simu {
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb,
-        multi_obj = multi_obj
+        multi_obj = MultiVcf2onemap.onemap_obj
     }
 
     call snpcaller.SNPCallerMaps{
@@ -145,7 +141,7 @@ workflow reads_simu {
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb,
-        multi_obj = multi_obj
+        multi_obj = MultiVcf2onemap.onemap_obj
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -163,7 +159,7 @@ workflow reads_simu {
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
             cross = family.cross,
-            multi_obj = multi_obj
+            multi_obj = MultiVcf2onemap.onemap_obj
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -178,7 +174,7 @@ workflow reads_simu {
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
             cross = family.cross,
-            multi_obj = multi_obj
+            multi_obj = MultiVcf2onemap.onemap_obj
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -193,7 +189,7 @@ workflow reads_simu {
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
             cross = family.cross,
-            multi_obj = multi_obj,
+            multi_obj = MultiVcf2onemap.onemap_obj
         }
       }
 

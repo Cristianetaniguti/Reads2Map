@@ -56,8 +56,7 @@ task vcf2onemap{
 
 task MultiVcf2onemap{
    input{
-     File? gatk_multi
-     File? freebayes_multi
+     File? multi
      String cross
      String SNPCall_program
      String parent1
@@ -80,13 +79,7 @@ task MultiVcf2onemap{
             f1 = "F1"
           }
 
-          SNPCall <- "~{SNPCall_program}"
-          if(SNPCall == "gatk"){
-            vcf_file <- "~{gatk_multi}"
-          } else{
-            vcf_file <- "~{freebayes_multi}"
-          }
-          
+          vcf_file <- "~{multi}"
           ## READING VCF FROM PIPELINE
           vcf <- read.vcfR(vcf_file)
 

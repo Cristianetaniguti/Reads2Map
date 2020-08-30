@@ -16,6 +16,7 @@ workflow SnpBasedGenotypingMaps {
     String parent2
     String chromosome
     File? multi_obj
+    File multiallelics
   }
 
   call OnemapProbs {
@@ -49,7 +50,7 @@ workflow SnpBasedGenotypingMaps {
               CountsFrom = CountsFrom
        }
 
-       if (defined(multi_obj)) {
+       if (multiallelics == "yes") {
           call utilsR.AddMultiallelics{
             input:
               onemap_obj_multi = multi_obj,
