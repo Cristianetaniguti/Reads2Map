@@ -66,7 +66,8 @@ workflow CreateAlignmentFromSimulation {
 
     call SimulateRADseq {
       input:
-        enzyme           = family.enzyme,
+        enzyme1          = family.enzyme1,
+        enzyme2          = family.enzyme2,
         sampleName       = sampleName,
         maternal_genomes = RunVcf2diploid.maternal_genomes,
         paternal_genomes = RunVcf2diploid.paternal_genomes
@@ -116,7 +117,7 @@ task GenerateAlternativeGenome {
   }
 
   command <<<
-    /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.005 -d 0.0005 -v 0 -o alt --random-seed ~{seed}
+    /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.011 -d 0.0022 -v 0 -o alt --random-seed ~{seed}
 
   >>>
 
@@ -482,7 +483,8 @@ task GenerateSampleNames {
 # bases of each resulting fragment is sequenced.
 task SimulateRADseq {
   input {
-    String enzyme
+    String enzyme1
+    String enzyme2
     String sampleName
     File maternal_genomes
     File paternal_genomes
@@ -494,8 +496,8 @@ task SimulateRADseq {
       --genfile=~{maternal_genomes} \
       --fragsfile=~{sampleName}_maternal_fragments.fasta \
       --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
-      --enzyme1=~{enzyme} \
-      --enzyme2=~{enzyme} \
+      --enzyme1=~{enzyme1} \
+      --enzyme2=~{enzyme2} \
       --minfragsize=202 \
       --maxfragsize=500 \
       --fragstfile=~{sampleName}_maternal_statistics.txt \
@@ -508,8 +510,8 @@ task SimulateRADseq {
       --genfile=~{paternal_genomes} \
       --fragsfile=~{sampleName}_paternal_fragments.fasta \
       --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
-      --enzyme1=~{enzyme} \
-      --enzyme2=~{enzyme} \
+      --enzyme1=~{enzyme1} \
+      --enzyme2=~{enzyme2} \
       --minfragsize=202 \
       --maxfragsize=500 \
       --fragstfile=~{sampleName}_paternal_statistics.txt \
