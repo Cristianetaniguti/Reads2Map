@@ -27,6 +27,11 @@ phaseToOPGP_OM <- function(x){
       parents[3:4,] <- parents[4:3,]
     
     phases <- GUSMap:::parHapToOPGP(parents)
+    
+    if(is(phases, "list"))
+      phases[sapply(phases, is.null)] <- 0
+    
+    phases <- unlist(phases)
     phases[which(phases == 1 | phases == 4)] <- 17 
     phases[which(phases == 2 | phases == 3)] <- 18
     phases[which(phases == 5 | phases == 8)] <- 19
@@ -92,7 +97,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
     map_df <- map_avoid_unlinked(seq_true)
   }
   
-  phases <- phaseToOPGP_OM(map_df)
+  phases <- phaseToOPGP_OM(x = map_df)
   types <- input.seq$data.name$segr.type[map_df[[1]]]
   real_type <- rep(NA, length(types))
   temp_type <- gab$segr.type[which(as.character(gab$POS) %in% input.seq$data.name$POS[map_df[[1]]])]
