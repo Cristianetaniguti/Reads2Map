@@ -209,7 +209,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                                OPGP=list(as.integer(phases.gus)),
                                nThreads = 1)
   
-  rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
+  rf_est$rf[which(rf_est$rf > 0.5)] <- 0.45
   dist.gus <- c(0,cumsum(haldane(rf_est$rf)))
   phases.gus[which(phases.gus == 1 | phases.gus == 4)] <- 17
   phases.gus[which(phases.gus == 2 | phases.gus == 3)] <- 18
