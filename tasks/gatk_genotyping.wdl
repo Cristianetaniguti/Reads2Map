@@ -88,7 +88,6 @@ workflow GatkGenotyping {
     File vcf_bi = SplitFiltVCF.vcf_bi
     File tbi_bi = SplitFiltVCF.vcf_bi_tbi
     File vcf_multi = SplitFiltVCF.vcf_multi
-    File tbi_multi  = SplitFiltVCF.vcf_multi_tbi
     File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
     File alt_bam = BamCounts4Onemap.alt_bam
     File ref_bam = BamCounts4Onemap.ref_bam

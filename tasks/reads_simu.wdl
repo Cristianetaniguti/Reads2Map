@@ -17,7 +17,7 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
-    File? multi
+    File multi
 }
 
 workflow reads_simu {
@@ -106,15 +106,15 @@ workflow reads_simu {
         parent2 = "P2"
     }
 
-    if (family.multiallelics == "true"){
-      call utilsR.MultiVcf2onemap{
-         input:
-            multi = analysis.multi,
-            cross = family.cross,
-            SNPCall_program = analysis.method,
-            parent1 = "P1",
-            parent2 = "P2",
-      }
+    call utilsR.MultiVcf2onemap{
+       input:
+          multi = analysis.multi,
+          cross = family.cross,
+          SNPCall_program = analysis.method,
+          parent1 = "P1",
+          parent2 = "P2",
+          seed    = family.seed,
+          depth   = family.depth
     }
 
     call default.DefaultMaps {
@@ -214,6 +214,7 @@ workflow reads_simu {
     default_errors_report     = flatten(DefaultMaps.errors_report),
     default_times             = flatten(DefaultMaps.times),
     SNPCaller_RDatas          = SNPCallerMaps.RDatas,
+    multi_names               = MultiVcf2onemap.multi_names,
     SNPCaller_maps_report     = SNPCallerMaps.maps_report,
     SNPCaller_filters_report  = SNPCallerMaps.filters_report,
     SNPCaller_errors_report   = SNPCallerMaps.errors_report,
@@ -258,6 +259,7 @@ workflow reads_simu {
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
+    File multi_names              = JointReports.multi_names
   }
 }
 
@@ -268,6 +270,7 @@ task JointReports{
     Array[File] default_filters_report
     Array[File] default_errors_report
     Array[File] default_times
+    Array[File] multi_names
     Array[File] SNPCaller_RDatas
     Array[File] SNPCaller_maps_report
     Array[File] SNPCaller_filters_report
@@ -332,6 +335,22 @@ task JointReports{
       system("cp ~{sep= ' ' default_RDatas} ~{sep= ' ' SNPCaller_RDatas}  .")
       system("cp ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas} .")
       system("cp ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
+
+      # multiallelics names
+
+
+      multi_temp <- c("~{sep=";" multi_names}")
+
+      multi_temp <- unlist(strsplit(multi_temp, ";"))
+
+      multi_names_seed <- list()
+      for(i in 1:length(multi_temp)){
+        multi_temp2 <- load(multi_temp[i])
+        multi_temp3 <- get(multi_temp2)
+        multi_names_seed <- c(multi_names_seed, multi_temp3)
+      }
+
+      save(multi_names_seed, file="multi_names.RData")
 
       library(tidyr)
       library(reshape2)
@@ -473,5 +492,6 @@ task JointReports{
     File data6_RDatas  = "data6_RDatas.llo"
     File data7_gusmap  = "gusmap_RDatas.RData"
     File data8_names   = "names.rds"
+    File multi_names   = "multi_names.RData"
   }
 }

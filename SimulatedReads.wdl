@@ -57,7 +57,8 @@ workflow SimulatedReads {
       data6=ReadSimulations.data6_RDatas,
       data7=ReadSimulations.data7_gusmap,
       data8=ReadSimulations.data8_names,
-      data9=ReadSimulations.simu_haplo
+      data9=ReadSimulations.simu_haplo,
+      data10=ReadSimulations.multi_names
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -106,6 +107,7 @@ task JointTables{
     Array[File] data7
     Array[File] data8
     Array[File] data9
+    Array[File] data10
     Int depth
   }
 
@@ -126,6 +128,7 @@ task JointTables{
     datas[[7]] <- c("~{sep=";" data7}")
     datas[[8]] <- c("~{sep=";" data8}")
     datas[[9]] <- c("~{sep=";" data9}")
+    datas[[10]] <- c("~{sep=";" data10}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
@@ -147,6 +150,13 @@ task JointTables{
         }
         Rdatas <- do.call(c, Rdata_lst)
         save(Rdatas, file = "gusmap_RDatas.RData")
+      } else if(j == 10){
+        multi_names_depth <- list()
+        for(i in 1:length(datas[[j]])){
+          multi_temp2 <- load(datas[[j]][i])
+          multi_temp3 <- get(multi_temp2)
+          multi_names_depth <- c(multi_names_depth, multi_temp3)
+        }
       } else {
         for(i in 1:length(datas[[j]])){
           data_lst[[i]] <- readRDS(datas[[j]][i])
@@ -170,9 +180,10 @@ task JointTables{
     choices <- result_list[[6]]
     save(choices, file = "choices.RData")
     saveRDS(datas_up[[8]], file = "names.rds")
+    save(multi_names_depth, file = "multi_names.RData")
 
     system("mkdir SimulatedReads_results_depth~{depth}")
-    system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
+    system("mv multi_names.RData gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT

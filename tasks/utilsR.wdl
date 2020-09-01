@@ -61,6 +61,8 @@ task MultiVcf2onemap{
      String SNPCall_program
      String parent1
      String parent2
+     Int? seed
+     Int? depth 
    }
 
    command <<<
@@ -89,7 +91,16 @@ task MultiVcf2onemap{
                                  parent2="~{parent2}",
                                  f1 = f1,
                                  only_biallelic = F)
-                                 
+
+          multi_names <- list()
+          if(dim(onemap.obj[[1]])[2] == 0){
+            multi_names[[1]] <- 0
+          } else { 
+            multi_names[[1]] <- colnames(onemap.obj[[1]])
+          }
+          names(multi_names) <- "~{depth}_~{seed}_~{SNPCall_program}"
+          save(multi_names, file = "~{depth}_~{seed}_~{SNPCall_program}_multi.names.RData")  
+
           save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf_multi_onemap.obj.RData"))
 
         RSCRIPT
@@ -104,6 +115,7 @@ task MultiVcf2onemap{
 
     output{
       File onemap_obj = "~{SNPCall_program}_vcf_multi_onemap.obj.RData"
+      File multi_names = "~{depth}_~{seed}_~{SNPCall_program}_multi.names.RData"
     }
 }
 

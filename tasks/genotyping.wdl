@@ -50,7 +50,7 @@ workflow SnpBasedGenotypingMaps {
               CountsFrom = CountsFrom
        }
 
-       if (multiallelics == "yes") {
+         if (defined(multi_obj)) {
           call utilsR.AddMultiallelics{
             input:
               onemap_obj_multi = multi_obj,
