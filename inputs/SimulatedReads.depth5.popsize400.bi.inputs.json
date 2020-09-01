@@ -1,0 +1,36 @@
+{
+    "SimulatedReads.number_of_families": "5",
+    "SimulatedReads.references": {
+      "ref_dict": "/scratch/7932315/data/populus/reference/Chr10.populus.dict",
+      "ref_fasta": "/scratch/7932315/data/populus/reference/Chr10.populus.fa",
+      "ref_fasta_index": "/scratch/7932315/data/populus/reference/Chr10.populus.fa.fai",
+      "ref_sa": "/scratch/7932315/data/populus/reference/Chr10.populus.fa.sa",
+      "ref_amb": "/scratch/7932315/data/populus/reference/Chr10.populus.fa.amb",
+      "ref_bwt": "/scratch/7932315/data/populus/reference/Chr10.populus.fa.bwt",
+      "ref_ann": "/scratch/7932315/data/populus/reference/Chr10.populus.fa.ann",
+      "ref_pac": "/scratch/7932315/data/populus/reference/Chr10.populus.fa.pac"
+    },
+    "SimulatedReads.profiles": {
+      "base_calling": "/scratch/7932315/data/profiles/humNew.PE100.matrix.gz",
+      "indel_error": "/scratch/7932315/data/profiles/phixv2.InDel.matrix",
+      "gc_bias": "/scratch/7932315/data/profiles/humNew.gcdep_150.dat"
+    },
+    "SimulatedReads.family_template": {
+      "cmBymb": "5.3",
+      "global_seed": "8000",
+      "doses": "/scratch/7932315/data/populus/doses",
+      "popsize": 400,
+      "ploidy": 2,
+      "enzyme1": "A*AGCTT",
+      "enzyme2": "CATG*",
+      "cross": "F1",
+      "depth": 5,
+      "chromosome": "Chr10"
+    },
+    "SimulatedReads.ReadSimulations.filters": "--maf 0.05 --max-missing 0.75",
+    "SimulatedReads.splitvcf": {
+      "chromosome": "Chr10",
+      "parent1": "P1",
+      "parent2": "P2"
+    }
+  }
