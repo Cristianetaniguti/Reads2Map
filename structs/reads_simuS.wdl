@@ -4,7 +4,8 @@ struct Family {
   String cmBymb
   Int seed
   Int popsize
-  String enzyme
+  String enzyme1
+  String enzyme2
   Int depth
   File doses
   Int ploidy
@@ -21,7 +22,8 @@ struct FamilyTemplate {
   String cmBymb
   Int? seed
   Int popsize
-  String enzyme
+  String enzyme1
+  String enzyme2
   Int depth
   File doses
   Int ploidy

@@ -6,4 +6,4 @@ struct Dataset {
   String parent2
   String cross
   String chromosome
-}
+} 

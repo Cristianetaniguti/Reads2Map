@@ -26,7 +26,8 @@ workflow SimulatedReads {
     Family fam =  {
       "cmBymb": family_template.cmBymb,
       "popsize": family_template.popsize,
-      "enzyme": family_template.enzyme,
+      "enzyme1": family_template.enzyme1,
+      "enzyme2": family_template.enzyme2,
       "seed": seed,
       "depth": family_template.depth,
       "doses": family_template.doses,
