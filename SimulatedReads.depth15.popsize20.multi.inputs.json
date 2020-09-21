@@ -1,0 +1,37 @@
+{
+  "SimulatedReads.number_of_families": "1",
+  "SimulatedReads.references": {
+    "ref_dict": "/home/cristiane/data/populus/reference/Chr10.populus.dict",
+    "ref_fasta": "/home/cristiane/data/populus/reference/Chr10.populus.fa",
+    "ref_fasta_index": "/home/cristiane/data/populus/reference/Chr10.populus.fa.fai",
+    "ref_sa": "/home/cristiane/data/populus/reference/Chr10.populus.fa.sa",
+    "ref_amb": "/home/cristiane/data/populus/reference/Chr10.populus.fa.amb",
+    "ref_bwt": "/home/cristiane/data/populus/reference/Chr10.populus.fa.bwt",
+    "ref_ann": "/home/cristiane/data/populus/reference/Chr10.populus.fa.ann",
+    "ref_pac": "/home/cristiane/data/populus/reference/Chr10.populus.fa.pac"
+  },
+  "SimulatedReads.profiles": {
+    "base_calling": "/home/cristiane/data/profiles/humNew.PE100.matrix.gz",
+    "indel_error": "/home/cristiane/data/profiles/phixv2.InDel.matrix",
+    "gc_bias": "/home/cristiane/data/profiles/humNew.gcdep_150.dat"
+  },
+  "SimulatedReads.family_template": {
+    "cmBymb": "5.3",
+    "global_seed": "3000",
+    "doses": "/home/cristiane/data/populus/doses",
+    "popsize": 20,
+    "ploidy": 2,
+    "enzyme1": "A*AGCTT",
+    "enzyme2": "CATG*",
+    "cross": "F1",
+    "depth": 15,
+    "chromosome": "Chr10",
+    "multiallelics": "true" 
+  },
+  "SimulatedReads.ReadSimulations.filters": "--maf 0.05 --max-missing 0.75",
+  "SimulatedReads.splitvcf": {
+    "chromosome": "Chr10",
+    "parent1": "P1",
+    "parent2": "P2"
+  }
+}
