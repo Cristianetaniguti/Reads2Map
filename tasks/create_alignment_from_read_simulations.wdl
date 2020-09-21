@@ -170,8 +170,17 @@ task CreatePedigreeSimulatorInputs {
       pos.ref[which(sinal=="-")] <- pos.ref[which(sinal=="-")] -1
 
       # search last base before the indels (information needed by VCF)
-      command  <- c(paste("samtools faidx ~{ref}"),paste0(indels[1,1],":",pos.ref,"-",pos.ref))
-      bases <- system(paste0(command, collapse = " "), intern = T)
+      int <- paste0(indels[1,1],":",pos.ref,"-",pos.ref)
+      sep.idx <- as.integer(length(int)/1000)
+      sep <- rep(1:sep.idx, each =1000)
+      sep <- c(sep, rep(sep.idx+1, each=length(int)-length(sep)))
+      sep <- split(int, sep)
+
+      bases <- list()
+      for(i in 1:length(sep))
+        bases[[i]] <- system(paste(paste("samtools faidx", "~{ref}"), paste(sep[[i]], collapse =  " ")), intern = T)
+
+      bases <- do.call(c, bases)
 
       bases.bf <- matrix(bases, ncol=2, byrow = T)[,2]
       alt <- bases.bf
