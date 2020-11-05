@@ -11,7 +11,23 @@ struct Family {
   Int ploidy
   String cross
   String multiallelics
+  String parent1
+  String parent2
 }
+
+struct Sequencing{
+  String type
+  Int depth
+  Int? insert_size
+  Int? isert_size_dev
+  Int? pcr_cycles
+  Int? read_length
+  String enzyme1
+  String? enzyme2
+  File emp_vcf
+  File? emp_bam
+}
+
 
 struct Profiles{
   File base_calling

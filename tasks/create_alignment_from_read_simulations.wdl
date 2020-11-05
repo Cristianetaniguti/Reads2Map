@@ -8,36 +8,51 @@ workflow CreateAlignmentFromSimulation {
     input {
         Reference references
         Family family
-        Profiles profiles
+        Sequencing sequencing
     }
 
+  if (!defined(sequencing.vcf)){
+    call GenerateAlternativeGenome {
+      input:
+        seed       = family.seed,
+        ref_genome = references.ref_fasta
+    }
 
-  call GenerateAlternativeGenome {
-    input:
-      seed       = family.seed,
-      ref_genome = references.ref_fasta
+    call CreatePedigreeSimulatorInputs {
+      input:
+        seed       = family.seed,
+        snps       = GenerateAlternativeGenome.snps,
+        indels     = GenerateAlternativeGenome.indels,
+        cmBymb     = family.cmBymb,
+        ref        = references.ref_fasta,
+        ref_fai    = references.ref_fasta_index,
+        cross      = family.cross,
+        popsize    = family.popsize,
+        ploidy     = family.ploidy,
+        doses      = family.doses
+    }
   }
 
-  call CreatePedigreeSimulatorInputs {
-    input:
-      seed       = family.seed,
-      snps       = GenerateAlternativeGenome.snps,
-      indels     = GenerateAlternativeGenome.indels,
-      cmBymb     = family.cmBymb,
-      ref        = references.ref_fasta,
-      ref_fai    = references.ref_fasta_index,
-      cross      = family.cross,
-      popsize    = family.popsize,
-      ploidy     = family.ploidy,
-      doses      = family.doses
+  if (defined(sequencing.vcf)){
+    call Vcf2PedigreeSimulator {
+      input:
+        vcf = sequencing.vcf,
+        parent1 = family.parent1,
+        parent2 = family.parent2
+    }
   }
+
+  File mapfile = select_first([Vcf2PedigreeSimulator.mapfile, CreatePedigreeSimulatorInputs.mapfile])
+  File founderfile = select_first([Vcf2PedigreeSimulator.founderfile, CreatePedigreeSimulatorInputs.founderfile])
+  File chromfile = select_first([Vcf2PedigreeSimulator.chromfile, CreatePedigreeSimulatorInputs.chromfile])
+  File parfile = select_first([Vcf2PedigreeSimulator.parfile, CreatePedigreeSimulatorInputs.parfile])
 
   call RunPedigreeSimulator {
     input:
-      mapfile     = CreatePedigreeSimulatorInputs.mapfile,
-      founderfile = CreatePedigreeSimulatorInputs.founderfile,
-      chromfile   = CreatePedigreeSimulatorInputs.chromfile,
-      parfile     = CreatePedigreeSimulatorInputs.parfile
+      mapfile     = mapfile,
+      founderfile = founderfile,
+      chromfile   = chromfile,
+      parfile     = parfile
   }
 
   call ConvertPedigreeSimulationToVcf {
@@ -55,39 +70,44 @@ workflow CreateAlignmentFromSimulation {
       simulated_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
   }
 
+  if(sequencing.type == "WGS" || sequencing.type == "exome"){
+
+    scatter (sampleName in GenerateSampleNames.names) {
+
+      call SimuscopSimulation {
+        input:
+          type          = sequencing.type,
+          sampleName    = sampleName,
+          depth         = family.depth,
+          emp_bam       = sequencing.emp_bam,
+          vcf           = ConvertPedigreeSimulationToVcf.simu_vcf,
+          references    = references
+      }
+    }
+  }
+
+  if(sequencing.type == "RADseq"){
+    call RADinitioSimulation{
+      input:
+        depth          = family.depth,
+        enzyme1        = sequencing.enzyme1,
+        enzyme2        = sequencing.enzyme2,
+        vcf            = ConvertPedigreeSimulationToVcf.simu_vcf,
+        references     = references,
+        pcr_cycles     = pcr_cycles
+        insert_size    = sequencing.insert_size   
+        isert_size_dev = sequencing.isert_size_dev
+        read_length    = sequencing.read_length    
+    }
+  }
+
+  Array[File] fastqs = select_first([RADinitioSimulation.fastq, SimuscopSimulation.fastq])
+
   scatter (sampleName in GenerateSampleNames.names) {
-
-    call RunVcf2diploid {
-      input:
-        sampleName = sampleName,
-        ref_genome = references.ref_fasta,
-        simu_vcf   = ConvertPedigreeSimulationToVcf.simu_vcf
-    }
-
-    call SimulateRADseq {
-      input:
-        enzyme1          = family.enzyme1,
-        enzyme2          = family.enzyme2,
-        sampleName       = sampleName,
-        maternal_genomes = RunVcf2diploid.maternal_genomes,
-        paternal_genomes = RunVcf2diploid.paternal_genomes
-    }
-
-    call SimulateIlluminaReads {
-      input:
-        maternal_trim = SimulateRADseq.maternal_trim,
-        paternal_trim = SimulateRADseq.paternal_trim,
-        sampleName    = sampleName,
-        depth         = family.depth,
-        base_calling  = profiles.base_calling,
-        indel_error   = profiles.indel_error,
-        gc_bias       = profiles.gc_bias
-    }
-
     call alg.RunBwaAlignment {
       input:
         sampleName = sampleName,
-        reads1     = [SimulateIlluminaReads.reads1],
+        reads1     = fastqs,
         libraries  = ["artificial"],
         references = references
     }
@@ -596,4 +616,17 @@ task SimulateIlluminaReads {
     File reads1 = "${sampleName}_100_150_1.fq.gz"
     File reads2 = "${sampleName}_100_150_2.fq.gz"
   }
+}
+
+
+task Vcf2PedigreeSimulator{
+
+}
+
+task SimuscopSimulation{
+
+}
+
+task RADinitioSimulation{
+  
 }
