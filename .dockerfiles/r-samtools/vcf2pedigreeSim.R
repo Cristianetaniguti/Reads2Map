@@ -200,9 +200,9 @@ create_parfile <- function(seed, popsize, filename = "parameters.txt"){
                            MISSING = NA
                            CHROMFILE = chromosome.txt
                            POPTYPE = F1
-                           SEED = ", seed,
-                      "POPSIZE = ", popsize,
-                      "MAPFILE = mapfile.txt
+                           SEED = ", seed,"
+                           POPSIZE = ", popsize,"
+                           MAPFILE = mapfile.txt
                            FOUNDERFILE = founderfile.txt
                            OUTPUT = sim")
   write.table(parameter, file = filename, quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )

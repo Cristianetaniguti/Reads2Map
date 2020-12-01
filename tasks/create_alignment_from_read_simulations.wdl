@@ -66,7 +66,7 @@ workflow CreateAlignmentFromSimulation {
       genotypes_dat = RunPedigreeSimulator.genotypes_dat,
       map_file      = CreatePedigreeSimulatorInputs.mapfile,
       chrom_file    = CreatePedigreeSimulatorInputs.chromfile,
-      tot_mks       = CreatePedigreeSimulatorInputs.tot_mks
+      ref_alt_alleles       = CreatePedigreeSimulatorInputs.ref_alt_alleles
   }
 
   call GenerateSampleNames {
@@ -100,18 +100,21 @@ workflow CreateAlignmentFromSimulation {
     }
   }
 
-  if(sequencing.type == "RADseq"){
+  # Two option of RADseq
+  if(sequencing.type == "sdRAD" || sequencing.type == "ddRAD"){
     call RADinitioSimulation{
       input:
-        depth          = family.depth,
+        depth          = sequencing.depth,
         enzyme1        = sequencing.enzyme1,
         enzyme2        = sequencing.enzyme2,
-        vcf            = ConvertPedigreeSimulationToVcf.simu_vcf,
+        vcf_simu       = ConvertPedigreeSimulationToVcf.simu_vcf,
         references     = references,
-        pcr_cycles     = pcr_cycles
-        insert_size    = sequencing.insert_size   
-        isert_size_dev = sequencing.isert_size_dev
-        read_length    = sequencing.read_length    
+        pcr_cycles     = sequencing.pcr_cycles,
+        insert_size    = sequencing.insert_size,   
+        isert_size_dev = sequencing.isert_size_dev,
+        read_length    = sequencing.read_length,
+        library_type   = sequencing.type,
+        sampleName     = sampleName
     }
   }
 
@@ -131,7 +134,7 @@ workflow CreateAlignmentFromSimulation {
       Array[Alignment] alignments = RunBwaAlignment.algn
       Array[File] bam = RunBwaAlignment.bam
       Array[File] bai = RunBwaAlignment.bai
-      File total_markers = CreatePedigreeSimulatorInputs.tot_mks
+      File total_markers = CreatePedigreeSimulatorInputs.ref_alt_alleles
       Array[File] maternal_trim = SimulateRADseq.maternal_trim
       Array[String] names = GenerateSampleNames.names
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
@@ -342,7 +345,7 @@ task CreatePedigreeSimulatorInputs {
     File founderfile = "founders.txt"
     File parfile = "parameters.txt"
     File chromfile = "chromosome.txt"
-    File tot_mks = "tot_mks.txt"
+    File ref_alt_alleles = "ref_alt_alleles.txt"
     File simulated_phases = "simulated_phases.txt"
   }
 
@@ -387,7 +390,7 @@ task ConvertPedigreeSimulationToVcf {
     File genotypes_dat
     File map_file
     File chrom_file
-    File tot_mks
+    File ref_alt_alleles
   }
 
   command <<<
@@ -396,7 +399,7 @@ task ConvertPedigreeSimulationToVcf {
     library(onemap)
     library(vcfR)
 
-    mks <- read.table("~{tot_mks}", stringsAsFactors = FALSE)
+    mks <- read.table("~{ref_alt_alleles}", stringsAsFactors = FALSE)
     pos <- mks[,2]
     chr <- mks[,1]
 
@@ -664,7 +667,7 @@ task Vcf2PedigreeSimulator{
       File founderfile = "founders.txt"
       File parfile = "parameters.txt"
       File chromfile = "chromosome.txt"
-      File tot_mks = "tot_mks.txt"
+      File ref_alt_alleles = "ref_alt_alleles.txt"
       File simulated_phases = "simulated_phases.txt"
     }
 
@@ -699,7 +702,7 @@ task SimuscopProfile{
     RSCRIPT
 
     runtime {
-      docker: "cristaniguti/simuscopR"
+      docker: "cristaniguti/simuscopr"
       mem:"--nodes=1"
       cpu:1
       time:"24:00:00"
@@ -762,7 +765,7 @@ task SimuscopSimulation{
   RSCRIPT
 
   runtime {
-    docker: "cristaniguti/simuscopR"
+    docker: "cristaniguti/simuscopr"
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
@@ -771,11 +774,67 @@ task SimuscopSimulation{
   output {
     File fastq = "~{sampleName}.fq"
   }
-
-
 }
 
 
 task RADinitioSimulation{
+  inputs{
+    File vcf_simu
+    String enzyme1
+    String enzyme2
+    File references
+    Int depth
+    Int? insert_size
+    Int? isert_size_dev
+    Int? pcr_cycles
+    Int? read_length
+    String library_type
+    String sampleName
+  }
 
+  command <<<
+    cat ~{references.ref_fasta_index} | cut -f 1 | head -n 10 | tail -n 1 > ./chrom.list
+
+    # Makes for individual sample for parallelization
+    echo -e ~{sampleName}'\t'pop0 > popmap.tsv
+
+    vcftools --vcf ~{simu_vcf} --indv ~{sampleName} --recode --out ~{sampleName}
+
+    mkdir msprime_vcfs ref_loci_vars
+    gzip ~{sampleName}.recode.vcf 
+    cp ~{sampleName}.recode.vcf.gz msprime_vcfs/~{chrom}.vcf.gz
+    mv ~{sampleName}.recode.vcf.gz ref_loci_vars/ri_master.vcf.gz
+
+    mkdir simu_inputs results
+    mv msprime_vcfs ref_loci_vars popmap.tsv simu_inputs
+
+    radinitio --make-library-seq \
+              --genome ~{references.ref_fasta} \
+              --chromosomes chrom.list \
+              --out-dir results/ \
+              --make-pop-sim-dir simu_inputs/ \
+              --library-type ~{library_type} \
+              --enz ~{enzyme1} \
+              ~{"--enz2 " + enzyme2} \
+              --insert-mean ~{default="350" insert_size} \
+              --insert-stdev ~{default="35" insert_size_dev} \
+              --pcr-cycles ~{default="9" pcr_cycles} \
+              --coverage ~{default="20" depth} \
+              --read-length ~{default="150" read_length}
+    
+    # Add fake phred score of 40 (H in Illumina 1.8+ Phred+33)
+    seqtk seq -F 'H' results/rad_reads/~{sampleName}.1.fq.gz > ~{sampleName}.fq
+
+  >>>
+
+  runtime{
+    docker: "cristaniguti/radioinitio"
+    mem:"--nodes=1"
+    cpu:1
+    time:"24:00:00"
+  }
+
+  output{
+    File fastq = "~{sampleName}.fq"
+  }
 }
