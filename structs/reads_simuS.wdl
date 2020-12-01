@@ -26,6 +26,8 @@ struct Sequencing{
   String? enzyme2
   File emp_vcf
   File? emp_bam
+  File? ref_map
+  String chromosome
 }
 
 
