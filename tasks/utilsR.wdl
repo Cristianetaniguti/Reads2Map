@@ -204,7 +204,6 @@ task MapsReport{
    String SNPCall_program
    String GenotypeCall_program
    String CountsFrom
-   String cMbyMb
    File simulated_phases
   }
 
@@ -225,7 +224,7 @@ task MapsReport{
       times <-system.time(create_maps_report(input.seq = filtered_onemap,
                                              tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= F, "~{CountsFrom}", ~{cMbyMb}, simulated_phases))
+                                             fake= F, "~{CountsFrom}", simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", FALSE)
@@ -237,7 +236,7 @@ task MapsReport{
       times_temp <-system.time(create_maps_report(input.seq = filtered_onemap,
                                              tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= T, "~{CountsFrom}", ~{cMbyMb}, simulated_phases))
+                                             fake= T, "~{CountsFrom}", simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", TRUE)

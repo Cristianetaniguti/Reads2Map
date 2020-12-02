@@ -16,3 +16,4 @@ task/cromwell-workflow-logs/
 .configurations/cromwell-gcp.conf
 tasks.zip
 figures_gabaritos
+*tar.gz

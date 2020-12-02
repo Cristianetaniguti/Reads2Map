@@ -41,8 +41,7 @@ workflow CreateAlignmentFromSimulation {
         vcf_file = sequencing.emp_vcf,
         ref_map = sequencing.ref_map,
         seed = family.seed,
-        popsize = family.popsize,
-        cmBymb = family.cmBymb
+        popsize = family.popsize
     }
   }
 
@@ -182,7 +181,7 @@ task CreatePedigreeSimulatorInputs {
   input {
     File snps
     File indels
-    Float cmBymb
+    Float? cmBymb
     File ref
     File ref_fai
     Int seed
@@ -239,7 +238,6 @@ task CreatePedigreeSimulatorInputs {
 
 
       ref_alt_alleles <- ref_alt_alleles[order(ref_alt_alleles[,2]),]
-      write.table(ref_alt_alleles, file="ref_alt_alleles.txt")
       n.marker <- dim(ref_alt_alleles)[1]
 
       ## Map file
@@ -253,6 +251,9 @@ task CreatePedigreeSimulatorInputs {
       pos.map <- (ref_alt_alleles[,2]/1000000) * ~{cmBymb}
       map_file <- data.frame(marker=marker, chromosome=ref_alt_alleles[,1], position= pos.map)
       write.table(map_file, file = paste0("mapfile.txt"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
+      
+      ref_alt_alleles <- cbind(ref_alt_alleles, pos.map)
+      write.table(ref_alt_alleles, file="ref_alt_alleles.txt")
 
       ## Founderfile
       ref.alleles <- ref_alt_alleles[,3]
@@ -626,7 +627,6 @@ task Vcf2PedigreeSimulator{
     File? ref_map
     Int seed
     Int popsize
-    Float? cmBymb
   }
 
   command <<<
@@ -649,7 +649,8 @@ task Vcf2PedigreeSimulator{
     ref_alt_alleles <- data.frame(chr = vcf@fix[,1], 
                                   pos = vcf@fix[,2], 
                                   ref = vcf@fix[,4], 
-                                  alt = vcf@fix[,5], stringsAsFactors = F)
+                                  alt = vcf@fix[,5], 
+                                  pos.map = mapfile$position,stringsAsFactors = F)
 
     write.table(ref_alt_alleles, file="ref_alt_alleles.txt")
 

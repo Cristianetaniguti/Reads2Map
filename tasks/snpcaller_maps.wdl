@@ -13,7 +13,6 @@ workflow SNPCallerMaps{
      String SNPCall_program
      String GenotypeCall_program
      String CountsFrom
-     String cMbyMb
      File? multi_obj
     }
 
@@ -51,7 +50,6 @@ workflow SNPCallerMaps{
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
-      cMbyMb = cMbyMb,
       simulated_phases = simulated_phases
   }
 

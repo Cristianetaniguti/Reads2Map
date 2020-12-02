@@ -14,7 +14,6 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String SNPCall_program
     String genotyping_program
     String CountsFrom
-    String cMbyMb
     String cross
     File? multi_obj
   }
@@ -64,7 +63,6 @@ workflow SnpBasedGenotypingSimulatedMaps {
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = item.left,
             CountsFrom = CountsFrom,
-            cMbyMb = cMbyMb,
             simulated_phases = simulated_phases
           }
 

@@ -59,13 +59,14 @@ RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/XML/XML_
 RUN apt-get update \
     && pip install matplotlib==2.0.2 numpy
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap', ref='up_read'                     )"
+RUN R -e "devtools::install_github('Cristianetaniguti/onemap')"
 
 COPY ./functions_simu.R /opt/scripts/
 
 COPY ./functions_empirical.R /opt/scripts
 
-RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap')"
+COPY ./genotyping4onemap_0.1.7.tar.gz /opt/
+RUN R -e "install.packages('/opt/genotyping4onemap_0.1.7.tar.gz', type = 'source', repos=NULL)"
 
 RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/updog/updog_1.2.0.tar.gz';\
           install.packages(packageurl, repos=NULL, type='source')"

@@ -1,7 +1,7 @@
 version 1.0
 
 struct Family {
-  String cmBymb
+  Float? cmBymb
   Int seed
   Int popsize
   File doses

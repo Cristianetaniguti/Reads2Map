@@ -10,7 +10,7 @@ workflow GusmapMaps{
     String GenotypeCall_program
     File ref_alt_alleles
     File simulated_phases
-    String cMbyMb
+    Float? cMbyMb
   }
 
   Array[String] counts                      = ["vcf", "bam"]
@@ -47,7 +47,7 @@ task GusmapReport{
     File simu_onemap_obj
     File ref_alt_alleles
     File simulated_phases
-    String cMbyMb
+    Float? cMbyMb
   }
 
   command <<<

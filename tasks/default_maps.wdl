@@ -10,7 +10,6 @@ workflow DefaultMaps {
      File simulated_phases
      String SNPCall_program
      String CountsFrom
-     String cMbyMb
      File? multi_obj  
     }
 
@@ -51,7 +50,6 @@ workflow DefaultMaps {
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
-              cMbyMb = cMbyMb,
               simulated_phases = simulated_phases
             }
 

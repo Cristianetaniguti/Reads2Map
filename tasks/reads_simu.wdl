@@ -127,7 +127,6 @@ workflow reads_simu {
         simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb,
         multi_obj = MultiVcf2onemap.onemap_obj
     }
 
@@ -142,7 +141,6 @@ workflow reads_simu {
         SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb,
         multi_obj = MultiVcf2onemap.onemap_obj
     }
 
@@ -159,7 +157,6 @@ workflow reads_simu {
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
-            cMbyMb = family.cmBymb,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj
         }
@@ -174,7 +171,6 @@ workflow reads_simu {
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
-            cMbyMb = family.cmBymb,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj
         }
@@ -189,7 +185,6 @@ workflow reads_simu {
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
-            cMbyMb = family.cmBymb,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj
         }
@@ -203,8 +198,7 @@ workflow reads_simu {
           SNPCall_program = analysis.method,
           GenotypeCall_program = "gusmap",
           ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
-          simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
-          cMbyMb = family.cmBymb
+          simulated_phases = CreateAlignmentFromSimulation.simulated_phases
       }
   }
 
