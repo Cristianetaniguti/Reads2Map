@@ -16,10 +16,10 @@ struct Family {
 }
 
 struct Sequencing{
-  String type
+  String library_type
   Int depth
   Int? insert_size
-  Int? isert_size_dev
+  Int? insert_size_dev
   Int? pcr_cycles
   Int? read_length
   String enzyme1
@@ -28,13 +28,6 @@ struct Sequencing{
   File? emp_bam
   File? ref_map
   String chromosome
-}
-
-
-struct Profiles{
-  File base_calling
-  File indel_error
-  File gc_bias
 }
 
 struct FamilyTemplate {

@@ -25,16 +25,16 @@ workflow reads_simu {
   input {
     Reference references
     Family family
-    Profiles profiles
+    Sequencing sequencing
     SplitVCF splitvcf
     String? filters
   }
 
   call simulation.CreateAlignmentFromSimulation {
     input:
+      sequencing = sequencing,
       references=references,
-      family=family,
-      profiles=profiles
+      family=family
   }
 
   call gatk.GatkGenotyping {
@@ -61,8 +61,7 @@ workflow reads_simu {
     input:
       freebayesVCF  = FreebayesGenotyping.vcf_bi,
       gatkVCF       = GatkGenotyping.vcf_bi,
-      tot_mks       = CreateAlignmentFromSimulation.total_markers,
-      maternal_trim = CreateAlignmentFromSimulation.maternal_trim,
+      ref_alt_alleles       = CreateAlignmentFromSimulation.ref_alt_alleles,
       seed          = family.seed,
       depth         = family.depth
   }
@@ -121,8 +120,8 @@ workflow reads_simu {
       input:
         onemap_obj = vcf2onemap.onemap_obj,
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-        tot_mks = CreateAlignmentFromSimulation.total_markers,
-        real_phases = CreateAlignmentFromSimulation.real_phases,
+        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
         cMbyMb = family.cmBymb,
@@ -134,8 +133,8 @@ workflow reads_simu {
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
         onemap_obj = vcf2onemap.onemap_obj,
         vcf_file = analysis.vcf,
-        tot_mks = CreateAlignmentFromSimulation.total_markers,
-        real_phases = CreateAlignmentFromSimulation.real_phases,
+        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         cross = family.cross,
         SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
@@ -153,8 +152,8 @@ workflow reads_simu {
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "updog",
-            tot_mks = CreateAlignmentFromSimulation.total_markers,
-            real_phases = CreateAlignmentFromSimulation.real_phases,
+            ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+            simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
@@ -168,8 +167,8 @@ workflow reads_simu {
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "supermassa",
-            tot_mks = CreateAlignmentFromSimulation.total_markers,
-            real_phases = CreateAlignmentFromSimulation.real_phases,
+            ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+            simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
@@ -183,8 +182,8 @@ workflow reads_simu {
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "polyrad",
-            tot_mks = CreateAlignmentFromSimulation.total_markers,
-            real_phases = CreateAlignmentFromSimulation.real_phases,
+            ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+            simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cMbyMb = family.cmBymb,
@@ -200,8 +199,8 @@ workflow reads_simu {
           new_vcf_file = analysis.bam,
           SNPCall_program = analysis.method,
           GenotypeCall_program = "gusmap",
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
+          ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+          simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
           cMbyMb = family.cmBymb
       }
   }
@@ -402,7 +401,7 @@ task JointReports{
       all_errors <- cbind(seed, depth, data1)
 
       ########################################################
-      # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; real_phases
+      # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; simulated_phases
       ########################################################
       # Add seed and mean depth information
       all_maps <- read.table("all_maps.txt")

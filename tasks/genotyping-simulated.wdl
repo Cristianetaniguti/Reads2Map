@@ -9,8 +9,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
     File simu_onemap_obj
     File onemap_obj
     File vcf_file
-    File tot_mks
-    File real_phases
+    File ref_alt_alleles
+    File simulated_phases
     String SNPCall_program
     String genotyping_program
     String CountsFrom
@@ -59,13 +59,13 @@ workflow SnpBasedGenotypingSimulatedMaps {
         call utilsR.MapsReport {
           input:
             onemap_obj = FiltersReport.onemap_obj_filtered,
-            tot_mks = tot_mks,
+            ref_alt_alleles = ref_alt_alleles,
             simu_onemap_obj = simu_onemap_obj,
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = item.left,
             CountsFrom = CountsFrom,
             cMbyMb = cMbyMb,
-            real_phases = real_phases
+            simulated_phases = simulated_phases
           }
 
         call utilsR.ErrorsReport{

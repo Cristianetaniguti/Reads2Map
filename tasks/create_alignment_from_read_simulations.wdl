@@ -11,7 +11,9 @@ workflow CreateAlignmentFromSimulation {
         Sequencing sequencing
     }
 
-  if (!defined(sequencing.vcf)){
+  # User can provide specific variants in VCF file
+  # If not, use pirs to simulate
+  if (!defined(sequencing.emp_vcf)){
     call GenerateAlternativeGenome {
       input:
         seed       = family.seed,
@@ -33,10 +35,10 @@ workflow CreateAlignmentFromSimulation {
     }
   }
 
-  if (defined(sequencing.vcf)){
+  if (defined(sequencing.emp_vcf)){
     call Vcf2PedigreeSimulator {
       input:
-        vcf_file = sequencing.vcf,
+        vcf_file = sequencing.emp_vcf,
         ref_map = sequencing.ref_map,
         parent1 = family.parent1,
         parent2 = family.parent2,
@@ -46,27 +48,30 @@ workflow CreateAlignmentFromSimulation {
     }
   }
 
-  File mapfile = select_first([Vcf2PedigreeSimulator.mapfile, CreatePedigreeSimulatorInputs.mapfile])
-  File founderfile = select_first([Vcf2PedigreeSimulator.founderfile, CreatePedigreeSimulatorInputs.founderfile])
-  File chromfile = select_first([Vcf2PedigreeSimulator.chromfile, CreatePedigreeSimulatorInputs.chromfile])
-  File parfile = select_first([Vcf2PedigreeSimulator.parfile, CreatePedigreeSimulatorInputs.parfile])
+  File mapfile_sele = select_first([Vcf2PedigreeSimulator.mapfile_map, CreatePedigreeSimulatorInputs.mapfile_nomap])
+  File founderfile_sele = select_first([Vcf2PedigreeSimulator.founderfile_map, CreatePedigreeSimulatorInputs.founderfile_nomap])
+  File chromfile_sele = select_first([Vcf2PedigreeSimulator.chromfile_map, CreatePedigreeSimulatorInputs.chromfile_nomap])
+  File parfile_sele = select_first([Vcf2PedigreeSimulator.parfile_map, CreatePedigreeSimulatorInputs.parfile_nomap])
+  File ref_alt_alleles_sele = select_first([Vcf2PedigreeSimulator.ref_alt_alleles_map, CreatePedigreeSimulatorInputs.ref_alt_alleles_nomap])
+  File simulated_phases_sele = select_first([Vcf2PedigreeSimulator.simulated_phases_map, CreatePedigreeSimulatorInputs.simulated_phases_nomap])
+
 
   call RunPedigreeSimulator {
     input:
-      mapfile     = mapfile,
-      founderfile = founderfile,
-      chromfile   = chromfile,
-      parfile     = parfile
+      mapfile     = mapfile_sele,
+      founderfile = founderfile_sele,
+      chromfile   = chromfile_sele,
+      parfile     = parfile_sele
   }
 
   call ConvertPedigreeSimulationToVcf {
     input:
-      seed       = family.seed,
-      depth      = family.depth,
-      genotypes_dat = RunPedigreeSimulator.genotypes_dat,
-      map_file      = CreatePedigreeSimulatorInputs.mapfile,
-      chrom_file    = CreatePedigreeSimulatorInputs.chromfile,
-      ref_alt_alleles       = CreatePedigreeSimulatorInputs.ref_alt_alleles
+      seed            = family.seed,
+      depth           = family.depth,
+      genotypes_dat   = RunPedigreeSimulator.genotypes_dat,
+      map_file        = mapfile_sele,
+      chrom_file      = chromfile_sele,
+      ref_alt_alleles = ref_alt_alleles_sele
   }
 
   call GenerateSampleNames {
@@ -74,11 +79,11 @@ workflow CreateAlignmentFromSimulation {
       simulated_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
   }
 
-  if(sequencing.type == "WGS" || sequencing.type == "exome"){
+  if(sequencing.library_type == "WGS" || sequencing.library_type == "exome"){
 
     call SimuscopProfile {
       input:
-        type = sequecing.type,
+        library_type = sequencing.library_type,
         emp_bam = sequencing.emp_bam,
         vcf     = ConvertPedigreeSimulationToVcf.simu_vcf,
         references = references
@@ -88,7 +93,7 @@ workflow CreateAlignmentFromSimulation {
 
       call SimuscopSimulation {
         input:
-          type          = sequencing.type,
+          library_type          = sequencing.library_type,
           sampleName    = sampleName,
           depth         = family.depth,
           emp_bam       = sequencing.emp_bam,
@@ -100,31 +105,35 @@ workflow CreateAlignmentFromSimulation {
     }
   }
 
-  # Two option of RADseq
-  if(sequencing.type == "sdRAD" || sequencing.type == "ddRAD"){
-    call RADinitioSimulation{
-      input:
-        depth          = sequencing.depth,
-        enzyme1        = sequencing.enzyme1,
-        enzyme2        = sequencing.enzyme2,
-        vcf_simu       = ConvertPedigreeSimulationToVcf.simu_vcf,
-        references     = references,
-        pcr_cycles     = sequencing.pcr_cycles,
-        insert_size    = sequencing.insert_size,   
-        isert_size_dev = sequencing.isert_size_dev,
-        read_length    = sequencing.read_length,
-        library_type   = sequencing.type,
-        sampleName     = sampleName
+
+    # Two option of RADseq
+    if(sequencing.library_type == "sdRAD" || sequencing.library_type == "ddRAD"){
+      scatter (sampleName in GenerateSampleNames.names) {
+        call RADinitioSimulation{
+          input:
+            depth          = sequencing.depth,
+            enzyme1        = sequencing.enzyme1,
+            enzyme2        = sequencing.enzyme2,
+            simu_vcf       = ConvertPedigreeSimulationToVcf.simu_vcf,
+            references     = references,
+            pcr_cycles     = sequencing.pcr_cycles,
+            insert_size    = sequencing.insert_size,   
+            insert_size_dev = sequencing.insert_size_dev,
+            read_length    = sequencing.read_length,
+            library_type   = sequencing.library_type,
+            sampleName     = sampleName,
+            chrom          = sequencing.chromosome
+        }
     }
   }
 
-  Array[File] fastqs = select_first([RADinitioSimulation.fastq, SimuscopSimulation.fastq])
+  Array[File] fastq = select_first([RADinitioSimulation.fastq_rad, SimuscopSimulation.fastq_seq])
 
   scatter (sampleName in GenerateSampleNames.names) {
     call alg.RunBwaAlignment {
       input:
         sampleName = sampleName,
-        reads1     = fastqs,
+        reads1     = fastq,
         libraries  = ["artificial"],
         references = references
     }
@@ -134,12 +143,11 @@ workflow CreateAlignmentFromSimulation {
       Array[Alignment] alignments = RunBwaAlignment.algn
       Array[File] bam = RunBwaAlignment.bam
       Array[File] bai = RunBwaAlignment.bai
-      File total_markers = CreatePedigreeSimulatorInputs.ref_alt_alleles
-      Array[File] maternal_trim = SimulateRADseq.maternal_trim
+      File ref_alt_alleles = ref_alt_alleles_sele
       Array[String] names = GenerateSampleNames.names
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
       File simu_haplo = ConvertPedigreeSimulationToVcf.simu_haplo
-      File simulated_phases = CreatePedigreeSimulatorInputs.simulated_phases
+      File simulated_phases = simulated_phases_sele
   }
 
 }
@@ -341,12 +349,12 @@ task CreatePedigreeSimulatorInputs {
   }
 
   output {
-    File mapfile = "mapfile.txt"
-    File founderfile = "founders.txt"
-    File parfile = "parameters.txt"
-    File chromfile = "chromosome.txt"
-    File ref_alt_alleles = "ref_alt_alleles.txt"
-    File simulated_phases = "simulated_phases.txt"
+    File mapfile_nomap = "mapfile.txt"
+    File founderfile_nomap = "founders.txt"
+    File parfile_nomap = "parameters.txt"
+    File chromfile_nomap = "chromosome.txt"
+    File ref_alt_alleles_nomap = "ref_alt_alleles.txt"
+    File simulated_phases_nomap = "simulated_phases.txt"
   }
 
 }
@@ -625,7 +633,7 @@ task Vcf2PedigreeSimulator{
     Float? cmBymb
   }
 
-    command <<<
+  command <<<
     R --vanilla --no-save <<RSCRIPT
 
     source("/opt/scripts/vcf2pedigreeSim.R")
@@ -634,7 +642,7 @@ task Vcf2PedigreeSimulator{
     ref_map <- read.csv("~{ref_map}")
 
     # PedigreeSim inputs
-    founderfile <- create_haplo(vcfR.obj = vcf, seed = 1010, 
+    founderfile <- create_haplo(vcfR.obj = vcf, seed = ~{seed}, 
                                 P1 = "~{parent1}", P2= "~{parent2}")
 
     mapfile <- create_mapfile(vcf, ref_map)
@@ -655,30 +663,32 @@ task Vcf2PedigreeSimulator{
 
     RSCRIPT
 
-    runtime {
+  >>>
+
+  runtime {
       docker: "cristaniguti/r-samtools"
       mem:"--nodes=1"
       cpu:1
       time:"24:00:00"
-     }
+  }
 
-    output{
-      File mapfile = "mapfile.txt"
-      File founderfile = "founders.txt"
-      File parfile = "parameters.txt"
-      File chromfile = "chromosome.txt"
-      File ref_alt_alleles = "ref_alt_alleles.txt"
-      File simulated_phases = "simulated_phases.txt"
-    }
+  output{
+      File mapfile_map = "mapfile.txt"
+      File founderfile_map = "founders.txt"
+      File parfile_map = "parameters.txt"
+      File chromfile_map = "chromosome.txt"
+      File ref_alt_alleles_map = "ref_alt_alleles.txt"
+      File simulated_phases_map = "simulated_phases.txt"
+  }
 
 }
 
 task SimuscopProfile{
-  inputs{
-    String type          
-    File   emp_bam     
+  input {
+    String library_type          
+    File?  emp_bam     
     File   vcf       
-    File   references
+    Reference  references
   }
 
   command <<<
@@ -687,7 +697,7 @@ task SimuscopProfile{
     library(vcfR)
     library(simuscopR)
 
-    if("~{type}" == "exome"){
+    if("~{library_type}" == "exome"){
 
       system(paste0("bamtobed -i ~{emp_bam} > bed_file"))
 
@@ -701,68 +711,70 @@ task SimuscopProfile{
 
     RSCRIPT
 
-    runtime {
-      docker: "cristaniguti/simuscopr"
-      mem:"--nodes=1"
-      cpu:1
-      time:"24:00:00"
-    }
+  >>>
 
-    output{
-      File profile = "sample.profile"
-    }
+  runtime {
+    docker: "cristaniguti/simuscopr"
+    mem:"--nodes=1"
+    cpu:1
+    time:"24:00:00"
+  }
 
+  output{
+    File profile = "sample.profile"
+  }
 }
 
 task SimuscopSimulation{
- inputs{
-    String type          
+ input {
+    String library_type          
     String sampleName
     Int    depth    
-    File   emp_bam     
+    File?   emp_bam     
     File   vcf       
-    File   references
+    Reference   references
     String chrom
     File   profile
   }
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
-    vcfR.object <- read.vcfR("~{vcf}")
+      vcfR.object <- read.vcfR("~{vcf}")
 
-    variants <- vcf2variants(vcfR.object, sample = "~{sampleName}", chrom = "~{chrom}")
+      variants <- vcf2variants(vcfR.object, sample = "~{sampleName}", chrom = "~{chrom}")
 
-    write.table(variants$SNVs, file = "SNVs.txt", sep = "\t", quote = F, col.names = F, row.names = F)
-    write.table(variants$indels, file = "indels.txt", sep = "\t", quote = F, col.names = F, row.names = F)
-    write.table(variants$insertions, file = "insertions.txt", sep = "\t", quote = F, col.names = F, row.names = F)
+      write.table(variants$SNVs, file = "SNVs.txt", sep = "\t", quote = F, col.names = F, row.names = F)
+      write.table(variants$indels, file = "indels.txt", sep = "\t", quote = F, col.names = F, row.names = F)
+      write.table(variants$insertions, file = "insertions.txt", sep = "\t", quote = F, col.names = F, row.names = F)
 
-    system("cat SNVs.txt indels.txt insertions.txt > variants.txt")
+      system("cat SNVs.txt indels.txt insertions.txt > variants.txt")
 
-    if("~{type}" == "exome"){
-      simuReads(ref = "~{references.ref_fasta}",
-            profile = "~{profile}",
-            variation = "variants.txt",
-            target = "bed_file",
-            name = "~{sanmpleName}",
-            output = ".",
-            layout = "SE",
-            threads = 6,
-            verbose = 1,
-            coverage = ~{depth})
-    } else {
-      simuReads(ref = "~{references.ref_fasta}",
-            profile = "profile",
-            variation = "variants.txt",
-            name = "~{sanmpleName_ref}",
-            output = ".",
-            layout = "SE", # only single-end by now
-            threads = 6,
-            verbose = 1,
-            coverage = ~{depth})
-    }
-    
+      if("~{library_type}" == "exome"){
+        simuReads(ref = "~{references.ref_fasta}",
+              profile = "~{profile}",
+              variation = "variants.txt",
+              target = "bed_file",
+              name = "~{sampleName}",
+              output = ".",
+              layout = "SE",
+              threads = 6,
+              verbose = 1,
+              coverage = ~{depth})
+      } else {
+        simuReads(ref = "~{references.ref_fasta}",
+              profile = "profile",
+              variation = "variants.txt",
+              name = "~{sampleName}",
+              output = ".",
+              layout = "SE", # only single-end by now
+              threads = 6,
+              verbose = 1,
+              coverage = ~{depth})
+      }
 
-  RSCRIPT
+    RSCRIPT
+
+  >>>
 
   runtime {
     docker: "cristaniguti/simuscopr"
@@ -772,24 +784,25 @@ task SimuscopSimulation{
    }
 
   output {
-    File fastq = "~{sampleName}.fq"
+    File fastq_seq = "~{sampleName}.fq"
   }
 }
 
 
 task RADinitioSimulation{
-  inputs{
-    File vcf_simu
+  input {
+    File simu_vcf
     String enzyme1
-    String enzyme2
-    File references
+    String? enzyme2
+    Reference references
     Int depth
     Int? insert_size
-    Int? isert_size_dev
+    Int? insert_size_dev
     Int? pcr_cycles
     Int? read_length
     String library_type
     String sampleName
+    String chrom
   }
 
   command <<<
@@ -835,6 +848,6 @@ task RADinitioSimulation{
   }
 
   output{
-    File fastq = "~{sampleName}.fq"
+    File fastq_rad = "~{sampleName}.fq"
   }
 }

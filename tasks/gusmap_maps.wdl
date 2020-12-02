@@ -8,8 +8,8 @@ workflow GusmapMaps{
     File new_vcf_file
     String SNPCall_program
     String GenotypeCall_program
-    File tot_mks
-    File real_phases
+    File ref_alt_alleles
+    File simulated_phases
     String cMbyMb
   }
 
@@ -25,8 +25,8 @@ workflow GusmapMaps{
           SNPCall_program = SNPCall_program,
           GenotypeCall_program = GenotypeCall_program,
           CountsFrom = vcf.left,
-          tot_mks = tot_mks,
-          real_phases = real_phases,
+          ref_alt_alleles = ref_alt_alleles,
+          simulated_phases = simulated_phases,
           cMbyMb = cMbyMb
         }
     }
@@ -45,8 +45,8 @@ task GusmapReport{
     String GenotypeCall_program
     String CountsFrom
     File simu_onemap_obj
-    File tot_mks
-    File real_phases
+    File ref_alt_alleles
+    File simulated_phases
     String cMbyMb
   }
 
@@ -67,17 +67,17 @@ task GusmapReport{
           vcf_file <- "~{vcf_file}"
        }
 
-      tot_mks <- read.table("~{tot_mks}")
-      real_phases <- read.table("~{real_phases}")
+      ref_alt_alleles <- read.table("~{ref_alt_alleles}")
+      simulated_phases <- read.table("~{simulated_phases}")
 
       times <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", tot_mks,real_phases, ~{cMbyMb}))
+                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases, ~{cMbyMb}))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", TRUE)
       times <- data.frame(meth = outname, time = times[3])
 
       times_temp <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", FALSE, "~{CountsFrom}", tot_mks,real_phases, ~{cMbyMb}))
+                                                     "~{GenotypeCall_program}", FALSE, "~{CountsFrom}", ref_alt_alleles,simulated_phases, ~{cMbyMb}))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", FALSE)
       times_temp <- data.frame(meth = outname, time = times_temp[3])

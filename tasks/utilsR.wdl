@@ -199,13 +199,13 @@ task FiltersReportEmp{
 task MapsReport{
   input{
    File onemap_obj
-   File tot_mks
+   File ref_alt_alleles
    File simu_onemap_obj
    String SNPCall_program
    String GenotypeCall_program
    String CountsFrom
    String cMbyMb
-   File real_phases
+   File simulated_phases
   }
 
   command <<<
@@ -218,14 +218,14 @@ task MapsReport{
 
       simu_onemap_obj <- load("~{simu_onemap_obj}")
       simu_onemap_obj <- get(simu_onemap_obj)
-      tot_mks <- read.table("~{tot_mks}")
-      real_phases <- read.table("~{real_phases}")
+      ref_alt_alleles <- read.table("~{ref_alt_alleles}")
+      simulated_phases <- read.table("~{simulated_phases}")
 
       ## Without false SNPs
       times <-system.time(create_maps_report(input.seq = filtered_onemap,
-                                             tot_mks = tot_mks, gab = simu_onemap_obj,
+                                             tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= F, "~{CountsFrom}", ~{cMbyMb}, real_phases))
+                                             fake= F, "~{CountsFrom}", ~{cMbyMb}, simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", FALSE)
@@ -235,9 +235,9 @@ task MapsReport{
 
       ## With false SNPs
       times_temp <-system.time(create_maps_report(input.seq = filtered_onemap,
-                                             tot_mks = tot_mks, gab = simu_onemap_obj,
+                                             tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= T, "~{CountsFrom}", ~{cMbyMb}, real_phases))
+                                             fake= T, "~{CountsFrom}", ~{cMbyMb}, simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", TRUE)

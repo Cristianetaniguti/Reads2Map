@@ -7,7 +7,7 @@ workflow SimulatedReads {
   input {
     Reference references
     FamilyTemplate family_template
-    Profiles profiles
+    Sequencing sequencing
     SplitVCF splitvcf
     Int number_of_families
   }
@@ -39,7 +39,6 @@ workflow SimulatedReads {
     # Calling reads_simu for each seed
     call sub.reads_simu as ReadSimulations {
       input:
-        profiles=profiles,
         references=references,
         family=fam,
         splitvcf=splitvcf
