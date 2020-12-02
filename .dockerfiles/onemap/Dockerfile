@@ -71,5 +71,3 @@ RUN R -e "install.packages('/opt/genotyping4onemap_0.1.7.tar.gz', type = 'source
 RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/updog/updog_1.2.0.tar.gz';\
           install.packages(packageurl, repos=NULL, type='source')"
 
-# library(onemap)
-# packageVersion("onemap") == 2.2.0
