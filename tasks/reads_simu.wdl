@@ -26,7 +26,6 @@ workflow reads_simu {
     Reference references
     Family family
     Sequencing sequencing
-    SplitVCF splitvcf
     String? filters
   }
 
@@ -42,7 +41,9 @@ workflow reads_simu {
       alignments=CreateAlignmentFromSimulation.alignments,
       references=references,
       program="gatk",
-      splitvcf = splitvcf,
+      parent1 = "P1",
+      parent2 = "P2",
+      chrom = sequencing.chromosome,
       sampleNames = CreateAlignmentFromSimulation.names
   }
 
@@ -53,17 +54,19 @@ workflow reads_simu {
       bai=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
-      splitvcf = splitvcf,
+      parent1 = "P1",
+      parent2 = "P2",
+      chrom = sequencing.chromosome,
       sampleNames = CreateAlignmentFromSimulation.names
   }
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF  = FreebayesGenotyping.vcf_bi,
-      gatkVCF       = GatkGenotyping.vcf_bi,
-      ref_alt_alleles       = CreateAlignmentFromSimulation.ref_alt_alleles,
-      seed          = family.seed,
-      depth         = family.depth
+      freebayesVCF     = FreebayesGenotyping.vcf_bi,
+      gatkVCF          = GatkGenotyping.vcf_bi,
+      ref_alt_alleles  = CreateAlignmentFromSimulation.ref_alt_alleles,
+      seed             = family.seed,
+      depth            = sequencing.depth
   }
 
   call simulated_map.SimulatedMap{
@@ -80,7 +83,7 @@ workflow reads_simu {
                 gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
                 freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
                 filters = filters,
-                chromosome = splitvcf.chromosome
+                chromosome = sequencing.chromosome
         }
     }
 
@@ -113,7 +116,7 @@ workflow reads_simu {
           parent1 = "P1",
           parent2 = "P2",
           seed    = family.seed,
-          depth   = family.depth
+          depth   = sequencing.depth
     }
 
     call default.DefaultMaps {
@@ -236,7 +239,7 @@ workflow reads_simu {
     Gusmap_RDatas             = flatten(GusmapMaps.RDatas),
     Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
     Gusmap_times              = flatten(GusmapMaps.times),
-    depth                     = family.depth,
+    depth                     = sequencing.depth,
     seed                      = family.seed,
     gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
     gatk_ref_depth_bam        = GatkGenotyping.ref_bam,

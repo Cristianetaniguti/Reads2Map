@@ -6,34 +6,34 @@ workflow SimulatedReads {
 
   input {
     Reference references
-    FamilyTemplate family_template
+    Family family
     Sequencing sequencing
-    SplitVCF splitvcf
     Int number_of_families
+    Int global_seed
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
   # array of integers
   call ProduceFamiliesSeeds {
     input:
-      global_seed=family_template.global_seed,
+      global_seed= global_seed,
       number_of_families=number_of_families
   }
 
   # Here we generate Family objects on the fly, based on the values
-  # from the family_template and the random seed of the previous task.
+  # from the family and the random seed of the previous task.
   scatter (seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
-      "cmBymb": family_template.cmBymb,
-      "popsize": family_template.popsize,
-      "enzyme1": family_template.enzyme1,
-      "enzyme2": family_template.enzyme2,
+      "cmBymb": family.cmBymb,
+      "popsize": family.popsize,
+      "enzyme1": sequencing.enzyme1,
+      "enzyme2": sequencing.enzyme2,
       "seed": seed,
-      "depth": family_template.depth,
-      "doses": family_template.doses,
-      "ploidy": family_template.ploidy,
-      "cross": family_template.cross,
-      "multiallelics": family_template.multiallelics
+      "depth": sequencing.depth,
+      "doses": family.doses,
+      "ploidy": family.ploidy,
+      "cross": family.cross,
+      "multiallelics": sequencing.multiallelics
     }
 
     # Calling reads_simu for each seed
@@ -41,7 +41,7 @@ workflow SimulatedReads {
       input:
         references=references,
         family=fam,
-        splitvcf=splitvcf
+        sequencing = sequencing
     }
   }
 
@@ -52,7 +52,7 @@ workflow SimulatedReads {
       data3=ReadSimulations.data3_filters,
       data5=ReadSimulations.data5_SNPcall_efficiency,
       data4=ReadSimulations.data4_times,
-      depth=family_template.depth,
+      depth=sequencing.depth,
       data6=ReadSimulations.data6_RDatas,
       data7=ReadSimulations.data7_gusmap,
       data8=ReadSimulations.data8_names,

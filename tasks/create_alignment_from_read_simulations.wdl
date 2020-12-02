@@ -40,8 +40,6 @@ workflow CreateAlignmentFromSimulation {
       input:
         vcf_file = sequencing.emp_vcf,
         ref_map = sequencing.ref_map,
-        parent1 = family.parent1,
-        parent2 = family.parent2,
         seed = family.seed,
         popsize = family.popsize,
         cmBymb = family.cmBymb
@@ -67,7 +65,7 @@ workflow CreateAlignmentFromSimulation {
   call ConvertPedigreeSimulationToVcf {
     input:
       seed            = family.seed,
-      depth           = family.depth,
+      depth           = sequencing.depth,
       genotypes_dat   = RunPedigreeSimulator.genotypes_dat,
       map_file        = mapfile_sele,
       chrom_file      = chromfile_sele,
@@ -93,9 +91,9 @@ workflow CreateAlignmentFromSimulation {
 
       call SimuscopSimulation {
         input:
-          library_type          = sequencing.library_type,
+          library_type  = sequencing.library_type,
           sampleName    = sampleName,
-          depth         = family.depth,
+          depth         = sequencing.depth,
           emp_bam       = sequencing.emp_bam,
           vcf           = ConvertPedigreeSimulationToVcf.simu_vcf,
           references    = references,
@@ -626,8 +624,6 @@ task Vcf2PedigreeSimulator{
   input{
     File vcf_file
     File? ref_map
-    String parent1
-    String parent2
     Int seed
     Int popsize
     Float? cmBymb
@@ -643,7 +639,7 @@ task Vcf2PedigreeSimulator{
 
     # PedigreeSim inputs
     founderfile <- create_haplo(vcfR.obj = vcf, seed = ~{seed}, 
-                                P1 = "~{parent1}", P2= "~{parent2}")
+                                P1 = "P1", P2= "P2")
 
     mapfile <- create_mapfile(vcf, ref_map)
     create_parfile(~{seed}, ~{popsize})

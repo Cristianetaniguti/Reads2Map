@@ -4,15 +4,9 @@ struct Family {
   String cmBymb
   Int seed
   Int popsize
-  String enzyme1
-  String enzyme2
-  Int depth
   File doses
   Int ploidy
   String cross
-  String multiallelics
-  String parent1
-  String parent2
 }
 
 struct Sequencing{
@@ -28,27 +22,7 @@ struct Sequencing{
   File? emp_bam
   File? ref_map
   String chromosome
-}
-
-struct FamilyTemplate {
-  String cmBymb
-  Int? seed
-  Int popsize
-  String enzyme1
-  String enzyme2
-  Int depth
-  File doses
-  Int ploidy
-  String cross
-  String chromosome
-  Int global_seed
   String multiallelics
-}
-
-struct SplitVCF{
-  String chromosome
-  String parent1
-  String parent2
 }
 
 struct OptionalFilters{
