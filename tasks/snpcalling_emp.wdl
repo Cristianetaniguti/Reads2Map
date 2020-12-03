@@ -27,7 +27,9 @@ workflow SNPCalling {
       alignments=CreateAlignmentFromFamilies.alignments,
       references=references,
       program="gatk",
-      splitvcf = splitvcf,
+      parent1 = splitvcf.parent1,
+      parent2 = splitvcf.parent2,
+      chrom = splitvcf.chromosome,
       sampleNames = CreateAlignmentFromFamilies.names
   }
 
@@ -38,7 +40,9 @@ workflow SNPCalling {
       bai=CreateAlignmentFromFamilies.bai,
       references=references,
       program="freebayes",
-      splitvcf = splitvcf,
+      parent1 = splitvcf.parent1,
+      parent2 = splitvcf.parent2,
+      chrom = splitvcf.chromosome,
       sampleNames = CreateAlignmentFromFamilies.names
   }
 

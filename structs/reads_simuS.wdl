@@ -4,7 +4,7 @@ struct Family {
   Float? cmBymb
   Int seed
   Int popsize
-  File doses
+  File? doses
   Int ploidy
   String cross
 }

@@ -187,7 +187,7 @@ task CreatePedigreeSimulatorInputs {
     Int seed
     Int popsize
     Int ploidy # Only ploidy 2 available
-    File doses
+    File? doses
     String cross
   }
 

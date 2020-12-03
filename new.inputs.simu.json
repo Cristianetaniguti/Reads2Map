@@ -1,0 +1,37 @@
+{
+  "SimulatedReads.number_of_families": 1,
+  "SimulatedReads.family": {
+    "seed": 5050,
+    "popsize": 4,
+    "ploidy": 2,
+    "cross": "F1"
+  },
+  "SimulatedReads.references": {
+    "ref_fasta": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa",
+    "ref_dict": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.dict",
+    "ref_ann": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.ann",
+    "ref_sa": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.sa",
+    "ref_amb": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.amb",
+    "ref_bwt": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.fai",
+    "ref_pac": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.pac"
+  },
+  "SimulatedReads.global_seed": 1818,
+  "SimulatedReads.sequencing": {
+    "read_length": "Int? (optional)",
+    "emp_vcf": "File",
+    "enzyme1": "String",
+    "pcr_cycles": "Int? (optional)",
+    "library_type": "String",
+    "emp_bam": "File? (optional)",
+    "chromosome": "String",
+    "insert_size": "Int? (optional)",
+    "depth": "Int",
+    "insert_size_dev": "Int? (optional)",
+    "ref_map": "File? (optional)",
+    "enzyme2": "String? (optional)",
+    "multiallelics": "String"
+  },
+  "SimulatedReads.ReadSimulations.filters": "String? (optional)"
+}
+
