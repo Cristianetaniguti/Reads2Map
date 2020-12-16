@@ -23,6 +23,8 @@ struct Sequencing{
   File? ref_map
   String chromosome
   String multiallelics
+  String vcf_parent1
+  String vcf_parent2
 }
 
 struct OptionalFilters{

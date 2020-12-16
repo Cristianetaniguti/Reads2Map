@@ -7,31 +7,28 @@
     "cross": "F1"
   },
   "SimulatedReads.references": {
-    "ref_fasta": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa",
-    "ref_dict": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.dict",
-    "ref_ann": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.ann",
-    "ref_sa": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.sa",
-    "ref_amb": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.amb",
-    "ref_bwt": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.bwt",
-    "ref_fasta_index": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.fai",
-    "ref_pac": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub.fa.pac"
+    "ref_fasta": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa",
+    "ref_dict": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.dict",
+    "ref_ann": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa.ann",
+    "ref_sa": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa.sa",
+    "ref_amb": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa.amb",
+    "ref_bwt": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa.fai",
+    "ref_pac": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/Chr10.populus.fa.pac"
   },
   "SimulatedReads.global_seed": 1818,
   "SimulatedReads.sequencing": {
-    "read_length": "Int? (optional)",
-    "emp_vcf": "File",
-    "enzyme1": "String",
-    "pcr_cycles": "Int? (optional)",
-    "library_type": "String",
-    "emp_bam": "File? (optional)",
-    "chromosome": "String",
-    "insert_size": "Int? (optional)",
-    "depth": "Int",
-    "insert_size_dev": "Int? (optional)",
-    "ref_map": "File? (optional)",
-    "enzyme2": "String? (optional)",
-    "multiallelics": "String"
+    "emp_vcf": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/gatk_bi_recode_sub.vcf.recode.vcf",
+    "enzyme1": "HinDIII",
+    "enzyme2": "NlaIII",
+    "library_type": "ddRAD",
+    "chromosome": "Chr10",
+    "depth": "10",
+    "ref_map": "/home/cristiane/github/errors_workflow/data/populus_sub/reference/ref.map.lg10.2017.csv",
+    "multiallelics": "yes",
+    "vcf_parent1": "PT_F",
+    "vcf_parent2": "PT_M"
   },
-  "SimulatedReads.ReadSimulations.filters": "String? (optional)"
+  "SimulatedReads.ReadSimulations.filters": "--maf 0.05"
 }
 

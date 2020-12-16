@@ -365,10 +365,11 @@ task BamDepths2Vcf{
 
       library(onemap)
       library(vcfR)
+      library(doParallel)
       source("/opt/scripts/functions_simu.R")
 
       system("cp ~{ref_bam} .")
-      system("cp ~{alt_bam} .")
+      system("cp ~{alt_bam} .") 
       system("cp ~{example_alleles} .")
 
        ## Depths from bam

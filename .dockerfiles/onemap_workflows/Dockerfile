@@ -30,7 +30,7 @@ RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/')
           BiocManager::install('VariantAnnotation', ask=F);\
           install.packages('polyRAD', repos='http://brieger.esalq.usp.br/CRAN/');\
           devtools::install_github('tpbilton/GUSbase');\
-          devtools::install_github('tpbilton/GUSMap@v2.0.0')"
+          devtools::install_github('tpbilton/GUSMap')"
 
 RUN R -e "devtools::install_github('Cristianetaniguti/onemap')"
 

@@ -175,14 +175,10 @@ task CalculateVcfMetrics {
         freebayes <- read.vcfR("~{freebayesVCF}")
         gatk <- read.vcfR("~{gatkVCF}")
 
-        frags <- read.table("frags", stringsAsFactors=F)
-        start <- frags[,14]
-        end <- start + 202
-
         snps <- read.table("~{ref_alt_alleles}", stringsAsFactors = F)
         simulated.pos <- snps[,2]
-        simulared.ref <- snps.filt[,3]
-        simulated.alt <- snps.filt[,4]
+        simulated.ref <- snps[,3]
+        simulated.alt <- snps[,4]
 
         methods <- c("freebayes", "gatk") 
         results_tot <- vector()

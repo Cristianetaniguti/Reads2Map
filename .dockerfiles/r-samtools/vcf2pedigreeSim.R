@@ -14,7 +14,7 @@
 #' The same alleles and proportion of marker types are kept from the VCF and the haplotypes are simulated
 #' This function needs adaptation to deal with other populations and ploidy
 #' It is important that MNP markers are in splitted format
-create_haplo <- function(vcfR.obj, seed, P1, P2, filename = "founders.txt"){
+create_haplo <- function(vcfR.obj, ref.map, seed, P1, P2, filename = "founders.txt"){
   set.seed(seed)
   GT <- vcfR.obj@gt
   inds <- colnames(GT)
@@ -36,11 +36,21 @@ create_haplo <- function(vcfR.obj, seed, P1, P2, filename = "founders.txt"){
   
   # keep only biallelic
   rm_multi <- which(apply(GT_matrix, 1, function(x) any(grepl("2", x))))
-  if(length(rm_multi) > 0){
-    GT_matrix <- GT_matrix[-rm_multi,]
-    CHROM <- CHROM[-rm_multi]
-    POS <- POS[-rm_multi]
-    MKS <- MKS[-rm_multi]
+  
+  # remove markers out of ref.map interval
+  pos.vcf <- as.numeric(as.character(vcfR.obj@fix[,2]))
+  ref.alleles <- vcf@fix[,4]
+  alt.alleles <- vcf@fix[,5]
+  mk.names <- unique(paste0(vcf@fix[,1], "_", vcf@fix[,2]))
+  
+  rm.mks <- unique(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp)))
+  
+  rm.mks <- unique(c(rm_multi, rm.mks))
+  if(length(rm.mks) > 0){
+    GT_matrix <- GT_matrix[-rm.mks,]
+    ref.alleles <- ref.alleles[-rm.mks]
+    alt.alleles <- alt.alleles[-rm.mks]
+    mk.names <- mk.names[-rm.mks]
   }
   n.mk <- nrow(GT_matrix)
   
@@ -81,12 +91,7 @@ create_haplo <- function(vcfR.obj, seed, P1, P2, filename = "founders.txt"){
                    sum(mk.type.nonna == "D2.15")/length(mk.type.nonna)*100), 0)
   doses <- doses[-1]
   doses <- c(100-sum(doses), doses)
-  
-  ref.alleles <- vcf@fix[,4]
-  alt.alleles <- vcf@fix[,5]
-  
-  mk.names <- unique(paste0(vcf@fix[,1], "_", vcf@fix[,2]))
-  
+
   type.quant <- list()
   for(i in 1:(length(doses)-1)){
     type.quant[[i]] <- round((doses[i]/100)*length(mk.names),0)
@@ -177,17 +182,26 @@ create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="ma
   } else {
     ref.map <- rm.inv(ref.map)
     # remove start and end of chromosome absent in the genetic map
-    pos.vcf <- pos.vcf[-which(pos.vcf < min(ref.map$bp) | pos.vcf > max(ref.map$bp))]
+    rm.mks <- unique(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp)))
+    pos.vcf <- pos.vcf[-rm.mks]
     
-    model <- smooth.spline(ref.map[,2], ref.map[,1])
+    model <- smooth.spline(ref.map$bp, ref.map$cM)
     position <- predict(model, pos.vcf)$y
   }
   
   mapfile <- data.frame(marker= paste0(unique(vcfR.obj@fix[,1]), "_", pos.vcf), 
                         chromosome = unique(vcfR.obj@fix[,1]), 
                         position)
-  write.table(mapfile, file = filename, quote=FALSE, col.names = FALSE, row.names = FALSE, sep = "\t" )
-  return(mapfile)
+  write.table(mapfile, file = filename, quote=FALSE, col.names = T, row.names = FALSE, sep = "\t" )
+  
+  ref_alt_alleles <- data.frame(chr = vcfR.obj@fix[,1][-rm.mks], 
+                                pos = vcfR.obj@fix[,2][-rm.mks], 
+                                ref = vcfR.obj@fix[,4][-rm.mks], 
+                                alt = vcfR.obj@fix[,5][-rm.mks], 
+                                pos.map = position,
+                                stringsAsFactors = F)
+  
+  return(list(mapfile, ref_alt_alleles))
 }
 
 
@@ -221,8 +235,8 @@ create_chromfile <- function(mapfile, filename = "chromosome.txt"){
 
 #' Codifying phases according with Gusmap
 #' for comparisions 
-compare_phases <- function(founderfile, filname = "simulated_phases.txt"){
-  founder <- founder_file[,-1]
+compare_phases <- function(founderfile, ref_alt_alleles, filename = "simulated_phases.txt"){
+  founder <- founderfile[,-1]
   simulated_phases <- rep(NA, dim(founder)[1])
   simulated_phases[which(founder[,1] == founder[,3] & founder[,2] == founder[,4])] <- 17 # 1 and 4
   simulated_phases[which(founder[,1] == founder[,4] & founder[,2] == founder[,3])] <- 18 # 2 and 3

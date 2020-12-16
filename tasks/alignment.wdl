@@ -3,6 +3,9 @@ version 1.0
 import "../structs/alignment_struct.wdl"
 import "../structs/reference_struct.wdl"
 
+# This task considers that is it possible to receive more than one fastq file by sample
+# It keeps the different libraries in the header and merges the bam files
+# The array reads1 have only the fastq from same sample
 task RunBwaAlignment {
 
   input {
@@ -60,6 +63,54 @@ task RunBwaAlignment {
     File bai = "~{sampleName}.sorted.bam.bai"
   }
 }
+
+
+# reads1 receive only one fastq
+task RunBwaAlignmentSimu {
+
+  input {
+    File read1
+    Reference references
+  }
+
+  command <<<
+    mkdir tmp
+    export PATH=$PATH:/bin
+    export PATH=$PATH:/picard.jar
+
+    filename=`basename '~{read1}'`
+    echo $filename
+    sample=$(echo $filename | awk -F '[.]' '{print $1}')
+    echo $sample > sample.txt
+    echo $sample
+
+    bwa_header="@RG\tID:$sample.1\tLB:lib-1\tPL:illumina\tSM:$sample\tPU:FLOWCELL1.LANE1.1"
+    bwa mem -t 20 -R "${bwa_header}" ~{references.ref_fasta} ~{read1} | \
+        java -jar /picard.jar SortSam \
+          I=/dev/stdin \
+          O="file.sorted.bam" \
+          TMP_DIR=./tmp \
+          SORT_ORDER=coordinate \
+          CREATE_INDEX=true;
+    mv "file.sorted.bai" "file.sorted.bam.bai";
+
+    
+  >>>
+
+  runtime {
+    docker: "kfdrc/bwa-picard:latest-dev"
+    time:"72:00:00"
+    mem:"--nodes=1"
+    cpu:20
+  }
+
+  output {
+    Alignment algn = {"bam": "file.sorted.bam", "bai": "file.sorted.bam.bai", "sample": read_string("sample.txt")}
+    File bam = "file.sorted.bam"
+    File bai = "file.sorted.bam.bai"
+  }
+}
+
 
 # Add info to alignment header
 task AddAlignmentHeader {

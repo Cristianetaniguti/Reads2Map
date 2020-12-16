@@ -10,7 +10,6 @@ workflow GusmapMaps{
     String GenotypeCall_program
     File ref_alt_alleles
     File simulated_phases
-    Float? cMbyMb
   }
 
   Array[String] counts                      = ["vcf", "bam"]
@@ -26,8 +25,7 @@ workflow GusmapMaps{
           GenotypeCall_program = GenotypeCall_program,
           CountsFrom = vcf.left,
           ref_alt_alleles = ref_alt_alleles,
-          simulated_phases = simulated_phases,
-          cMbyMb = cMbyMb
+          simulated_phases = simulated_phases
         }
     }
 
@@ -47,7 +45,6 @@ task GusmapReport{
     File simu_onemap_obj
     File ref_alt_alleles
     File simulated_phases
-    Float? cMbyMb
   }
 
   command <<<
@@ -71,13 +68,13 @@ task GusmapReport{
       simulated_phases <- read.table("~{simulated_phases}")
 
       times <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases, ~{cMbyMb}))
+                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", TRUE)
       times <- data.frame(meth = outname, time = times[3])
 
       times_temp <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", FALSE, "~{CountsFrom}", ref_alt_alleles,simulated_phases, ~{cMbyMb}))
+                                                     "~{GenotypeCall_program}", FALSE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", FALSE)
       times_temp <- data.frame(meth = outname, time = times_temp[3])
