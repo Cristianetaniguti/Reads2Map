@@ -3,7 +3,8 @@ FROM ubuntu:18.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update \
-   && apt-get install -y libcurl4-gnutls-dev libssl-dev libftgl2 libglu1-mesa-dev libftgl2 libfreetype6-dev  gcc-8-base libgfortran5 python-pip python-tk libxml2-dev libnlopt-dev devscripts software-properties-common
+   && apt-get install -y libcurl4-gnutls-dev libssl-dev libftgl2 libglu1-mesa-dev libftgl2 libfreetype6-dev  gcc-8-base libgfortran5 python-pip python-tk libxml2-dev libnlopt-dev devscripts software-properties-common libgit2-dev \
+   && pip install matplotlib==2.0.2 numpy
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 \
     && add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/' \
@@ -37,9 +38,6 @@ RUN R -e "devtools::install_github('Cristianetaniguti/onemap')"
 COPY ./functions_simu.R /opt/scripts/
 
 COPY ./functions_empirical.R /opt/scripts
-
-RUN apt update \
-    && pip install matplotlib==2.0.2 numpy
 
 # Still in private repo
 COPY ./genotyping4onemap_0.1.7.tar.gz /opt/

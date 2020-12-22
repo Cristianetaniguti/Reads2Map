@@ -45,12 +45,12 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
-  onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
-  bins <- onemap::find_bins(onemap_mis)
+  onemap_mis <- filter_missing(onemap_obj, threshold = 0.25)
+  bins <- find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
-  segr <- onemap::test_segregation(onemap_bins)
-  distorted <- onemap::select_segreg(segr, distorted = T)
-  no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
+  segr <- test_segregation(onemap_bins)
+  distorted <- select_segreg(segr, distorted = T)
+  no_distorted <- select_segreg(segr, distorted = F, numbers = T)
   twopts <- rf_2pts(onemap_bins) # redundant markers are removed
   seq1 <- make_seq(twopts, no_distorted)
   total_variants <- onemap_obj[[3]]
@@ -118,7 +118,7 @@ create_maps_report <- function(input.seq,
                            "rf" = c(0,cumsum(haldane(map_df[[3]]))),
                            "type"= types,
                            "real.type" = real_type,
-                           "est.phases"= phases,
+                           "est.phases"= unlist(phases),
                            "real.phases"= real_phase,
                            "real.mks" = 99,
                            "SNPcall" = SNPcall,
@@ -136,7 +136,7 @@ create_maps_report <- function(input.seq,
                            "rf" = c(0,cumsum(haldane(map_df[[3]]))),
                            "type"= types,
                            "real.type" = NA,
-                           "est.phases"= phases,
+                           "est.phases"= unlist(phases),
                            "real.phases"= NA,
                            "real.mks" = real.mks,
                            "SNPcall" = SNPcall,
@@ -242,8 +242,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   }
   
   dist.gus <- c(0,cumsum(haldane(rf_est$rf))) # haldane mapping function - 
-  # I checked with gusmap example 
-  # doing as suggested in vignette
+                                              # I checked with gusmap example 
+                                              # doing as suggested in vignette
   phases.gus[which(phases.gus == 1 | phases.gus == 4)] <- 17
   phases.gus[which(phases.gus == 2 | phases.gus == 3)] <- 18
   phases.gus[which(phases.gus == 5 | phases.gus == 8)] <- 19
