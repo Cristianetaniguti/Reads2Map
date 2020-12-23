@@ -24,10 +24,17 @@ workflow SimulatedReads {
   # from the family and the random seed of the previous task.
   scatter (seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
+<<<<<<< HEAD
       "cmBymb": family.cmBymb,
       "popsize": family.popsize,
       "enzyme1": sequencing.enzyme1,
       "enzyme2": sequencing.enzyme2,
+=======
+      "cmBymb": family_template.cmBymb,
+      "popsize": family_template.popsize,
+      "enzyme1": family_template.enzyme1,
+      "enzyme2": family_template.enzyme2,
+>>>>>>> master
       "seed": seed,
       "depth": sequencing.depth,
       "doses": family.doses,

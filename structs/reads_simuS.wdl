@@ -4,13 +4,35 @@ struct Family {
   Float? cmBymb
   Int seed
   Int popsize
+<<<<<<< HEAD
   File? doses
+=======
+  String enzyme1
+  String enzyme2
+  Int depth
+  File doses
+>>>>>>> master
   Int ploidy
   String cross
 }
 
+<<<<<<< HEAD
 struct Sequencing{
   String library_type
+=======
+struct Profiles{
+  File base_calling
+  File indel_error
+  File gc_bias
+}
+
+struct FamilyTemplate {
+  String cmBymb
+  Int? seed
+  Int popsize
+  String enzyme1
+  String enzyme2
+>>>>>>> master
   Int depth
   Int? insert_size
   Int? insert_size_dev

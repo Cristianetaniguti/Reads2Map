@@ -8,3 +8,4 @@ struct Dataset {
   String chromosome
   String multiallelics
 }
+
