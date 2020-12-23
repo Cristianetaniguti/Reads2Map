@@ -13,6 +13,8 @@ workflow SNPCallerMaps{
      String parent1
      String parent2
      String chromosome
+     File? multi_obj
+     String multiallelics
     }
 
   call GQProbs{
@@ -35,9 +37,19 @@ workflow SNPCallerMaps{
       CountsFrom = CountsFrom
   }
 
+  if (multiallelics == "yes") {
+     call utilsR.AddMultiallelics{
+         input:
+           onemap_obj_multi = multi_obj,
+           onemap_obj_bi = GQProbs.gq_onemap_obj
+      }
+  }
+        
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
+
   call utilsR.FiltersReportEmp{
     input:
-      onemap_obj = GQProbs.gq_onemap_obj,
+      onemap_obj = select_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = "SNPCaller",
       CountsFrom = "vcf",

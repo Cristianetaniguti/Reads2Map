@@ -34,6 +34,7 @@ task vcf2onemap{
                                  parent1="~{parent1}",
                                  parent2="~{parent2}",
                                  f1 = f1)
+                                 
           save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf", "_onemap.obj.RData"))
 
         RSCRIPT
@@ -51,6 +52,73 @@ task vcf2onemap{
       File vcfR_obj = "vcfR_obj.RData"
     }
 }
+
+
+task MultiVcf2onemap{
+   input{
+     File? multi
+     String cross
+     String SNPCall_program
+     String parent1
+     String parent2
+     Int? seed
+     Int? depth 
+   }
+
+   command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+          library(onemap)
+          library(vcfR)
+
+          cross <- "~{cross}"
+
+          if(cross == "F1"){
+            cross <- "outcross"
+            f1 = NULL
+          } else if (cross == "F2"){
+            cross <- "f2 intercross"
+            f1 = "F1"
+          }
+
+          vcf_file <- "~{multi}"
+          ## READING VCF FROM PIPELINE
+          vcf <- read.vcfR(vcf_file)
+
+          onemap.obj <- onemap_read_vcfR(vcfR.object=vcf,
+                                 cross= cross,
+                                 parent1="~{parent1}",
+                                 parent2="~{parent2}",
+                                 f1 = f1,
+                                 only_biallelic = F)
+
+          multi_names <- list()
+          if(dim(onemap.obj[[1]])[2] == 0){
+            multi_names[[1]] <- 0
+          } else { 
+            multi_names[[1]] <- colnames(onemap.obj[[1]])
+          }
+          names(multi_names) <- "~{depth}_~{seed}_~{SNPCall_program}"
+          save(multi_names, file = "~{depth}_~{seed}_~{SNPCall_program}_multi.names.RData")  
+
+          save(onemap.obj, file=paste0("~{SNPCall_program}", "_vcf_multi_onemap.obj.RData"))
+
+        RSCRIPT
+
+    >>>
+    runtime{
+      docker:"cristaniguti/onemap_workflows"
+      time:"72:00:01"
+      mem:"--nodes=1"
+      cpu:1
+    }
+
+    output{
+      File onemap_obj = "~{SNPCall_program}_vcf_multi_onemap.obj.RData"
+      File multi_names = "~{depth}_~{seed}_~{SNPCall_program}_multi.names.RData"
+    }
+}
+
 
 task FiltersReport{
   input{
@@ -131,13 +199,12 @@ task FiltersReportEmp{
 task MapsReport{
   input{
    File onemap_obj
-   File tot_mks
+   File ref_alt_alleles
    File simu_onemap_obj
    String SNPCall_program
    String GenotypeCall_program
    String CountsFrom
-   String cMbyMb
-   File real_phases
+   File simulated_phases
   }
 
   command <<<
@@ -150,14 +217,14 @@ task MapsReport{
 
       simu_onemap_obj <- load("~{simu_onemap_obj}")
       simu_onemap_obj <- get(simu_onemap_obj)
-      tot_mks <- read.table("~{tot_mks}")
-      real_phases <- read.table("~{real_phases}")
+      ref_alt_alleles <- read.table("~{ref_alt_alleles}")
+      simulated_phases <- read.table("~{simulated_phases}")
 
       ## Without false SNPs
       times <-system.time(create_maps_report(input.seq = filtered_onemap,
-                                             tot_mks = tot_mks, gab = simu_onemap_obj,
+                                             tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= F, "~{CountsFrom}", ~{cMbyMb}, real_phases))
+                                             fake= F, "~{CountsFrom}", simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", FALSE)
@@ -167,9 +234,9 @@ task MapsReport{
 
       ## With false SNPs
       times_temp <-system.time(create_maps_report(input.seq = filtered_onemap,
-                                             tot_mks = tot_mks, gab = simu_onemap_obj,
+                                             tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= T, "~{CountsFrom}", ~{cMbyMb}, real_phases))
+                                             fake= T, "~{CountsFrom}", simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", TRUE)
@@ -298,10 +365,11 @@ task BamDepths2Vcf{
 
       library(onemap)
       library(vcfR)
+      library(doParallel)
       source("/opt/scripts/functions_simu.R")
 
       system("cp ~{ref_bam} .")
-      system("cp ~{alt_bam} .")
+      system("cp ~{alt_bam} .") 
       system("cp ~{example_alleles} .")
 
        ## Depths from bam
@@ -427,3 +495,48 @@ task MapsReportEmp{
     File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
 }
+
+
+task AddMultiallelics{
+  input{
+   File? onemap_obj_multi
+   File onemap_obj_bi
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      
+      temp <- load("~{onemap_obj_multi}")
+      onemap_obj_multi <- get(temp)
+      
+      temp <- load("~{onemap_obj_bi}")
+      onemap_obj_bi <- get(temp)
+
+      onemap_obj <- create_probs(onemap_obj_multi, global_error = 0.05) # All multiallelics receives global_error = 0.05
+      
+      onemap_both <- combine_onemap(onemap_obj_bi, onemap_obj_multi)
+      
+      onemap_both <- sort_by_pos(onemap_both)
+      
+      save(onemap_both, file=paste0("onemap_obj_both.RData"))
+                
+    RSCRIPT
+
+  >>>
+
+  runtime{
+    docker:"cristaniguti/onemap_workflows"
+    time:"120:00:04"
+    mem:"--nodes=1"
+    cpu:4
+  }
+
+  output{
+      File onemap_obj_both = "onemap_obj_both.RData"
+  }
+}
+
+
+
+

@@ -27,6 +27,11 @@ phaseToOPGP_OM <- function(x){
       parents[3:4,] <- parents[4:3,]
     
     phases <- GUSMap:::parHapToOPGP(parents)
+    
+    if(is(phases, "list"))
+      phases[sapply(phases, is.null)] <- 0
+    
+    phases <- unlist(phases)
     phases[which(phases == 1 | phases == 4)] <- 17 
     phases[which(phases == 2 | phases == 3)] <- 18
     phases[which(phases == 5 | phases == 8)] <- 19
@@ -65,7 +70,7 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
   return(seq1)
 }
 
-create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, CountsFrom,cMbyMb, real_phases) {
+create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, CountsFrom, real_phases) {
   
   if(!fake){
     true_mks <- input.seq$seq.num[which(input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2])]
@@ -92,7 +97,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
     map_df <- map_avoid_unlinked(seq_true)
   }
   
-  phases <- phaseToOPGP_OM(map_df)
+  phases <- phaseToOPGP_OM(x = map_df)
   types <- input.seq$data.name$segr.type[map_df[[1]]]
   real_type <- rep(NA, length(types))
   temp_type <- gab$segr.type[which(as.character(gab$POS) %in% input.seq$data.name$POS[map_df[[1]]])]
@@ -100,7 +105,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
   real_type[which(is.na(real_type))] <- "non-informative"
   real_phase <- real_phases[which(real_phases[,1] %in% input.seq$data.name$POS[map_df[[1]]]),2]
   pos <- input.seq$data.name$POS[map_df[[1]]]
-  poscM <- (as.numeric(as.character(pos))/1000000)*cMbyMb
+  poscM <- tot_mks[which(tot_mks[,2] %in% pos), 5]
   poscM.norm <- poscM-poscM[1]
   diff= sqrt((poscM.norm - c(0,cumsum(haldane(map_df[[3]]))))^2)
   
@@ -146,7 +151,7 @@ create_maps_report <- function(input.seq, tot_mks,gab, SNPcall, Genocall, fake, 
 }
 
 
-create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsFrom, tot_mks, real_phases, cMbyMb){
+create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsFrom, tot_mks, real_phases){
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
   filelist = list.files(pattern = ".*_ped.csv")
@@ -204,7 +209,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                                OPGP=list(as.integer(phases.gus)),
                                nThreads = 1)
   
-  rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
+  rf_est$rf[which(rf_est$rf > 0.5)] <- 0.45
   dist.gus <- c(0,cumsum(haldane(rf_est$rf)))
   phases.gus[which(phases.gus == 1 | phases.gus == 4)] <- 17
   phases.gus[which(phases.gus == 2 | phases.gus == 3)] <- 18
@@ -224,7 +229,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   temp_type <- gab$segr.type[which(gab$POS %in% pos)]
   real_type[which(pos %in% as.character(gab$POS))] <- temp_type
   real_type[which(is.na(real_type))] <- "non-informative"
-  poscM <- (as.numeric(as.character(pos))/1000000)*cMbyMb
+  poscM <- tot_mks[which(tot_mks[,2] %in% pos), 5]
   poscM.norm <- poscM-poscM[1]
   diff= sqrt((poscM.norm - dist.gus)^2)
   

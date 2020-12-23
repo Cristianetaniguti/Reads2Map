@@ -6,42 +6,49 @@ workflow SimulatedReads {
 
   input {
     Reference references
-    FamilyTemplate family_template
-    Profiles profiles
-    SplitVCF splitvcf
+    Family family
+    Sequencing sequencing
     Int number_of_families
+    Int global_seed
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
   # array of integers
   call ProduceFamiliesSeeds {
     input:
-      global_seed=family_template.global_seed,
+      global_seed= global_seed,
       number_of_families=number_of_families
   }
 
   # Here we generate Family objects on the fly, based on the values
-  # from the family_template and the random seed of the previous task.
+  # from the family and the random seed of the previous task.
   scatter (seed in ProduceFamiliesSeeds.seeds) {
     Family fam =  {
+<<<<<<< HEAD
+      "cmBymb": family.cmBymb,
+      "popsize": family.popsize,
+      "enzyme1": sequencing.enzyme1,
+      "enzyme2": sequencing.enzyme2,
+=======
       "cmBymb": family_template.cmBymb,
       "popsize": family_template.popsize,
       "enzyme1": family_template.enzyme1,
       "enzyme2": family_template.enzyme2,
+>>>>>>> master
       "seed": seed,
-      "depth": family_template.depth,
-      "doses": family_template.doses,
-      "ploidy": family_template.ploidy,
-      "cross": family_template.cross
+      "depth": sequencing.depth,
+      "doses": family.doses,
+      "ploidy": family.ploidy,
+      "cross": family.cross,
+      "multiallelics": sequencing.multiallelics
     }
 
     # Calling reads_simu for each seed
     call sub.reads_simu as ReadSimulations {
       input:
-        profiles=profiles,
         references=references,
         family=fam,
-        splitvcf=splitvcf
+        sequencing = sequencing
     }
   }
 
@@ -52,11 +59,12 @@ workflow SimulatedReads {
       data3=ReadSimulations.data3_filters,
       data5=ReadSimulations.data5_SNPcall_efficiency,
       data4=ReadSimulations.data4_times,
-      depth=family_template.depth,
+      depth=sequencing.depth,
       data6=ReadSimulations.data6_RDatas,
       data7=ReadSimulations.data7_gusmap,
       data8=ReadSimulations.data8_names,
-      data9=ReadSimulations.simu_haplo
+      data9=ReadSimulations.simu_haplo,
+      data10=ReadSimulations.multi_names
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -83,7 +91,7 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
-    time:"0:05:00"
+    time:"0:50:00"
     cpu:1
     mem:"--mem-per-cpu=14042"
   }
@@ -105,6 +113,7 @@ task JointTables{
     Array[File] data7
     Array[File] data8
     Array[File] data9
+    Array[File] data10
     Int depth
   }
 
@@ -125,6 +134,7 @@ task JointTables{
     datas[[7]] <- c("~{sep=";" data7}")
     datas[[8]] <- c("~{sep=";" data8}")
     datas[[9]] <- c("~{sep=";" data9}")
+    datas[[10]] <- c("~{sep=";" data10}")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
@@ -146,6 +156,13 @@ task JointTables{
         }
         Rdatas <- do.call(c, Rdata_lst)
         save(Rdatas, file = "gusmap_RDatas.RData")
+      } else if(j == 10){
+        multi_names_depth <- list()
+        for(i in 1:length(datas[[j]])){
+          multi_temp2 <- load(datas[[j]][i])
+          multi_temp3 <- get(multi_temp2)
+          multi_names_depth <- c(multi_names_depth, multi_temp3)
+        }
       } else {
         for(i in 1:length(datas[[j]])){
           data_lst[[i]] <- readRDS(datas[[j]][i])
@@ -169,9 +186,10 @@ task JointTables{
     choices <- result_list[[6]]
     save(choices, file = "choices.RData")
     saveRDS(datas_up[[8]], file = "names.rds")
+    save(multi_names_depth, file = "multi_names.RData")
 
     system("mkdir SimulatedReads_results_depth~{depth}")
-    system("mv gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
+    system("mv multi_names.RData gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT

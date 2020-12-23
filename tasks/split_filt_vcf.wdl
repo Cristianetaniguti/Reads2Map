@@ -30,7 +30,6 @@ workflow SplitFiltVCF{
     File vcf_bi = SplitFilters.vcf_bi
     File vcf_bi_tbi = SplitFilters.vcf_bi_tbi
     File vcf_multi = SplitFilters.vcf_multi
-    File vcf_multi_tbi = SplitFilters.vcf_multi_tbi
   }
 }
 
@@ -83,7 +82,6 @@ task SplitFilters{
     bgzip ~{program}_multi.recode.vcf
     bgzip ~{program}_bi.recode.vcf
     tabix -p vcf ~{program}_bi.recode.vcf.gz
-    tabix ~{program}_multi.recode.vcf.gz
 
   >>>
 
@@ -96,7 +94,6 @@ task SplitFilters{
 
   output {
     File vcf_multi = "~{program}_multi.recode.vcf.gz"
-    File vcf_multi_tbi = "~{program}_multi.recode.vcf.gz.tbi"
     File vcf_bi = "~{program}_bi.recode.vcf.gz"
     File vcf_bi_tbi = "~{program}_bi.recode.vcf.gz.tbi"
   }

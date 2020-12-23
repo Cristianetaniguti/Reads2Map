@@ -22,7 +22,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 \
-    && add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/' \
+    && add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran40/' \
     && apt-get update \
     && apt-get install -y \
         r-base \
@@ -50,25 +50,19 @@ RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/')
           devtools::install_github('tpbilton/GUSbase');\
           devtools::install_github('tpbilton/GUSMap@v2.0.0')"
 
-RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/XML/XML_3.99-0.3.tar.gz';\
-          install.packages(packageurl, repos=NULL, type='source');\
-          packageurl <- 'https://cran.r-project.org/src/contrib/Archive/vcfR/vcfR_1.11.0.tar.gz';\
-          install.packages(packageurl, repos=NULL, type='source');\
+RUN R -e "install.packages('vcfR', repos='http://brieger.esalq.usp.br/CRAN/');\
           BiocManager::install('VariantAnnotation', ask=F)"
-
+          
 RUN apt-get update \
     && pip install matplotlib==2.0.2 numpy
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap', ref='up_read'      )"
+RUN R -e "devtools::install_github('Cristianetaniguti/onemap')"
 
 COPY ./functions_simu.R /opt/scripts/
 
 COPY ./functions_empirical.R /opt/scripts
 
-RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap')"
+COPY ./genotyping4onemap_0.1.7.tar.gz /opt/
+RUN R -e "install.packages('/opt/genotyping4onemap_0.1.7.tar.gz', type = 'source', repos=NULL)"
 
-RUN R -e "packageurl <- 'https://cran.r-project.org/src/contrib/Archive/updog/updog_1.2.0.tar.gz';\
-          install.packages(packageurl, repos=NULL, type='source')"
 
-# library(onemap)
-# packageVersion("onemap") == 2.2.0

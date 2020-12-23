@@ -160,8 +160,7 @@ task CalculateVcfMetrics {
   input {
     File freebayesVCF
     File gatkVCF
-    File tot_mks
-    Array[File] maternal_trim
+    File ref_alt_alleles
     Int seed
     Int depth
   }
@@ -170,33 +169,21 @@ task CalculateVcfMetrics {
 
         R --vanilla --no-save <<RSCRIPT
 
-        system("cp ~{sep=" "  maternal_trim} .")
+        # If variants are simulated by pirs, 
+        # the metrics will be related to the total simulated not only the captured by RAD
         library(vcfR)
         freebayes <- read.vcfR("~{freebayesVCF}")
         gatk <- read.vcfR("~{gatkVCF}")
-        maternal <- strsplit("~{sep=" ; "  maternal_trim}", split=";")[[1]][1]
-        system(paste("grep '>'", maternal ,"> frags"))
 
-        frags <- read.table("frags", stringsAsFactors=F)
-        start <- frags[,14]
-        end <- start + 202
+        snps <- read.table("~{ref_alt_alleles}", stringsAsFactors = F)
+        simulated.pos <- snps[,2]
+        simulated.ref <- snps[,3]
+        simulated.alt <- snps[,4]
 
-        snps <- read.table("~{tot_mks}", stringsAsFactors = F)
-        real.pos <- snps[,2]
-
-        filt.idx <- vector()
-        for(i in 1:length(start))
-        filt.idx <- c(filt.idx,which(real.pos >= start[i] & real.pos <= end[i]))
-
-        snps.filt <- snps[filt.idx,]
-        filt.pos <- as.numeric(as.character(snps.filt[,2]))
-        ref.filt <- snps.filt[,3]
-        alt.filt <- snps.filt[,4]
-
-        methods <- c("freebayes", "gatk") # include in a scatter
+        methods <- c("freebayes", "gatk") 
         results_tot <- vector()
-        for(i in methods){
 
+        for(i in methods){
           # counting corrected identified markers
           pos <- as.numeric(as.character(get(i)@fix[,2]))
           chr <- get(i)@fix[,1]
@@ -207,18 +194,16 @@ task CalculateVcfMetrics {
           ref <- get(i)@fix[,4]
           alt <- get(i)@fix[,5]
 
-          nmk.filt <- length(filt.pos)
+          nmk.filt <- length(simulated.pos)
           nmk.id <- length(pos)
 
-          ok <- sum(filt.pos %in% pos) #  marcadores identificados do total
-          falso.positivo <- sum(!(pos %in% filt.pos)) # falsos positivos
-          ref.ok <- sum(ref.filt==ref[pos %in% filt.pos])
-          alt.ok <- sum(alt.filt==alt[pos %in% filt.pos])
+          ok <- sum(simulated.pos %in% pos) 
+          falso.positivo <- sum(!(pos %in% simulated.pos)) 
+          ref.ok <- sum(simulated.ref==ref[pos %in% simulated.pos])
+          alt.ok <- sum(simulated.alt==alt[pos %in% simulated.pos])
 
           result <- data.frame(depth = ~{depth}, seed = ~{seed}, SNPcall = i,mks_tot = nmk.filt, mks_ide = nmk.id, ok, fake=falso.positivo, ref.ok, alt.ok)
           results_tot <- rbind(results_tot, result)
-
-          #write.table(result, file= paste0(i,".txt"), quote=F, row.names=F, sep="\t")
 
           # tables for mesure depth distribuition
           if(dim(get(i)@gt)[1] != 0){

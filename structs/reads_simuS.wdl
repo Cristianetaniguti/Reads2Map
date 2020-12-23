@@ -1,17 +1,25 @@
 version 1.0
 
 struct Family {
-  String cmBymb
+  Float? cmBymb
   Int seed
   Int popsize
+<<<<<<< HEAD
+  File? doses
+=======
   String enzyme1
   String enzyme2
   Int depth
   File doses
+>>>>>>> master
   Int ploidy
   String cross
 }
 
+<<<<<<< HEAD
+struct Sequencing{
+  String library_type
+=======
 struct Profiles{
   File base_calling
   File indel_error
@@ -24,18 +32,21 @@ struct FamilyTemplate {
   Int popsize
   String enzyme1
   String enzyme2
+>>>>>>> master
   Int depth
-  File doses
-  Int ploidy
-  String cross
+  Int? insert_size
+  Int? insert_size_dev
+  Int? pcr_cycles
+  Int? read_length
+  String enzyme1
+  String? enzyme2
+  File emp_vcf
+  File? emp_bam
+  File? ref_map
   String chromosome
-  Int global_seed
-}
-
-struct SplitVCF{
-  String chromosome
-  String parent1
-  String parent2
+  String multiallelics
+  String vcf_parent1
+  String vcf_parent2
 }
 
 struct OptionalFilters{

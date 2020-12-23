@@ -14,6 +14,7 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
+    File? multi
 }
 
 workflow Maps {
@@ -25,6 +26,8 @@ workflow Maps {
         File gatk_vcf_bam_counts
         File freebayes_vcf_bam_counts
         String? filters
+        File? gatk_multi
+        File? freebayes_multi
     }
 
     if (defined(filters)) {
@@ -44,8 +47,8 @@ workflow Maps {
     File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, freebayes_vcf])
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, freebayes_vcf_bam_counts])
 
-    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"multi": gatk_multi,"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"multi": freebayes_multi,"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
     scatter (analysis in [gatk_processing, freebayes_processing]) {
 
@@ -58,6 +61,17 @@ workflow Maps {
                 parent2 = dataset.parent2
         }
 
+        if (dataset.multiallelics == "yes"){
+           call utilsR.MultiVcf2onemap{
+             input:
+               multi = analysis.multi,
+               cross = dataset.cross,
+               SNPCall_program = analysis.method,
+               parent1 = dataset.parent1,
+               parent2 = dataset.parent2,
+          }
+        }
+        
         call default.DefaultMaps {
             input:
                 onemap_obj = vcf2onemap.onemap_obj,
@@ -66,7 +80,9 @@ workflow Maps {
                 parent2 = dataset.parent2,
                 SNPCall_program = analysis.method,
                 CountsFrom = "vcf",
-                chromosome = dataset.chromosome
+                chromosome = dataset.chromosome,
+                multi_obj = MultiVcf2onemap.onemap_obj,
+                multiallelics = dataset.multiallelics
         }
 
         call snpcaller.SNPCallerMaps {
@@ -79,7 +95,9 @@ workflow Maps {
                 CountsFrom = "vcf",
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2,
-                chromosome = dataset.chromosome
+                chromosome = dataset.chromosome,
+                multi_obj = MultiVcf2onemap.onemap_obj,
+                multiallelics = dataset.multiallelics
         }
 
         Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -95,7 +113,9 @@ workflow Maps {
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome
+                    chromosome = dataset.chromosome,
+                    multi_obj = MultiVcf2onemap.onemap_obj,
+                    multiallelics = dataset.multiallelics
             }
 
             call genotyping.SnpBasedGenotypingMaps as SupermassaMaps {
@@ -108,7 +128,9 @@ workflow Maps {
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome
+                    chromosome = dataset.chromosome,
+                    multi_obj = MultiVcf2onemap.onemap_obj,
+                    multiallelics = dataset.multiallelics
             }
 
             call genotyping.SnpBasedGenotypingMaps as PolyradMaps {
@@ -121,7 +143,9 @@ workflow Maps {
                     cross = dataset.cross,
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome
+                    chromosome = dataset.chromosome,
+                    multi_obj = MultiVcf2onemap.onemap_obj,
+                    multiallelics = dataset.multiallelics
             }
         }
 

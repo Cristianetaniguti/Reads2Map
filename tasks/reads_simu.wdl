@@ -17,6 +17,7 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
+    File multi
 }
 
 workflow reads_simu {
@@ -24,16 +25,15 @@ workflow reads_simu {
   input {
     Reference references
     Family family
-    Profiles profiles
-    SplitVCF splitvcf
+    Sequencing sequencing
     String? filters
   }
 
   call simulation.CreateAlignmentFromSimulation {
     input:
+      sequencing = sequencing,
       references=references,
-      family=family,
-      profiles=profiles
+      family=family
   }
 
   call gatk.GatkGenotyping {
@@ -41,7 +41,9 @@ workflow reads_simu {
       alignments=CreateAlignmentFromSimulation.alignments,
       references=references,
       program="gatk",
-      splitvcf = splitvcf,
+      parent1 = "P1",
+      parent2 = "P2",
+      chrom = sequencing.chromosome,
       sampleNames = CreateAlignmentFromSimulation.names
   }
 
@@ -52,18 +54,19 @@ workflow reads_simu {
       bai=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
-      splitvcf = splitvcf,
+      parent1 = "P1",
+      parent2 = "P2",
+      chrom = sequencing.chromosome,
       sampleNames = CreateAlignmentFromSimulation.names
   }
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF  = FreebayesGenotyping.vcf_bi,
-      gatkVCF       = GatkGenotyping.vcf_bi,
-      tot_mks       = CreateAlignmentFromSimulation.total_markers,
-      maternal_trim = CreateAlignmentFromSimulation.maternal_trim,
-      seed          = family.seed,
-      depth         = family.depth
+      freebayesVCF     = FreebayesGenotyping.vcf_bi,
+      gatkVCF          = GatkGenotyping.vcf_bi,
+      ref_alt_alleles  = CreateAlignmentFromSimulation.ref_alt_alleles,
+      seed             = family.seed,
+      depth            = sequencing.depth
   }
 
   call simulated_map.SimulatedMap{
@@ -80,7 +83,7 @@ workflow reads_simu {
                 gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
                 freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
                 filters = filters,
-                chromosome = splitvcf.chromosome
+                chromosome = sequencing.chromosome
         }
     }
 
@@ -90,8 +93,8 @@ workflow reads_simu {
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_bi_bam_counts])
 
 
-    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"multi":GatkGenotyping.vcf_multi, "method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"multi":FreebayesGenotyping.vcf_multi, "method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
 
   scatter (analysis in [gatk_processing, freebayes_processing]){
@@ -105,15 +108,26 @@ workflow reads_simu {
         parent2 = "P2"
     }
 
+    call utilsR.MultiVcf2onemap{
+       input:
+          multi = analysis.multi,
+          cross = family.cross,
+          SNPCall_program = analysis.method,
+          parent1 = "P1",
+          parent2 = "P2",
+          seed    = family.seed,
+          depth   = sequencing.depth
+    }
+
     call default.DefaultMaps {
       input:
         onemap_obj = vcf2onemap.onemap_obj,
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
-        tot_mks = CreateAlignmentFromSimulation.total_markers,
-        real_phases = CreateAlignmentFromSimulation.real_phases,
+        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb
+        multi_obj = MultiVcf2onemap.onemap_obj
     }
 
     call snpcaller.SNPCallerMaps{
@@ -121,13 +135,13 @@ workflow reads_simu {
         simu_onemap_obj = SimulatedMap.simu_onemap_obj,
         onemap_obj = vcf2onemap.onemap_obj,
         vcf_file = analysis.vcf,
-        tot_mks = CreateAlignmentFromSimulation.total_markers,
-        real_phases = CreateAlignmentFromSimulation.real_phases,
+        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         cross = family.cross,
         SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
-        cMbyMb = family.cmBymb
+        multi_obj = MultiVcf2onemap.onemap_obj
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -139,12 +153,12 @@ workflow reads_simu {
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "updog",
-            tot_mks = CreateAlignmentFromSimulation.total_markers,
-            real_phases = CreateAlignmentFromSimulation.real_phases,
+            ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+            simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
-            cMbyMb = family.cmBymb,
-            cross = family.cross
+            cross = family.cross,
+            multi_obj = MultiVcf2onemap.onemap_obj
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -153,12 +167,12 @@ workflow reads_simu {
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "supermassa",
-            tot_mks = CreateAlignmentFromSimulation.total_markers,
-            real_phases = CreateAlignmentFromSimulation.real_phases,
+            ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+            simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
-            cMbyMb = family.cmBymb,
-            cross = family.cross
+            cross = family.cross,
+            multi_obj = MultiVcf2onemap.onemap_obj
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -167,12 +181,12 @@ workflow reads_simu {
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "polyrad",
-            tot_mks = CreateAlignmentFromSimulation.total_markers,
-            real_phases = CreateAlignmentFromSimulation.real_phases,
+            ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+            simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
-            cMbyMb = family.cmBymb,
-            cross = family.cross
+            cross = family.cross,
+            multi_obj = MultiVcf2onemap.onemap_obj
         }
       }
 
@@ -183,9 +197,8 @@ workflow reads_simu {
           new_vcf_file = analysis.bam,
           SNPCall_program = analysis.method,
           GenotypeCall_program = "gusmap",
-          tot_mks = CreateAlignmentFromSimulation.total_markers,
-          real_phases = CreateAlignmentFromSimulation.real_phases,
-          cMbyMb = family.cmBymb
+          ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+          simulated_phases = CreateAlignmentFromSimulation.simulated_phases
       }
   }
 
@@ -197,6 +210,7 @@ workflow reads_simu {
     default_errors_report     = flatten(DefaultMaps.errors_report),
     default_times             = flatten(DefaultMaps.times),
     SNPCaller_RDatas          = SNPCallerMaps.RDatas,
+    multi_names               = MultiVcf2onemap.multi_names,
     SNPCaller_maps_report     = SNPCallerMaps.maps_report,
     SNPCaller_filters_report  = SNPCallerMaps.filters_report,
     SNPCaller_errors_report   = SNPCallerMaps.errors_report,
@@ -219,7 +233,7 @@ workflow reads_simu {
     Gusmap_RDatas             = flatten(GusmapMaps.RDatas),
     Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
     Gusmap_times              = flatten(GusmapMaps.times),
-    depth                     = family.depth,
+    depth                     = sequencing.depth,
     seed                      = family.seed,
     gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
     gatk_ref_depth_bam        = GatkGenotyping.ref_bam,
@@ -241,6 +255,7 @@ workflow reads_simu {
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
+    File multi_names              = JointReports.multi_names
   }
 }
 
@@ -251,6 +266,7 @@ task JointReports{
     Array[File] default_filters_report
     Array[File] default_errors_report
     Array[File] default_times
+    Array[File] multi_names
     Array[File] SNPCaller_RDatas
     Array[File] SNPCaller_maps_report
     Array[File] SNPCaller_filters_report
@@ -316,6 +332,22 @@ task JointReports{
       system("cp ~{sep= ' ' Updog_RDatas}  ~{sep= ' ' Polyrad_RDatas} .")
       system("cp ~{sep= ' ' Supermassa_RDatas} ~{sep= ' ' Gusmap_RDatas} .")
 
+      # multiallelics names
+
+
+      multi_temp <- c("~{sep=";" multi_names}")
+
+      multi_temp <- unlist(strsplit(multi_temp, ";"))
+
+      multi_names_seed <- list()
+      for(i in 1:length(multi_temp)){
+        multi_temp2 <- load(multi_temp[i])
+        multi_temp3 <- get(multi_temp2)
+        multi_names_seed <- c(multi_names_seed, multi_temp3)
+      }
+
+      save(multi_names_seed, file="multi_names.RData")
+
       library(tidyr)
       library(reshape2)
       library(largeList)
@@ -366,7 +398,7 @@ task JointReports{
       all_errors <- cbind(seed, depth, data1)
 
       ########################################################
-      # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; real_phases
+      # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; simulated_phases
       ########################################################
       # Add seed and mean depth information
       all_maps <- read.table("all_maps.txt")
@@ -456,5 +488,6 @@ task JointReports{
     File data6_RDatas  = "data6_RDatas.llo"
     File data7_gusmap  = "gusmap_RDatas.RData"
     File data8_names   = "names.rds"
+    File multi_names   = "multi_names.RData"
   }
 }

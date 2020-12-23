@@ -1,36 +1,34 @@
 {
-  "SimulatedReads.number_of_families": "1",
-  "SimulatedReads.references": {
-    "ref_dict": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.dict",
-    "ref_fasta": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa",
-    "ref_fasta_index": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.fai",
-    "ref_sa": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.sa",
-    "ref_amb": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.amb",
-    "ref_bwt": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.bwt",
-    "ref_ann": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.ann",
-    "ref_pac": "/home/cristiane/github/errors_workflow/data/toy_sample/sub.fa.pac"
-  },
-  "SimulatedReads.profiles": {
-    "base_calling": "/home/cristiane/github/errors_workflow/data/profiles/humNew.PE100.matrix.gz",
-    "indel_error": "/home/cristiane/github/errors_workflow/data/profiles/phixv2.InDel.matrix",
-    "gc_bias": "/home/cristiane/github/errors_workflow/data/profiles/humNew.gcdep_150.dat"
-  },
-  "SimulatedReads.family_template": {
-    "cmBymb": "4.63",
-    "global_seed": "7000",
-    "doses": "/home/cristiane/github/errors_workflow/data/toy_sample/doses",
-    "popsize": 47,
+  "SimulatedReads.number_of_families": 1,
+  "SimulatedReads.family": {
+    "seed": 5050,
+    "popsize": 150,
     "ploidy": 2,
-    "enzyme": "G*CWGC",
-    "cross": "F1",
-    "depth": 20,
-    "chromosome": "Chr10"
+    "cross": "F1"
   },
-  "SimulatedReads.ReadSimulations.filters": "--maf 0.05",
-  "SimulatedReads.splitvcf": {
+  "SimulatedReads.references": {
+    "ref_fasta": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa",
+    "ref_dict": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.dict",
+    "ref_ann": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa.ann",
+    "ref_sa": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa.sa",
+    "ref_amb": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa.amb",
+    "ref_bwt": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa.fai",
+    "ref_pac": "/home/cristiane/github/onemap_workflow/data/toy_sample/sub.fa.pac"
+  },
+  "SimulatedReads.global_seed": 1616, 
+  "SimulatedReads.sequencing": {
+    "emp_vcf": "/home/cristiane/github/onemap_workflow/data/toy_sample/ref.variants.vcf",
+    "enzyme1": "HinDIII",
+    "enzyme2": "NlaIII",
+    "library_type": "ddRAD",
     "chromosome": "Chr10",
-    "parent1": "P1",
-    "parent2": "P2"
-  }
+    "depth": "10",
+    "ref_map": "/home/cristiane/github/onemap_workflow/data/toy_sample/ref.map.csv",
+    "multiallelics": "yes",
+    "vcf_parent1": "PT_F",
+    "vcf_parent2": "PT_M"
+  },
+  "SimulatedReads.ReadSimulations.filters": "--maf 0.05"
 }
 

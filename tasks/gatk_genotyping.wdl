@@ -11,7 +11,9 @@ workflow GatkGenotyping {
     Array[Alignment] alignments
     Reference references
     String program
-    SplitVCF splitvcf
+    String parent1
+    String parent2
+    String chrom
     Array[String] sampleNames
   }
 
@@ -49,8 +51,8 @@ workflow GatkGenotyping {
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
-      parent1 = splitvcf.parent1,
-      parent2 = splitvcf.parent2
+      parent1 = parent1,
+      parent2 = parent2
   }
 
   scatter (alignment in alignments) {
@@ -88,7 +90,6 @@ workflow GatkGenotyping {
     File vcf_bi = SplitFiltVCF.vcf_bi
     File tbi_bi = SplitFiltVCF.vcf_bi_tbi
     File vcf_multi = SplitFiltVCF.vcf_multi
-    File tbi_multi  = SplitFiltVCF.vcf_multi_tbi
     File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
     File alt_bam = BamCounts4Onemap.alt_bam
     File ref_bam = BamCounts4Onemap.ref_bam
