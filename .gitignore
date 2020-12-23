@@ -13,19 +13,8 @@ metadata/
 data/populus/
 task/cromwell-executions/
 task/cromwell-workflow-logs/
-<<<<<<< HEAD
 .configurations/cromwell-gcp.conf
 tasks.zip
 figures_gabaritos
 *tar.gz
-inputs
-=======
-new_find_bins
-populus_chr10_vcf
-scratch
-log
-shard-0
-bam2vcf_shard-0
-tasks.zip
-figures_gabaritos
->>>>>>> master
+
