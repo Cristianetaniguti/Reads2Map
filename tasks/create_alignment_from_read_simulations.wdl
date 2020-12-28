@@ -170,6 +170,7 @@ task GenerateAlternativeGenome {
     mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
+    job_name:"create_alternative"
   }
 
   output {
@@ -179,6 +180,7 @@ task GenerateAlternativeGenome {
   }
 }
 
+# If there is no reference VCF
 task CreatePedigreeSimulatorInputs {
   input {
     File snps
@@ -351,6 +353,7 @@ task CreatePedigreeSimulatorInputs {
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
+    job_name:"pedsim_inputs"
   }
 
   output {
@@ -386,6 +389,7 @@ task RunPedigreeSimulator {
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
+    job_name:"pedigreesim"
   }
 
   output {
@@ -443,6 +447,7 @@ task ConvertPedigreeSimulationToVcf {
     mem:"--nodes=1"
     cpu:1
     time:"48:00:00"
+    job_name:"pedsim2vcf"
   }
 
   output {
@@ -469,6 +474,7 @@ task RunVcf2diploid {
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
+    job_name:"vcf2diploid"
   }
 
   output {
@@ -509,120 +515,6 @@ task GenerateSampleNames {
 
   output {
     Array[String] names = read_lines(stdout())
-  }
-}
-
-
-# Simulates RADseq experiment where certain enzyme is
-# used to fragment the sequence and then the first X
-# bases of each resulting fragment is sequenced.
-# Deprecated!!!
-task SimulateRADseq {
-  input {
-    String enzyme1
-    String enzyme2
-    String sampleName
-    File maternal_genomes
-    File paternal_genomes
-  }
-
-  command <<<
-    set -e
-    /ddRADseqTools/Package/rsitesearch.py \
-      --genfile=~{maternal_genomes} \
-      --fragsfile=~{sampleName}_maternal_fragments.fasta \
-      --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
-      --enzyme1=~{enzyme1} \
-      --enzyme2=~{enzyme2} \
-      --minfragsize=202 \
-      --maxfragsize=500 \
-      --fragstfile=~{sampleName}_maternal_statistics.txt \
-      --fragstinterval=25 \
-      --plot=NO \
-      --verbose=YES \
-      --trace=NO
-
-    /ddRADseqTools/Package/rsitesearch.py \
-      --genfile=~{paternal_genomes} \
-      --fragsfile=~{sampleName}_paternal_fragments.fasta \
-      --rsfile=/ddRADseqTools/Package/restrictionsites.txt \
-      --enzyme1=~{enzyme1} \
-      --enzyme2=~{enzyme2} \
-      --minfragsize=202 \
-      --maxfragsize=500 \
-      --fragstfile=~{sampleName}_paternal_statistics.txt \
-      --fragstinterval=25 \
-      --plot=NO \
-      --verbose=YES \
-      --trace=NO
-
-    cutadapt -l 202 \
-      -o ~{sampleName}_maternal_trim.fa \
-      ~{sampleName}_maternal_fragments.fasta
-
-    cutadapt -l 202 \
-      -o ~{sampleName}_paternal_trim.fa \
-      ~{sampleName}_paternal_fragments.fasta
-
-  >>>
-
-  runtime {
-    docker: "taniguti/pirs-ddrad-cutadapt"
-    mem:"--nodes=1"
-    cpu:1
-    time:"48:00:00"
-  }
-
-  output {
-    File maternal_frags = "${sampleName}_maternal_fragments.fasta"
-    File paternal_frags = "${sampleName}_paternal_fragments.fasta"
-    File maternal_stats = "${sampleName}_maternal_statistics.txt"
-    File paternal_stats = "${sampleName}_paternal_statistics.txt"
-    File maternal_trim = "${sampleName}_maternal_trim.fa"
-    File paternal_trim = "${sampleName}_paternal_trim.fa"
-  }
-}
-
-# Deprecated
-task SimulateIlluminaReads {
-
-  input {
-    File maternal_trim
-    File paternal_trim
-    Int depth
-    String sampleName
-    File base_calling
-    File indel_error
-    File gc_bias
-  }
-
-  command <<<
-    set -e
-    /pirs/src/pirs/pirs simulate \
-      --diploid ~{maternal_trim} ~{paternal_trim} \
-      --read-len=100 \
-      --coverage=~{depth} \
-      --insert-len-mean=150 \
-      --output-prefix=~{sampleName} \
-      --output-file-type=gzip \
-      --threads=20 \
-      --base-calling-profile=~{base_calling} \
-      --indel-error-profile=~{indel_error} \
-      --gc-bias-profile=~{gc_bias}
-
-  >>>
-
-  runtime {
-    docker: "taniguti/pirs-ddrad-cutadapt"
-    maxRetries: 5
-    mem:"--nodes=1"
-    time:"48:00:00"
-    cpu:20
-  }
-
-  output {
-    File reads1 = "${sampleName}_100_150_1.fq.gz"
-    File reads2 = "${sampleName}_100_150_2.fq.gz"
   }
 }
 
@@ -673,6 +565,7 @@ task Vcf2PedigreeSimulator{
       mem:"--nodes=1"
       cpu:1
       time:"24:00:00"
+      job_name:"vcf2pedigreesim"
   }
 
   output{
@@ -721,6 +614,7 @@ task SimuscopProfile{
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
+    job_name:"wgs_profile"
   }
 
   output{
@@ -784,6 +678,7 @@ task SimuscopSimulation{
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
+    job_name:"wgs_simu"
    }
 
   output {
@@ -881,6 +776,7 @@ task RADinitioSimulation{
     mem:"--nodes=1"
     cpu:1
     time:"24:00:00"
+    job_name:"rad_simu"
   }
 
   output{
