@@ -177,30 +177,41 @@ create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="ma
   ref.map$bp <- as.numeric(ref.map$bp)
   pos.vcf <- as.numeric(as.character(vcfR.obj@fix[,2]))
   
+  chr = vcfR.obj@fix[,1] 
+  pos = vcfR.obj@fix[,2] 
+  ref = vcfR.obj@fix[,4] 
+  alt = vcfR.obj@fix[,5] 
+  
   if(!is.null(cMbyMb)){
     position <- pos.vcf/1000000*cMbyMb
   } else {
     ref.map <- rm.inv(ref.map)
     # remove start and end of chromosome absent in the genetic map
     rm.mks <- unique(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp)))
-    pos.vcf <- pos.vcf[-rm.mks]
-    
+    if(length(rm.mks) > 0){
+      pos.vcf <- pos.vcf[-rm.mks]
+      chr = chr[-rm.mks] 
+      pos = pos[-rm.mks] 
+      ref = ref[-rm.mks] 
+      alt = alt[-rm.mks] 
+    }
     model <- smooth.spline(ref.map$bp, ref.map$cM)
     position <- predict(model, pos.vcf)$y
   }
   
-  mapfile <- data.frame(marker= paste0(unique(vcfR.obj@fix[,1]), "_", pos.vcf), 
-                        chromosome = unique(vcfR.obj@fix[,1]), 
+  mapfile <- data.frame(marker= paste0(unique(chr), "_", pos.vcf), 
+                        chromosome = unique(chr), 
                         position)
-  write.table(mapfile, file = filename, quote=FALSE, col.names = T, row.names = FALSE, sep = "\t" )
   
-  ref_alt_alleles <- data.frame(chr = vcfR.obj@fix[,1][-rm.mks], 
-                                pos = vcfR.obj@fix[,2][-rm.mks], 
-                                ref = vcfR.obj@fix[,4][-rm.mks], 
-                                alt = vcfR.obj@fix[,5][-rm.mks], 
+  write.table(mapfile, file = filename, quote=FALSE, col.names = T, row.names = FALSE, sep = "\t" )
+
+  ref_alt_alleles <- data.frame(chr, 
+                                pos, 
+                                ref, 
+                                alt, 
                                 pos.map = position,
                                 stringsAsFactors = F)
-  
+
   return(list(mapfile, ref_alt_alleles))
 }
 

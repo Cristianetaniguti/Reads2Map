@@ -242,8 +242,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   }
   
   dist.gus <- c(0,cumsum(haldane(rf_est$rf))) # haldane mapping function - 
-                                              # I checked with gusmap example 
-                                              # doing as suggested in vignette
+  # I checked with gusmap example 
+  # doing as suggested in vignette
   phases.gus[which(phases.gus == 1 | phases.gus == 4)] <- 17
   phases.gus[which(phases.gus == 2 | phases.gus == 3)] <- 18
   phases.gus[which(phases.gus == 5 | phases.gus == 8)] <- 19
@@ -308,25 +308,29 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
 # the errors report include markers with distortion and redundants
 create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom) {
   pos <- which(gab[[9]] %in% onemap_obj[[9]])
-  pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
-  gab.pos <- gab[[9]][pos]
-  gab.geno <- gab[[1]][,pos]
-  colnames(gab.geno) <- gab.pos
-  gab.geno <-reshape2::melt(gab.geno)
-  colnames(gab.geno) <- c("MK", "POS", "gabGT")
-  meth.geno <- onemap_obj[[1]][,pos.inv]
-  meth.error <- onemap_obj[[11]][pos.inv + rep(c(0:(onemap_obj[[2]]-1))*onemap_obj[[3]], each=length(pos.inv)),]
-  meth.pos <- onemap_obj[[9]][pos.inv]
-  colnames(meth.geno) <- meth.pos
-  meth.geno <- reshape2::melt(meth.geno)
-  colnames(meth.geno) <- c("MK", "POS", "methGT")
-  pos.error <- sapply(strsplit(rownames(meth.error), split = "_"), "[",2)
-  ind.error <- paste0(sapply(strsplit(rownames(meth.error), split = "_"), "[", 3), "_", sapply(strsplit(rownames(meth.error), split = "_"), "[", 4))
-  meth.error <- as.data.frame(cbind(ind.error, pos.error, meth.error))
-  colnames(meth.error) <- c("MK", "POS", "A", "AB", "BA", "B")
-  error.info <- merge(gab.geno, meth.geno)
-  error.info <- merge(error.info, meth.error)
-  out_data <- data.frame(SNPcall, Genocall, CountsFrom, error.info)
+  if(length(pos) < 1) {
+    out_data <- as.data.frame(matrix(NA, nrow=2, ncol=11))
+  } else {
+    pos.inv <- which(onemap_obj[[9]] %in% gab[[9]])
+    gab.pos <- gab[[9]][pos]
+    gab.geno <- gab[[1]][,pos]
+    colnames(gab.geno) <- gab.pos
+    gab.geno <-reshape2::melt(gab.geno)
+    colnames(gab.geno) <- c("MK", "POS", "gabGT")
+    meth.geno <- onemap_obj[[1]][,pos.inv]
+    meth.error <- onemap_obj[[11]][pos.inv + rep(c(0:(onemap_obj[[2]]-1))*onemap_obj[[3]], each=length(pos.inv)),]
+    meth.pos <- onemap_obj[[9]][pos.inv]
+    colnames(meth.geno) <- meth.pos
+    meth.geno <- reshape2::melt(meth.geno)
+    colnames(meth.geno) <- c("MK", "POS", "methGT")
+    pos.error <- sapply(strsplit(rownames(meth.error), split = "_"), "[",2)
+    ind.error <- paste0(sapply(strsplit(rownames(meth.error), split = "_"), "[", 3), "_", sapply(strsplit(rownames(meth.error), split = "_"), "[", 4))
+    meth.error <- as.data.frame(cbind(ind.error, pos.error, meth.error))
+    colnames(meth.error) <- c("MK", "POS", "A", "AB", "BA", "B")
+    error.info <- merge(gab.geno, meth.geno)
+    error.info <- merge(error.info, meth.error)
+    out_data <- data.frame(SNPcall, Genocall, CountsFrom, error.info)
+  }
   outname <- paste0("errors_", SNPcall, "_", CountsFrom, "_", Genocall)
   write_report(out_data, paste0(outname,".txt"))
 }
@@ -376,10 +380,11 @@ make_vcf <- function(vcf.old, depths, allele_file, out_vcf, cores=3){
   osize <- as.matrix(depths[[1]] + depths[[2]])
   # Remove missing data
   rm.mk <- which(apply(osize, 1, function(x) all(x==0)))
-  depths[[1]] <- depths[[1]][-rm.mk,]
-  depths[[2]] <- depths[[2]][-rm.mk,]
-  vcf.init <- vcf.init[-rm.mk,]
-  
+  if(length(rm.mk) > 0){
+    depths[[1]] <- depths[[1]][-rm.mk,]
+    depths[[2]] <- depths[[2]][-rm.mk,]
+    vcf.init <- vcf.init[-rm.mk,]
+  }
   osize <- as.matrix(depths[[1]] + depths[[2]])
   oref <- as.matrix(depths[[1]])
   

@@ -10,6 +10,7 @@ workflow SimulatedReads {
     Sequencing sequencing
     Int number_of_families
     Int global_seed
+    Int max_cores
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -41,7 +42,8 @@ workflow SimulatedReads {
       input:
         references=references,
         family=fam,
-        sequencing = sequencing
+        sequencing = sequencing,
+        max_cores = max_cores
     }
   }
 
@@ -87,6 +89,7 @@ task ProduceFamiliesSeeds {
     time:"0:50:00"
     cpu:1
     mem:"--mem-per-cpu=14042"
+    job_name: "create_seeds"
   }
 
   output {
@@ -193,6 +196,7 @@ task JointTables{
       time:"03:00:00"
       cpu:1
       mem:"--mem-per-cpu=24042"
+      job_name: "final_joint"
   }
 
   output{

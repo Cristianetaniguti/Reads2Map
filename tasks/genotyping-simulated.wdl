@@ -16,6 +16,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String CountsFrom
     String cross
     File? multi_obj
+    Int max_cores
   }
 
   call OnemapProbsSimulated {
@@ -23,7 +24,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
       method=genotyping_program,
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
-      cross = cross
+      cross = cross,
+      max_cores = max_cores
   }
 
   call utilsR.GlobalError{
@@ -93,6 +95,7 @@ task OnemapProbsSimulated {
     File onemap_obj
     String method
     String cross
+    Int max_cores
   }
 
   command <<<
@@ -125,7 +128,7 @@ task OnemapProbsSimulated {
                                             f1 = f1,
                                             recovering=TRUE,
                                             mean_phred=20,
-                                            cores=20,
+                                            cores=~{max_cores},
                                             depths=NULL,
                                             global_error = NULL,
                                             use_genotypes_errors = FALSE,
@@ -139,7 +142,7 @@ task OnemapProbsSimulated {
                                             f1 = f1,
                                             recovering=TRUE,
                                             mean_phred=20,
-                                            cores=20,
+                                            cores=~{max_cores},
                                             depths=NULL,
                                             global_error = NULL,
                                             use_genotypes_errors = FALSE,
@@ -168,6 +171,7 @@ task OnemapProbsSimulated {
     time:"96:00:00"
     mem:"--nodes=1"
     cpu:20
+    job_name:"poly_genotyping"
   }
 
   output {

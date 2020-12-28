@@ -9,6 +9,7 @@ workflow CreateAlignmentFromSimulation {
         Reference references
         Family family
         Sequencing sequencing
+        Int max_cores
     }
 
   # User can provide specific variants in VCF file
@@ -111,6 +112,7 @@ workflow CreateAlignmentFromSimulation {
       call RADinitioSimulation{
         input:
           depth          = sequencing.depth,
+          depth_parents  = sequencing.depth_parents,
           enzyme1        = sequencing.enzyme1,
           enzyme2        = sequencing.enzyme2,
           simu_vcf       = ConvertPedigreeSimulationToVcf.simu_vcf,
@@ -132,7 +134,8 @@ workflow CreateAlignmentFromSimulation {
     call alg.RunBwaAlignmentSimu {
       input:
         read1     = file,
-        references = references
+        references = references,
+        max_cores = max_cores
     }
   }
 
@@ -796,6 +799,7 @@ task RADinitioSimulation{
     String? enzyme2
     Reference references
     Int depth
+    Int depth_parents
     Int? insert_size
     Int? insert_size_dev
     Int? pcr_cycles
@@ -808,27 +812,39 @@ task RADinitioSimulation{
   command <<<
     cat ~{references.ref_fasta_index} | cut -f 1 | head -n 10 | tail -n 1 > ./chrom.list
 
-    # Makes for individual sample for parallelization
     echo -e ~{sep=" " names} > temp
     tr -s ' ' '\n' < temp > temp2
     sed 's/$/\tpop0/' temp2 > popmap.tsv
 
-    mkdir msprime_vcfs ref_loci_vars
+    mkdir simu_inputs_progeny simu_inputs_parents \
+          results_progeny results_parents
 
+    mkdir simu_inputs_progeny/msprime_vcfs simu_inputs_progeny/ref_loci_vars \
+          simu_inputs_parents/msprime_vcfs simu_inputs_parents/ref_loci_vars
 
-    gzip ~{simu_vcf} 
-    cp ~{simu_vcf}.gz msprime_vcfs/~{chrom}.vcf.gz
-    mv ~{simu_vcf}.gz ref_loci_vars/ri_master.vcf.gz
-    
+    # Separate progeny from parents because of the different depths
+    head -n 2 popmap.tsv > simu_inputs_parents/popmap.tsv
+    lines=$(wc -l popmap.tsv | cut -f1 -d' ')
+    tail -n $((lines -2)) popmap.tsv > simu_inputs_progeny/popmap.tsv
 
-    mkdir simu_inputs results
-    mv msprime_vcfs ref_loci_vars popmap.tsv simu_inputs
+    vcftools --vcf ~{simu_vcf} --indv P1 --indv P2 --recode --out parents
 
+    vcftools --vcf ~{simu_vcf} --remove-indv P1 --remove-indv P2 --recode --out progeny
+
+    gzip parents.recode.vcf
+    cp parents.recode.vcf.gz simu_inputs_parents/msprime_vcfs/~{chrom}.vcf.gz
+    mv parents.recode.vcf.gz simu_inputs_parents/ref_loci_vars/ri_master.vcf.gz
+
+    gzip progeny.recode.vcf
+    cp progeny.recode.vcf.gz simu_inputs_progeny/msprime_vcfs/~{chrom}.vcf.gz
+    mv progeny.recode.vcf.gz simu_inputs_progeny/ref_loci_vars/ri_master.vcf.gz
+
+    # progeny
     radinitio --make-library-seq \
               --genome ~{references.ref_fasta} \
               --chromosomes chrom.list \
-              --out-dir results/ \
-              --make-pop-sim-dir simu_inputs/ \
+              --out-dir results_progeny/ \
+              --make-pop-sim-dir simu_inputs_progeny/ \
               --library-type ~{library_type} \
               --enz ~{enzyme1} \
               ~{"--enz2 " + enzyme2} \
@@ -838,8 +854,25 @@ task RADinitioSimulation{
               --coverage ~{default="20" depth} \
               --read-length ~{default="150" read_length}
     
+    # parents
+    radinitio --make-library-seq \
+          --genome ~{references.ref_fasta} \
+          --chromosomes chrom.list \
+          --out-dir results_parents/ \
+          --make-pop-sim-dir simu_inputs_parents/ \
+          --library-type ~{library_type} \
+          --enz ~{enzyme1} \
+          ~{"--enz2 " + enzyme2} \
+          --insert-mean ~{default="350" insert_size} \
+          --insert-stdev ~{default="35" insert_size_dev} \
+          --pcr-cycles ~{default="9" pcr_cycles} \
+          --coverage ~{default="20" depth_parents} \
+          --read-length ~{default="150" read_length}
+
     # Add fake phred score of 40 (H in Illumina 1.8+ Phred+33)
-    for i in results/rad_reads/*.1.fa.gz; do seqtk seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
+    # Only in forward read
+    for i in results_progeny/rad_reads/*.1.fa.gz; do seqtk seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
+    for i in results_parents/rad_reads/*.1.fa.gz; do seqtk seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
 
   >>>
 

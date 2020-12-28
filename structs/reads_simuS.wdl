@@ -12,6 +12,7 @@ struct Family {
 struct Sequencing{
   String library_type
   Int depth
+  Int depth_parents
   Int? insert_size
   Int? insert_size_dev
   Int? pcr_cycles

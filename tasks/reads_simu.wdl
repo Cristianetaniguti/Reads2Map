@@ -27,13 +27,15 @@ workflow reads_simu {
     Family family
     Sequencing sequencing
     String? filters
+    Int max_cores
   }
 
   call simulation.CreateAlignmentFromSimulation {
     input:
       sequencing = sequencing,
       references=references,
-      family=family
+      family=family,  
+      max_cores = max_cores
   }
 
   call gatk.GatkGenotyping {
@@ -158,7 +160,8 @@ workflow reads_simu {
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
-            multi_obj = MultiVcf2onemap.onemap_obj
+            multi_obj = MultiVcf2onemap.onemap_obj,
+            max_cores = max_cores
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -172,7 +175,8 @@ workflow reads_simu {
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
-            multi_obj = MultiVcf2onemap.onemap_obj
+            multi_obj = MultiVcf2onemap.onemap_obj,
+            max_cores = max_cores
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -186,7 +190,8 @@ workflow reads_simu {
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
-            multi_obj = MultiVcf2onemap.onemap_obj
+            multi_obj = MultiVcf2onemap.onemap_obj,
+            max_cores = max_cores
         }
       }
 
@@ -478,6 +483,7 @@ task JointReports{
     time:"48:00:00"
     mem:"--nodes=1"
     cpu:1
+    job_name:"family_joint"
   }
 
   output {

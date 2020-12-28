@@ -13,6 +13,7 @@ task RunBwaAlignment {
     Array[File] reads1
     Array[String] libraries
     Reference references
+    Int max_cores
   }
 
   command <<<
@@ -26,7 +27,7 @@ task RunBwaAlignment {
     for index in ${!reads_list[*]}; do
       echo "${reads_list[$index]} is in ${lib_list[$index]}"
       bwa_header="@RG\tID:~{sampleName}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      bwa mem -t 20 -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
+      bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
           java -jar /picard.jar SortSam \
             I=/dev/stdin \
             O="~{sampleName}.${lib_list[$index]}.sorted.bam" \
@@ -55,6 +56,7 @@ task RunBwaAlignment {
     time:"72:00:00"
     mem:"--nodes=1"
     cpu:20
+    job_name:"alignment_loop"
   }
 
   output {
@@ -71,6 +73,7 @@ task RunBwaAlignmentSimu {
   input {
     File read1
     Reference references
+    Int max_cores
   }
 
   command <<<
@@ -85,7 +88,7 @@ task RunBwaAlignmentSimu {
     echo $sample
 
     bwa_header="@RG\tID:$sample.1\tLB:lib-1\tPL:illumina\tSM:$sample\tPU:FLOWCELL1.LANE1.1"
-    bwa mem -t 20 -R "${bwa_header}" ~{references.ref_fasta} ~{read1} | \
+    bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} ~{read1} | \
         java -jar /picard.jar SortSam \
           I=/dev/stdin \
           O="file.sorted.bam" \
@@ -102,6 +105,7 @@ task RunBwaAlignmentSimu {
     time:"72:00:00"
     mem:"--nodes=1"
     cpu:20
+    job_name:"alignment"
   }
 
   output {
