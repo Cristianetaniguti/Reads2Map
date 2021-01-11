@@ -91,7 +91,7 @@ create_haplo <- function(vcfR.obj, ref.map, seed, P1, P2, filename = "founders.t
                    sum(mk.type.nonna == "D2.15")/length(mk.type.nonna)*100), 0)
   doses <- doses[-1]
   doses <- c(100-sum(doses), doses)
-
+  
   type.quant <- list()
   for(i in 1:(length(doses)-1)){
     type.quant[[i]] <- round((doses[i]/100)*length(mk.names),0)
@@ -147,22 +147,40 @@ create_haplo <- function(vcfR.obj, ref.map, seed, P1, P2, filename = "founders.t
   return(founderfiles)
 }
 
-#' Remove inverted SNPs
-#' Sometimes the input linkage map has invertions compared with the physical position, 
+#' Remove inverted SNPs 
+#' Sometimes the input linkage map has inversions compared with the physical position, 
 #' Here these markers are eliminated
-rm.inv <- function(ref.map){
+#' @param ref.map data.frame with colunms bp and cM
+#' @param thr measure in centimorgan defining the maximum difference accepted for inversions 
+#' 
+remove_outlier <- function(ref.map, thr=30){
   if(length(which(is.na(ref.map$bp))) > 0)
     ref.map <- ref.map[-which(is.na(ref.map$bp)),]
   
   ref.map$bp <- as.numeric(ref.map$bp)
   
   count <- vector()
-  while(length(which(c(ref.map$bp[-1], 10^9) - ref.map$bp < 0)) > 0){
-    ref.map <- ref.map[-which(c(ref.map$bp[-1], 10^9) - ref.map$bp < 0),]
-    count <- c(count , which(c(ref.map$bp[-1], 10^9) - ref.map$bp < 0))
+  ref.map <- ref.map[order(ref.map$bp),]
+  ref.map <- cbind(1:length(ref.map$cM), ref.map)
+  while(length(which(diff(ref.map$cM) < -thr)) > 0){
+    idx <- which(diff(ref.map$cM) < -thr)
+    if(any(idx == 1)) {
+      idx <- idx[-which(idx == 1)]
+      idx.t <- 1 
+    } else { 
+      idx.t <- vector()
+    }
+    test <- ref.map$cM[idx + 1] - ref.map$cM[idx -1]  < -10
+    idx.b <- idx[which(test)] + 1
+    idx.f <- idx[which(!test)]
+    idx.t <- sort(c(idx.t, idx.f, idx.b))
+    
+    ref.map <- ref.map[-idx.t,]
+    count <- c(count , idx.t)
   }
-  cat("Markers filtered:", length(count), "\n")
   
+  cat("Markers filtered:", length(count), "\n")
+  ref.map <- ref.map[,-1]
   return(ref.map)
 }
 
@@ -171,7 +189,7 @@ rm.inv <- function(ref.map){
 #' @param  vcfR.obj object of class vcfR
 #' @param ref.map data.frame with two columns nameed cM and bp with numerical values
 #' @param cMbyMb numeric value for the cM by Mb rate
-create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="mapfile.txt"){
+create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="mapfile.txt", rm_outlier=T, thr=0){
   
   ref.map$cM <- as.numeric(ref.map$cM)
   ref.map$bp <- as.numeric(ref.map$bp)
@@ -185,9 +203,13 @@ create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="ma
   if(!is.null(cMbyMb)){
     position <- pos.vcf/1000000*cMbyMb
   } else {
-    ref.map <- rm.inv(ref.map)
+    
+    # remove inverted
+    if(rm_outlier)
+      ref.map <- remove_outlier(ref.map, thr)
+    
     # remove start and end of chromosome absent in the genetic map
-    rm.mks <- unique(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp)))
+    rm.mks <- unique(c(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp))))
     if(length(rm.mks) > 0){
       pos.vcf <- pos.vcf[-rm.mks]
       chr = chr[-rm.mks] 
@@ -195,8 +217,16 @@ create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="ma
       ref = ref[-rm.mks] 
       alt = alt[-rm.mks] 
     }
+    
+    # model <- splinefun(ref.map$bp, ref.map$cM, method = "hyman")
+    # position <- model(pos.vcf)
+    
+    # Returns negative values for the gaps
     model <- smooth.spline(ref.map$bp, ref.map$cM)
     position <- predict(model, pos.vcf)$y
+    # 
+    # model <- gam(ref.map$cM ~ s(ref.map$bp, bs="ps"))
+    # position <- predict(model, pos.vcf)
   }
   
   mapfile <- data.frame(marker= paste0(unique(chr), "_", pos.vcf), 
@@ -204,14 +234,14 @@ create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="ma
                         position)
   
   write.table(mapfile, file = filename, quote=FALSE, col.names = T, row.names = FALSE, sep = "\t" )
-
+  
   ref_alt_alleles <- data.frame(chr, 
                                 pos, 
                                 ref, 
                                 alt, 
                                 pos.map = position,
                                 stringsAsFactors = F)
-
+  
   return(list(mapfile, ref_alt_alleles))
 }
 
