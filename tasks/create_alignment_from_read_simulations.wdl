@@ -540,6 +540,8 @@ task Vcf2PedigreeSimulator{
     vcf <- read.vcfR("~{vcf_file}")
     ref_map <- read.csv("~{ref_map}")
 
+    ref_map <- remove_outlier(ref_map, thr=0) # Remove inverted markers
+
     # PedigreeSim inputs
     founderfile <- create_haplo(vcfR.obj = vcf, ref.map = ref_map, seed = ~{seed}, 
                                 P1 = "~{vcf_parent1}", P2= "~{vcf_parent2}")
@@ -547,7 +549,7 @@ task Vcf2PedigreeSimulator{
     ## This function generates the mapfile and the ref_alt_alleles file
     mapfile <- create_mapfile(vcf, ref_map)
     create_parfile(~{seed}, ~{popsize})
-    create_chromfile(mapfile[[1]])
+    create_chromfile(mapfile[[1]])  
 
     ref_alt_alleles <- mapfile[[2]]
 

@@ -14,6 +14,7 @@ workflow EmpiricalReads {
         Dataset dataset
         SplitVCF splitvcf
         String? filters
+        Int max_cores
     }
 
     # TODO: Conferir splitvcf
@@ -21,7 +22,8 @@ workflow EmpiricalReads {
         input:
             samples_info = samples_info,
             references = references,
-            splitvcf = splitvcf
+            splitvcf = splitvcf,
+            max_cores = max_cores
     }
 
     call maps.Maps {

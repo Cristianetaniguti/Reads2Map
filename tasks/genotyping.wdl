@@ -17,6 +17,7 @@ workflow SnpBasedGenotypingMaps {
     String chromosome
     File? multi_obj
     File multiallelics
+    Int max_cores
   }
 
   call OnemapProbs {
@@ -26,7 +27,8 @@ workflow SnpBasedGenotypingMaps {
       onemap_obj = onemap_obj,
       cross = cross,
       parent1 = parent1,
-      parent2 = parent2
+      parent2 = parent2,
+      max_cores = max_cores
   }
 
   call utilsR.GlobalError{
@@ -97,6 +99,7 @@ task OnemapProbs{
     String cross
     String parent1
     String parent2
+    Int max_cores
   }
 
   command <<<
@@ -131,7 +134,7 @@ task OnemapProbs{
                                             f1 = f1,
                                             recovering=TRUE,
                                             mean_phred=20,
-                                            cores=3,
+                                            cores=~{max_cores},
                                             depths=NULL,
                                             global_error = NULL,
                                             use_genotypes_errors = FALSE,
@@ -145,7 +148,7 @@ task OnemapProbs{
                                             f1 = f1,
                                             recovering=TRUE,
                                             mean_phred=20,
-                                            cores=3,
+                                            cores=~{max_cores},
                                             depths=NULL,
                                             global_error = NULL,
                                             use_genotypes_errors = FALSE,

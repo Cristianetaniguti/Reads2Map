@@ -14,12 +14,14 @@ workflow SNPCalling {
     Samples_info samples_info
     Reference references
     SplitVCF splitvcf
+    Int max_cores
   }
 
   call fam.CreateAlignmentFromFamilies {
     input:
       families_info=samples_info.samples_info,
-      references=references
+      references=references,
+      max_cores = max_cores
   }
 
   call gatk.GatkGenotyping {
@@ -43,7 +45,8 @@ workflow SNPCalling {
       parent1 = splitvcf.parent1,
       parent2 = splitvcf.parent2,
       chrom = splitvcf.chromosome,
-      sampleNames = CreateAlignmentFromFamilies.names
+      sampleNames = CreateAlignmentFromFamilies.names,
+      max_cores = max_cores
   }
 
   output {

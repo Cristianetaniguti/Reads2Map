@@ -21,6 +21,7 @@ workflow CreateAlignmentFromFamilies {
     input {
         File families_info
         Reference references
+        Int max_cores
     }
 
     call SepareIndividuals {
@@ -34,7 +35,8 @@ workflow CreateAlignmentFromFamilies {
                 sampleName  = sample.name,
                 reads1      = sample.reads,
                 libraries   = sample.libraries,
-                references  = references
+                references  = references,
+                max_cores   = max_cores
         }
     }
 

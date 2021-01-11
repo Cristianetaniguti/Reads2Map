@@ -28,6 +28,7 @@ workflow Maps {
         String? filters
         File? gatk_multi
         File? freebayes_multi
+        Int max_cores
     }
 
     if (defined(filters)) {
@@ -115,7 +116,8 @@ workflow Maps {
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
                     multi_obj = MultiVcf2onemap.onemap_obj,
-                    multiallelics = dataset.multiallelics
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores
             }
 
             call genotyping.SnpBasedGenotypingMaps as SupermassaMaps {
@@ -130,7 +132,8 @@ workflow Maps {
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
                     multi_obj = MultiVcf2onemap.onemap_obj,
-                    multiallelics = dataset.multiallelics
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores
             }
 
             call genotyping.SnpBasedGenotypingMaps as PolyradMaps {
@@ -145,7 +148,8 @@ workflow Maps {
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
                     multi_obj = MultiVcf2onemap.onemap_obj,
-                    multiallelics = dataset.multiallelics
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores
             }
         }
 

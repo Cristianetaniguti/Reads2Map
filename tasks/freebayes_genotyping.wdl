@@ -20,6 +20,7 @@ workflow FreebayesGenotyping {
     String chrom
     String program
     Array[String] sampleNames
+    Int max_cores
   }
 
   call RunFreebayes {
@@ -27,7 +28,8 @@ workflow FreebayesGenotyping {
       reference=references.ref_fasta,
       reference_idx=references.ref_fasta_index,
       bam=bam,
-      bai=bai
+      bai=bai,
+      max_cores = max_cores
   }
 
   call norm_filt.SplitFiltVCF {
@@ -88,10 +90,11 @@ task RunFreebayes {
     File reference_idx
     Array[File] bam
     Array[File] bai
+    Int max_cores
   }
 
   command <<<
-   freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) 20 \
+   freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
 
   >>>

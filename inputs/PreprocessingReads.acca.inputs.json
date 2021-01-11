@@ -1,0 +1,10 @@
+{
+  "PreprocessingReads.spec": {
+    "barcodes": "File? (optional)",
+    "adapter": "String",
+    "raw_dict": "File",
+    "enzyme": "String",
+    "enzyme2": "String? (optional)"
+  }
+}
+

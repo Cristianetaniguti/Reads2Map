@@ -1,0 +1,19 @@
+{
+  "Maps.freebayes_multi": "/data/eucalyptus/freebayes_norm_multi.recode.vcf.gz",
+  "Maps.freebayes_vcf": "/data/eucalyptus/freebayes_norm_bi.recode.vcf.gz",
+  "Maps.dataset": {
+    "parent2": "Euc_202",
+    "name": "eucalyptus",
+    "parent1": "Euc_201",
+    "chromosome": "Chr07",
+    "cross": "F1",
+    "multiallelics": "yes"
+  },
+  "Maps.gatk_vcf_bam_counts": "/data/eucalyptus/gatk_bam_vcf.vcf.gz",
+  "Maps.max_cores": "20",
+  "Maps.gatk_multi": "gatk_norm_multi.recode.vcf.gz",
+  "Maps.filters": "--chr Chr07 --maf 0.05",
+  "Maps.gatk_vcf": "/data/eucalyptus/gatk_norm_bi.recode.vcf.gz",
+  "Maps.freebayes_vcf_bam_counts": "/data/eucalyptus/freebayes_bam_vcf.vcf.gz"
+}
+

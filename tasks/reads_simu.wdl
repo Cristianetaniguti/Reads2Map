@@ -59,7 +59,8 @@ workflow reads_simu {
       parent1 = "P1",
       parent2 = "P2",
       chrom = sequencing.chromosome,
-      sampleNames = CreateAlignmentFromSimulation.names
+      sampleNames = CreateAlignmentFromSimulation.names,
+      max_cores = max_cores
   }
 
   call utils.CalculateVcfMetrics {

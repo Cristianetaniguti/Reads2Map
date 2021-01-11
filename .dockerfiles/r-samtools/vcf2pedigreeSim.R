@@ -35,7 +35,7 @@ create_haplo <- function(vcfR.obj, ref.map, seed, P1, P2, filename = "founders.t
   }
   
   # keep only biallelic
-  rm_multi <- which(apply(GT_matrix, 1, function(x) any(grepl("2", x))))
+  rm_multi <- grep(",",vcfR.obj@fix[,5])
   
   # remove markers out of ref.map interval
   pos.vcf <- as.numeric(as.character(vcfR.obj@fix[,2]))
@@ -43,7 +43,7 @@ create_haplo <- function(vcfR.obj, ref.map, seed, P1, P2, filename = "founders.t
   alt.alleles <- vcf@fix[,5]
   mk.names <- unique(paste0(vcf@fix[,1], "_", vcf@fix[,2]))
   
-  rm.mks <- unique(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp)))
+  rm.mks <- unique(c(which(pos.vcf < min(ref.map$bp)), which(pos.vcf > max(ref.map$bp))))
   
   rm.mks <- unique(c(rm_multi, rm.mks))
   if(length(rm.mks) > 0){
@@ -153,7 +153,7 @@ create_haplo <- function(vcfR.obj, ref.map, seed, P1, P2, filename = "founders.t
 #' @param ref.map data.frame with colunms bp and cM
 #' @param thr measure in centimorgan defining the maximum difference accepted for inversions 
 #' 
-remove_outlier <- function(ref.map, thr=30){
+remove_outlier <- function(ref.map, thr=15){
   if(length(which(is.na(ref.map$bp))) > 0)
     ref.map <- ref.map[-which(is.na(ref.map$bp)),]
   
@@ -189,22 +189,33 @@ remove_outlier <- function(ref.map, thr=30){
 #' @param  vcfR.obj object of class vcfR
 #' @param ref.map data.frame with two columns nameed cM and bp with numerical values
 #' @param cMbyMb numeric value for the cM by Mb rate
-create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="mapfile.txt", rm_outlier=T, thr=0){
+create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="mapfile.txt", rm_outlier=T, thr=15){
   
   ref.map$cM <- as.numeric(ref.map$cM)
   ref.map$bp <- as.numeric(ref.map$bp)
   pos.vcf <- as.numeric(as.character(vcfR.obj@fix[,2]))
   
-  chr = vcfR.obj@fix[,1] 
-  pos = vcfR.obj@fix[,2] 
-  ref = vcfR.obj@fix[,4] 
-  alt = vcfR.obj@fix[,5] 
+  # remove mnps
+  mnps <- grep(",",vcfR.obj@fix[,5])
+  
+  if(length(mnps) > 0){
+    pos.vcf <- pos.vcf[-mnps]
+    chr = vcfR.obj@fix[-mnps,1] 
+    pos = vcfR.obj@fix[-mnps,2] 
+    ref = vcfR.obj@fix[-mnps,4] 
+    alt = vcfR.obj@fix[-mnps,5] 
+  } else {
+    chr = vcfR.obj@fix[,1] 
+    pos = vcfR.obj@fix[,2] 
+    ref = vcfR.obj@fix[,4] 
+    alt = vcfR.obj@fix[,5] 
+  }
   
   if(!is.null(cMbyMb)){
     position <- pos.vcf/1000000*cMbyMb
   } else {
     
-    # remove inverted
+    # remove outlier
     if(rm_outlier)
       ref.map <- remove_outlier(ref.map, thr)
     
@@ -218,15 +229,12 @@ create_mapfile <- function(vcfR.obj, ref.map = NULL, cMbyMb = NULL, filename="ma
       alt = alt[-rm.mks] 
     }
     
-    # model <- splinefun(ref.map$bp, ref.map$cM, method = "hyman")
-    # position <- model(pos.vcf)
+    model <- splinefun(ref.map$bp, ref.map$cM, method = "hyman")
+    position <- model(pos.vcf)
     
     # Returns negative values for the gaps
-    model <- smooth.spline(ref.map$bp, ref.map$cM)
-    position <- predict(model, pos.vcf)$y
-    # 
-    # model <- gam(ref.map$cM ~ s(ref.map$bp, bs="ps"))
-    # position <- predict(model, pos.vcf)
+    # model <- smooth.spline(ref.map$bp, ref.map$cM)
+    # position <- predict(model, pos.vcf)$y
   }
   
   mapfile <- data.frame(marker= paste0(unique(chr), "_", pos.vcf), 
@@ -269,7 +277,8 @@ create_parfile <- function(seed, popsize, filename = "parameters.txt"){
 #' @param mapfile output object from create_mapfile
 create_chromfile <- function(mapfile, filename = "chromosome.txt"){
   max.pos <- max(mapfile$position)
-  chrom <- data.frame("chromosome"= "Chr10", "length"= max.pos, "centromere"=max.pos/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
+  chrom.name <- unique(mapfile$chromosome)
+  chrom <- data.frame("chromosome"= chrom.name, "length"= max.pos, "centromere"=max.pos/2, "prefPairing"= 0.0, "quadrivalents"=0.0)
   write.table(chrom, file= filename, quote = F, col.names = T, row.names = F, sep= "\t")
   return(chrom)
 }
