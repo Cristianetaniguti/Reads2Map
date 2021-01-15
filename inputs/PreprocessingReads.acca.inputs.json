@@ -1,10 +1,8 @@
 {
   "PreprocessingReads.spec": {
-    "barcodes": "File? (optional)",
-    "adapter": "String",
-    "raw_dict": "File",
-    "enzyme": "String",
-    "enzyme2": "String? (optional)"
-  }
+    "barcodes": "/data1/aafgarci/cris/empirical/barcode_1.txt",
+    "adapter": "AGATCGGAAGAG",
+    "raw_dict": "/data1/aafgarci/cris/empirical/acca/C7U0PANXX_1/",
+    "enzyme": "PstI"
+   }
 }
-

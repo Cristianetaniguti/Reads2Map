@@ -94,6 +94,11 @@ task RunFreebayes {
   }
 
   command <<<
+   # needed for some singularity versions
+   export PATH="/freebayes/vcflib/bin:${PATH}"
+   export PATH="/freebayes/scripts:${PATH}"
+   export PATH="/freebayes/vcflib/scripts:${PATH}"
+
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
    --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
 
