@@ -7,7 +7,8 @@
 #SBATCH -o /data1/aafgarci/cris/main.log
 #SBATCH -e /data1/aafgarci/cris/main.err
 
-java -jar -Dconfig.file=/data1/aafgarci/cris/simulations/onemap_workflows/.configurations/cromwell_sing.conf \
-     -jar /data1/aafgarci/cris/cromwell-55.jar \
-     run /data1/aafgarci/cris/simulations/onemap_workflows/SimulatedReads.wdl \
-     -i /data1/aafgarci/cris/simulations/onemap_workflows/inputs/SimulatedReads.depth20.popsize200.multi.inputs 
+java -jar -Dconfig.file=/home/cristiane/github/onemap_workflows/.configurations/cromwell_cache.conf \
+     -jar /home/cristiane/cromwell-55.jar \
+     run /home/cristiane/github/onemap_workflows/SimulatedReads.wdl \
+     -i /home/cristiane/github/onemap_workflows/inputs/SimulatedReads.inputs.toy_sample.json \
+     -o /home/cristiane/github/onemap_workflows/.configurations/options.json
