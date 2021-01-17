@@ -1,0 +1,138 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+>   library(onemap)
+>   library(GUSMap)
+>   source("/opt/scripts/functions_simu.R")
+> 
+>   simu_onemap_obj <- load("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/inputs/516657223/simu_vcf_onemap.obj.RData")
+>   simu_onemap_obj <- get(simu_onemap_obj)
+> 
+>   if(tail(strsplit("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/inputs/1957315063/freebayes_bam_vcf.vcf", "[.]")[[1]],1) =="gz") {
++       vcf.temp <- paste0("freebayes",".vcf")
++       system(paste0("zcat ", "/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/inputs/1957315063/freebayes_bam_vcf.vcf", " > ", vcf.temp))
++       vcf_file <- vcf.temp
++    } else {
++       vcf_file <- "/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/inputs/1957315063/freebayes_bam_vcf.vcf"
++    }
+> 
+>   ref_alt_alleles <- read.table("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/inputs/1560185715/ref_alt_alleles.txt")
+>   simulated_phases <- read.table("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/inputs/1560185715/simulated_phases.txt")
+> 
+>   times <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"freebayes",
++                                                  "gusmap", TRUE, "bam", ref_alt_alleles,simulated_phases))
+Processing VCF file: Converting to RA format.
+
+Found 22 samples
+1390 SNPs written
+
+Name of RA file:     		 freebayes_bam_vcf.vcf.ra.tab 
+Location of RA file: 		/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/execution/
+
+A pedigree file has been initialized.
+Name of pedigree file:      freebayes_bam_vcf_ped.csv 
+Location of pedigree file: /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/execution/
+
+-------------
+Processing Data.
+
+Filtering criteria for removing SNPs:
+Minor allele frequency (MAF) < 0.05
+Percentage of missing genotypes > 50%
+Distance for binning SNPs <= 1 bp
+Read depth associated with at least one parental genotype <= 0
+P-value for segregation test < 0.05
+Average SNP depth is > 1000
+
+Processing Family F1.
+
+-------------
+Summary:
+
+Number of SNPs remaining after filtering: 87 
+Number of SNPs with correct segregation type: 36 
+Both-informative (BI): 7 
+Maternal-informative (MI): 18 
+Paternal-informative (PI): 11 
+Number of SNPs with inferred segregation type: 51 
+Both-informative (BI): 0 
+Maternal/Paternal-informative (MI or PI): 51 
+Number of progeny: 20 
+> 
+>   outname <- paste0("map_", "freebayes", "_", "bam", "_", "gusmap", "_", TRUE)
+>   times <- data.frame(meth = outname, time = times[3])
+> 
+>   times_temp <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"freebayes",
++                                                  "gusmap", FALSE, "bam", ref_alt_alleles,simulated_phases))
+Processing VCF file: Converting to RA format.
+
+Found 22 samples
+1390 SNPs written
+
+Name of RA file:     		 freebayes_bam_vcf.vcf.ra.tab 
+Location of RA file: 		/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GusmapMaps/shard-1/GusmapMaps/4d5462c1-be1f-405c-a143-959abc0755bf/call-GusmapReport/shard-1/execution/
+
+-------------
+Processing Data.
+
+Filtering criteria for removing SNPs:
+Minor allele frequency (MAF) < 0.05
+Percentage of missing genotypes > 50%
+Distance for binning SNPs <= 1 bp
+Read depth associated with at least one parental genotype <= 0
+P-value for segregation test < 0.05
+Average SNP depth is > 1000
+
+Processing Family F1.
+
+-------------
+Summary:
+
+Number of SNPs remaining after filtering: 87 
+Number of SNPs with correct segregation type: 36 
+Both-informative (BI): 7 
+Maternal-informative (MI): 18 
+Paternal-informative (PI): 11 
+Number of SNPs with inferred segregation type: 51 
+Both-informative (BI): 0 
+Maternal/Paternal-informative (MI or PI): 51 
+Number of progeny: 20 
+> 
+>   outname <- paste0("map_", "freebayes", "_", "bam", "_", "gusmap", "_", FALSE)
+>   times_temp <- data.frame(meth = outname, time = times_temp[3])
+> 
+> # Joint maps data.frames
+>   map_temp <- read.table("map_freebayes_bam_gusmap_TRUE.txt")
+>   map_joint <- map_temp
+>   map_temp <- read.table("map_freebayes_bam_gusmap_FALSE.txt")
+>   map_joint <- rbind(map_joint, map_temp)
+>   write.table(map_joint, file = "map_freebayes_bam_gusmap.txt", col.names = F)
+> 
+>   # Joint RDatas
+>   RDatas_joint <- list()
+>   map_temp <- load("map_freebayes_bam_gusmap_TRUE.RData")
+>   RDatas_joint[[1]] <- get(map_temp)
+>   map_temp <- load("map_freebayes_bam_gusmap_FALSE.RData")
+>   RDatas_joint[[2]] <- get(map_temp)
+>   names(RDatas_joint) <- c("map_freebayes_bam_gusmap_TRUE", "map_freebayes_bam_gusmap_FALSE")
+>   save(RDatas_joint, file= "map_freebayes_bam_gusmap.RData")
+> 
+>   # Joint times data.frames
+>   times <- rbind(times, times_temp)
+>   write.table(times, "times_freebayes_bam_gusmap.txt", col.names = F)
+> 
+> 

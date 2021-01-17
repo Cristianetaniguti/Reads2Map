@@ -1,0 +1,40 @@
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:0..100000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:100000..200000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:200000..300000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:300000..400000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:400000..500000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:500000..600000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:600000..700000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:700000..800000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:800000..900000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:900000..1000000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1000000..1100000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1100000..1200000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1200000..1300000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1300000..1400000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1400000..1500000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1500000..1600000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1600000..1700000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1700000..1800000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1800000..1900000
+Failed to load index for /cromwell-executions/SimulatedReads/8f6a27fd-dda9-4711-8351-39620dbd6a2a/call-ReadSimulations/shard-0/reads_simu/96ad9925-2e87-47f4-9dae-b99affb2767f/call-FreebayesGenotyping/FreebayesGenotyping/0f3fda94-b3a2-4a40-9c5d-6f79bbc29734/call-RunFreebayes/inputs/483976705/P2.sorted.bam. Rebuild samtools index
+ERROR(freebayes): Could not SetRegion to Chr10:1900000..1999993

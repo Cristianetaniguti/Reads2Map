@@ -1,0 +1,73 @@
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--gzvcf /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-FreebayesGenotyping/FreebayesGenotyping/d2c37383-eaa3-496c-a504-7c877cac19dc/call-SplitFiltVCF/SplitFiltVCF/b062822f-7eb8-4f23-944c-d5c7b662ad6f/call-SplitFilters/inputs/517298822/vcf_norm.vcf
+	--min-alleles 3
+	--out freebayes_multi1
+	--recode
+
+Using zlib version: 1.2.11
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 0 out of a possible 0 Sites
+File does not contain any sites
+Run Time = 0.00 seconds
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--gzvcf /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-FreebayesGenotyping/FreebayesGenotyping/d2c37383-eaa3-496c-a504-7c877cac19dc/call-SplitFiltVCF/SplitFiltVCF/b062822f-7eb8-4f23-944c-d5c7b662ad6f/call-SplitFilters/inputs/517298822/vcf_norm.vcf
+	--max-alleles 2
+	--min-alleles 2
+	--out freebayes_bi1
+	--recode
+
+Using zlib version: 1.2.11
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 0 out of a possible 0 Sites
+File does not contain any sites
+Run Time = 0.00 seconds
+
+   *****       ***   vcfR   ***       *****
+   This is vcfR 1.11.0 
+     browseVignettes('vcfR') # Documentation
+     citation('vcfR') # Citation
+   *****       *****      *****       *****
+
+Error in vcf@gt[1, 1] : subscript out of bounds
+Calls: split_mult -> which -> strsplit
+Execution halted
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf freebayes_bi1.recode.vcf
+	--out freebayes_multi2
+	--positions position_multi2.txt
+	--recode
+
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 0 out of a possible 0 Sites
+File does not contain any sites
+Run Time = 0.00 seconds
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf freebayes_bi1.recode.vcf
+	--exclude-positions position_multi2.txt
+	--out freebayes_bi
+	--recode
+
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 0 out of a possible 0 Sites
+File does not contain any sites
+Run Time = 0.00 seconds

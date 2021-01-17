@@ -1,0 +1,18 @@
+Scanning file to determine attributes.
+File attributes:
+  meta lines: 42
+  header_line: 43
+  variant count: 859
+  column count: 31
+Meta line 42 read in.
+All meta lines processed.
+gt matrix initialized.
+Character matrix gt created.
+  Character matrix gt rows: 859
+  Character matrix gt cols: 31
+  skip: 0
+  nrows: 859
+  row_num: 0
+Processed variant: 859
+All variants processed
+1 

@@ -1,0 +1,102 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(tidyverse)
+> library(largeList)
+> source("/opt/scripts/functions_simu.R")
+> datas <- list()
+> 
+> datas[[1]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/data1_depths_geno_prob.rds")
+> datas[[2]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/data2_maps.rds")
+> datas[[3]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/data3_filters.rds")
+> datas[[4]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/data4_times.rds")
+> datas[[5]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/-1107519340/data5_SNPcall_efficiency.rds")
+> datas[[6]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/data6_RDatas.llo")
+> datas[[7]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/gusmap_RDatas.RData")
+> datas[[8]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/names.rds")
+> datas[[9]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/440457732/22_10_haplo_simu.rds")
+> datas[[10]] <- c("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-JointTables/inputs/1979580963/multi_names.RData")
+> 
+> datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
+> 
+> Rdata_lst <- data_lst <- datas_up <- list()
+> for(j in 1:length(datas)){
++   if(j == 6){
++     for(i in 1:length(datas[[j]])){
++       temp <- readList(datas[[j]][i])
++       if(i == 1){
++         saveList(temp, file="sequences.llo", append = F, compress = T)
++       } else {
++         saveList(temp, file="sequences.llo", append = T, compress = T)
++       }
++     }
++   } else  if(j == 7){
++     for(i in 1:length(datas[[j]])){
++       temp <- load(datas[[j]][i])
++       Rdata_lst[[i]] <- get(temp)
++     }
++     Rdatas <- do.call(c, Rdata_lst)
++     save(Rdatas, file = "gusmap_RDatas.RData")
++   } else if(j == 10){
++     multi_names_depth <- list()
++     for(i in 1:length(datas[[j]])){
++       multi_temp2 <- load(datas[[j]][i])
++       multi_temp3 <- get(multi_temp2)
++       multi_names_depth <- c(multi_names_depth, multi_temp3)
++     }
++   } else {
++     for(i in 1:length(datas[[j]])){
++       data_lst[[i]] <- readRDS(datas[[j]][i])
++     }
++     if(j == 8){
++       dat <- do.call(c, data_lst)
++     } else   dat <- do.call(rbind, data_lst)
++     datas_up[[j]] <- dat
++   }
++ }
+> 
+> result_list <- adapt2app(datas_up)
+> 
+> saveRDS(result_list[[1]], file="data1.rds")
+> saveRDS(result_list[[2]], file="data2.rds")
+> saveRDS(result_list[[3]], file="data3.rds")
+> saveRDS(result_list[[4]], file="data4.rds")
+> saveRDS(result_list[[5]], file="data5.rds")
+> saveRDS(datas_up[[9]], file="simu_haplo.rds")
+> 
+> choices <- result_list[[6]]
+> save(choices, file = "choices.RData")
+> saveRDS(datas_up[[8]], file = "names.rds")
+> save(multi_names_depth, file = "multi_names.RData")
+> 
+> system("mkdir SimulatedReads_results_depth10")
+> system("mv multi_names.RData gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth10")
+> system("tar -czvf SimulatedReads_results_depth10.tar.gz SimulatedReads_results_depth10")
+SimulatedReads_results_depth10/
+SimulatedReads_results_depth10/data4.rds
+SimulatedReads_results_depth10/data2.rds
+SimulatedReads_results_depth10/choices.RData
+SimulatedReads_results_depth10/data5.rds
+SimulatedReads_results_depth10/names.rds
+SimulatedReads_results_depth10/multi_names.RData
+SimulatedReads_results_depth10/sequences.llo
+SimulatedReads_results_depth10/data1.rds
+SimulatedReads_results_depth10/simu_haplo.rds
+SimulatedReads_results_depth10/gusmap_RDatas.RData
+SimulatedReads_results_depth10/data3.rds
+> 
+> 

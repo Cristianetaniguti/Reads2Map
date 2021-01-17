@@ -1,0 +1,572 @@
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::mem_process_seqs] Processed 4210 reads in 2.052 CPU sec, 0.519 real sec
+01:50:14.181 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:14 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:14 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:14 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.586 CPU sec, 0.398 real sec
+01:50:15.149 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:15 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:15 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:15 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.051 CPU sec, 0.518 real sec
+01:50:15.979 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:16 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:16 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:16 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.652 CPU sec, 0.683 real sec
+01:50:16.836 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:16 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:16 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:16 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.397 CPU sec, 0.351 real sec
+01:50:23.494 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:23 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:23 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:24 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.083 CPU sec, 0.526 real sec
+01:50:24.844 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:24 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:24 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:24 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.634 CPU sec, 0.411 real sec
+01:50:28.593 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:28 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:28 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:29 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.368 CPU sec, 0.344 real sec
+01:50:35.939 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:36 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:36 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:36 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.709 CPU sec, 0.429 real sec
+01:50:42.427 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:42 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:42 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:42 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.760 CPU sec, 0.443 real sec
+01:50:43.434 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:43 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:43 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:43 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.392 CPU sec, 0.614 real sec
+01:50:44.374 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:44 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:44 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:44 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.120 CPU sec, 0.532 real sec
+01:50:45.315 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:45 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:45 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:45 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.919 CPU sec, 0.484 real sec
+01:50:46.308 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:46 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:46 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:46 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.544 CPU sec, 0.389 real sec
+01:50:52.905 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:52 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:52 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:52 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.521 CPU sec, 0.384 real sec
+01:50:58.844 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:50:58 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:50:58 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:50:58 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.487 CPU sec, 0.373 real sec
+01:51:04.499 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:04 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:04 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:04 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::mem_process_seqs] Processed 4210 reads in 1.453 CPU sec, 0.365 real sec
+01:51:11.066 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:11 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:11 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:11 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.342 CPU sec, 0.336 real sec
+01:51:13.312 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:13 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:13 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:13 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.178 CPU sec, 0.547 real sec
+01:51:14.243 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:14 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:14 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:14 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.119 CPU sec, 0.559 real sec
+01:51:15.361 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:15 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:15 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:15 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.143 CPU sec, 0.543 real sec
+01:51:16.335 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:16 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:16 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:16 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/120c2725-7fd0-4023-8d55-8ec49dd27b8e/call-ReadSimulations/shard-0/reads_simu/1e7d334a-bd30-4afc-806e-ee6f0e68a92d/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/e5161492-fde5-4d61-89ce-bb3ec1d5d145/call-RunBwaAlignmentSimu/tmp.a094c9b1
+[M::mem_process_seqs] Processed 4200 reads in 2.280 CPU sec, 0.575 real sec
+01:51:17.423 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 01:51:17 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 01:51:17 UTC 2021] Executing as root@45ba2857e10a on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[Sun Jan 17 01:51:17 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.00 minutes.
+Runtime.totalMemory()=124780544
+To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp
+Exception in thread "main" htsjdk.samtools.SAMFormatException: Error parsing SAM header. Problem parsing @RG key:value pair. Line:
+@RG	ID:.1	LB:lib-1	PL:illumina	SM:	PU:FLOWCELL1.LANE1.1; ; Line number 2
+	at htsjdk.samtools.SAMTextHeaderCodec.reportErrorParsingLine(SAMTextHeaderCodec.java:265)
+	at htsjdk.samtools.SAMTextHeaderCodec.access$200(SAMTextHeaderCodec.java:43)
+	at htsjdk.samtools.SAMTextHeaderCodec$ParsedHeaderLine.<init>(SAMTextHeaderCodec.java:314)
+	at htsjdk.samtools.SAMTextHeaderCodec.decode(SAMTextHeaderCodec.java:95)
+	at htsjdk.samtools.SAMTextReader.readHeader(SAMTextReader.java:216)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:63)
+	at htsjdk.samtools.SAMTextReader.<init>(SAMTextReader.java:73)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:424)
+	at htsjdk.samtools.SamReaderFactory$SamReaderFactoryImpl.open(SamReaderFactory.java:208)
+	at picard.sam.SortSam.doWork(SortSam.java:151)
+	at picard.cmdline.CommandLineProgram.instanceMain(CommandLineProgram.java:282)
+	at picard.cmdline.PicardCommandLine.instanceMain(PicardCommandLine.java:98)
+	at picard.cmdline.PicardCommandLine.main(PicardCommandLine.java:108)
+mv: cannot stat '.sorted.bai': No such file or directory

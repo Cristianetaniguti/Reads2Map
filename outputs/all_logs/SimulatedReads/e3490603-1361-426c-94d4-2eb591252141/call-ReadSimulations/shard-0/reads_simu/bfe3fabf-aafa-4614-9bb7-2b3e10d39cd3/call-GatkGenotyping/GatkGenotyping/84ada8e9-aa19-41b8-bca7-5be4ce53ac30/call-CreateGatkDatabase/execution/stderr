@@ -1,0 +1,307 @@
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e3490603-1361-426c-94d4-2eb591252141/call-ReadSimulations/shard-0/reads_simu/bfe3fabf-aafa-4614-9bb7-2b3e10d39cd3/call-GatkGenotyping/GatkGenotyping/84ada8e9-aa19-41b8-bca7-5be4ce53ac30/call-CreateGatkDatabase/tmp.f012adbf
+USAGE: GenomicsDBImport [arguments]
+
+Import VCFs to GenomicsDB
+Version:4.1.0.0
+
+
+Required Arguments:
+
+--genomicsdb-workspace-path:String
+                              Workspace for GenomicsDB. Must be a POSIX file system path, but can be a relative path.
+                              Must be an empty or non-existent directory.  Required. 
+
+--intervals,-L:String         One or more genomic intervals over which to operate  This argument must be specified at
+                              least once. Required. 
+
+
+Optional Arguments:
+
+--add-output-sam-program-record,-add-output-sam-program-record:Boolean
+                              If true, adds a PG tag to created SAM/BAM/CRAM files.  Default value: true. Possible
+                              values: {true, false} 
+
+--add-output-vcf-command-line,-add-output-vcf-command-line:Boolean
+                              If true, adds a command line header line to created VCF files.  Default value: true.
+                              Possible values: {true, false} 
+
+--arguments_file:File         read one or more arguments files and add them to the command line  This argument may be
+                              specified 0 or more times. Default value: null. 
+
+--batch-size:Integer          Batch size controls the number of samples for which readers are open at once and therefore
+                              provides a way to minimize memory consumption. However, it can take longer to complete.
+                              Use the consolidate flag if more than a hundred batches were used. This will improve
+                              feature read time. batchSize=0 means no batching (i.e. readers for all samples will be
+                              opened at once) Defaults to 0  Default value: 0. 
+
+--cloud-index-prefetch-buffer,-CIPB:Integer
+                              Size of the cloud-only prefetch buffer (in MB; 0 to disable). Defaults to
+                              cloudPrefetchBuffer if unset.  Default value: 0. 
+
+--cloud-prefetch-buffer,-CPB:Integer
+                              Size of the cloud-only prefetch buffer (in MB; 0 to disable).  Default value: 0. 
+
+--consolidate,-consolidate:Boolean
+                              Boolean flag to enable consolidation. If importing data in batches, a new fragment is
+                              created for each batch. In case thousands of fragments are created, GenomicsDB feature
+                              readers will try to open ~20x as many files. Also, internally GenomicsDB would consume
+                              more memory to maintain bookkeeping data from all fragments. Use this flag to merge all
+                              fragments into one. Merging can potentially improve read performance, however overall
+                              benefit might not be noticeable as the top Java layers have significantly higher
+                              overheads. This flag has no effect if only one batch is used. Defaults to false  Default
+                              value: false. Possible values: {true, false} 
+
+--create-output-bam-index,-OBI:Boolean
+                              If true, create a BAM/CRAM index when writing a coordinate-sorted BAM/CRAM file.  Default
+                              value: true. Possible values: {true, false} 
+
+--create-output-bam-md5,-OBM:Boolean
+                              If true, create a MD5 digest for any BAM/SAM/CRAM file created  Default value: false.
+                              Possible values: {true, false} 
+
+--create-output-variant-index,-OVI:Boolean
+                              If true, create a VCF index when writing a coordinate-sorted VCF file.  Default value:
+                              true. Possible values: {true, false} 
+
+--create-output-variant-md5,-OVM:Boolean
+                              If true, create a a MD5 digest any VCF file created.  Default value: false. Possible
+                              values: {true, false} 
+
+--disable-bam-index-caching,-DBIC:Boolean
+                              If true, don't cache bam indexes, this will reduce memory requirements but may harm
+                              performance if many intervals are specified.  Caching is automatically disabled if there
+                              are no intervals specified.  Default value: false. Possible values: {true, false} 
+
+--disable-read-filter,-DF:String
+                              Read filters to be disabled before analysis  This argument may be specified 0 or more
+                              times. Default value: null. Possible Values: {WellformedReadFilter}
+
+--disable-sequence-dictionary-validation,-disable-sequence-dictionary-validation:Boolean
+                              If specified, do not check the sequence dictionaries from our inputs for compatibility.
+                              Use at your own risk!  Default value: false. Possible values: {true, false} 
+
+--exclude-intervals,-XL:StringOne or more genomic intervals to exclude from processing  This argument may be specified 0
+                              or more times. Default value: null. 
+
+--gatk-config-file:String     A configuration file to use with the GATK.  Default value: null. 
+
+--gcs-max-retries,-gcs-retries:Integer
+                              If the GCS bucket channel errors out, how many times it will attempt to re-initiate the
+                              connection  Default value: 20. 
+
+--gcs-project-for-requester-pays:String
+                              Project to bill when accessing "requester pays" buckets. If unset, these buckets cannot be
+                              accessed.  Default value: . 
+
+--genomicsdb-segment-size:LongBuffer size in bytes allocated for GenomicsDB attributes during import. Should be large
+                              enough to hold data from one site.  Defaults to 1048576  Default value: 1048576. 
+
+--genomicsdb-vcf-buffer-size,-genomicsdb-vcf-buffer-size:Long
+                              Buffer size in bytes to store variant contexts. Larger values are better as smaller values
+                              cause frequent disk writes. Defaults to 16384 which was empirically determined to work
+                              well for many inputs.  Default value: 16384. 
+
+--help,-h:Boolean             display the help message  Default value: false. Possible values: {true, false} 
+
+--input,-I:String             BAM/SAM/CRAM file containing reads  This argument may be specified 0 or more times.
+                              Default value: null. 
+
+--interval-exclusion-padding,-ixp:Integer
+                              Amount of padding (in bp) to add to each interval you are excluding.  Default value: 0. 
+
+--interval-merging-rule,-imr:IntervalMergingRule
+                              Interval merging rule for abutting intervals  Default value: ALL. Possible values: {ALL,
+                              OVERLAPPING_ONLY} 
+
+--interval-padding,-ip:IntegerAmount of padding (in bp) to add to each interval you are including.  Default value: 0. 
+
+--interval-set-rule,-isr:IntervalSetRule
+                              Set merging approach to use for combining interval inputs  Default value: UNION. Possible
+                              values: {UNION, INTERSECTION} 
+
+--lenient,-LE:Boolean         Lenient processing of VCF files  Default value: false. Possible values: {true, false} 
+
+--merge-input-intervals,-merge-input-intervals:Boolean
+                              Boolean flag to import all data in between intervals.  Improves performance using large
+                              lists of intervals, as in exome sequencing, especially if GVCF data only exists for
+                              specified intervals.  Default value: false. Possible values: {true, false} 
+
+--overwrite-existing-genomicsdb-workspace:Boolean
+                              Will overwrite given workspace if it exists. Otherwise a new workspace is created.
+                              Defaults to false  Default value: false. Possible values: {true, false} 
+
+--QUIET:Boolean               Whether to suppress job-summary info on System.err.  Default value: false. Possible
+                              values: {true, false} 
+
+--read-filter,-RF:String      Read filters to be applied before analysis  This argument may be specified 0 or more
+                              times. Default value: null. Possible Values: {AlignmentAgreesWithHeaderReadFilter,
+                              AllowAllReadsReadFilter, AmbiguousBaseReadFilter, CigarContainsNoNOperator,
+                              FirstOfPairReadFilter, FragmentLengthReadFilter, GoodCigarReadFilter,
+                              HasReadGroupReadFilter, LibraryReadFilter, MappedReadFilter,
+                              MappingQualityAvailableReadFilter, MappingQualityNotZeroReadFilter,
+                              MappingQualityReadFilter, MatchingBasesAndQualsReadFilter, MateDifferentStrandReadFilter,
+                              MateOnSameContigOrNoMappedMateReadFilter, MetricsReadFilter,
+                              NonChimericOriginalAlignmentReadFilter, NonZeroFragmentLengthReadFilter,
+                              NonZeroReferenceLengthAlignmentReadFilter, NotDuplicateReadFilter,
+                              NotOpticalDuplicateReadFilter, NotSecondaryAlignmentReadFilter,
+                              NotSupplementaryAlignmentReadFilter, OverclippedReadFilter, PairedReadFilter,
+                              PassesVendorQualityCheckReadFilter, PlatformReadFilter, PlatformUnitReadFilter,
+                              PrimaryLineReadFilter, ProperlyPairedReadFilter, ReadGroupBlackListReadFilter,
+                              ReadGroupReadFilter, ReadLengthEqualsCigarLengthReadFilter, ReadLengthReadFilter,
+                              ReadNameReadFilter, ReadStrandFilter, SampleReadFilter, SecondOfPairReadFilter,
+                              SeqIsStoredReadFilter, ValidAlignmentEndReadFilter, ValidAlignmentStartReadFilter,
+                              WellformedReadFilter}
+
+--read-index,-read-index:String
+                              Indices to use for the read inputs. If specified, an index must be provided for every read
+                              input and in the same order as the read inputs. If this argument is not specified, the
+                              path to the index for each input will be inferred automatically.  This argument may be
+                              specified 0 or more times. Default value: null. 
+
+--read-validation-stringency,-VS:ValidationStringency
+                              Validation stringency for all SAM/BAM/CRAM/SRA files read by this program.  The default
+                              stringency value SILENT can improve performance when processing a BAM file in which
+                              variable-length data (read, qualities, tags) do not otherwise need to be decoded.  Default
+                              value: SILENT. Possible values: {STRICT, LENIENT, SILENT} 
+
+--reference,-R:String         Reference sequence  Default value: null. 
+
+--seconds-between-progress-updates,-seconds-between-progress-updates:Double
+                              Output traversal statistics every time this many seconds elapse  Default value: 10.0. 
+
+--sequence-dictionary,-sequence-dictionary:String
+                              Use the given sequence dictionary as the master/canonical sequence dictionary.  Must be a
+                              .dict file.  Default value: null. 
+
+--sites-only-vcf-output:Boolean
+                              If true, don't emit genotype fields when writing vcf file output.  Default value: false.
+                              Possible values: {true, false} 
+
+--tmp-dir:String              Temp directory to use.  Default value: null. 
+
+--use-jdk-deflater,-jdk-deflater:Boolean
+                              Whether to use the JdkDeflater (as opposed to IntelDeflater)  Default value: false.
+                              Possible values: {true, false} 
+
+--use-jdk-inflater,-jdk-inflater:Boolean
+                              Whether to use the JdkInflater (as opposed to IntelInflater)  Default value: false.
+                              Possible values: {true, false} 
+
+--validate-sample-name-map,-validate-sample-name-map:Boolean
+                              Boolean flag to enable checks on the sampleNameMap file. If true, tool checks
+                              whetherfeature readers are valid and shows a warning if sample names do not match with the
+                              headers. Defaults to false  Default value: false. Possible values: {true, false} 
+
+--variant,-V:String           GVCF files to be imported to GenomicsDB. Each file must containdata for only a single
+                              sample. Either this or sample-name-map must be specified.  This argument may be specified
+                              0 or more times. Default value: null.  Cannot be used in conjuction with argument(s)
+                              sampleNameMapFile
+
+--verbosity,-verbosity:LogLevel
+                              Control verbosity of logging.  Default value: INFO. Possible values: {ERROR, WARNING,
+                              INFO, DEBUG} 
+
+--version:Boolean             display the version number for this tool  Default value: false. Possible values: {true,
+                              false} 
+
+
+Advanced Arguments:
+
+--disable-tool-default-read-filters,-disable-tool-default-read-filters:Boolean
+                              Disable all tool default read filters (WARNING: many tools will not function correctly
+                              without their default read filters on)  Default value: false. Possible values: {true,
+                              false} 
+
+--max-num-intervals-to-import-in-parallel,-max-num-intervals-to-import-in-parallel:Integer
+                              Max number of intervals to import in parallel; higher values may improve performance, but
+                              require more memory and a higher number of file descriptors open at the same time  Default
+                              value: 1. 
+
+--reader-threads,-reader-threads:Integer
+                              How many simultaneous threads to use when opening VCFs in batches; higher values may
+                              improve performance when network latency is an issue. Multiple reader threads are not
+                              supported when running with multiple intervals.  Default value: 1. 
+
+--sample-name-map:String      Path to file containing a mapping of sample name to file uri in tab delimited format.  If
+                              this is specified then the header from the first sample will be treated as the merged
+                              header rather than merging the headers, and the sample names will be taken from this file.
+                              This may be used to rename input samples. This is a performance optimization that relaxes
+                              the normal checks for consistent headers.  Using vcfs with incompatible headers may result
+                              in silent data corruption.  Default value: null.  Cannot be used in conjuction with
+                              argument(s) variantPaths (V)
+
+--showHidden,-showHidden:Boolean
+                              display hidden arguments  Default value: false. Possible values: {true, false} 
+
+Conditional Arguments for readFilter:
+
+Valid only if "AmbiguousBaseReadFilter" is specified:
+--ambig-filter-bases:Integer  Threshold number of ambiguous bases. If null, uses threshold fraction; otherwise,
+                              overrides threshold fraction.  Default value: null.  Cannot be used in conjuction with
+                              argument(s) maxAmbiguousBaseFraction
+
+--ambig-filter-frac:Double    Threshold fraction of ambiguous bases  Default value: 0.05.  Cannot be used in conjuction
+                              with argument(s) maxAmbiguousBases
+
+Valid only if "FragmentLengthReadFilter" is specified:
+--max-fragment-length:Integer Maximum length of fragment (insert size)  Default value: 1000000. 
+
+Valid only if "LibraryReadFilter" is specified:
+--library,-library:String     Name of the library to keep  This argument must be specified at least once. Required. 
+
+Valid only if "MappingQualityReadFilter" is specified:
+--maximum-mapping-quality:Integer
+                              Maximum mapping quality to keep (inclusive)  Default value: null. 
+
+--minimum-mapping-quality:Integer
+                              Minimum mapping quality to keep (inclusive)  Default value: 10. 
+
+Valid only if "OverclippedReadFilter" is specified:
+--dont-require-soft-clips-both-ends:Boolean
+                              Allow a read to be filtered out based on having only 1 soft-clipped block. By default,
+                              both ends must have a soft-clipped block, setting this flag requires only 1 soft-clipped
+                              block  Default value: false. Possible values: {true, false} 
+
+--filter-too-short:Integer    Minimum number of aligned bases  Default value: 30. 
+
+Valid only if "PlatformReadFilter" is specified:
+--platform-filter-name:String Platform attribute (PL) to match  This argument must be specified at least once. Required.
+
+Valid only if "PlatformUnitReadFilter" is specified:
+--black-listed-lanes:String   Platform unit (PU) to filter out  This argument must be specified at least once. Required.
+
+Valid only if "ReadGroupBlackListReadFilter" is specified:
+--read-group-black-list:StringThe name of the read group to filter out  This argument must be specified at least once.
+                              Required. 
+
+Valid only if "ReadGroupReadFilter" is specified:
+--keep-read-group:String      The name of the read group to keep  Required. 
+
+Valid only if "ReadLengthReadFilter" is specified:
+--max-read-length:Integer     Keep only reads with length at most equal to the specified value  Required. 
+
+--min-read-length:Integer     Keep only reads with length at least equal to the specified value  Default value: 1. 
+
+Valid only if "ReadNameReadFilter" is specified:
+--read-name:String            Keep only reads with this read name  Required. 
+
+Valid only if "ReadStrandFilter" is specified:
+--keep-reverse-strand-only:Boolean
+                              Keep only reads on the reverse strand  Required. Possible values: {true, false} 
+
+Valid only if "SampleReadFilter" is specified:
+--sample,-sample:String       The name of the sample(s) to keep, filtering out all others  This argument must be
+                              specified at least once. Required. 
+
+
+***********************************************************************
+
+A USER ERROR has occurred: Option V/variant requires an argument
+
+***********************************************************************
+Set the system property GATK_STACKTRACE_ON_USER_EXCEPTION (--java-options '-DGATK_STACKTRACE_ON_USER_EXCEPTION=true') to print the stack trace.
+Using GATK jar /gatk/gatk-package-4.1.0.0-local.jar
+Running:
+    java -Dsamjdk.use_async_io_read_samtools=false -Dsamjdk.use_async_io_write_samtools=true -Dsamjdk.use_async_io_write_tribble=false -Dsamjdk.compression_level=2 -jar /gatk/gatk-package-4.1.0.0-local.jar GenomicsDBImport --genomicsdb-workspace-path my_database -L interval.list -V
+tar: my_database: Cannot stat: No such file or directory
+tar: Exiting with failure status due to previous errors

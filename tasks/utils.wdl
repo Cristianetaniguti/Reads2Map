@@ -29,10 +29,8 @@ task TabixVcf {
 
 task BamCounts {
   input {
-    String sample
     String program
-    File bam
-    File bai
+    Array[File] bam
     File ref
     File ref_fai
     File ref_dict
@@ -42,15 +40,23 @@ task BamCounts {
 
   command <<<
     set -e
+
     java -jar /gatk/picard.jar VcfToIntervalList \
       I=~{vcf} \
       O=interval.list
 
-    /gatk/gatk CollectAllelicCounts \
-      --input ~{bam} \
-      --reference ~{ref} \
-      --intervals interval.list \
-      --output "~{sample}_~{program}_counts.tsv"
+    for file in ~{sep= " " bam}; do
+
+      sample=`basename -s .1.fq $file`
+      echo $sample
+
+      /gatk/gatk CollectAllelicCounts \
+        --input $file \
+        --reference ~{ref} \
+        --intervals interval.list \
+        --output "$sample_~{program}_counts.tsv"
+
+    done
 
   >>>
 
@@ -62,7 +68,7 @@ task BamCounts {
   }
 
   output{
-    File counts = "~{sample}_~{program}_counts.tsv"
+    Array[File] counts = glob("*_~{program}_counts.tsv")
   }
 }
 

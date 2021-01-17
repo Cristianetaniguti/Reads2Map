@@ -1,0 +1,67 @@
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--gzvcf /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GatkGenotyping/GatkGenotyping/aa51a53f-4b4d-4305-91af-1b3dca30da5f/call-SplitFiltVCF/SplitFiltVCF/8b36c97d-bdc1-4ab0-917a-ac9d17088a17/call-SplitFilters/inputs/1961150378/vcf_norm.vcf
+	--min-alleles 3
+	--out gatk_multi1
+	--recode
+
+Using zlib version: 1.2.11
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 3 out of a possible 862 Sites
+Run Time = 0.00 seconds
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--gzvcf /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-GatkGenotyping/GatkGenotyping/aa51a53f-4b4d-4305-91af-1b3dca30da5f/call-SplitFiltVCF/SplitFiltVCF/8b36c97d-bdc1-4ab0-917a-ac9d17088a17/call-SplitFilters/inputs/1961150378/vcf_norm.vcf
+	--max-alleles 2
+	--min-alleles 2
+	--out gatk_bi1
+	--recode
+
+Using zlib version: 1.2.11
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 859 out of a possible 862 Sites
+Run Time = 0.00 seconds
+
+   *****       ***   vcfR   ***       *****
+   This is vcfR 1.11.0 
+     browseVignettes('vcfR') # Documentation
+     citation('vcfR') # Citation
+   *****       *****      *****       *****
+
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf gatk_bi1.recode.vcf
+	--out gatk_multi2
+	--positions position_multi2.txt
+	--recode
+
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 0 out of a possible 859 Sites
+No data left for analysis!
+Run Time = 0.00 seconds
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf gatk_bi1.recode.vcf
+	--exclude-positions position_multi2.txt
+	--out gatk_bi
+	--recode
+
+After filtering, kept 22 out of 22 Individuals
+Outputting VCF file...
+After filtering, kept 859 out of a possible 859 Sites
+Run Time = 0.00 seconds

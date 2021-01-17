@@ -1,0 +1,41 @@
+Warning messages:
+1: In rgl.init(initValue, onlyNULL) : RGL: unable to open X11 display
+2: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'. 
+Warning messages:
+1: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+2: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+3: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+4: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+5: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+6: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+7: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+8: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+9: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+Warning messages:
+1: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+2: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+3: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+4: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+5: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+6: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+7: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+8: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!
+9: In est_map_hmm_out(geno = t(input.seq$data.name$geno[, seq.num]),  :
+  Didn't converge!

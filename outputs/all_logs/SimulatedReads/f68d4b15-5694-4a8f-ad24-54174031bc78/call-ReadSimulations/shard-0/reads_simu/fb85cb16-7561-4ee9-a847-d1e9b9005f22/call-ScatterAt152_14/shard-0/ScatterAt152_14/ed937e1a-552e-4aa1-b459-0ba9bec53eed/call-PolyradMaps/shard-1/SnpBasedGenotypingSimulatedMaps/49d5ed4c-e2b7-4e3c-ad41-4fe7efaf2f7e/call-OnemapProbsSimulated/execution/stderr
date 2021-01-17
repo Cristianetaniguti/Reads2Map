@@ -1,0 +1,42 @@
+Warning messages:
+1: In rgl.init(initValue, onlyNULL) : RGL: unable to open X11 display
+2: 'rgl.init' failed, running with 'rgl.useNULL = TRUE'. 
+
+   *****       ***   vcfR   ***       *****
+   This is vcfR 1.12.0 
+     browseVignettes('vcfR') # Documentation
+     citation('vcfR') # Citation
+   *****       *****      *****       *****
+
+
+Attaching package: 'genotyping4onemap'
+
+The following objects are masked from 'package:onemap':
+
+    create_probs, extract_depth
+
+Compressing file with bgzip.
+Compressed VCF sent to /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-ScatterAt152_14/shard-0/ScatterAt152_14/ed937e1a-552e-4aa1-b459-0ba9bec53eed/call-PolyradMaps/shard-1/SnpBasedGenotypingSimulatedMaps/49d5ed4c-e2b7-4e3c-ad41-4fe7efaf2f7e/call-OnemapProbsSimulated/tmp.9d5dfd03/RtmpgIfiw6/filee67bc5042.bgz
+Indexing VCF.
+Reading file...
+Unpacking data from VCF...
+Filtering markers...
+Reading file...
+859 loci imported.
+Building RADdata object...
+Merging rare haplotypes...
+859 markers retained out of 859 originally.
+Making initial parameter estimates...
+Generating sampling permutations for allele depth.
+Done.
+Warning messages:
+1: In .bcfHeaderAsSimpleList(header) :
+  duplicate keys in header will be forced to unique rownames
+2: In .bcfHeaderAsSimpleList(header) :
+  duplicate keys in header will be forced to unique rownames
+3: In .bcfHeaderAsSimpleList(header) :
+  duplicate keys in header will be forced to unique rownames
+4: In .bcfHeaderAsSimpleList(header) :
+  duplicate keys in header will be forced to unique rownames
+5: In .bcfHeaderAsSimpleList(header) :
+  duplicate keys in header will be forced to unique rownames

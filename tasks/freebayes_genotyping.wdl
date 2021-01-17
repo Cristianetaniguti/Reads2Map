@@ -11,9 +11,7 @@ import "split_filt_vcf.wdl" as norm_filt
 
 workflow FreebayesGenotyping {
   input {
-    Array[Alignment] alignments
     Array[File] bam
-    Array[File] bai
     Reference references
     String parent1
     String parent2
@@ -28,7 +26,6 @@ workflow FreebayesGenotyping {
       reference=references.ref_fasta,
       reference_idx=references.ref_fasta_index,
       bam=bam,
-      bai=bai,
       max_cores = max_cores
   }
 
@@ -42,20 +39,17 @@ workflow FreebayesGenotyping {
       parent2 = parent2
   }
 
-  scatter (alignment in alignments) {
-    call utils.BamCounts {
-      input:
-        sample=alignment.sample,
-        program=program,
-        bam=alignment.bam,
-        bai=alignment.bai,
-        ref=references.ref_fasta,
-        ref_fai=references.ref_fasta_index,
-        ref_dict=references.ref_dict,
-        vcf=SplitFiltVCF.vcf_bi,
-        tbi=SplitFiltVCF.vcf_bi_tbi
-    }
+  call utils.BamCounts {
+    input:
+      program=program,
+      bam=bam,
+      ref=references.ref_fasta,
+      ref_fai=references.ref_fasta_index,
+      ref_dict=references.ref_dict,
+      vcf=SplitFiltVCF.vcf_bi,
+      tbi=SplitFiltVCF.vcf_bi_tbi
   }
+
 
   call utils.BamCounts4Onemap {
     input:
@@ -89,7 +83,6 @@ task RunFreebayes {
     File reference
     File reference_idx
     Array[File] bam
-    Array[File] bai
     Int max_cores
   }
 

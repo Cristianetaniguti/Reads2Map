@@ -71,7 +71,7 @@ task RunBwaAlignment {
 task RunBwaAlignmentSimu {
 
   input {
-    File read1
+    Array[File] reads
     Reference references
     Int max_cores
   }
@@ -81,21 +81,23 @@ task RunBwaAlignmentSimu {
     export PATH=$PATH:/bin
     export PATH=$PATH:/picard.jar
 
-    filename=`basename '~{read1}'`
-    echo $filename
-    sample=$(echo $filename | awk -F '[.]' '{print $1}')
-    echo $sample > sample.txt
-    echo $sample
+    for file in ~{sep= " " reads}; do
+      
+      sample=`basename -s .1.fq $file`
+      echo $sample
 
-    bwa_header="@RG\tID:$sample.1\tLB:lib-1\tPL:illumina\tSM:$sample\tPU:FLOWCELL1.LANE1.1"
-    bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} ~{read1} | \
-        java -jar /picard.jar SortSam \
-          I=/dev/stdin \
-          O="file.sorted.bam" \
-          TMP_DIR=./tmp \
-          SORT_ORDER=coordinate \
-          CREATE_INDEX=true;
-    mv "file.sorted.bai" "file.sorted.bam.bai";
+      bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
+
+      echo $bwa_header
+
+      bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
+          java -jar /picard.jar SortSam \
+            I=/dev/stdin \
+            O="${sample}.sorted.bam" \
+            TMP_DIR=./tmp \
+            SORT_ORDER=coordinate 
+
+    done
 
     
   >>>
@@ -109,9 +111,7 @@ task RunBwaAlignmentSimu {
   }
 
   output {
-    Alignment algn = {"bam": "file.sorted.bam", "bai": "file.sorted.bam.bai", "sample": read_string("sample.txt")}
-    File bam = "file.sorted.bam"
-    File bai = "file.sorted.bam.bai"
+    Array[File] bam = glob("*.sorted.bam")
   }
 }
 

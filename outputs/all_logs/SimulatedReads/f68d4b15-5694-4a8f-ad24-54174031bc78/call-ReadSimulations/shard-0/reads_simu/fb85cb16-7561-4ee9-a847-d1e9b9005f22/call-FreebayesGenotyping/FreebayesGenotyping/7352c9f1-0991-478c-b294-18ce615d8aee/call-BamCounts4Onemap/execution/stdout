@@ -1,0 +1,64 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+>   library(R.utils)
+>   system("cp /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/920355862/F1_01_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-876595497/F1_02_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/1621420440/F1_03_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-175530919/F1_04_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-1972482278/F1_05_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/525533659/F1_06_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-1271417700/F1_07_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/1226598237/F1_08_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-570353122/F1_09_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/1927662815/F1_10_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-1183330645/F1_11_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/1314685292/F1_12_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-482266067/F1_13_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping+ /7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/2015749870/F1_14_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/218798511/F1_15_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-1578152848/F1_16_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/919863089/F1_17_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-877088270/F1_18_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/1620927667/F1_19_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-176023692/F1_20_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/-1054247926/P1_freebayes_counts.tsv /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-FreebayesGenotyping/FreebayesGenotyping/7352c9f1-0991-478c-b294-18ce615d8aee/call-BamCounts4Onemap/inputs/1443768011/P2_freebayes_counts.tsv .")
+>   names <- c("P1 , P2 , F1_01 , F1_02 , F1_03 , F1_04 , F1_05 , F1_06 , F1_07 , F1_08 , F1_09 , F1_10 , F1_11 , F1_12 , F1_13 , F1_14 , F1_15 , F1_16 , F1_17 , F1_18 , F1_19 , F1_20")
+>   names <- unlist(strsplit(names, split = " , "))
+> 
+>   system(paste("grep -n 'CONTIG'", paste0(names[1],"_", "freebayes","_counts.tsv"), "> idx"))
+>   idx <- read.table("idx", stringsAsFactors = F)
+>   idx <- strsplit(idx[,1], ":")[[1]][1]
+>   idx <- as.numeric(idx) -1
+> 
+>   file.counts <- read.table(paste0(names[1],"_", "freebayes","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
+> 
+>   ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
+> 
+>   for(j in 1:length(names)){
++     ## From picard tool
++ 
++     file.counts <- read.table(paste0(names[j],"_", "freebayes","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
++ 
++     ref_depth_matrix2[,j] <- file.counts[,3]
++     alt_depth_matrix2[,j] <- file.counts[,4]
++ 
++     if (j == 1){
++       ref_allele <- file.counts[,5]
++       alt_allele <- file.counts[,6]
++     } else {
++       idx.ref <- which(ref_allele == "N")
++       idx.alt <- which(alt_allele == "N")
++       if (length(idx.ref)!=0){
++         ref_allele[idx.ref] <- file.counts[idx.ref,5]
++       }
++       if (length(idx.alt)!=0){
++         alt_allele[idx.alt] <- file.counts[idx.alt,6]
++       }
++     }
++ 
++     rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
++     colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
++ 
++     alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
++     write.table(alleles, file = paste0("freebayes","_ref_alt_alleles.txt"), col.names = F, row.names = F)
++ 
++     write.table(ref_depth_matrix2, file = paste0("freebayes","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
++     write.table(alt_depth_matrix2, file = paste0("freebayes","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
++   }
+> 
+> 

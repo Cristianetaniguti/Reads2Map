@@ -40,7 +40,7 @@ workflow reads_simu {
 
   call gatk.GatkGenotyping {
     input:
-      alignments=CreateAlignmentFromSimulation.alignments,
+      bam=CreateAlignmentFromSimulation.bam,
       references=references,
       program="gatk",
       parent1 = "P1",
@@ -51,9 +51,7 @@ workflow reads_simu {
 
   call freebayes.FreebayesGenotyping {
     input:
-      alignments=CreateAlignmentFromSimulation.alignments,
       bam=CreateAlignmentFromSimulation.bam,
-      bai=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
       parent1 = "P1",

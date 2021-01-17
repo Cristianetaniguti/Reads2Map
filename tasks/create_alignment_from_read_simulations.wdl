@@ -130,19 +130,15 @@ workflow CreateAlignmentFromSimulation {
 
   Array[File] fastq = select_first([RADinitioSimulation.fastq_rad, SimuscopSimulation.fastq_seq])
 
-  scatter (file in fastq) {
-    call alg.RunBwaAlignmentSimu {
-      input:
-        read1     = file,
-        references = references,
-        max_cores = max_cores
-    }
+  call alg.RunBwaAlignmentSimu {
+    input:
+      reads     = fastq,
+      references = references,
+      max_cores = max_cores
   }
 
   output {
-      Array[Alignment] alignments = RunBwaAlignmentSimu.algn
       Array[File] bam = RunBwaAlignmentSimu.bam
-      Array[File] bai = RunBwaAlignmentSimu.bai
       File ref_alt_alleles = ref_alt_alleles_sele
       Array[String] names = GenerateSampleNames.names
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf

@@ -1,0 +1,31 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+>   library(onemap)
+>   source("/opt/scripts/functions_simu.R")
+> 
+>   onemap_obj <- load("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-ScatterAt152_14/shard-1/ScatterAt152_14/749b4497-97b5-41ad-a2a2-4a4491332b6b/call-PolyradMaps/shard-0/SnpBasedGenotypingSimulatedMaps/7bedbb08-eebc-4259-8705-0b9578834701/call-ErrorsReport/shard-1/inputs/1941226243/onemap_obj_both.RData")
+>   onemap_obj <- get(onemap_obj)
+> 
+>   simu_onemap_obj <- load("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-ScatterAt152_14/shard-1/ScatterAt152_14/749b4497-97b5-41ad-a2a2-4a4491332b6b/call-PolyradMaps/shard-0/SnpBasedGenotypingSimulatedMaps/7bedbb08-eebc-4259-8705-0b9578834701/call-ErrorsReport/shard-1/inputs/516657223/simu_vcf_onemap.obj.RData")
+>   simu_onemap_obj <- get(simu_onemap_obj)
+> 
+>   create_errors_report(onemap_obj = onemap_obj, simu_onemap_obj,
++                        "freebayes" , "polyrad0.05",
++                        "vcf")
+> 
+> 

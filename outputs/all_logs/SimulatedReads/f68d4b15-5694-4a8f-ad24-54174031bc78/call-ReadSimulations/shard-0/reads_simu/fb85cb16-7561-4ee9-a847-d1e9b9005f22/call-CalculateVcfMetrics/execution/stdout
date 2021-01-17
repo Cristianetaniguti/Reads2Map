@@ -1,0 +1,125 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # If variants are simulated by pirs, 
+> # the metrics will be related to the total simulated not only the captured by RAD
+> library(vcfR)
+> freebayes <- read.vcfR("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-CalculateVcfMetrics/inputs/899326635/freebayes_bi.recode.vcf.gz")
+Scanning file to determine attributes.
+File attributes:
+  meta lines: 64
+  header_line: 65
+  variant count: 1510
+  column count: 31
+Meta line 64 read in.
+All meta lines processed.
+gt matrix initialized.
+Character matrix gt created.
+  Character matrix gt rows: 1510
+  Character matrix gt cols: 31
+  skip: 0
+  nrows: 1510
+  row_num: 0
+Processed variant 1000Processed variant: 1510
+All variants processed
+> gatk <- read.vcfR("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-CalculateVcfMetrics/inputs/1597615305/gatk_bi.recode.vcf.gz")
+Scanning file to determine attributes.
+File attributes:
+  meta lines: 42
+  header_line: 43
+  variant count: 859
+  column count: 31
+Meta line 42 read in.
+All meta lines processed.
+gt matrix initialized.
+Character matrix gt created.
+  Character matrix gt rows: 859
+  Character matrix gt cols: 31
+  skip: 0
+  nrows: 859
+  row_num: 0
+Processed variant: 859
+All variants processed
+> 
+> snps <- read.table("/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-CalculateVcfMetrics/inputs/1560185715/ref_alt_alleles.txt", stringsAsFactors = F)
+> simulated.pos <- snps[,2]
+> simulated.ref <- snps[,3]
+> simulated.alt <- snps[,4]
+> 
+> methods <- c("freebayes", "gatk") 
+> results_tot <- vector()
+> 
+> for(i in methods){
++   # counting corrected identified markers
++   pos <- as.numeric(as.character(get(i)@fix[,2]))
++   chr <- get(i)@fix[,1]
++   site_list <- data.frame(chr, pos, pos)
++   # Export for next step
++   write.table(site_list, file= paste0(i,"_site_list.txt"), quote=F, row.names=F, sep="\t", col.names=F)
++ 
++   ref <- get(i)@fix[,4]
++   alt <- get(i)@fix[,5]
++ 
++   nmk.filt <- length(simulated.pos)
++   nmk.id <- length(pos)
++ 
++   ok <- sum(simulated.pos %in% pos) 
++   falso.positivo <- sum(!(pos %in% simulated.pos)) 
++   ref.ok <- sum(simulated.ref==ref[pos %in% simulated.pos])
++   alt.ok <- sum(simulated.alt==alt[pos %in% simulated.pos])
++ 
++   result <- data.frame(depth = 10, seed = 22, SNPcall = i,mks_tot = nmk.filt, mks_ide = nmk.id, ok, fake=falso.positivo, ref.ok, alt.ok)
++   results_tot <- rbind(results_tot, result)
++ 
++   # tables for mesure depth distribuition
++   if(dim(get(i)@gt)[1] != 0){
++       idx <- which(strsplit(get(i)@gt[1,1], split=":")[[1]] == "AD")
++       if(length(idx) != 0){
++       ref.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",1),
++                           ncol = dim(get(i)@gt)[2]-1)
++       alt.depth <- matrix(sapply(strsplit(sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx), split=","), "[",2),
++                           ncol =  dim(get(i)@gt)[2]-1)
++       colnames(ref.depth) <- colnames(alt.depth) <- colnames(get(i)@gt[,-1])
++       rownames(ref.depth) <- rownames(alt.depth) <- paste0(get(i)@fix[,1],"_", get(i)@fix[,2])
++       write.table(ref.depth, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=T, sep="\t")
++       write.table(alt.depth, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=T, sep="\t")
++       } else {
++           null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
++           write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
++           write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
++       }
++       # table for GQ
++       idx <- which(strsplit(get(i)@gt[1,1], split=":")["FORMAT"] == "GQ")
++       if(length(idx)!=0){
++           GQ <- sapply(strsplit(get(i)@gt[,-1], split=":"), "[",idx)
++           write.table(GQ, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
++           } else {
++               null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
++               write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
++           }
++ 
++       } else{
++           null.table <- matrix(rep(0,dim(get(i)@gt)[2]-1), ncol=dim(get(i)@gt)[2]-1)
++           write.table(null.table, file = paste0(i,"_ref_depth.txt"), quote=F, row.names=F, sep="\t")
++           write.table(null.table, file = paste0(i, "_alt_depth.txt"), quote=F, row.names=F, sep="\t")
++           write.table(null.table, file = paste0(i, "_GQ.txt"), quote=F, row.names=F, sep="\t")
++       }
++ }
+> 
+> saveRDS(results_tot, file= "data5_SNPcall_efficiency.rds")
+> 

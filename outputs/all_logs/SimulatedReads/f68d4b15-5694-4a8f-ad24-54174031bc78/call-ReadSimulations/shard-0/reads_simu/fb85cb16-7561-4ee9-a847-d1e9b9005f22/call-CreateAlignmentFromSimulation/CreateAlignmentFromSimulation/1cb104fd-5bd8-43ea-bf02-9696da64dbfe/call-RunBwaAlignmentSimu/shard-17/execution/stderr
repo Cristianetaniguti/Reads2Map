@@ -1,0 +1,13 @@
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/1cb104fd-5bd8-43ea-bf02-9696da64dbfe/call-RunBwaAlignmentSimu/shard-17/tmp.f5e22efd
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.170 CPU sec, 0.549 real sec
+22:55:39.016 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sat Jan 16 22:55:39 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=file.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sat Jan 16 22:55:39 UTC 2021] Executing as root@e1e1bf9c2447 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_18.1\tLB:lib-1\tPL:illumina\tSM:F1_18\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/1cb104fd-5bd8-43ea-bf02-9696da64dbfe/call-RunBwaAlignmentSimu/shard-17/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/f68d4b15-5694-4a8f-ad24-54174031bc78/call-ReadSimulations/shard-0/reads_simu/fb85cb16-7561-4ee9-a847-d1e9b9005f22/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/1cb104fd-5bd8-43ea-bf02-9696da64dbfe/call-RunBwaAlignmentSimu/shard-17/inputs/29435662/F1_18.1.fq
+[main] Real time: 3.044 sec; CPU: 2.201 sec
+INFO	2021-01-16 22:55:39	SortSam	Finished reading inputs, merging and writing to output now.
+[Sat Jan 16 22:55:39 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544

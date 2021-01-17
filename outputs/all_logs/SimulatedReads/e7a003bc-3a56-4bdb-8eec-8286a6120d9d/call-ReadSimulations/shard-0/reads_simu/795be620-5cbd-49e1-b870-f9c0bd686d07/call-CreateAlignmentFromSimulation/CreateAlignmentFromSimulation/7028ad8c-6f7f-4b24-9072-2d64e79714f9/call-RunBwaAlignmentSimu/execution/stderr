@@ -1,0 +1,286 @@
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::mem_process_seqs] Processed 4210 reads in 1.648 CPU sec, 0.422 real sec
+02:19:35.545 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:19:35 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_01.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:19:35 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_01.1\tLB:lib-1\tPL:illumina\tSM:F1_01\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_01.1.fq
+[main] Real time: 1.446 sec; CPU: 1.668 sec
+INFO	2021-01-17 02:19:35	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:19:35 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=157286400
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.503 CPU sec, 0.380 real sec
+02:19:43.364 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:19:43 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_02.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:19:43 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_02.1\tLB:lib-1\tPL:illumina\tSM:F1_02\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_02.1.fq
+[main] Real time: 7.811 sec; CPU: 1.530 sec
+INFO	2021-01-17 02:19:43	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:19:43 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.818 CPU sec, 0.466 real sec
+02:19:44.775 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:19:44 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_03.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:19:44 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_03.1\tLB:lib-1\tPL:illumina\tSM:F1_03\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_03.1.fq
+[main] Real time: 1.043 sec; CPU: 1.833 sec
+INFO	2021-01-17 02:19:45	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:19:45 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=157286400
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::mem_process_seqs] Processed 4210 reads in 1.727 CPU sec, 0.438 real sec
+02:19:48.914 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:19:48 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_04.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:19:48 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_04.1\tLB:lib-1\tPL:illumina\tSM:F1_04\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_04.1.fq
+[main] Real time: 4.005 sec; CPU: 1.742 sec
+INFO	2021-01-17 02:19:49	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:19:49 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.078 CPU sec, 0.532 real sec
+02:19:50.157 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:19:50 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_05.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:19:50 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_05.1\tLB:lib-1\tPL:illumina\tSM:F1_05\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_05.1.fq
+[main] Real time: 1.110 sec; CPU: 2.157 sec
+INFO	2021-01-17 02:19:50	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:19:50 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=157286400
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.589 CPU sec, 0.403 real sec
+02:19:58.282 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:19:58 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_06.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:19:58 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_06.1\tLB:lib-1\tPL:illumina\tSM:F1_06\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_06.1.fq
+[main] Real time: 8.474 sec; CPU: 1.605 sec
+INFO	2021-01-17 02:19:59	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:19:59 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.02 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::mem_process_seqs] Processed 4210 reads in 1.617 CPU sec, 0.413 real sec
+02:20:01.130 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:01 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_07.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:01 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_07.1\tLB:lib-1\tPL:illumina\tSM:F1_07\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_07.1.fq
+[main] Real time: 2.105 sec; CPU: 1.632 sec
+INFO	2021-01-17 02:20:01	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:01 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.030 CPU sec, 0.517 real sec
+02:20:02.383 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:02 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_08.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:02 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_08.1\tLB:lib-1\tPL:illumina\tSM:F1_08\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_08.1.fq
+[main] Real time: 1.109 sec; CPU: 2.046 sec
+INFO	2021-01-17 02:20:02	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:02 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4210 sequences (1237740 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::mem_process_seqs] Processed 4210 reads in 1.683 CPU sec, 0.423 real sec
+02:20:10.030 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:10 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_09.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:10 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_09.1\tLB:lib-1\tPL:illumina\tSM:F1_09\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_09.1.fq
+[main] Real time: 9.100 sec; CPU: 1.700 sec
+INFO	2021-01-17 02:20:11	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:12 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.04 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.796 CPU sec, 0.454 real sec
+02:20:13.125 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:13 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_10.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:13 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_10.1\tLB:lib-1\tPL:illumina\tSM:F1_10\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_10.1.fq
+[main] Real time: 1.445 sec; CPU: 1.811 sec
+INFO	2021-01-17 02:20:13	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:13 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.645 CPU sec, 0.674 real sec
+02:20:14.668 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:14 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_11.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:14 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_11.1\tLB:lib-1\tPL:illumina\tSM:F1_11\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_11.1.fq
+[main] Real time: 1.237 sec; CPU: 2.729 sec
+INFO	2021-01-17 02:20:14	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:15 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.933 CPU sec, 0.488 real sec
+02:20:16.197 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:16 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_12.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:16 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_12.1\tLB:lib-1\tPL:illumina\tSM:F1_12\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_12.1.fq
+[main] Real time: 1.455 sec; CPU: 1.950 sec
+INFO	2021-01-17 02:20:16	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:16 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 1.797 CPU sec, 0.456 real sec
+02:20:23.205 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:23 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_13.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:23 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_13.1\tLB:lib-1\tPL:illumina\tSM:F1_13\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_13.1.fq
+[main] Real time: 6.761 sec; CPU: 1.812 sec
+INFO	2021-01-17 02:20:23	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:23 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.150 CPU sec, 0.553 real sec
+02:20:27.234 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:27 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_14.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:27 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_14.1\tLB:lib-1\tPL:illumina\tSM:F1_14\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_14.1.fq
+[main] Real time: 3.746 sec; CPU: 2.166 sec
+INFO	2021-01-17 02:20:27	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:27 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.169 CPU sec, 0.570 real sec
+02:20:28.877 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:28 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_15.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:28 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_15.1\tLB:lib-1\tPL:illumina\tSM:F1_15\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_15.1.fq
+[main] Real time: 1.153 sec; CPU: 2.217 sec
+INFO	2021-01-17 02:20:29	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:29 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 4200 sequences (1234800 bp)...
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::mem_process_seqs] Processed 4200 reads in 1.861 CPU sec, 0.470 real sec
+02:20:30.383 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:30 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_16.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:30 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_16.1\tLB:lib-1\tPL:illumina\tSM:F1_16\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_16.1.fq
+[main] Real time: 1.373 sec; CPU: 1.885 sec
+INFO	2021-01-17 02:20:30	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:30 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.864 CPU sec, 0.471 real sec
+02:20:34.838 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:34 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_17.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:34 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_17.1\tLB:lib-1\tPL:illumina\tSM:F1_17\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_17.1.fq
+[main] Real time: 4.311 sec; CPU: 1.883 sec
+INFO	2021-01-17 02:20:35	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:35 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.010 CPU sec, 0.528 real sec
+02:20:36.239 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:36 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_18.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:36 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_18.1\tLB:lib-1\tPL:illumina\tSM:F1_18\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_18.1.fq
+[main] Real time: 1.191 sec; CPU: 2.025 sec
+INFO	2021-01-17 02:20:36	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:36 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 1.890 CPU sec, 0.499 real sec
+02:20:37.595 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:37 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_19.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:37 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_19.1\tLB:lib-1\tPL:illumina\tSM:F1_19\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_19.1.fq
+[main] Real time: 1.222 sec; CPU: 1.913 sec
+INFO	2021-01-17 02:20:37	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:38 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.742 CPU sec, 0.693 real sec
+02:20:39.044 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:39 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=F1_20.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:39 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:F1_20.1\tLB:lib-1\tPL:illumina\tSM:F1_20\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/F1_20.1.fq
+[main] Real time: 1.225 sec; CPU: 2.758 sec
+INFO	2021-01-17 02:20:39	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:39 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=157286400
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4210 sequences (1237740 bp)...
+[M::mem_process_seqs] Processed 4210 reads in 2.312 CPU sec, 0.586 real sec
+02:20:40.386 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:40 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=P1.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:40 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:P1.1\tLB:lib-1\tPL:illumina\tSM:P1\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/P1.1.fq
+[main] Real time: 1.195 sec; CPU: 2.334 sec
+INFO	2021-01-17 02:20:40	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:40 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.01 minutes.
+Runtime.totalMemory()=124780544
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/tmp.05bec73d
+[M::process] read 4200 sequences (1234800 bp)...
+[M::mem_process_seqs] Processed 4200 reads in 2.395 CPU sec, 0.622 real sec
+02:20:41.951 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Sun Jan 17 02:20:41 UTC 2021] SortSam INPUT=/dev/stdin OUTPUT=P2.sorted.bam SORT_ORDER=coordinate TMP_DIR=[./tmp] CREATE_INDEX=true    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Sun Jan 17 02:20:41 UTC 2021] Executing as root@c75fa437ca82 on Linux 5.4.0-7642-generic amd64; Java HotSpot(TM) 64-Bit Server VM 1.8.0_171-b11; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.18.2-SNAPSHOT
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 -R @RG\tID:P2.1\tLB:lib-1\tPL:illumina\tSM:P2\tPU:FLOWCELL1.LANE1.1 /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/1337870418/sub2M.fa /cromwell-executions/SimulatedReads/e7a003bc-3a56-4bdb-8eec-8286a6120d9d/call-ReadSimulations/shard-0/reads_simu/795be620-5cbd-49e1-b870-f9c0bd686d07/call-CreateAlignmentFromSimulation/CreateAlignmentFromSimulation/7028ad8c-6f7f-4b24-9072-2d64e79714f9/call-RunBwaAlignmentSimu/inputs/-243647769/P2.1.fq
+[main] Real time: 1.483 sec; CPU: 2.413 sec
+INFO	2021-01-17 02:20:42	SortSam	Finished reading inputs, merging and writing to output now.
+[Sun Jan 17 02:20:43 UTC 2021] picard.sam.SortSam done. Elapsed time: 0.03 minutes.
+Runtime.totalMemory()=124780544
