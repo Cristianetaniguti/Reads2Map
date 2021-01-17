@@ -106,7 +106,7 @@ task GusmapReport{
   runtime{
     docker: "cristaniguti/onemap_workflows"
     time:"72:00:00"
-    mem:"--nodes=1"
+    mem:"50GB"
     cpu:1
   }
 

@@ -169,7 +169,7 @@ task OnemapProbsSimulated {
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"96:00:00"
-    mem:"--nodes=1"
+    mem:"70GB"
     cpu:20
     job_name:"poly_genotyping"
   }

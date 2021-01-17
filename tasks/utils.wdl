@@ -16,7 +16,7 @@ task TabixVcf {
   runtime {
     docker: "taniguti/gatk-picard"
     time:"24:00:00"
-    mem:"--nodes=1"
+    mem:"10GB"
     cpu:1
   }
 
@@ -56,7 +56,7 @@ task BamCounts {
 
   runtime{
     docker:"taniguti/gatk-picard"
-    mem:"--nodes=1"
+    mem:"20GB"
     cpu:1
     time:"48:00:00"
   }
@@ -84,7 +84,7 @@ task VcftoolsMerge {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"--nodes=1"
+    mem:"10GB"
     cpu:1
     time:"24:00:00"
   }
@@ -110,7 +110,7 @@ task BcftoolsMerge {
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
-    mem:"--mem-per-cpu=24042"
+    mem:"5GB"
     cpu:1
     time:"48:00:00"
   }
@@ -143,7 +143,7 @@ task VcftoolsApplyFilters {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"--nodes=1"
+    mem:"10GB"
     cpu:1
     time:"24:00:00"
   }
@@ -247,7 +247,7 @@ task CalculateVcfMetrics {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
     time:"24:00:00"
   }
@@ -326,7 +326,7 @@ task BamCounts4Onemap{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
     time:"48:00:00"
   }
@@ -360,7 +360,7 @@ task ApplyRandomFilters{
 
   runtime{
     docker:"taniguti/vcftools"
-    mem:"--nodes=1"
+    mem:"20GB"
     cpu:1
     time:"24:00:00"
   }
@@ -406,7 +406,7 @@ task FiltChr {
 
   runtime {
     docker:"taniguti/vcftools"
-    mem:"--nodes=1"
+    mem:"20GB"
     cpu:1
     time:"24:00:00"
   }

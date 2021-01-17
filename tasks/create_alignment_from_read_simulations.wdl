@@ -167,7 +167,7 @@ task GenerateAlternativeGenome {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    mem:"--nodes=1"
+    mem:"10GB"
     cpu:1
     time:"48:00:00"
     job_name:"create_alternative"
@@ -350,7 +350,7 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker: "cristaniguti/r-samtools"
-    mem:"--nodes=1"
+    mem:"20GB"
     cpu:1
     time:"24:00:00"
     job_name:"pedsim_inputs"
@@ -386,9 +386,9 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"--nodes=1"
+    mem:"5GB"
     cpu:1
-    time:"24:00:00"
+    time:"14:00:00"
     job_name:"pedigreesim"
   }
 
@@ -444,9 +444,9 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
-    time:"48:00:00"
+    time:"30:00:00"
     job_name:"pedsim2vcf"
   }
 
@@ -471,7 +471,7 @@ task RunVcf2diploid {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
     time:"24:00:00"
     job_name:"vcf2diploid"
@@ -508,9 +508,9 @@ task GenerateSampleNames {
 
   runtime {
     docker: "taniguti/miniconda-alpine"
-    mem:"--mem-per-cpu=24042"
+    mem:"1GB"
     cpu:1
-    time:"24:00:00"
+    time:"00:10:00"
   }
 
   output {
@@ -564,7 +564,7 @@ task Vcf2PedigreeSimulator{
 
   runtime {
       docker: "cristaniguti/r-samtools"
-      mem:"--nodes=1"
+      mem:"30GB"
       cpu:1
       time:"24:00:00"
       job_name:"vcf2pedigreesim"
@@ -613,7 +613,7 @@ task SimuscopProfile{
 
   runtime {
     docker: "cristaniguti/simuscopr"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
     time:"24:00:00"
     job_name:"wgs_profile"
@@ -677,7 +677,7 @@ task SimuscopSimulation{
 
   runtime {
     docker: "cristaniguti/simuscopr"
-    mem:"--nodes=1"
+    mem:"40GB"
     cpu:1
     time:"24:00:00"
     job_name:"wgs_simu"
@@ -775,7 +775,7 @@ task RADinitioSimulation{
 
   runtime{
     docker: "cristaniguti/radinitio"
-    mem:"--nodes=1"
+    mem:"40GB"
     cpu:1
     time:"24:00:00"
     job_name:"rad_simu"

@@ -482,7 +482,7 @@ task JointReports{
   runtime {
     docker:"cristaniguti/onemap_workflows"
     time:"48:00:00"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
     job_name:"family_joint"
   }

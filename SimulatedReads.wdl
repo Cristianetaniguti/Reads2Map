@@ -86,9 +86,9 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
-    time:"0:50:00"
+    time:"0:10:00"
     cpu:1
-    mem:"--mem-per-cpu=14042"
+    mem:"1GB"
     job_name: "create_seeds"
   }
 
@@ -195,7 +195,7 @@ task JointTables{
       docker:"cristaniguti/onemap_workflows"
       time:"03:00:00"
       cpu:1
-      mem:"--mem-per-cpu=24042"
+      mem:"30GB"
       job_name: "final_joint"
   }
 

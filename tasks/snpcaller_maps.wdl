@@ -114,7 +114,7 @@ task GQProbs{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"48:00:00"
-    mem:"--nodes=1"
+    mem:"50GB"
     cpu:1
   }
 

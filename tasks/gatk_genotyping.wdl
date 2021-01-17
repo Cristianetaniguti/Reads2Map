@@ -119,7 +119,7 @@ task HaplotypeCallerERC {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    mem:"--nodes=1"
+    mem:"10GB"
     cpu:1
     time:"120:00:00"
   }
@@ -154,7 +154,7 @@ task CreateGatkDatabase {
 
   runtime {
       docker: "taniguti/gatk-picard"
-      mem:"--nodes=1"
+      mem:"30GB"
       cpu:1
       time:"120:00:00"
   }
@@ -188,7 +188,7 @@ task GenotypeGVCFs {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    mem:"--nodes=1"
+    mem:"30GB"
     cpu:1
     time:"120:00:00"
   }
