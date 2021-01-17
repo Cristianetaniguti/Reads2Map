@@ -1,7 +1,0 @@
-Parameter file=parameters.txt
-write file sim_genotypes.dat
-chrom Chr10
-write file sim_founderalleles.dat
-chrom Chr10
-write file sim_alleledose.dat
-chrom Chr10
