@@ -25,11 +25,13 @@ workflow GatkGenotyping {
        geno_dict  = references.ref_dict
    }
 
+  Map[String, Array[File]] vcfs = {"vcf": HaplotypeCallerERC.GVCF, "idx": HaplotypeCallerERC.GVCF_idx}
+  
   call CreateGatkDatabase{
     input:
       path_gatkDatabase = "my_database",
-      GVCFs             = HaplotypeCallerERC.GVCF,
-      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx,
+      GVCFs             = vcfs["vcf"],
+      GVCFs_idx         = vcfs["idx"],
       ref               = references.ref_fasta
   }
 
@@ -149,7 +151,7 @@ task CreateGatkDatabase {
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
         -L interval.list \
         -V ~{sep=" -V "  GVCFs} \
-        --read-index ~{sep=" --read-index" GVCFs_idx}
+        --read-index ~{sep=" " GVCFs_idx}
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
 
