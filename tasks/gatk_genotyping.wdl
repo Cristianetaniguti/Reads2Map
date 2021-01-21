@@ -147,11 +147,15 @@ task CreateGatkDatabase {
      grep ">" ~{ref} > interval_list_temp
      sed 's/^.//' interval_list_temp > interval.list
 
+     # Lucas, olha aqui!
+
+     /gatk/gatk IndexFeatureFile \
+        -F ~{sep=" -F " GVCFs}
+
      /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
         -L interval.list \
-        -V ~{sep=" -V "  GVCFs} \
-        --read-index ~{sep=" " GVCFs_idx}
+        -V ~{sep=" -V "  GVCFs} 
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
 

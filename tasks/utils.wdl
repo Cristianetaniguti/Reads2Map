@@ -47,6 +47,7 @@ task BamCounts {
 
     for file in ~{sep= " " bam}; do
 
+      samtools index $file 
       sample=`basename -s .1.fq $file`
       echo $sample
 
