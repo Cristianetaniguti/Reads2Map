@@ -28,7 +28,7 @@
     "insert_size":"350",
     "depth": "5",
     "depth_parents":"40",
-    "ref_map": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/ref.map.Chr10.taniguti.csv",
+    "ref_map": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/ref.map.chr10.taniguti.csv",
     "multiallelics": "yes",
     "vcf_parent1": "PT_F",
     "vcf_parent2": "PT_M"

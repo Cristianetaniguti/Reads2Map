@@ -10,7 +10,7 @@
     "multiallelics": "yes"
   },
   "Maps.gatk_vcf_bam_counts": "/home/cristiane/data/euc_VCFs/gatk_bam_vcf.vcf",
-  "Maps.max_cores": "15",
+  "Maps.max_cores": "5",
   "Maps.gatk_multi": "/home/cristiane/data/euc_VCFs/gatk_multi.recode.vcf.gz",
   "Maps.filters": "--chr Chr10 --maf 0.05 --max-missing 0.75",
   "Maps.gatk_vcf": "/home/cristiane/data/euc_VCFs/gatk_bi.recode.vcf.gz",

@@ -1,5 +1,5 @@
 {
-  "SimulatedReads.number_of_families": 3,
+  "SimulatedReads.number_of_families": 1,
   "SimulatedReads.family": {
     "seed": 5050,
     "popsize": 400,
@@ -7,18 +7,18 @@
     "cross": "F1"
   },
   "SimulatedReads.references": {
-    "ref_fasta": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa",
-    "ref_dict": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.dict",
-    "ref_ann": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa.ann",
-    "ref_sa": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa.sa",
-    "ref_amb": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa.amb",
-    "ref_bwt": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa.bwt",
-    "ref_fasta_index": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa.fai",
-    "ref_pac": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/Chr10.populus.fa.pac"
+    "ref_fasta": "/home/cristiane/data/populus/Chr10.populus.fa",
+    "ref_dict": "/home/cristiane/data/populus/Chr10.populus.dict",
+    "ref_ann": "/home/cristiane/data/populus/Chr10.populus.fa.ann",
+    "ref_sa": "/home/cristiane/data/populus/Chr10.populus.fa.sa",
+    "ref_amb": "/home/cristiane/data/populus/Chr10.populus.fa.amb",
+    "ref_bwt": "/home/cristiane/data/populus/Chr10.populus.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/data/populus/Chr10.populus.fa.fai",
+    "ref_pac": "/home/cristiane/data/populus/Chr10.populus.fa.pac"
   },
   "SimulatedReads.global_seed": 8000, 
   "SimulatedReads.sequencing": {
-    "emp_vcf": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/gatk_maxmissing0.3maf0.05Chr10.recode.vcf",
+    "emp_vcf": "/home/cristiane/data/populus/gatk_maxmissing0.3maf0.05Chr10.recode.vcf",
     "enzyme1": "HinDIII",
     "enzyme2": "NlaIII",
     "library_type": "ddRAD",
@@ -28,11 +28,11 @@
     "insert_size":"350",
     "depth": "5",
     "depth_parents":"40",
-    "ref_map": "/data1/aafgarci/cris/simulations/onemap_workflows/data/populus/ref.map.Chr10.taniguti.csv",
+    "ref_map": "/home/cristiane/data/populus/ref.map.chr10.taniguti.csv",
     "multiallelics": "yes",
     "vcf_parent1": "PT_F",
     "vcf_parent2": "PT_M"
   },
-  "SimulatedReads.max_cores": "20",
+  "SimulatedReads.max_cores": "4",
   "SimulatedReads.ReadSimulations.filters": "--maf 0.05 --max-missing 0.75"
 }

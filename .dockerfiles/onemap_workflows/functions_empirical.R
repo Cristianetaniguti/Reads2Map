@@ -8,7 +8,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
     input.seq <- make_seq(input.seq$twopt, input.seq$seq.num[order(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))])
   } 
   
-  if(length(input.seq$seq.num) > 60){
+  if(length(input.seq$seq.num) > 80){
     size <- round(length(input.seq$seq.num)/4,0)
     overlap <- 20
     around <- 5
@@ -188,31 +188,49 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.25,
                                  BIN = 0, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=500))
-    
+  
+  # Suggested in vignette
+  #mydata$rf_2pt(nClust=1)
+  #mydata$createLG()
+  #mydata$computeMap(mapped = FALSE, inferOPGP = F) Error
+  
   pos <- mydata$.__enclos_env__$private$pos
   depth_Ref_m <- mydata$.__enclos_env__$private$ref[[1]]
   depth_Alt_m <- mydata$.__enclos_env__$private$alt[[1]]
-  
-  depth_Ref <- list(depth_Ref_m)
-  depth_Alt <- list(depth_Alt_m)
   config <- mydata$.__enclos_env__$private$config[[1]]
+  # If there are inferred config
+  infer <- which(is.na(config))
+  if(length(infer) > 0)
+    config[infer] <- mydata$.__enclos_env__$private$config_infer[[1]][infer]
   
-  # Up to version 2.0.0 the NA were removed automatically
-  # rm_na <- which(is.na(config))
-  # config <- config[-rm_na]
-  # depth_Ref_m <- depth_Ref_m[,-rm_na]
-  # depth_Alt_m <- depth_Alt_m[,-rm_na]
-  
-  time_par1 <- system.time(phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
-                                       config, epsilon=0.001, reltol=1e-3))
-  
-  time_par2 <- system.time(rf_est <- GUSMap:::rf_est_FS(init_r = 0.01, ep = 0.001, 
-                               ref = depth_Ref, 
-                               alt = depth_Alt, 
-                               OPGP=list(as.integer(phases.gus)),
-                               nThreads = 4))
+  # Automatically remove markers with pos = inf
+  time_par <- system.time({
+    inf.mk <- 0
+    rast.pos <- pos
+    while(length(inf.mk) > 0){
+      depth_Ref <- list(depth_Ref_m)
+      depth_Alt <- list(depth_Alt_m)
+      
+      phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
+                                           config, ep=0.001, reltol=1e-3)
+      
+      rf_est <- GUSMap:::rf_est_FS(init_r = 0.01, ep = 0.001, 
+                                   ref = depth_Ref, 
+                                   alt = depth_Alt, 
+                                   OPGP=list(as.integer(phases.gus)),
+                                   nThreads = 1)
+      
+      # Remove Inf markers
+      inf.mk <- which(is.infinite(haldane(rf_est$rf)))
+      if(length(inf.mk) > 0){
+        depth_Ref_m <- depth_Ref_m[,-inf.mk]
+        depth_Alt_m <- depth_Alt_m[,-inf.mk]
+        config <- config[-inf.mk]
+        rast.pos <- rast.pos[-inf.mk]
+      }
+    }
+  })
 
-  time_par <- time_par1 + time_par2
   times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
   
   #rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
@@ -229,7 +247,7 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   config[which(config==1)] <- "B3.7"
   config[which(config==2 | config==3)] <- "D1.10"
   config[which(config==4 | config==5)] <- "D2.15"
-
+  
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
   map_out <- mydata
   save(map_out, file = paste0("map_", file.name,".RData"))
@@ -238,8 +256,8 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   map_info <- data.frame("CountsFrom" = CountsFrom,
                          "SNPCall"= SNPCall,
                          "GenoCall" = GenoCall,
-                         "mks"= mydata$.__enclos_env__$private$SNP_Names,
-                         "pos" = pos,
+                         "mks"= mydata$.__enclos_env__$private$SNP_Names[which(pos%in%rast.pos)],
+                         "pos" = rast.pos,
                          "rf" = dist.gus,
                          "type"= config,
                          "phases"= phases.gus)
