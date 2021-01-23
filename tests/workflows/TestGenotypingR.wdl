@@ -1,6 +1,5 @@
 version 1.0
 
-import "simulated_map.wdl" as simulated_map
 import "utilsR.wdl" as utilsR
 import "default_maps.wdl" as default
 import "snpcaller_maps.wdl" as snpcaller
@@ -26,10 +25,13 @@ workflow TestGenotypingR {
         Int max_cores
     }
 
-    call simulated_map.SimulatedMap {
-        input:
-        vcf_simu = true_vcf,
-        cross = cross
+    call utilsR.vcf2onemap as truth_vcf {
+      input:
+        vcf_file = true_vcf,
+        cross = cross,
+        SNPCall_program = "simu",
+        parent1 = "P1",
+        parent2 = "P2"
     }
 
     call utilsR.vcf2onemap {
@@ -55,7 +57,7 @@ workflow TestGenotypingR {
     call default.DefaultMaps {
       input:
         onemap_obj = vcf2onemap.onemap_obj,
-        simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+        simu_onemap_obj = truth_vcf.onemap_obj,
         ref_alt_alleles = ref_alt_alleles,
         simulated_phases = simulated_phases,
         SNPCall_program = method,
@@ -65,7 +67,7 @@ workflow TestGenotypingR {
 
     call snpcaller.SNPCallerMaps {
       input:
-        simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+        simu_onemap_obj = truth_vcf.onemap_obj,
         onemap_obj = vcf2onemap.onemap_obj,
         vcf_file = analysis_vcf,
         ref_alt_alleles = ref_alt_alleles,
@@ -82,7 +84,7 @@ workflow TestGenotypingR {
     scatter (origin in ["vcf", "bam"]){
         call genotyping.SnpBasedGenotypingSimulatedMaps as UpdogMaps {
           input:
-            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            simu_onemap_obj = truth_vcf.onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "updog",
@@ -97,7 +99,7 @@ workflow TestGenotypingR {
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
           input:
-            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            simu_onemap_obj = truth_vcf.onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "supermassa",
@@ -112,7 +114,7 @@ workflow TestGenotypingR {
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
           input:
-            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            simu_onemap_obj = truth_vcf.onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "polyrad",
@@ -128,7 +130,7 @@ workflow TestGenotypingR {
 
       call gusmap.GusmapMaps {
         input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+          simu_onemap_obj = truth_vcf.onemap_obj,
           vcf_file = analysis_vcf,
           new_vcf_file = analysis_bam,
           SNPCall_program = method,

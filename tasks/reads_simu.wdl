@@ -6,7 +6,6 @@ import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
-import "./simulated_map.wdl" as simulated_map
 import "./default_maps.wdl" as default
 import "./snpcaller_maps.wdl" as snpcaller
 import "./gusmap_maps.wdl" as gusmap
@@ -71,23 +70,27 @@ workflow reads_simu {
       depth            = sequencing.depth
   }
 
-  call simulated_map.SimulatedMap{
+  call utilsR.vcf2onemap as truth_vcf {
     input:
-      vcf_simu = CreateAlignmentFromSimulation.true_vcf,
-      cross = family.cross
+      vcf_file = CreateAlignmentFromSimulation.true_vcf,
+      cross = family.cross,
+      SNPCall_program = "simu",
+      parent1 = "P1",
+      parent2 = "P2"
   }
 
-    if (defined(filters)) {
-        call utils.ApplyRandomFilters {
-            input:
-                gatk_vcf = GatkGenotyping.vcf_bi,
-                freebayes_vcf = FreebayesGenotyping.vcf_bi,
-                gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
-                freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
-                filters = filters,
-                chromosome = sequencing.chromosome
-        }
-    }
+
+  if (defined(filters)) {
+      call utils.ApplyRandomFilters {
+          input:
+              gatk_vcf = GatkGenotyping.vcf_bi,
+              freebayes_vcf = FreebayesGenotyping.vcf_bi,
+              gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
+              freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
+              filters = filters,
+              chromosome = sequencing.chromosome
+      }
+  }
 
     File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_bi])
     File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_bi_bam_counts])
@@ -124,7 +127,7 @@ workflow reads_simu {
     call default.DefaultMaps {
       input:
         onemap_obj = vcf2onemap.onemap_obj,
-        simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+        simu_onemap_obj = truth_vcf.onemap_obj,
         ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
         simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         SNPCall_program = analysis.method,
@@ -134,7 +137,7 @@ workflow reads_simu {
 
     call snpcaller.SNPCallerMaps{
       input:
-        simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+        simu_onemap_obj = truth_vcf.onemap_obj,
         onemap_obj = vcf2onemap.onemap_obj,
         vcf_file = analysis.vcf,
         ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -151,7 +154,7 @@ workflow reads_simu {
     scatter (origin in ["vcf", "bam"]){
         call genotyping.SnpBasedGenotypingSimulatedMaps as UpdogMaps {
           input:
-            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            simu_onemap_obj = truth_vcf.onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "updog",
@@ -166,7 +169,7 @@ workflow reads_simu {
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
           input:
-            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            simu_onemap_obj = truth_vcf.onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "supermassa",
@@ -181,7 +184,7 @@ workflow reads_simu {
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
           input:
-            simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+            simu_onemap_obj = truth_vcf.onemap_obj,
             onemap_obj = vcf2onemap.onemap_obj,
             vcf_file = vcfs[origin],
             genotyping_program = "polyrad",
@@ -197,7 +200,7 @@ workflow reads_simu {
 
       call gusmap.GusmapMaps {
         input:
-          simu_onemap_obj = SimulatedMap.simu_onemap_obj,
+          simu_onemap_obj = truth_vcf.onemap_obj,
           vcf_file = analysis.vcf,
           new_vcf_file = analysis.bam,
           SNPCall_program = analysis.method,
