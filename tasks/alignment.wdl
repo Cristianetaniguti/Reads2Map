@@ -96,10 +96,7 @@ task RunBwaAlignmentSimu {
             O="${sample}.sorted.bam" \
             TMP_DIR=./tmp \
             SORT_ORDER=coordinate 
-
     done
-
-    
   >>>
 
   runtime {

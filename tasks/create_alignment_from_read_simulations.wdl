@@ -2,7 +2,7 @@ version 1.0
 
 import "../structs/reads_simuS.wdl"
 import "../structs/alignment_struct.wdl"
-import "alignment.wdl" as alg
+import "./alignment.wdl" as alg
 
 workflow CreateAlignmentFromSimulation {
     input {
@@ -118,7 +118,7 @@ workflow CreateAlignmentFromSimulation {
           simu_vcf       = ConvertPedigreeSimulationToVcf.simu_vcf,
           references     = references,
           pcr_cycles     = sequencing.pcr_cycles,
-          insert_size    = sequencing.insert_size,   
+          insert_size    = sequencing.insert_size,
           insert_size_dev = sequencing.insert_size_dev,
           read_length    = sequencing.read_length,
           library_type   = sequencing.library_type,
@@ -251,7 +251,7 @@ task CreatePedigreeSimulatorInputs {
       pos.map <- (ref_alt_alleles[,2]/1000000) * ~{cmBymb}
       map_file <- data.frame(marker=marker, chromosome=ref_alt_alleles[,1], position= pos.map)
       write.table(map_file, file = paste0("mapfile.txt"), quote = FALSE, col.names = TRUE, row.names = FALSE, sep = "\t")
-      
+
       ref_alt_alleles <- cbind(ref_alt_alleles, pos.map)
       write.table(ref_alt_alleles, file="ref_alt_alleles.txt")
 
@@ -324,10 +324,10 @@ task CreatePedigreeSimulatorInputs {
         colnames(founder_file) <- c("marker", paste0("P1_",1:ploidy), paste0("P2_",1:ploidy))
 
       } else if("~{cross}" == "F2"){
-        founder_file <- data.frame(marker=marker, 
-                                   P1_1=ref_alt_alleles[,3] , 
-                                   P1_2=ref_alt_alleles[,3], 
-                                   P2_1=ref_alt_alleles[,4], 
+        founder_file <- data.frame(marker=marker,
+                                   P1_1=ref_alt_alleles[,3] ,
+                                   P1_2=ref_alt_alleles[,3],
+                                   P2_1=ref_alt_alleles[,4],
                                    P2_2=ref_alt_alleles[,4]) # Only for diploids
       }
 
@@ -539,13 +539,13 @@ task Vcf2PedigreeSimulator{
     ref_map <- remove_outlier(ref_map, thr=0) # Remove inverted markers
 
     # PedigreeSim inputs
-    founderfile <- create_haplo(vcfR.obj = vcf, ref.map = ref_map, seed = ~{seed}, 
+    founderfile <- create_haplo(vcfR.obj = vcf, ref.map = ref_map, seed = ~{seed},
                                 P1 = "~{vcf_parent1}", P2= "~{vcf_parent2}")
 
     ## This function generates the mapfile and the ref_alt_alleles file
     mapfile <- create_mapfile(vcf, ref_map)
     create_parfile(~{seed}, ~{popsize})
-    create_chromfile(mapfile[[1]])  
+    create_chromfile(mapfile[[1]])
 
     ref_alt_alleles <- mapfile[[2]]
 
@@ -579,9 +579,9 @@ task Vcf2PedigreeSimulator{
 
 task SimuscopProfile{
   input {
-    String library_type          
-    File?  emp_bam     
-    File   vcf       
+    String library_type
+    File?  emp_bam
+    File   vcf
     Reference  references
   }
 
@@ -597,7 +597,7 @@ task SimuscopProfile{
 
       seqToProfile("~{emp_bam}", "bed_file", "~{vcf}",
              "~{references.ref_fasta}", "profile")
-      
+
     } else {
       seqToProfile("~{emp_bam}", vcf.file =  "~{vcf}",
              reference = "~{references.ref_fasta}",  out.profile = "sample.profile")
@@ -622,11 +622,11 @@ task SimuscopProfile{
 
 task SimuscopSimulation{
  input {
-    String library_type          
+    String library_type
     String sampleName
-    Int    depth    
-    File?   emp_bam     
-    File   vcf       
+    Int    depth
+    File?   emp_bam
+    File   vcf
     Reference   references
     String chrom
     File   profile
@@ -746,7 +746,7 @@ task RADinitioSimulation{
               --pcr-cycles ~{default="9" pcr_cycles} \
               --coverage ~{default="20" depth} \
               --read-length ~{default="150" read_length}
-    
+
     # parents
     radinitio --make-library-seq \
           --genome ~{references.ref_fasta} \

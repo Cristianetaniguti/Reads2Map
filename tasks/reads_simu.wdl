@@ -34,7 +34,7 @@ workflow reads_simu {
     input:
       sequencing = sequencing,
       references=references,
-      family=family,  
+      family=family,
       max_cores = max_cores
   }
 
@@ -259,7 +259,7 @@ workflow reads_simu {
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
-    File multi_names              = JointReports.multi_names
+    File multi_names              = JointReports.multi_names2
   }
 }
 
@@ -493,6 +493,6 @@ task JointReports{
     File data6_RDatas  = "data6_RDatas.llo"
     File data7_gusmap  = "gusmap_RDatas.RData"
     File data8_names   = "names.rds"
-    File multi_names   = "multi_names.RData"
+    File multi_names2   = "multi_names.RData"
   }
 }

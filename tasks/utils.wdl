@@ -47,15 +47,15 @@ task BamCounts {
 
     for file in ~{sep= " " bam}; do
 
-      samtools index $file 
-      sample=`basename -s .1.fq $file`
+      samtools index $file
+      sample=`basename -s .sorted.bam $file`
       echo $sample
 
       /gatk/gatk CollectAllelicCounts \
         --input $file \
         --reference ~{ref} \
         --intervals interval.list \
-        --output "$sample_~{program}_counts.tsv"
+        --output "${sample}_~{program}_counts.tsv"
 
     done
 
@@ -176,7 +176,7 @@ task CalculateVcfMetrics {
 
         R --vanilla --no-save <<RSCRIPT
 
-        # If variants are simulated by pirs, 
+        # If variants are simulated by pirs,
         # the metrics will be related to the total simulated not only the captured by RAD
         library(vcfR)
         freebayes <- read.vcfR("~{freebayesVCF}")
@@ -187,7 +187,7 @@ task CalculateVcfMetrics {
         simulated.ref <- snps[,3]
         simulated.alt <- snps[,4]
 
-        methods <- c("freebayes", "gatk") 
+        methods <- c("freebayes", "gatk")
         results_tot <- vector()
 
         for(i in methods){
@@ -204,8 +204,8 @@ task CalculateVcfMetrics {
           nmk.filt <- length(simulated.pos)
           nmk.id <- length(pos)
 
-          ok <- sum(simulated.pos %in% pos) 
-          falso.positivo <- sum(!(pos %in% simulated.pos)) 
+          ok <- sum(simulated.pos %in% pos)
+          falso.positivo <- sum(!(pos %in% simulated.pos))
           ref.ok <- sum(simulated.ref==ref[pos %in% simulated.pos])
           alt.ok <- sum(simulated.alt==alt[pos %in% simulated.pos])
 

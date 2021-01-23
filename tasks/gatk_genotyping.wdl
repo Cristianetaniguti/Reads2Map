@@ -26,7 +26,7 @@ workflow GatkGenotyping {
    }
 
   Map[String, Array[File]] vcfs = {"vcf": HaplotypeCallerERC.GVCF, "idx": HaplotypeCallerERC.GVCF_idx}
-  
+
   call CreateGatkDatabase{
     input:
       path_gatkDatabase = "my_database",
@@ -155,7 +155,7 @@ task CreateGatkDatabase {
      /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
         -L interval.list \
-        -V ~{sep=" -V "  GVCFs} 
+        -V ~{sep=" -V "  GVCFs}
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
 
