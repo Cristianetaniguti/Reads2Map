@@ -166,7 +166,7 @@ task GenerateAlternativeGenome {
     docker: "taniguti/pirs-ddrad-cutadapt"
     mem:"10GB"
     cpu:1
-    time:"48:00:00"
+    time:"10:00:00"
     job_name:"create_alternative"
   }
 
@@ -349,7 +349,7 @@ task CreatePedigreeSimulatorInputs {
     docker: "cristaniguti/r-samtools"
     mem:"20GB"
     cpu:1
-    time:"24:00:00"
+    time:"10:00:00"
     job_name:"pedsim_inputs"
   }
 
@@ -383,9 +383,9 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"5GB"
+    mem:"10GB"
     cpu:1
-    time:"14:00:00"
+    time:"05:00:00"
     job_name:"pedigreesim"
   }
 
@@ -446,9 +446,9 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"30GB"
+    mem:"50GB"
     cpu:1
-    time:"30:00:00"
+    time:"24:00:00"
     job_name:"pedsim2vcf"
   }
 
@@ -475,7 +475,7 @@ task RunVcf2diploid {
     docker: "taniguti/java-in-the-cloud"
     mem:"30GB"
     cpu:1
-    time:"24:00:00"
+    time:"10:00:00"
     job_name:"vcf2diploid"
   }
 
@@ -568,7 +568,7 @@ task Vcf2PedigreeSimulator{
       docker: "cristaniguti/r-samtools"
       mem:"30GB"
       cpu:1
-      time:"24:00:00"
+      time:"05:00:00"
       job_name:"vcf2pedigreesim"
   }
 
@@ -617,7 +617,7 @@ task SimuscopProfile{
     docker: "cristaniguti/simuscopr"
     mem:"30GB"
     cpu:1
-    time:"24:00:00"
+    time:"10:00:00"
     job_name:"wgs_profile"
   }
 
@@ -681,7 +681,7 @@ task SimuscopSimulation{
     docker: "cristaniguti/simuscopr"
     mem:"40GB"
     cpu:1
-    time:"24:00:00"
+    time:"05:00:00"
     job_name:"wgs_simu"
    }
 
@@ -777,7 +777,7 @@ task RADinitioSimulation{
 
   runtime{
     docker: "cristaniguti/radinitio"
-    mem:"40GB"
+    mem:"80GB"
     cpu:1
     time:"24:00:00"
     job_name:"rad_simu"
