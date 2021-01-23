@@ -12,6 +12,7 @@ import "split_filt_vcf.wdl" as norm_filt
 workflow FreebayesGenotyping {
   input {
     Array[File] bam
+    Array[File] bai
     Reference references
     String parent1
     String parent2
@@ -26,6 +27,7 @@ workflow FreebayesGenotyping {
       reference=references.ref_fasta,
       reference_idx=references.ref_fasta_index,
       bam=bam,
+      bai=bai,
       max_cores = max_cores
   }
 
@@ -83,6 +85,7 @@ task RunFreebayes {
     File reference
     File reference_idx
     Array[File] bam
+    Array[File] bai
     Int max_cores
   }
 
@@ -92,8 +95,11 @@ task RunFreebayes {
    export PATH="/freebayes/scripts:${PATH}"
    export PATH="/freebayes/vcflib/scripts:${PATH}"
 
+   ln -sf ~{sep=" " bam} .
+   ln -sf ~{sep=" " bai} .
+
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
-   --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
+   --genotype-qualities -f ~{reference}  *.bam > "freebayes.vcf"
 
   >>>
 

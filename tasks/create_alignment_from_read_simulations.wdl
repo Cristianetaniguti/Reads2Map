@@ -139,6 +139,7 @@ workflow CreateAlignmentFromSimulation {
 
   output {
       Array[File] bam = RunBwaAlignmentSimu.bam
+      Array[File] bai = RunBwaAlignmentSimu.bai
       File ref_alt_alleles = ref_alt_alleles_sele
       Array[String] names = GenerateSampleNames.names
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
@@ -417,11 +418,16 @@ task ConvertPedigreeSimulationToVcf {
     chr <- mks[,1]
 
     pedsim2vcf(inputfile = "~{genotypes_dat}",
-      map.file = "~{map_file}",
-      chrom.file = "~{chrom_file}",
-      out.file = "~{seed}_~{depth}_simu.vcf",
-      miss.perc = 0, counts = FALSE,pos = pos, haplo.ref = "P1_1",
-      chr = chr, phase = TRUE)
+               map.file = "~{map_file}",
+               chrom.file = "~{chrom_file}",
+               out.file = "~{seed}_~{depth}_simu.vcf",
+               miss.perc = 0, 
+               counts = FALSE,
+               pos = pos, 
+               haplo.ref = "P1_1",
+               chr = chr, 
+               phase = TRUE,
+               use.as.alleles=TRUE)
 
     vcfR.object <- read.vcfR("~{seed}_~{depth}_simu.vcf")
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]

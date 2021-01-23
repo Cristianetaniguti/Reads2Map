@@ -52,6 +52,7 @@ workflow reads_simu {
   call freebayes.FreebayesGenotyping {
     input:
       bam=CreateAlignmentFromSimulation.bam,
+      bai=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
       parent1 = "P1",

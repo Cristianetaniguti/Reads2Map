@@ -152,7 +152,7 @@ task VcftoolsApplyFilters {
     docker: "taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
-    time:"24:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -256,7 +256,7 @@ task CalculateVcfMetrics {
     docker: "cristaniguti/onemap_workflows"
     mem:"--nodes=1"
     cpu:1
-    time:"24:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -335,7 +335,7 @@ task BamCounts4Onemap{
     docker:"cristaniguti/onemap_workflows"
     mem:"--nodes=1"
     cpu:1
-    time:"48:00:00"
+    time:"01:00:00"
   }
 
   output{
@@ -369,7 +369,7 @@ task ApplyRandomFilters{
     docker:"taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
-    time:"24:00:00"
+    time:"00:30:00"
   }
 
   output{
@@ -415,7 +415,7 @@ task FiltChr {
     docker:"taniguti/vcftools"
     mem:"--nodes=1"
     cpu:1
-    time:"24:00:00"
+    time:"00:30:00"
   }
 
   output {

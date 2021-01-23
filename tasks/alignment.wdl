@@ -95,7 +95,8 @@ task RunBwaAlignmentSimu {
             I=/dev/stdin \
             O="${sample}.sorted.bam" \
             TMP_DIR=./tmp \
-            SORT_ORDER=coordinate 
+            SORT_ORDER=coordinate \
+            CREATE_INDEX=true
     done
   >>>
 
@@ -109,6 +110,7 @@ task RunBwaAlignmentSimu {
 
   output {
     Array[File] bam = glob("*.sorted.bam")
+    Array[File] bai = glob("*.sorted.bai")
   }
 }
 
