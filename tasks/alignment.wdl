@@ -1,7 +1,7 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
-import "../structs/reference_struct.wdl"
+import "alignment_struct.wdl"
+import "reference_struct.wdl"
 
 # This task considers that is it possible to receive more than one fastq file by sample
 # It keeps the different libraries in the header and merges the bam files
@@ -82,7 +82,7 @@ task RunBwaAlignmentSimu {
     export PATH=$PATH:/picard.jar
 
     for file in ~{sep= " " reads}; do
-      
+
       sample=`basename -s .1.fq $file`
       echo $sample
 

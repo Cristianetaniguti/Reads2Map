@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
+import "alignment_struct.wdl"
 
 task TabixVcf {
   input {

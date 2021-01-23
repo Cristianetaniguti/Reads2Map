@@ -1,7 +1,7 @@
 version 1.0
 
-import "../structs/snpcalling_empS.wdl"
-import "../structs/reference_struct.wdl"
+import "snpcalling_empS.wdl"
+import "reference_struct.wdl"
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
 import "split_filt_vcf.wdl" as norm_filt
@@ -149,7 +149,7 @@ task CreateGatkDatabase {
 
      ln -sf ~{sep=" " GVCFs} .
      ln -sf ~{sep=" " GVCFs_idx} .
-     
+
      VCFS=$(echo *.g.vcf)
      VCFS=${VCFS// / -V }
 

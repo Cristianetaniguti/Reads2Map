@@ -1,6 +1,6 @@
 version 1.0
 
-import "./tasks/reads_simu.wdl" as sub
+import "reads_simu.wdl" as sub
 
 workflow SimulatedReads {
 

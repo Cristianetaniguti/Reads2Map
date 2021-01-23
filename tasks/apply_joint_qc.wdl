@@ -1,7 +1,7 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
-import "./utils.wdl" as utils
+import "alignment_struct.wdl"
+import "utils.wdl" as utils
 
 
 workflow ApplyJointQC {

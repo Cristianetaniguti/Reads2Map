@@ -3,7 +3,7 @@ version 1.0
 import "./utilsR.wdl" as utilsR
 
 workflow SimulatedMap{
-  input{
+  input {
     File vcf_simu
     String cross
   }
@@ -17,7 +17,7 @@ workflow SimulatedMap{
       parent2 = "P2"
   }
 
-  output{
+  output {
     File simu_onemap_obj = vcf2onemap.onemap_obj
   }
 }

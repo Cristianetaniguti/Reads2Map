@@ -1,8 +1,8 @@
 version 1.0
 
-import "../structs/reads_simuS.wdl"
-import "../structs/alignment_struct.wdl"
-import "./alignment.wdl" as alg
+import "reads_simuS.wdl"
+import "alignment_struct.wdl"
+import "alignment.wdl" as alg
 
 workflow CreateAlignmentFromSimulation {
     input {
@@ -421,11 +421,11 @@ task ConvertPedigreeSimulationToVcf {
                map.file = "~{map_file}",
                chrom.file = "~{chrom_file}",
                out.file = "~{seed}_~{depth}_simu.vcf",
-               miss.perc = 0, 
+               miss.perc = 0,
                counts = FALSE,
-               pos = pos, 
+               pos = pos,
                haplo.ref = "P1_1",
-               chr = chr, 
+               chr = chr,
                phase = TRUE,
                use.as.alleles=TRUE)
 

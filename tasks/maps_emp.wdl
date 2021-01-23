@@ -1,14 +1,14 @@
 version 1.0
 
-import "structs/maps_empS.wdl"
+import "maps_empS.wdl"
 
-import "tasks/default_maps_emp.wdl" as default
-import "tasks/snpcaller_maps_emp.wdl" as snpcaller
-import "tasks/gusmap_maps_emp.wdl" as gusmap
-import "tasks/utils.wdl" as utils
-import "tasks/utilsR.wdl" as utilsR
+import "default_maps_emp.wdl" as default
+import "snpcaller_maps_emp.wdl" as snpcaller
+import "gusmap_maps_emp.wdl" as gusmap
+import "utils.wdl" as utils
+import "utilsR.wdl" as utilsR
 
-import "tasks/genotyping.wdl" as genotyping
+import "genotyping.wdl" as genotyping
 
 struct PopulationAnalysis {
     String method
@@ -72,7 +72,7 @@ workflow Maps {
                parent2 = dataset.parent2,
           }
         }
-        
+
         call default.DefaultMaps {
             input:
                 onemap_obj = vcf2onemap.onemap_obj,
