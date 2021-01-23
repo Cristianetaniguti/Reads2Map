@@ -99,8 +99,10 @@ task RunFreebayes {
    export PATH="/freebayes/scripts:${PATH}"
    export PATH="/freebayes/vcflib/scripts:${PATH}"
 
+   ln -sf ~{sep=" " bam} .
+
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
-   --genotype-qualities -f ~{reference}  ~{sep=" " bam} > "freebayes.vcf"
+   --genotype-qualities -f ~{reference}  *.bam > "freebayes.vcf"
 
   >>>
 

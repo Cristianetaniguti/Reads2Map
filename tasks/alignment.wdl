@@ -91,11 +91,11 @@ task RunBwaAlignmentSimu {
     bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} ~{read1} | \
         java -jar /picard.jar SortSam \
           I=/dev/stdin \
-          O="file.sorted.bam" \
+          O="$sample.sorted.bam" \
           TMP_DIR=./tmp \
           SORT_ORDER=coordinate \
           CREATE_INDEX=true;
-    mv "file.sorted.bai" "file.sorted.bam.bai";
+    mv "$sample.sorted.bai" "$sample.sorted.bam.bai";
 
     
   >>>
@@ -109,9 +109,9 @@ task RunBwaAlignmentSimu {
   }
 
   output {
-    Alignment algn = {"bam": "file.sorted.bam", "bai": "file.sorted.bam.bai", "sample": read_string("sample.txt")}
-    File bam = "file.sorted.bam"
-    File bai = "file.sorted.bam.bai"
+    Alignment algn = {"bam": "$sample.sorted.bam", "bai": "$sample.sorted.bam.bai", "sample": read_string("sample.txt")}
+    File bam = "$sample.sorted.bam"
+    File bai = "$sample.sorted.bam.bai"
   }
 }
 
