@@ -40,12 +40,12 @@ workflow reads_simu {
 
   call gatk.GatkGenotyping {
     input:
-      bam=CreateAlignmentFromSimulation.bam,
+      bams=CreateAlignmentFromSimulation.bam,
+      bais=CreateAlignmentFromSimulation.bai,
       references=references,
       program="gatk",
       parent1 = "P1",
       parent2 = "P2",
-      chrom = sequencing.chromosome,
       sampleNames = CreateAlignmentFromSimulation.names
   }
 

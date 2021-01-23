@@ -14,8 +14,8 @@ def test_read_simu(workflow_data, workflow_runner):
             "ref_fasta_index": workflow_data["ref_fasta_index"],
             "ref_pac": workflow_data["ref_pac"]
         },
-        "chrom": "Chr10",
-        "bam": [workflow_data["F1_01_bam"], workflow_data["F1_02_bam"], workflow_data["P1_bam"], workflow_data["P2_bam"]]
+        "bams": [workflow_data["F1_01_bam"], workflow_data["F1_02_bam"], workflow_data["P1_bam"], workflow_data["P2_bam"]],
+        "bais": [workflow_data["F1_01_bai"], workflow_data["F1_02_bai"], workflow_data["P1_bai"], workflow_data["P2_bai"]]
     }
 
     expected = {"vcf_bi": workflow_data["smallest_vcf_bi"]}

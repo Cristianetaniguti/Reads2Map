@@ -8,44 +8,27 @@ import "split_filt_vcf.wdl" as norm_filt
 
 workflow GatkGenotyping {
   input {
-    Array[File] bam
+    Array[File] bams
+    Array[File] bais
     Reference references
     String program
     String parent1
     String parent2
-    String chrom
     Array[String] sampleNames
   }
 
   call HaplotypeCallerERC {
      input:
-       ref        = references.ref_fasta,
-       geno_fai   = references.ref_fasta_index,
-       bam_rg     = bam,
-       geno_dict  = references.ref_dict
+       bams = bams,
+       bams_index = bais,
+       reference_fasta = references.ref_fasta,
+       reference_fai = references.ref_fasta_index,
+       reference_dict = references.ref_dict
    }
-
-  Map[String, Array[File]] vcfs = {"vcf": HaplotypeCallerERC.GVCF, "idx": HaplotypeCallerERC.GVCF_idx}
-
-  call CreateGatkDatabase{
-    input:
-      path_gatkDatabase = "my_database",
-      GVCFs             = vcfs["vcf"],
-      GVCFs_idx         = vcfs["idx"],
-      ref               = references.ref_fasta
-  }
-
-  call GenotypeGVCFs {
-    input:
-      workspace_tar = CreateGatkDatabase.workspace_tar,
-      fasta=references.ref_fasta,
-      fasta_fai=references.ref_fasta_index,
-      fasta_dict=references.ref_dict
-  }
 
   call norm_filt.SplitFiltVCF{
     input:
-      vcf_in=GenotypeGVCFs.vcf,
+      vcf_in=HaplotypeCallerERC.vcf,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
@@ -56,7 +39,7 @@ workflow GatkGenotyping {
   call utils.BamCounts {
     input:
       program=program,
-      bam=bam,
+      bam=bams,
       ref=references.ref_fasta,
       ref_fai=references.ref_fasta_index,
       ref_dict=references.ref_dict,
@@ -90,35 +73,46 @@ workflow GatkGenotyping {
   }
 }
 
-
+## Process all samples because it RAD experiments
+## usually do not have large ammount of reads (confirm?)
 task HaplotypeCallerERC {
   input {
-    File ref
-    File geno_fai
-    Array[File] bam_rg
-    File geno_dict
+    File reference_fasta
+    File reference_dict
+    File reference_fai
+    Array[File] bams
+    Array[File] bams_index
   }
 
   command <<<
+    set -euo pipefail
 
-    for bam in ~{sep= " " bam_rg}; do
-
-      samtools index $bam
-      sample=`basename -s .sorted.bam $bam`
-      echo $sample
-
+    mkdir vcfs
+    ## gvcf for each sample
+    for bam in ~{sep= " " bams}; do
+      out_name=$(basename $bam)
       /gatk/gatk HaplotypeCaller \
         -ERC GVCF \
-        -R ~{ref} \
+        -R ~{reference_fasta} \
         -I "$bam" \
-        -O "rawLikelihoods.g.vcf" \
+        -O "vcfs/${out_name}.rawLikelihoods.g.vcf.gz" \
         --max-reads-per-alignment-start 0
-
-      mv rawLikelihoods.g.vcf $sample.rawLikelihoods.g.vcf
-      mv rawLikelihoods.g.vcf.idx $sample.rawLikelihoods.g.vcf.idx
-
     done
 
+    grep ">" ~{reference_fasta} | sed 's/^.//' > interval.list
+    # Create string as " sample.vcf.gz -V sample2.vcf.gz -V ..."
+    vcfs=$(ls vcfs/*.vcf.gz | awk '{$1=$1}1' OFS=' -V ' RS='')
+    ## Combine into genomic database
+    /gatk/gatk GenomicsDBImport \
+        --genomicsdb-workspace-path gatk_database \
+        -L interval.list \
+        -V $vcfs
+
+    /gatk/gatk GenotypeGVCFs \
+        -R ~{reference_fasta} \
+        -O gatk.vcf.gz \
+        -G StandardAnnotation \
+        -V gendb://gatk_database
   >>>
 
   runtime {
@@ -129,82 +123,7 @@ task HaplotypeCallerERC {
   }
 
   output {
-    Array[File] GVCF = glob("*.rawLikelihoods.g.vcf")
-    Array[File] GVCF_idx = glob("*.rawLikelihoods.g.vcf.idx")
-  }
-}
-
-task CreateGatkDatabase {
-  input {
-    String path_gatkDatabase
-    Array[File] GVCFs
-    Array[File] GVCFs_idx
-    File ref
-  }
-
-  command <<<
-
-     grep ">" ~{ref} > interval_list_temp
-     sed 's/^.//' interval_list_temp > interval.list
-
-     ln -sf ~{sep=" " GVCFs} .
-     ln -sf ~{sep=" " GVCFs_idx} .
-
-     VCFS=$(echo *.g.vcf)
-     VCFS=${VCFS// / -V }
-
-     /gatk/gatk GenomicsDBImport \
-        --genomicsdb-workspace-path ~{path_gatkDatabase} \
-        -L interval.list \
-        -V $VCFS
-
-     tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
-
-  >>>
-
-  runtime {
-      docker: "taniguti/gatk-picard"
-      mem:"30GB"
-      cpu:1
-      time:"120:00:00"
-  }
-
-  output {
-      File workspace_tar = "${path_gatkDatabase}.tar"
-  }
-}
-
-# Variant calling on gVCF
-task GenotypeGVCFs {
-
-  input {
-    File workspace_tar
-    File fasta
-    File fasta_fai
-    File fasta_dict
-  }
-
-  command <<<
-    tar -xf ~{workspace_tar}
-    WORKSPACE=$( basename ~{workspace_tar} .tar)
-
-    /gatk/gatk GenotypeGVCFs \
-        -R ~{fasta} \
-        -O gatk.vcf.gz \
-        -G StandardAnnotation \
-        -V gendb://$WORKSPACE
-
-  >>>
-
-  runtime {
-    docker: "taniguti/gatk-picard"
-    mem:"30GB"
-    cpu:1
-    time:"120:00:00"
-  }
-
-  output {
     File vcf = "gatk.vcf.gz"
-    File tbi = "gatk.vcf.gz.tbi"
+    File vcf_index = "gatk.vcf.gz.tbi"
   }
 }

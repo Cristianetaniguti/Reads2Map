@@ -58,8 +58,8 @@ task BiallelicNormalization {
 }
 
 
-task SplitFilters{
-  input{
+task SplitFilters {
+  input {
     File vcf_in
     String program
     String parent1

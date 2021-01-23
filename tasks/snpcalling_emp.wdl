@@ -31,7 +31,6 @@ workflow SNPCalling {
       program="gatk",
       parent1 = splitvcf.parent1,
       parent2 = splitvcf.parent2,
-      chrom = splitvcf.chromosome,
       sampleNames = CreateAlignmentFromFamilies.names
   }
 
