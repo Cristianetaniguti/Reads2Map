@@ -29,10 +29,8 @@ task TabixVcf {
 
 task BamCounts {
   input {
-    String sample
     String program
-    File bam
-    File bai
+    Array[File] bam
     File ref
     File ref_fai
     File ref_dict
@@ -42,15 +40,24 @@ task BamCounts {
 
   command <<<
     set -e
+
     java -jar /gatk/picard.jar VcfToIntervalList \
       I=~{vcf} \
       O=interval.list
 
-    /gatk/gatk CollectAllelicCounts \
-      --input ~{bam} \
-      --reference ~{ref} \
-      --intervals interval.list \
-      --output "~{sample}_~{program}_counts.tsv"
+    for file in ~{sep= " " bam}; do
+
+      samtools index $file
+      sample=`basename -s .sorted.bam $file`
+      echo $sample
+
+      /gatk/gatk CollectAllelicCounts \
+        --input $file \
+        --reference ~{ref} \
+        --intervals interval.list \
+        --output "${sample}_~{program}_counts.tsv"
+
+    done
 
   >>>
 
@@ -62,7 +69,7 @@ task BamCounts {
   }
 
   output{
-    File counts = "~{sample}_~{program}_counts.tsv"
+    Array[File] counts = glob("*_~{program}_counts.tsv")
   }
 }
 
@@ -145,7 +152,7 @@ task VcftoolsApplyFilters {
     docker: "taniguti/vcftools"
     mem:"10GB"
     cpu:1
-    time:"24:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -169,7 +176,7 @@ task CalculateVcfMetrics {
 
         R --vanilla --no-save <<RSCRIPT
 
-        # If variants are simulated by pirs, 
+        # If variants are simulated by pirs,
         # the metrics will be related to the total simulated not only the captured by RAD
         library(vcfR)
         freebayes <- read.vcfR("~{freebayesVCF}")
@@ -180,7 +187,7 @@ task CalculateVcfMetrics {
         simulated.ref <- snps[,3]
         simulated.alt <- snps[,4]
 
-        methods <- c("freebayes", "gatk") 
+        methods <- c("freebayes", "gatk")
         results_tot <- vector()
 
         for(i in methods){
@@ -197,8 +204,8 @@ task CalculateVcfMetrics {
           nmk.filt <- length(simulated.pos)
           nmk.id <- length(pos)
 
-          ok <- sum(simulated.pos %in% pos) 
-          falso.positivo <- sum(!(pos %in% simulated.pos)) 
+          ok <- sum(simulated.pos %in% pos)
+          falso.positivo <- sum(!(pos %in% simulated.pos))
           ref.ok <- sum(simulated.ref==ref[pos %in% simulated.pos])
           alt.ok <- sum(simulated.alt==alt[pos %in% simulated.pos])
 
@@ -249,7 +256,7 @@ task CalculateVcfMetrics {
     docker: "cristaniguti/onemap_workflows"
     mem:"30GB"
     cpu:1
-    time:"24:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -328,7 +335,7 @@ task BamCounts4Onemap{
     docker:"cristaniguti/onemap_workflows"
     mem:"30GB"
     cpu:1
-    time:"48:00:00"
+    time:"01:00:00"
   }
 
   output{
@@ -362,7 +369,7 @@ task ApplyRandomFilters{
     docker:"taniguti/vcftools"
     mem:"20GB"
     cpu:1
-    time:"24:00:00"
+    time:"00:30:00"
   }
 
   output{
@@ -408,7 +415,7 @@ task FiltChr {
     docker:"taniguti/vcftools"
     mem:"20GB"
     cpu:1
-    time:"24:00:00"
+    time:"00:30:00"
   }
 
   output {

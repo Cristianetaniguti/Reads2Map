@@ -34,13 +34,13 @@ workflow reads_simu {
     input:
       sequencing = sequencing,
       references=references,
-      family=family,  
+      family=family,
       max_cores = max_cores
   }
 
   call gatk.GatkGenotyping {
     input:
-      alignments=CreateAlignmentFromSimulation.alignments,
+      bam=CreateAlignmentFromSimulation.bam,
       references=references,
       program="gatk",
       parent1 = "P1",
@@ -51,7 +51,6 @@ workflow reads_simu {
 
   call freebayes.FreebayesGenotyping {
     input:
-      alignments=CreateAlignmentFromSimulation.alignments,
       bam=CreateAlignmentFromSimulation.bam,
       bai=CreateAlignmentFromSimulation.bai,
       references=references,
@@ -261,7 +260,7 @@ workflow reads_simu {
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
-    File multi_names              = JointReports.multi_names
+    File multi_names              = JointReports.multi_names2
   }
 }
 
@@ -495,6 +494,6 @@ task JointReports{
     File data6_RDatas  = "data6_RDatas.llo"
     File data7_gusmap  = "gusmap_RDatas.RData"
     File data8_names   = "names.rds"
-    File multi_names   = "multi_names.RData"
+    File multi_names2   = "multi_names.RData"
   }
 }

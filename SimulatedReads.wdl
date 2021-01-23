@@ -47,7 +47,7 @@ workflow SimulatedReads {
     }
   }
 
-  call JointTables{
+  call JointTables {
     input:
       data1=ReadSimulations.data1_depths_geno_prob,
       data2=ReadSimulations.data2_maps,

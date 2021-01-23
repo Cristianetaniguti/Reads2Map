@@ -8,7 +8,7 @@ import "split_filt_vcf.wdl" as norm_filt
 
 workflow GatkGenotyping {
   input {
-    Array[Alignment] alignments
+    Array[File] bam
     Reference references
     String program
     String parent1
@@ -17,23 +17,21 @@ workflow GatkGenotyping {
     Array[String] sampleNames
   }
 
-  scatter (alignment in alignments) {
-    call HaplotypeCallerERC {
-      input:
-        ref        = references.ref_fasta,
-        geno_fai   = references.ref_fasta_index,
-        sampleName = alignment.sample,
-        bam_rg     = alignment.bam,
-        bam_rg_idx = alignment.bai,
-        geno_dict  = references.ref_dict
-    }
-  }
+  call HaplotypeCallerERC {
+     input:
+       ref        = references.ref_fasta,
+       geno_fai   = references.ref_fasta_index,
+       bam_rg     = bam,
+       geno_dict  = references.ref_dict
+   }
+
+  Map[String, Array[File]] vcfs = {"vcf": HaplotypeCallerERC.GVCF, "idx": HaplotypeCallerERC.GVCF_idx}
 
   call CreateGatkDatabase{
     input:
       path_gatkDatabase = "my_database",
-      GVCFs             = HaplotypeCallerERC.GVCF,
-      GVCFs_idx         = HaplotypeCallerERC.GVCF_idx,
+      GVCFs             = vcfs["vcf"],
+      GVCFs_idx         = vcfs["idx"],
       ref               = references.ref_fasta
   }
 
@@ -55,19 +53,15 @@ workflow GatkGenotyping {
       parent2 = parent2
   }
 
-  scatter (alignment in alignments) {
-    call utils.BamCounts {
-      input:
-        sample=alignment.sample,
-        program=program,
-        bam=alignment.bam,
-        bai=alignment.bai,
-        ref=references.ref_fasta,
-        ref_fai=references.ref_fasta_index,
-        ref_dict=references.ref_dict,
-        vcf=SplitFiltVCF.vcf_bi,
-        tbi=SplitFiltVCF.vcf_bi_tbi
-    }
+  call utils.BamCounts {
+    input:
+      program=program,
+      bam=bam,
+      ref=references.ref_fasta,
+      ref_fai=references.ref_fasta_index,
+      ref_dict=references.ref_dict,
+      vcf=SplitFiltVCF.vcf_bi,
+      tbi=SplitFiltVCF.vcf_bi_tbi
   }
 
   call utils.BamCounts4Onemap {
@@ -101,19 +95,29 @@ task HaplotypeCallerERC {
   input {
     File ref
     File geno_fai
-    String sampleName
-    File bam_rg
-    File bam_rg_idx
+    Array[File] bam_rg
     File geno_dict
   }
 
   command <<<
-    /gatk/gatk HaplotypeCaller \
-      -ERC GVCF \
-      -R ~{ref} \
-      -I ~{bam_rg} \
-      -O ~{sampleName}_rawLikelihoods.g.vcf \
-      --max-reads-per-alignment-start 0
+
+    for bam in ~{sep= " " bam_rg}; do
+
+      samtools index $bam
+      sample=`basename -s .sorted.bam $bam`
+      echo $sample
+
+      /gatk/gatk HaplotypeCaller \
+        -ERC GVCF \
+        -R ~{ref} \
+        -I "$bam" \
+        -O "rawLikelihoods.g.vcf" \
+        --max-reads-per-alignment-start 0
+
+      mv rawLikelihoods.g.vcf $sample.rawLikelihoods.g.vcf
+      mv rawLikelihoods.g.vcf.idx $sample.rawLikelihoods.g.vcf.idx
+
+    done
 
   >>>
 
@@ -125,8 +129,8 @@ task HaplotypeCallerERC {
   }
 
   output {
-    File GVCF = "${sampleName}_rawLikelihoods.g.vcf"
-    File GVCF_idx = "${sampleName}_rawLikelihoods.g.vcf.idx"
+    Array[File] GVCF = glob("*.rawLikelihoods.g.vcf")
+    Array[File] GVCF_idx = glob("*.rawLikelihoods.g.vcf.idx")
   }
 }
 
@@ -143,10 +147,16 @@ task CreateGatkDatabase {
      grep ">" ~{ref} > interval_list_temp
      sed 's/^.//' interval_list_temp > interval.list
 
+     ln -sf ~{sep=" " GVCFs} .
+     ln -sf ~{sep=" " GVCFs_idx} .
+     
+     VCFS=$(echo *.g.vcf)
+     VCFS=${VCFS// / -V }
+
      /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path ~{path_gatkDatabase} \
         -L interval.list \
-        -V ~{sep=" -V "  GVCFs}
+        -V $VCFS
 
      tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
 
