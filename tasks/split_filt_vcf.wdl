@@ -27,9 +27,9 @@ workflow SplitFiltVCF{
 
 
   output {
-    File vcf_bi = SplitFilters.vcf_bi
-    File vcf_bi_tbi = SplitFilters.vcf_bi_tbi
-    File vcf_multi = SplitFilters.vcf_multi
+    File vcf_biallelics = SplitFilters.vcf_biallelics
+    File vcf_biallelics_tbi = SplitFilters.vcf_biallelics_tbi
+    File vcf_multiallelics = SplitFilters.vcf_multiallelics
   }
 }
 
@@ -82,6 +82,7 @@ task SplitFilters {
     bgzip ~{program}_multi.recode.vcf
     bgzip ~{program}_bi.recode.vcf
     tabix -p vcf ~{program}_bi.recode.vcf.gz
+    tabix -p vcf ~{program}_multi.recode.vcf.gz
 
   >>>
 
@@ -93,9 +94,10 @@ task SplitFilters {
   }
 
   output {
-    File vcf_multi = "~{program}_multi.recode.vcf.gz"
-    File vcf_bi = "~{program}_bi.recode.vcf.gz"
-    File vcf_bi_tbi = "~{program}_bi.recode.vcf.gz.tbi"
+    File vcf_multiallelics = "~{program}_multi.recode.vcf.gz"
+    File vcf_multiallelics_tbi = "~{program}_multi.recode.vcf.gz.tbi"
+    File vcf_biallelics = "~{program}_bi.recode.vcf.gz"
+    File vcf_biallelics_tbi = "~{program}_bi.recode.vcf.gz.tbi"
   }
 }
 

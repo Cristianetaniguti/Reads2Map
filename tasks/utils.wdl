@@ -27,10 +27,11 @@ task TabixVcf {
 }
 
 
-task BamCounts {
+task CollectAllelicCounts {
   input {
     String program
-    Array[File] bam
+    Array[File] bams
+    Array[File] bams_index
     File ref
     File ref_fai
     File ref_dict
@@ -45,18 +46,16 @@ task BamCounts {
       I=~{vcf} \
       O=interval.list
 
-    for file in ~{sep= " " bam}; do
-
-      samtools index $file
-      sample=`basename -s .sorted.bam $file`
-      echo $sample
-
+    mkdir links
+    for bam in ~{sep=" " bams}; do ln -s $bam links/; done
+    for bai in ~{sep=" " bams_index}; do ln -s $bai links/; done
+    for bam in links/*.bam; do
+      name=$(basename -s ".sorted.bam" "$bam")
       /gatk/gatk CollectAllelicCounts \
-        --input $file \
+        --input "$bam" \
         --reference ~{ref} \
         --intervals interval.list \
-        --output "${sample}_~{program}_counts.tsv"
-
+        --output "${name}_~{program}_counts.tsv"
     done
 
   >>>

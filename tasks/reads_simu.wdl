@@ -45,26 +45,25 @@ workflow reads_simu {
       program="gatk",
       parent1 = "P1",
       parent2 = "P2",
-      sampleNames = CreateAlignmentFromSimulation.names
+      sample_names = CreateAlignmentFromSimulation.names
   }
 
   call freebayes.FreebayesGenotyping {
     input:
-      bam=CreateAlignmentFromSimulation.bam,
-      bai=CreateAlignmentFromSimulation.bai,
+      bams=CreateAlignmentFromSimulation.bam,
+      bais=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
       parent1 = "P1",
       parent2 = "P2",
-      chrom = sequencing.chromosome,
-      sampleNames = CreateAlignmentFromSimulation.names,
+      sample_names = CreateAlignmentFromSimulation.names,
       max_cores = max_cores
   }
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF     = FreebayesGenotyping.vcf_bi,
-      gatkVCF          = GatkGenotyping.vcf_bi,
+      freebayesVCF     = FreebayesGenotyping.vcf_biallelics,
+      gatkVCF          = GatkGenotyping.vcf_biallelics,
       ref_alt_alleles  = CreateAlignmentFromSimulation.ref_alt_alleles,
       seed             = family.seed,
       depth            = sequencing.depth
@@ -83,28 +82,28 @@ workflow reads_simu {
   if (defined(filters)) {
       call utils.ApplyRandomFilters {
           input:
-              gatk_vcf = GatkGenotyping.vcf_bi,
-              freebayes_vcf = FreebayesGenotyping.vcf_bi,
-              gatk_vcf_bam_counts = GatkGenotyping.vcf_bi_bam_counts,
-              freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_bi_bam_counts,
+              gatk_vcf = GatkGenotyping.vcf_biallelics,
+              freebayes_vcf = FreebayesGenotyping.vcf_biallelics,
+              gatk_vcf_bam_counts = GatkGenotyping.vcf_biallelics_bamcounts,
+              freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_biallelics_bamcounts,
               filters = filters,
               chromosome = sequencing.chromosome
       }
   }
 
-    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_bi])
-    File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_bi_bam_counts])
-    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_bi])
-    File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_bi_bam_counts])
+    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_biallelics])
+    File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_biallelics_bamcounts])
+    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_biallelics])
+    File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_biallelics_bamcounts])
 
 
-    PopulationAnalysis gatk_processing = {"multi":GatkGenotyping.vcf_multi, "method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"multi":FreebayesGenotyping.vcf_multi, "method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"multi": GatkGenotyping.vcf_multiallelics, "method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"multi": FreebayesGenotyping.vcf_multiallelics, "method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
 
   scatter (analysis in [gatk_processing, freebayes_processing]){
 
-    call utilsR.vcf2onemap{
+    call utilsR.vcf2onemap {
       input:
         vcf_file = analysis.vcf,
         cross = family.cross,

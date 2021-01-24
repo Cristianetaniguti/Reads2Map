@@ -2,9 +2,9 @@ version 1.0
 
 import "snpcalling_empS.wdl"
 import "reference_struct.wdl"
-import "./utils.wdl" as utils
-import "./utilsR.wdl" as utilsR
 import "split_filt_vcf.wdl" as norm_filt
+import "CollectAllelicCounts.wdl" as counts
+
 
 workflow GatkGenotyping {
   input {
@@ -14,7 +14,7 @@ workflow GatkGenotyping {
     String program
     String parent1
     String parent2
-    Array[String] sampleNames
+    Array[String] sample_names
   }
 
   call HaplotypeCallerERC {
@@ -26,7 +26,7 @@ workflow GatkGenotyping {
        reference_dict = references.ref_dict
    }
 
-  call norm_filt.SplitFiltVCF{
+  call norm_filt.SplitFiltVCF {
     input:
       vcf_in=HaplotypeCallerERC.vcf,
       program=program,
@@ -36,40 +36,24 @@ workflow GatkGenotyping {
       parent2 = parent2
   }
 
-  call utils.BamCounts {
+  call counts.CollectAllelicCountsToVcf {
     input:
       program=program,
-      bam=bams,
-      ref=references.ref_fasta,
-      ref_fai=references.ref_fasta_index,
-      ref_dict=references.ref_dict,
-      vcf=SplitFiltVCF.vcf_bi,
-      tbi=SplitFiltVCF.vcf_bi_tbi
-  }
-
-  call utils.BamCounts4Onemap {
-    input:
-      sampleName=sampleNames,
-      counts=BamCounts.counts,
-      method = program
-  }
-
-  call utilsR.BamDepths2Vcf{
-    input:
-      vcf_file = SplitFiltVCF.vcf_bi,
-      ref_bam = BamCounts4Onemap.ref_bam,
-      alt_bam = BamCounts4Onemap.alt_bam,
-      example_alleles = BamCounts4Onemap.ref_alt_alleles,
-      program = program
+      sample_names=sample_names,
+      bams=bams,
+      bams_index=bais,
+      references=references,
+      vcf_biallelics_splitted=SplitFiltVCF.vcf_biallelics,
+      vcf_biallelics_tbi_splitted=SplitFiltVCF.vcf_biallelics_tbi
   }
 
   output {
-    File vcf_bi = SplitFiltVCF.vcf_bi
-    File tbi_bi = SplitFiltVCF.vcf_bi_tbi
-    File vcf_multi = SplitFiltVCF.vcf_multi
-    File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
-    File alt_bam = BamCounts4Onemap.alt_bam
-    File ref_bam = BamCounts4Onemap.ref_bam
+    File vcf_biallelics = SplitFiltVCF.vcf_biallelics
+    File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
+    File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
+    File vcf_biallelics_bamcounts = CollectAllelicCountsToVcf.vcf_biallelics_bamcounts
+    File alt_bam = CollectAllelicCountsToVcf.alt_bam
+    File ref_bam = CollectAllelicCountsToVcf.ref_bam
   }
 }
 
@@ -101,7 +85,7 @@ task HaplotypeCallerERC {
 
     grep ">" ~{reference_fasta} | sed 's/^.//' > interval.list
     # Create string as " sample.vcf.gz -V sample2.vcf.gz -V ..."
-    vcfs=$(ls vcfs/*.vcf.gz | awk '{$1=$1}1' OFS=' -V ' RS='')
+    vcfs=$(find vcfs/ -maxdepth 1 -name '*.vcf.gz'| awk '{$1=$1}1' OFS=' -V ' RS='')
     ## Combine into genomic database
     /gatk/gatk GenomicsDBImport \
         --genomicsdb-workspace-path gatk_database \

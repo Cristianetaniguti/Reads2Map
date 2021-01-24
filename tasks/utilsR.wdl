@@ -351,63 +351,6 @@ task GlobalError {
 }
 
 
-task BamDepths2Vcf{
-  input{
-    File vcf_file
-    File ref_bam
-    File alt_bam
-    File example_alleles
-    String program
-  }
-
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-
-      library(onemap)
-      library(vcfR)
-      library(doParallel)
-      source("/opt/scripts/functions_simu.R")
-
-      system("cp ~{ref_bam} .")
-      system("cp ~{alt_bam} .")
-      system("cp ~{example_alleles} .")
-
-       ## Depths from bam
-       depths.alt <- read.table("~{alt_bam}", header = T)
-       depths.ref <- read.table("~{ref_bam}", header = T)
-
-       depths <- list("ref" = depths.ref, "alt"=depths.alt)
-
-       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
-          vcf.temp <- paste0("vcf.temp",".", sample(1000,1), ".vcf")
-          system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
-          vcf_file <- vcf.temp
-       } else {
-          vcf_file <- "~{vcf_file}"
-       }
-
-       allele_file <- paste0("~{example_alleles}")
-       bam_vcf <- make_vcf(vcf_file, depths, allele_file, "~{program}_bam_vcf.vcf")
-
-       bam_vcfR <- read.vcfR(bam_vcf)
-       save(bam_vcfR, file="~{program}_bam_vcfR.RData")
-
-    RSCRIPT
-
-  >>>
-
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    time:"72:00:06"
-    mem:"50GB"
-    cpu:1
-  }
-
-  output{
-    File bam_vcf = "~{program}_bam_vcf.vcf"
-    File bam_vcfR = "~{program}_bam_vcfR.RData"
-  }
-}
 
 
 task CheckDepths{
