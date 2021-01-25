@@ -282,7 +282,7 @@ task BamCounts4Onemap{
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(R.utils)
-      system("cp ~{sep=" "  counts} .")
+      system("cp ~{sep=" "  counts} .") ### Bugfix
       names <- c("~{sep=" , "  sampleName}")
       names <- unlist(strsplit(names, split = " , "))
 

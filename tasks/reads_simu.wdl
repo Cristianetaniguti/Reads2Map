@@ -35,7 +35,7 @@ workflow reads_simu {
       sequencing = sequencing,
       references=references,
       family=family,
-      max_cores = max_cores
+      max_cores = max_cores,
   }
 
   call gatk.GatkGenotyping {
