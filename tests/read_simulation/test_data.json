@@ -1,0 +1,30 @@
+{
+    "ref_fasta": {
+        "name": "sub2M.fa"
+    },
+    "ref_dict": {
+        "name": "sub2M.dict"
+    },
+    "ref_ann": {
+        "name": "sub2M.fa.ann"
+    },
+    "ref_sa": {
+        "name": "sub2M.fa.sa"
+    },
+    "ref_amb": {
+        "name": "sub2M.fa.amb"
+    },
+    "ref_bwt": {
+        "name": "sub2M.fa.bwt"
+    },
+    "ref_fasta_index": {
+        "name": "sub2M.fa.fai"
+    },
+    "ref_pac": {
+        "name": "sub2M.fa.pac"
+    },
+    "emp_vcf": {"name": "ref.variants.vcf"},
+    "ref_map": {"name": "ref.map.csv"},
+    "simu_haplo": {"name": "22_10_haplo_simu.rds"},
+    "simulated_phases": {"name": "simulated_phases.txt"}
+}
