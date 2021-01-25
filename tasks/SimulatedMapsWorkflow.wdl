@@ -19,7 +19,7 @@ struct PopulationAnalysis {
     File multi
 }
 
-workflow reads_simu {
+workflow SimulatedMapsWorkflow {
 
   input {
     Reference references
@@ -265,4 +265,3 @@ workflow reads_simu {
     File multi_names              = JointReports.multi_names2
   }
 }
-

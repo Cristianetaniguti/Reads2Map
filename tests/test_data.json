@@ -64,5 +64,46 @@
     "vcf_multi": {"name": "gatk_multi.recode.vcf.gz", "type": "vcf"},
     "vcf_bi_freebayes": {"name": "expecteds/freebayes_bi.recode.vcf.gz", "type": "vcf"},
     "gusmap_rdata_1": {"name": "expecteds/map_gatk_vcf_gusmap_1.RData"},
-    "gusmap_rdata_2": {"name": "expecteds/map_gatk_vcf_gusmap_2.RData"}
+    "gusmap_rdata_2": {"name": "expecteds/map_gatk_vcf_gusmap_2.RData"},
+    "whole_ref_fasta": {
+        "name": "whole/Chr10.populus.fa"
+    },
+    "whole_ref_dict": {
+        "name": "whole/Chr10.populus.dict"
+    },
+    "whole_ref_ann": {
+        "name": "whole/Chr10.populus.fa.ann"
+    },
+    "whole_ref_sa": {
+        "name": "whole/Chr10.populus.fa.sa"
+    },
+    "whole_ref_amb": {
+        "name": "whole/Chr10.populus.fa.amb"
+    },
+    "whole_ref_bwt": {
+        "name": "whole/Chr10.populus.fa.bwt"
+    },
+    "whole_ref_fasta_index": {
+        "name": "whole/Chr10.populus.fa.fai"
+    },
+    "whole_ref_pac": {
+        "name": "whole/Chr10.populus.fa.pac"
+    },
+    "whole_emp_vcf": {"name": "whole/gatk_maxmissing0.3maf0.05Chr10.recode.vcf"},
+    "whole_ref_map": {"name": "whole/ref.map.chr10.taniguti.csv"},
+    "whole_simu_haplo": {"name": "whole/22_10_haplo_simu.rds"},
+    "whole_P1_bam": {"name": "whole/P1.sorted.bam"},
+    "whole_P2_bam": {"name": "whole/P2.sorted.bam"},
+    "whole_F1_01_bam": {"name": "whole/F1_1.sorted.bam"},
+    "whole_P1_bai": {"name": "whole/P1.sorted.bai"},
+    "whole_P2_bai": {"name": "whole/P2.sorted.bai"},
+    "whole_F1_01_bai": {"name": "whole/F1_1.sorted.bai"},
+    "whole_3vcf_biallelics": {"name": "expecteds/whole_3indv_gatk_bi.recode.vcf.gz", "type": "vcf"},
+    "whole_3vcf_freebayes_biallelics": {"name": "whole/freebayes_bi.recode.vcf.gz", "type": "vcf"},
+    "whole_vcf_bi_bam_counts": {"name": "genotypingr/freebayes_vcf_bam_counts_filt.vcf", "type": "vcf"},
+    "whole_vcf_multi": {"name": "genotypingr/freebayes_multi_filt.recode.vcf", "type": "vcf"},
+    "whole_ref_alt_alleles": {"name": "genotypingr/ref_alt_alleles.txt"},
+    "whole_simulated_phases": {"name": "genotypingr/simulated_phases.txt"},
+    "whole_freebayes_vcf_bi": {"name": "genotypingr/freebayes_vcf_bi.vcf"},
+    "whole_true_vcf": {"name": "genotypingr/23_20_simu.vcf", "type": "vcf"}
 }

@@ -17,18 +17,35 @@ workflow GatkGenotyping {
     Array[String] sample_names
   }
 
-  call HaplotypeCallerERC {
-     input:
-       bams = bams,
-       bams_index = bais,
-       reference_fasta = references.ref_fasta,
-       reference_fai = references.ref_fasta_index,
-       reference_dict = references.ref_dict
-   }
+  call CreateChunks {
+    input:
+      bams=bams,
+      bams_index=bais,
+      chunk_size=50
+  }
+
+  scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
+
+    call HaplotypeCallerJointCall {
+      input:
+        bams = read_lines(chunk.left),
+        bams_index = read_lines(chunk.right),
+        reference_fasta = references.ref_fasta,
+        reference_fai = references.ref_fasta_index,
+        reference_dict = references.ref_dict
+    }
+  }
+
+  call GatherVCFs {
+    input:
+      input_vcfs=HaplotypeCallerJointCall.vcf,
+      input_vcfs_indexes=HaplotypeCallerJointCall.vcf_index,
+      output_vcf_name="gatk.vcf.gz"
+  }
 
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=HaplotypeCallerERC.vcf,
+      vcf_in=GatherVCFs.output_vcf,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
@@ -57,9 +74,35 @@ workflow GatkGenotyping {
   }
 }
 
+task CreateChunks {
+  input {
+    Array[String] bams
+    Array[String] bams_index
+    Int chunk_size
+  }
+
+  command <<<
+    set -e
+    for i in ~{sep=" " bams}; do echo $i >> lof_bams.txt; done
+    for i in ~{sep=" " bams_index}; do echo $i >> lof_bais.txt; done
+
+    split -l ~{chunk_size} lof_bams.txt bams.
+    split -l ~{chunk_size} lof_bais.txt bais.
+  >>>
+
+  runtime {
+    docker: "ubuntu:20.04"
+  }
+
+  output {
+    Array[File] bams_chunks = glob("bams.*")
+    Array[File] bais_chunks = glob("bais.*")
+  }
+}
+
 ## Process all samples because it RAD experiments
 ## usually do not have large ammount of reads (confirm?)
-task HaplotypeCallerERC {
+task HaplotypeCallerJointCall {
   input {
     File reference_fasta
     File reference_dict
@@ -109,5 +152,33 @@ task HaplotypeCallerERC {
   output {
     File vcf = "gatk.vcf.gz"
     File vcf_index = "gatk.vcf.gz.tbi"
+  }
+}
+
+
+task GatherVCFs {
+
+  input {
+    Array[File] input_vcfs
+    Array[File] input_vcfs_indexes
+    String output_vcf_name
+  }
+  # using MergeVcfs instead of GatherVcfs so we can create indices
+  # WARNING	2015-10-28 15:01:48	GatherVcfs	Index creation not currently supported when gathering block compressed VCFs.
+  command {
+    java -Xmx2g -jar /usr/picard/picard.jar \
+      MergeVcfs \
+      INPUT=~{sep=' INPUT=' input_vcfs} \
+      OUTPUT=~{output_vcf_name}
+  }
+  output {
+    File output_vcf = "~{output_vcf_name}"
+    File output_vcf_index = "~{output_vcf_name}.tbi"
+  }
+  runtime {
+    docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.24.1"
+    memory: "3 GB"
+    disks: "local-disk " + 10 + " HDD"
+    preemptible: 3
   }
 }

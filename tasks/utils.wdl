@@ -27,50 +27,7 @@ task TabixVcf {
 }
 
 
-task CollectAllelicCounts {
-  input {
-    String program
-    Array[File] bams
-    Array[File] bams_index
-    File ref
-    File ref_fai
-    File ref_dict
-    File vcf
-    File tbi
-  }
 
-  command <<<
-    set -e
-
-    java -jar /gatk/picard.jar VcfToIntervalList \
-      I=~{vcf} \
-      O=interval.list
-
-    mkdir links
-    for bam in ~{sep=" " bams}; do ln -s $bam links/; done
-    for bai in ~{sep=" " bams_index}; do ln -s $bai links/; done
-    for bam in links/*.bam; do
-      name=$(basename -s ".sorted.bam" "$bam")
-      /gatk/gatk CollectAllelicCounts \
-        --input "$bam" \
-        --reference ~{ref} \
-        --intervals interval.list \
-        --output "${name}_~{program}_counts.tsv"
-    done
-
-  >>>
-
-  runtime{
-    docker:"taniguti/gatk-picard"
-    mem:"20GB"
-    cpu:1
-    time:"48:00:00"
-  }
-
-  output{
-    Array[File] counts = glob("*_~{program}_counts.tsv")
-  }
-}
 
 
 task VcftoolsMerge {
@@ -270,79 +227,7 @@ task CalculateVcfMetrics {
 }
 
 
-# This task convert the output from BamCounts to the depths input for onemap
-task BamCounts4Onemap{
-  input{
-    Array[File] counts
-    Array[String] sampleName
-    String method
-  }
 
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-      library(R.utils)
-      system("cp ~{sep=" "  counts} .")
-      names <- c("~{sep=" , "  sampleName}")
-      names <- unlist(strsplit(names, split = " , "))
-
-      system(paste("grep -n 'CONTIG'", paste0(names[1],"_", "~{method}","_counts.tsv"), "> idx"))
-      idx <- read.table("idx", stringsAsFactors = F)
-      idx <- strsplit(idx[,1], ":")[[1]][1]
-      idx <- as.numeric(idx) -1
-
-      file.counts <- read.table(paste0(names[1],"_", "~{method}","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
-
-      ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
-
-      for(j in 1:length(names)){
-        ## From picard tool
-
-        file.counts <- read.table(paste0(names[j],"_", "~{method}","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
-
-        ref_depth_matrix2[,j] <- file.counts[,3]
-        alt_depth_matrix2[,j] <- file.counts[,4]
-
-        if (j == 1){
-          ref_allele <- file.counts[,5]
-          alt_allele <- file.counts[,6]
-        } else {
-          idx.ref <- which(ref_allele == "N")
-          idx.alt <- which(alt_allele == "N")
-          if (length(idx.ref)!=0){
-            ref_allele[idx.ref] <- file.counts[idx.ref,5]
-          }
-          if (length(idx.alt)!=0){
-            alt_allele[idx.alt] <- file.counts[idx.alt,6]
-          }
-        }
-
-        rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
-        colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
-
-        alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
-        write.table(alleles, file = paste0("~{method}","_ref_alt_alleles.txt"), col.names = F, row.names = F)
-
-        write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-        write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-      }
-
-    RSCRIPT
-
-  >>>
-
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    mem:"30GB"
-    cpu:1
-    time:"01:00:00"
-  }
-
-  output{
-    File ref_bam      = "~{method}_ref_depth_bam.txt"
-    File alt_bam      = "~{method}_alt_depth_bam.txt"
-    File ref_alt_alleles    = "~{method}_ref_alt_alleles.txt"
-  }
-}
 
 task ApplyRandomFilters{
   input{
