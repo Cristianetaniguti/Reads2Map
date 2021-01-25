@@ -15,7 +15,7 @@ task TabixVcf {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"24:00:00"
+    time:"01:00:00"
     mem:"10GB"
     cpu:1
   }
@@ -49,7 +49,7 @@ task VcftoolsMerge {
     docker: "taniguti/vcftools"
     mem:"10GB"
     cpu:1
-    time:"24:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -75,7 +75,7 @@ task BcftoolsMerge {
     docker: "biocontainers/bcftools:1.3.1"
     mem:"5GB"
     cpu:1
-    time:"48:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -212,7 +212,7 @@ task CalculateVcfMetrics {
     docker: "cristaniguti/onemap_workflows"
     mem:"30GB"
     cpu:1
-    time:"01:00:00"
+    time:"02:00:00"
   }
 
   output {
@@ -225,7 +225,6 @@ task CalculateVcfMetrics {
     File gatk_alt_depth = "gatk_alt_depth.txt"
   }
 }
-
 
 
 
@@ -253,7 +252,7 @@ task ApplyRandomFilters{
     docker:"taniguti/vcftools"
     mem:"20GB"
     cpu:1
-    time:"00:30:00"
+    time:"01:00:00"
   }
 
   output{

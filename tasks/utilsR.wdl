@@ -42,8 +42,8 @@ task vcf2onemap{
     >>>
     runtime{
       docker:"cristaniguti/onemap_workflows"
-      time:"72:00:01"
-      mem:"50GB"
+      time:"10:00:00"
+      mem:"30GB"
       cpu:1
     }
 
@@ -108,8 +108,8 @@ task MultiVcf2onemap{
     >>>
     runtime{
       docker:"cristaniguti/onemap_workflows"
-      time:"72:00:01"
-      mem:"70GB"
+      time:"15:00:00"
+      mem:"30GB"
       cpu:1
     }
 
@@ -145,8 +145,8 @@ task FiltersReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:02"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -182,8 +182,8 @@ task FiltersReportEmp{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:02"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -268,8 +268,8 @@ task MapsReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:03"
-    mem:"70GB"
+    time:"24:00:00"
+    mem:"50GB"
     cpu:4
   }
 
@@ -310,8 +310,8 @@ task ErrorsReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:04"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -340,8 +340,8 @@ task GlobalError {
   >>>
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"72:00:05"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -351,6 +351,63 @@ task GlobalError {
 }
 
 
+task BamDepths2Vcf{
+  input{
+    File vcf_file
+    File ref_bam
+    File alt_bam
+    File example_alleles
+    String program
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+
+      library(onemap)
+      library(vcfR)
+      library(doParallel)
+      source("/opt/scripts/functions_simu.R")
+
+      system("cp ~{ref_bam} .")
+      system("cp ~{alt_bam} .")
+      system("cp ~{example_alleles} .")
+
+       ## Depths from bam
+       depths.alt <- read.table("~{alt_bam}", header = T)
+       depths.ref <- read.table("~{ref_bam}", header = T)
+
+       depths <- list("ref" = depths.ref, "alt"=depths.alt)
+
+       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
+          vcf.temp <- paste0("vcf.temp",".", sample(1000,1), ".vcf")
+          system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
+          vcf_file <- vcf.temp
+       } else {
+          vcf_file <- "~{vcf_file}"
+       }
+
+       allele_file <- paste0("~{example_alleles}")
+       bam_vcf <- make_vcf(vcf_file, depths, allele_file, "~{program}_bam_vcf.vcf")
+
+       bam_vcfR <- read.vcfR(bam_vcf)
+       save(bam_vcfR, file="~{program}_bam_vcfR.RData")
+
+    RSCRIPT
+
+  >>>
+
+  runtime{
+    docker:"cristaniguti/onemap_workflows"
+    time:"15:00:00"
+    mem:"30GB"
+    cpu:1
+  }
+
+  output{
+    File bam_vcf = "~{program}_bam_vcf.vcf"
+    File bam_vcfR = "~{program}_bam_vcfR.RData"
+  }
+}
 
 
 task CheckDepths{
@@ -391,8 +448,8 @@ task CheckDepths{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"72:00:07"
-    mem:"50GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -427,8 +484,8 @@ task MapsReportEmp{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"120:00:04"
-    mem:"60GB"
+    time:"24:00:00"
+    mem:"30GB"
     cpu:4
   }
 
@@ -470,7 +527,7 @@ task AddMultiallelics{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"120:00:04"
+    time:"05:00:00"
     mem:"30GB"
     cpu:4
   }

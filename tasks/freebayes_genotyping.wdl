@@ -84,8 +84,8 @@ task RunFreebayes {
 
   runtime {
     docker: "taniguti/freebayes"
-    mem:"50GB"
-    time:"72:00:00"
+    mem:"60GB"
+    time:"14:00:00"
     cpu:20
   }
 

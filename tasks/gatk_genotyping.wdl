@@ -146,7 +146,7 @@ task HaplotypeCallerJointCall {
     docker: "taniguti/gatk-picard"
     mem:"10GB"
     cpu:1
-    time:"120:00:00"
+    time:"10:00:00"
   }
 
   output {
