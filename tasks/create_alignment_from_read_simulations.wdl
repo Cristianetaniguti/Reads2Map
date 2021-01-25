@@ -385,7 +385,7 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"10GB"
+    mem:"5GB"
     cpu:1
     time:"05:00:00"
     job_name:"pedigreesim"
@@ -494,7 +494,7 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"50GB"
+    mem:"20GB"
     cpu:1
     time:"24:00:00"
     job_name:"pedsim2vcf"
@@ -832,7 +832,7 @@ task RADinitioSimulation{
 
   runtime{
     docker: "cristaniguti/radinitio"
-    mem:"80GB"
+    mem:"30GB"
     cpu:1
     time:"24:00:00"
     job_name:"rad_simu"
