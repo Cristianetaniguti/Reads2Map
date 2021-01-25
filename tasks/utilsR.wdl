@@ -42,8 +42,8 @@ task vcf2onemap{
     >>>
     runtime{
       docker:"cristaniguti/onemap_workflows"
-      time:"72:00:01"
-      mem:"50GB"
+      time:"10:00:00"
+      mem:"30GB"
       cpu:1
     }
 
@@ -108,8 +108,8 @@ task MultiVcf2onemap{
     >>>
     runtime{
       docker:"cristaniguti/onemap_workflows"
-      time:"72:00:01"
-      mem:"70GB"
+      time:"15:00:00"
+      mem:"30GB"
       cpu:1
     }
 
@@ -145,8 +145,8 @@ task FiltersReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:02"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -182,8 +182,8 @@ task FiltersReportEmp{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:02"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -268,8 +268,8 @@ task MapsReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:03"
-    mem:"70GB"
+    time:"24:00:00"
+    mem:"50GB"
     cpu:4
   }
 
@@ -310,8 +310,8 @@ task ErrorsReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:04"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -340,8 +340,8 @@ task GlobalError {
   >>>
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"72:00:05"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -398,8 +398,8 @@ task BamDepths2Vcf{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"72:00:06"
-    mem:"50GB"
+    time:"15:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -448,8 +448,8 @@ task CheckDepths{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"72:00:07"
-    mem:"50GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -484,8 +484,8 @@ task MapsReportEmp{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"120:00:04"
-    mem:"60GB"
+    time:"24:00:00"
+    mem:"30GB"
     cpu:4
   }
 
@@ -527,7 +527,7 @@ task AddMultiallelics{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"120:00:04"
+    time:"05:00:00"
     mem:"30GB"
     cpu:4
   }

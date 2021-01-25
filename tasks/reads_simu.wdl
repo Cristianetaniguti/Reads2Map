@@ -35,7 +35,7 @@ workflow reads_simu {
       sequencing = sequencing,
       references=references,
       family=family,
-      max_cores = max_cores
+      max_cores = max_cores,
   }
 
   call gatk.GatkGenotyping {
@@ -480,7 +480,7 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/onemap_workflows"
-    time:"48:00:00"
+    time:"10:00:00"
     mem:"30GB"
     cpu:1
     job_name:"family_joint"

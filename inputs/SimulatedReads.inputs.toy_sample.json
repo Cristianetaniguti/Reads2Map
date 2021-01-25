@@ -18,7 +18,7 @@
   },
   "SimulatedReads.global_seed": 1818, 
   "SimulatedReads.sequencing": {
-    "emp_vcf": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.variants.vcf",
+    "emp_vcf": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.variants.noindel.recode.vcf",
     "enzyme1": "HinDIII",
     "enzyme2": "NlaIII",
     "library_type": "ddRAD",

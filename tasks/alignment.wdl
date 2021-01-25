@@ -102,8 +102,8 @@ task RunBwaAlignmentSimu {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    time:"72:00:00"
-    mem:"--nodes=1"
+    time:"14:00:00"
+    mem:"20GB"
     cpu:20
     job_name:"alignment"
   }
@@ -142,8 +142,8 @@ task AddAlignmentHeader {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"24:00:00"
-    mem:"--nodes=1"
+    time:"01:00:00"
+    mem:"10GB"
     cpu:1
   }
 
