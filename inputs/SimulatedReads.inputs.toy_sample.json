@@ -16,7 +16,7 @@
     "ref_fasta_index": "/home/taniguti/github/onemap_workflows/data/toy_sample/sub2M.fa.fai",
     "ref_pac": "/home/taniguti/github/onemap_workflows/data/toy_sample/sub2M.fa.pac"
   },
-  "SimulatedReads.global_seed": 1818,
+  "SimulatedReads.global_seed": 1818, 
   "SimulatedReads.sequencing": {
     "emp_vcf": "/home/taniguti/github/onemap_workflows/data/toy_sample/ref.variants.vcf",
     "enzyme1": "HinDIII",
