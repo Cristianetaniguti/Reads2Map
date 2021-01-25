@@ -43,7 +43,7 @@ workflow SimulatedReads {
         references=references,
         family=fam,
         sequencing = sequencing,
-        max_cores = max_cores,
+        max_cores = max_cores
     }
   }
 
