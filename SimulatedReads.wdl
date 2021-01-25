@@ -86,10 +86,9 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
-    time:"0:10:00"
-    cpu:1
-    mem:"1GB"
-    job_name: "create_seeds"
+    preemptible: 3
+    cpu: 1
+    memory: "1 GB"
   }
 
   output {
@@ -191,15 +190,14 @@ task JointTables{
     RSCRIPT
   >>>
 
-  runtime{
+  runtime {
       docker:"cristaniguti/onemap_workflows"
-      time:"03:00:00"
-      cpu:1
-      mem:"30GB"
-      job_name: "final_joint"
+      preemptible: 3
+      cpu: 2
+      memory: "8 GB"
   }
 
-  output{
+  output {
     File results = "SimulatedReads_results_depth~{depth}.tar.gz"
   }
 }

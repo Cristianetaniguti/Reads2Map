@@ -61,6 +61,8 @@ task CollectAllelicCounts {
     File tbi
   }
 
+  Int disk_size = ceil(size(bams, "GB") + size(ref, "GB") * 2)
+
   command <<<
     set -e
 
@@ -82,25 +84,28 @@ task CollectAllelicCounts {
 
   >>>
 
-  runtime{
-    docker:"taniguti/gatk-picard"
-    mem:"20GB"
-    cpu:1
-    time:"48:00:00"
+  runtime {
+    docker: "taniguti/gatk-picard"
+    memory: "4 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
-  output{
+  output {
     Array[File] counts = glob("*_~{program}_counts.tsv")
   }
 }
 
 # This task convert the output from BamCounts to the depths input for onemap
 task BamCounts4Onemap{
-  input{
+  input {
     Array[File] counts
     Array[String] sampleName
     String method
   }
+
+  Int disk_size = ceil(size(counts, "GB") + 5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -154,28 +159,31 @@ task BamCounts4Onemap{
 
   >>>
 
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    mem:"30GB"
-    cpu:1
-    time:"01:00:00"
+  runtime {
+    docker: "cristaniguti/onemap_workflows"
+    memory: "2 GB"
+    cpu: 1
+    preemptible: 4
+    disks: "local-disk " + disk_size + " HDD"
   }
 
-  output{
-    File ref_bam      = "~{method}_ref_depth_bam.txt"
-    File alt_bam      = "~{method}_alt_depth_bam.txt"
-    File ref_alt_alleles    = "~{method}_ref_alt_alleles.txt"
+  output {
+    File ref_bam = "~{method}_ref_depth_bam.txt"
+    File alt_bam = "~{method}_alt_depth_bam.txt"
+    File ref_alt_alleles = "~{method}_ref_alt_alleles.txt"
   }
 }
 
 task BamDepths2Vcf{
-  input{
+  input {
     File vcf_file
     File ref_bam
     File alt_bam
     File example_alleles
     String program
   }
+
+  Int disk_size = ceil(size(vcf_file, "GB") + size(ref_bam, "GB") + size(alt_bam, "GB") + 5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -184,10 +192,6 @@ task BamDepths2Vcf{
       library(vcfR)
       library(doParallel)
       source("/opt/scripts/functions_simu.R")
-
-      # system("cp ~{ref_bam} .")
-      # system("cp ~{alt_bam} .")
-      # system("cp ~{example_alleles} .")
 
        ## Depths from bam
        depths.alt <- read.table("~{alt_bam}", header = T)
@@ -213,14 +217,15 @@ task BamDepths2Vcf{
 
   >>>
 
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    time:"72:00:06"
-    mem:"50GB"
-    cpu:1
+  runtime {
+    docker: "cristaniguti/onemap_workflows"
+    preemptible: 3
+    memory: "2 GB"
+    cpu: 1
+    disks: "local-disk " + disk_size + " HDD"
   }
 
-  output{
+  output {
     File bam_vcf = "~{program}_bam_vcf.vcf"
     File bam_vcfR = "~{program}_bam_vcfR.RData"
   }

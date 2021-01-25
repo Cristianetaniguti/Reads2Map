@@ -19,7 +19,7 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
             "ref_pac": workflow_data["ref_pac"]
         },
         "sequencing":{
-            "emp_vcf": workflow_data["emp_vcf"],
+            "emp_vcf": workflow_data["emp_vcf_no_indels"],
             "enzyme1": "HinDIII",
             "enzyme2": "NlaIII",
             "library_type": "ddRAD",
@@ -38,7 +38,12 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
         "max_cores": 4
     }
 
-    expected = {"simu_haplo": workflow_data["simu_haplo"], "simulated_phases": workflow_data["simulated_phases"]}
+    expected = {
+        "simu_haplo": workflow_data["simu_haplo"],
+        "simulated_phases": workflow_data["simulated_phases"],
+        "true_vcf": workflow_data["true_vcf"],
+        "ref_alt_alleles": workflow_data["ref_alt_alleles"],
+    }
     workflow_runner(
         "tasks/create_alignment_from_read_simulations.wdl",
         inputs,

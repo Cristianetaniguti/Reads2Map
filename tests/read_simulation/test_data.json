@@ -24,7 +24,10 @@
         "name": "sub2M.fa.pac"
     },
     "emp_vcf": {"name": "ref.variants.vcf"},
+    "emp_vcf_no_indels": {"name": "ref.variants.noindel.recode.vcf"},
     "ref_map": {"name": "ref.map.csv"},
     "simu_haplo": {"name": "22_10_haplo_simu.rds"},
-    "simulated_phases": {"name": "simulated_phases.txt"}
+    "simulated_phases": {"name": "simulated_phases.txt"},
+    "true_vcf": {"name": "22_10_simu.vcf"},
+    "ref_alt_alleles": {"name": "ref_alt_alleles.txt"}
 }

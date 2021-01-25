@@ -68,6 +68,8 @@ task RunFreebayes {
     Int max_cores
   }
 
+  Int disk_size = ceil(size(reference, "GB") + size(bam, "GB") * 2)
+
   command <<<
    # needed for some singularity versions
    export PATH="/freebayes/vcflib/bin:${PATH}"
@@ -78,15 +80,16 @@ task RunFreebayes {
    ln -sf ~{sep=" " bai} .
 
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
-   --genotype-qualities -f ~{reference}  *.bam > "freebayes.vcf"
+   --genotype-qualities -f ~{reference} *.bam > "freebayes.vcf"
 
   >>>
 
   runtime {
     docker: "taniguti/freebayes"
-    mem:"60GB"
-    time:"14:00:00"
-    cpu:20
+    memory: "14 GB"
+    preemptible: 3
+    cpu: 8
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {

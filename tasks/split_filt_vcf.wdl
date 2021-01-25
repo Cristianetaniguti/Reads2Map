@@ -41,15 +41,18 @@ task BiallelicNormalization {
     File reference_idx
   }
 
+  Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 2)
+
   command <<<
     bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
   >>>
 
   runtime {
     docker: "lifebitai/bcftools"
-    mem:"30GB"
-    time:"05:00:00"
-    cpu:1
+    memory: "2 GB"
+    preemptible: 3
+    cpu: 1
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -65,6 +68,8 @@ task SplitFilters {
     String parent1
     String parent2
   }
+
+  Int disk_size = ceil(size(vcf_in, "GB") + 2)
 
   command <<<
     vcftools --gzvcf ~{vcf_in}  --min-alleles 3 --recode --out ~{program}_multi1
@@ -88,9 +93,10 @@ task SplitFilters {
 
   runtime {
     docker: "cristaniguti/vcftools"
-    mem:"30GB"
-    time:"20:00:00"
-    cpu:1
+    memory: "2 GB"
+    preemptible: 3
+    cpu: 1
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {

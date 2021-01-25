@@ -92,6 +92,9 @@ task CreateChunks {
 
   runtime {
     docker: "ubuntu:20.04"
+    memory: "2 GB"
+    preemptible: 3
+    cpu: 1
   }
 
   output {
@@ -110,6 +113,8 @@ task HaplotypeCallerJointCall {
     Array[File] bams
     Array[File] bams_index
   }
+
+  Int disk_size = ceil(size(reference_fasta, "GB") + size(bams, "GB") * 2)
 
   command <<<
     set -euo pipefail
@@ -144,9 +149,10 @@ task HaplotypeCallerJointCall {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    mem:"10GB"
-    cpu:1
-    time:"10:00:00"
+    memory: "4 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -163,8 +169,9 @@ task GatherVCFs {
     Array[File] input_vcfs_indexes
     String output_vcf_name
   }
-  # using MergeVcfs instead of GatherVcfs so we can create indices
-  # WARNING	2015-10-28 15:01:48	GatherVcfs	Index creation not currently supported when gathering block compressed VCFs.
+
+  Int disk_size = ceil(size(input_vcfs, "GB") * 2)
+
   command {
     java -Xmx2g -jar /usr/picard/picard.jar \
       MergeVcfs \
@@ -180,5 +187,6 @@ task GatherVCFs {
     memory: "3 GB"
     disks: "local-disk " + 10 + " HDD"
     preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 }
