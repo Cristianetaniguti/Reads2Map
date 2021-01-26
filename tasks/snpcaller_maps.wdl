@@ -17,13 +17,13 @@ workflow SNPCallerMaps{
     }
 
 
-  call GQProbs{
+  call GQProbs {
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
       cross = cross
   }
-  
+
   if (defined(multi_obj)) {
       call utilsR.AddMultiallelics{
           input:
@@ -31,7 +31,7 @@ workflow SNPCallerMaps{
             onemap_obj_bi = GQProbs.gq_onemap_obj
       }
   }
-        
+
   File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
 
   call utilsR.FiltersReport{
@@ -62,7 +62,7 @@ workflow SNPCallerMaps{
       CountsFrom = CountsFrom
   }
 
-  output{
+  output {
     File RDatas = MapsReport.maps_RData
     File maps_report = MapsReport.maps_report
     File times = MapsReport.times
@@ -72,7 +72,7 @@ workflow SNPCallerMaps{
 }
 
 task GQProbs{
-  input{
+  input {
     File vcf_file
     File onemap_obj
     String cross
@@ -111,14 +111,14 @@ task GQProbs{
     RSCRIPT
 
   >>>
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
+  runtime {
+    docker: "cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"30GB"
-    cpu:1
+    memory: "3 GB"
+    cpu: 1
   }
 
-  output{
+  output {
     File gq_onemap_obj = "gq_onemap_obj.RData"
   }
 }

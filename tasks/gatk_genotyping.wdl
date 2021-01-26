@@ -119,9 +119,12 @@ task HaplotypeCallerJointCall {
   command <<<
     set -euo pipefail
 
+    for bam in ~{sep=" " bams}; do ln -s $bam .; done
+    for bai in ~{sep=" " bams_index}; do ln -s $bai .; done
+
     mkdir vcfs
     ## gvcf for each sample
-    for bam in ~{sep= " " bams}; do
+    for bam in *.bam; do
       out_name=$(basename $bam)
       /gatk/gatk HaplotypeCaller \
         -ERC GVCF \

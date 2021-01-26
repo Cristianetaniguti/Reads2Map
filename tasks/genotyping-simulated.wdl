@@ -38,7 +38,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
-  
+
        if (defined(multi_obj)) {
            call utilsR.AddMultiallelics{
              input:
@@ -46,8 +46,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
                onemap_obj_bi = item.right
            }
        }
-        
-       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])  
+
+       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
 
        call utilsR.FiltersReport {
             input:
@@ -168,10 +168,9 @@ task OnemapProbsSimulated {
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"20:00:00"
-    mem:"70GB"
-    cpu:20
-    job_name:"poly_genotyping"
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
   output {

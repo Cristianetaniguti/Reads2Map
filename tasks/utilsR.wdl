@@ -1,7 +1,7 @@
 version 1.0
 
 task vcf2onemap{
-   input{
+   input {
      File vcf_file
      String cross
      String SNPCall_program
@@ -40,10 +40,10 @@ task vcf2onemap{
         RSCRIPT
 
     >>>
-    runtime{
+    runtime {
       docker:"cristaniguti/onemap_workflows"
-      time:"10:00:00"
-      mem:"30GB"
+      preemptible: 3
+      memory: "2 GB"
       cpu:1
     }
 
@@ -55,7 +55,7 @@ task vcf2onemap{
 
 
 task MultiVcf2onemap{
-   input{
+   input {
      File? multi
      String cross
      String SNPCall_program
@@ -106,14 +106,14 @@ task MultiVcf2onemap{
         RSCRIPT
 
     >>>
-    runtime{
+    runtime {
       docker:"cristaniguti/onemap_workflows"
-      time:"15:00:00"
-      mem:"30GB"
-      cpu:1
+      preemptible: 3
+      memory: "3 GB"
+      cpu: 1
     }
 
-    output{
+    output {
       File onemap_obj = "~{SNPCall_program}_vcf_multi_onemap.obj.RData"
       File multi_names = "~{depth}_~{seed}_~{SNPCall_program}_multi.names.RData"
     }
@@ -143,14 +143,14 @@ task FiltersReport{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"10:00:00"
-    mem:"30GB"
+    preemptible: 3
+    memory:"3 GB"
     cpu:1
   }
 
-  output{
+  output {
     File filters_report = "filters_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
@@ -180,14 +180,14 @@ task FiltersReportEmp{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
     time:"10:00:00"
     mem:"30GB"
     cpu:1
   }
 
-  output{
+  output {
     File filters_report = "filters_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
@@ -197,7 +197,7 @@ task FiltersReportEmp{
 
 
 task MapsReport{
-  input{
+  input {
    File onemap_obj
    File ref_alt_alleles
    File simu_onemap_obj
@@ -266,22 +266,22 @@ task MapsReport{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"24:00:00"
-    mem:"50GB"
-    cpu:4
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
-  output{
+  output {
     File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
     File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
 }
 
-task ErrorsReport{
-  input{
+task ErrorsReport {
+  input {
     File onemap_obj
     File simu_onemap_obj
     String SNPCall_program
@@ -310,8 +310,8 @@ task ErrorsReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"10:00:00"
-    mem:"30GB"
+    preemptible: 3
+    memory: "3 GB"
     cpu:1
   }
 
@@ -340,12 +340,12 @@ task GlobalError {
   >>>
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"10:00:00"
-    mem:"30GB"
-    cpu:1
+    preemptible: 3
+    memory: "3 GB"
+    cpu: 1
   }
 
-  output{
+  output {
     File error_onemap_obj = "onemap_obj_globalError.RData"
   }
 }
@@ -497,8 +497,8 @@ task MapsReportEmp{
 }
 
 
-task AddMultiallelics{
-  input{
+task AddMultiallelics {
+  input {
    File? onemap_obj_multi
    File onemap_obj_bi
   }
@@ -525,11 +525,11 @@ task AddMultiallelics{
 
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/onemap_workflows"
-    time:"05:00:00"
-    mem:"30GB"
-    cpu:4
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
   output{
@@ -754,20 +754,19 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/onemap_workflows"
-    time:"48:00:00"
-    mem:"30GB"
-    cpu:1
-    job_name:"family_joint"
+    preemptible: 3
+    memory: "4 GB"
+    cpu: 1
   }
 
   output {
     File data1_depths_geno_prob = "data1_depths_geno_prob.rds"
     File data2_maps = "data2_maps.rds"
     File data3_filters = "data3_filters.rds"
-    File data4_times   = "data4_times.rds"
-    File data6_RDatas  = "data6_RDatas.llo"
-    File data7_gusmap  = "gusmap_RDatas.RData"
-    File data8_names   = "names.rds"
-    File multi_names2   = "multi_names.RData"
+    File data4_times = "data4_times.rds"
+    File data6_RDatas = "data6_RDatas.llo"
+    File data7_gusmap = "gusmap_RDatas.RData"
+    File data8_names = "names.rds"
+    File multi_names2 = "multi_names.RData"
   }
 }

@@ -210,9 +210,9 @@ task CalculateVcfMetrics {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"30GB"
+    memory: "3 GB"
     cpu:1
-    time:"02:00:00"
+    preemptible: 3
   }
 
   output {
@@ -250,9 +250,9 @@ task ApplyRandomFilters{
 
   runtime{
     docker:"taniguti/vcftools"
-    mem:"20GB"
+    memory: "2 GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output{

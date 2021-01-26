@@ -10,7 +10,7 @@ workflow DefaultMaps {
      File simulated_phases
      String SNPCall_program
      String CountsFrom
-     File? multi_obj  
+     File? multi_obj
     }
 
     call utilsR.GlobalError{
@@ -23,7 +23,7 @@ workflow DefaultMaps {
     Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
     scatter(item in methods_and_objects){
-    
+
          if (defined(multi_obj)) {
             call utilsR.AddMultiallelics{
               input:
@@ -31,9 +31,9 @@ workflow DefaultMaps {
                 onemap_obj_bi = item.right
            }
          }
-        
-         File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])        
-    
+
+         File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
+
          call utilsR.FiltersReport{
               input:
                 onemap_obj = select_onemap_obj,
@@ -63,7 +63,7 @@ workflow DefaultMaps {
             }
      }
 
-     output{
+     output {
         Array[File] RDatas = MapsReport.maps_RData
         Array[File] maps_report = MapsReport.maps_report
         Array[File] times = MapsReport.times

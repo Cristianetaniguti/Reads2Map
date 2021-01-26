@@ -1,8 +1,8 @@
 version 1.0
 
 
-workflow GusmapMaps{
-  input{
+workflow GusmapMaps {
+  input {
     File simu_onemap_obj
     File vcf_file
     File new_vcf_file
@@ -12,12 +12,12 @@ workflow GusmapMaps{
     File simulated_phases
   }
 
-  Array[String] counts                      = ["vcf", "bam"]
-  Array[File] vcfs                          = [vcf_file, new_vcf_file]
+  Array[String] counts = ["vcf", "bam"]
+  Array[File] vcfs = [vcf_file, new_vcf_file]
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
 
-  scatter(vcf in counts_and_vcfs){
-    call GusmapReport{
+  scatter (vcf in counts_and_vcfs) {
+    call GusmapReport {
         input:
           vcf_file = vcf.right,
           simu_onemap_obj = simu_onemap_obj,
@@ -36,7 +36,7 @@ workflow GusmapMaps{
    }
 }
 
-task GusmapReport{
+task GusmapReport {
   input {
     File vcf_file
     String SNPCall_program
@@ -103,17 +103,16 @@ task GusmapReport{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"14:00:00"
-    mem:"30GB"
+    preemptible: 3
+    memory: "4 GB"
     cpu:1
   }
 
-  output{
+  output {
     File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
     File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
-
 }

@@ -62,11 +62,11 @@ workflow SimulatedMapsWorkflow {
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF     = FreebayesGenotyping.vcf_biallelics,
-      gatkVCF          = GatkGenotyping.vcf_biallelics,
-      ref_alt_alleles  = CreateAlignmentFromSimulation.ref_alt_alleles,
-      seed             = family.seed,
-      depth            = sequencing.depth
+      freebayesVCF = FreebayesGenotyping.vcf_biallelics,
+      gatkVCF = GatkGenotyping.vcf_biallelics,
+      ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+      seed = family.seed,
+      depth = sequencing.depth
   }
 
   call utilsR.vcf2onemap as truth_vcf {
