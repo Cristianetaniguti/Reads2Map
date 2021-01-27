@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/alignment_struct.wdl"
+import "alignment_struct.wdl"
 
 task TabixVcf {
   input {
@@ -222,7 +222,7 @@ task CalculateVcfMetrics {
   }
 }
 
-task ApplyRandomFilters{
+task ApplyRandomFilters {
   input{
     File gatk_vcf
     File freebayes_vcf
@@ -242,14 +242,14 @@ task ApplyRandomFilters{
     vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
 
-  runtime{
+  runtime {
     docker:"taniguti/vcftools"
     memory: "2 GB"
     cpu:1
     preemptible: 3
   }
 
-  output{
+  output {
     File gatk_vcf_filt = "gatk_vcf_filt.vcf"
     File freebayes_vcf_filt = "freebayes_vcf_filt.vcf"
     File gatk_vcf_bam_counts_filt = "gatk_vcf_bam_counts_filt.vcf"
@@ -279,7 +279,7 @@ task ReplaceAD {
 
   >>>
 
-  runtime{
+  runtime {
     docker:"lifebitai/bcftools:1.10.2"
   }
 
