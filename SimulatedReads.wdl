@@ -1,6 +1,6 @@
 version 1.0
 
-import "./tasks/SimulatedMapsWorkflow.wdl" as sub
+import "SimulatedMapsWorkflow.wdl" as sub
 
 workflow SimulatedReads {
 
