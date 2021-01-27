@@ -15,6 +15,8 @@ workflow SNPCallerMaps{
      String GenotypeCall_program
      String CountsFrom
      File? multi_obj
+     String seed
+     String depth
     }
 
 
@@ -62,7 +64,10 @@ workflow SNPCallerMaps{
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
       simu_vcfR = simu_vcfR,
-      vcfR_obj = GQProbs.vcfR_obj
+      vcfR_obj = GQProbs.vcfR_obj,
+      seed             = seed,
+      depth            = depth
+
   }
 
   output{

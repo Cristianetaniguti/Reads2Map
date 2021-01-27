@@ -13,6 +13,8 @@ workflow DefaultMaps {
      String SNPCall_program
      String CountsFrom
      File? multi_obj  
+     String seed
+     String depth
     }
 
     call utilsR.GlobalError{
@@ -63,7 +65,9 @@ workflow DefaultMaps {
                 GenotypeCall_program = item.left,
                 CountsFrom = CountsFrom,
                 simu_vcfR = simu_vcfR,
-                vcfR_obj = vcfR_obj
+                vcfR_obj = vcfR_obj,
+                seed             = seed,
+                depth            = depth
             }
      }
 

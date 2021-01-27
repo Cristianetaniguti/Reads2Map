@@ -18,6 +18,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String cross
     File? multi_obj
     Int max_cores
+    String seed
+    String depth
   }
 
   call OnemapProbsSimulated {
@@ -77,7 +79,9 @@ workflow SnpBasedGenotypingSimulatedMaps {
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
               simu_vcfR = simu_vcfR,
-              vcfR_obj = OnemapProbsSimulated.vcfR_obj
+              vcfR_obj = OnemapProbsSimulated.vcfR_obj,
+              seed             = seed,
+              depth            = depth
           }
 
    }

@@ -133,7 +133,9 @@ workflow reads_simu {
         CountsFrom = "vcf",
         multi_obj = MultiVcf2onemap.onemap_obj,
         simu_vcfR = SimulatedMap.simu_vcfR,
-        vcfR_obj = vcf2onemap.vcfR_obj
+        vcfR_obj = vcf2onemap.vcfR_obj,
+        seed             = family.seed,
+        depth            = sequencing.depth
     }
 
     call snpcaller.SNPCallerMaps{
@@ -148,7 +150,9 @@ workflow reads_simu {
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
         multi_obj = MultiVcf2onemap.onemap_obj,
-        simu_vcfR = SimulatedMap.simu_vcfR
+        simu_vcfR = SimulatedMap.simu_vcfR,
+        seed             = family.seed,
+        depth            = sequencing.depth
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -167,7 +171,9 @@ workflow reads_simu {
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
-            simu_vcfR = SimulatedMap.simu_vcfR
+            simu_vcfR = SimulatedMap.simu_vcfR,
+            seed             = family.seed,
+            depth            = sequencing.depth
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -183,7 +189,9 @@ workflow reads_simu {
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
-            simu_vcfR = SimulatedMap.simu_vcfR
+            simu_vcfR = SimulatedMap.simu_vcfR,
+            seed             = family.seed,
+            depth            = sequencing.depth
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -199,7 +207,9 @@ workflow reads_simu {
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
-            simu_vcfR = SimulatedMap.simu_vcfR
+            simu_vcfR = SimulatedMap.simu_vcfR,
+            seed             = family.seed,
+            depth            = sequencing.depth
         }
       }
 
@@ -358,11 +368,11 @@ task JointReports{
       ########################################################################################
       # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
       ########################################################################################
-
-
-
-      # Adding seed and depth info
-      all_errors <- cbind(seed, depth, data1)
+      all_errors <- read.table("all_errors.txt")
+      colnames(all_errors) <- c("mks","ind","gabGT","seed","depth",
+                                "SNPCall","CountsFrom",
+                                "GenoCall","alt","ref","gt.onemap",
+                                "methGT","A","AB","BA","B","errors")
 
       ########################################################
       # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; simulated_phases

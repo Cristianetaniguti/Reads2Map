@@ -446,15 +446,10 @@ task ReplaceAD {
 
   command <<<
 
-    #ln -s ~{sep=" " bams}
-    #ln -s ~{sep=" " bais}
-
-    #bams_list=$(ls *.bam)
-
     bcftools view -G -v snps ~{vcf} -Oz -o sites.vcf.gz
     bcftools index --tbi -f sites.vcf.gz
     bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
-    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{bams} -Ou > temp
+    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
     bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o ~{program}_bam_vcf.vcf
 
   >>>

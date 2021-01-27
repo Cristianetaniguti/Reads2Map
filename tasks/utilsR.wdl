@@ -289,12 +289,15 @@ task ErrorsReport{
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
+    String seed
+    String depth
   }
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
         
         library(onemap)
+        library(tidyverse)
 
         temp <- load("~{onemap_obj}")
         df <- get(temp)
@@ -307,25 +310,34 @@ task ErrorsReport{
         rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
 
         df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
-        df <- cbind(SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
+        df <- cbind(seed = ~{"seed"}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
                     GenoCall="~{GenotypeCall_program}", df)
 
         simu <- load("~{simu_vcfR}")
+        vcf_simu <- get(simu)
 
-        write.table(simu, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)
+        gt.simu <- vcf_simu@gt[,-1]
+        gt.simu <- as.data.frame(cbind(mks = vcf_simu@fix[,3], gt.simu))
+        dptot <- gt.simu %>%
+          pivot_longer(!mks, names_to = "ind", values_to = "gabGT") %>% inner_join(df)
 
-        # library(onemap)
-        # source("/opt/scripts/functions_simu.R")
+        dptot <- as.data.frame(dptot)
+        colnames(dptot)[10] <- "methGT"
 
-        # onemap_obj <- load("~{onemap_obj}")
-        # onemap_obj <- get(onemap_obj)
+        idx <- which(colnames(dptot) %in% c("gabGT", "gt.vcf"))
+        colnames(dptot)[idx[2]] <- "methGT"
 
-        # simu_onemap_obj <- load("~{simu_onemap_obj}")
-        # simu_onemap_obj <- get(simu_onemap_obj)
+        for(i in idx){
+          dptot[,i] <- gsub("[|]", "/", dptot[,i])
+          dptot[,i][dptot[,i] == "." | dptot[,i] == "./."] <- "missing"
+          dptot[,i][dptot[,i] == "0/0"] <- "homozygous-ref"
+          dptot[,i][dptot[,i] == "1/1"] <- "homozygous-alt"
+          dptot[,i][dptot[,i] == "0/1" | dptot[,i] == "1/0"] <- "heterozygous"
+        }
 
-        # create_errors_report(onemap_obj = onemap_obj, simu_onemap_obj,
-        #                      "~{SNPCall_program}" , "~{GenotypeCall_program}",
-        #                      "~{CountsFrom}")
+        dptot <- cbind(dptot, errors = apply(dptot[,13:16], 1, function(x) 1 - max(x)))
+
+        write.table(dptot, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)   
 
       RSCRIPT
 
