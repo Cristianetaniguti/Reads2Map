@@ -5,6 +5,8 @@ import "./utilsR.wdl" as utilsR
 workflow DefaultMaps {
     input {
      File simu_onemap_obj
+     File simu_vcfR
+     File vcfR_obj
      File onemap_obj
      File ref_alt_alleles
      File simulated_phases
@@ -59,7 +61,9 @@ workflow DefaultMaps {
                 simu_onemap_obj = simu_onemap_obj,
                 SNPCall_program = SNPCall_program,
                 GenotypeCall_program = item.left,
-                CountsFrom = CountsFrom
+                CountsFrom = CountsFrom,
+                simu_vcfR = simu_vcfR,
+                vcfR_obj = vcfR_obj
             }
      }
 

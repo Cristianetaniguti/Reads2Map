@@ -19,5 +19,6 @@ workflow SimulatedMap{
 
   output{
     File simu_onemap_obj = vcf2onemap.onemap_obj
+    File simu_vcfR = vcf2onemap.vcfR_obj
   }
 }

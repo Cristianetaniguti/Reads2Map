@@ -41,12 +41,14 @@ workflow reads_simu {
   call gatk.GatkGenotyping {
     input:
       bam=CreateAlignmentFromSimulation.bam,
+      bai=CreateAlignmentFromSimulation.bai,
       references=references,
       program="gatk",
       parent1 = "P1",
       parent2 = "P2",
       chrom = sequencing.chromosome,
-      sampleNames = CreateAlignmentFromSimulation.names
+      sampleNames = CreateAlignmentFromSimulation.names,
+      max_cores = max_cores
   }
 
   call freebayes.FreebayesGenotyping {
@@ -129,7 +131,9 @@ workflow reads_simu {
         simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj
+        multi_obj = MultiVcf2onemap.onemap_obj,
+        simu_vcfR = SimulatedMap.simu_vcfR,
+        vcfR_obj = vcf2onemap.vcfR_obj
     }
 
     call snpcaller.SNPCallerMaps{
@@ -143,7 +147,8 @@ workflow reads_simu {
         SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj
+        multi_obj = MultiVcf2onemap.onemap_obj,
+        simu_vcfR = SimulatedMap.simu_vcfR
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -161,7 +166,8 @@ workflow reads_simu {
             CountsFrom = origin,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = SimulatedMap.simu_vcfR
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -176,7 +182,8 @@ workflow reads_simu {
             CountsFrom = origin,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = SimulatedMap.simu_vcfR
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -191,7 +198,8 @@ workflow reads_simu {
             CountsFrom = origin,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = SimulatedMap.simu_vcfR
         }
       }
 
@@ -239,15 +247,7 @@ workflow reads_simu {
     Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
     Gusmap_times              = flatten(GusmapMaps.times),
     depth                     = sequencing.depth,
-    seed                      = family.seed,
-    gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
-    gatk_ref_depth_bam        = GatkGenotyping.ref_bam,
-    gatk_alt_depth            = CalculateVcfMetrics.gatk_alt_depth,
-    gatk_alt_depth_bam        = GatkGenotyping.alt_bam,
-    freebayes_ref_depth_bam   = FreebayesGenotyping.ref_bam,
-    freebayes_alt_depth_bam   = FreebayesGenotyping.alt_bam,
-    freebayes_ref_depth       = CalculateVcfMetrics.freebayes_ref_depth,
-    freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth
+    seed                      = family.seed
   }
 
   output {
@@ -297,14 +297,6 @@ task JointReports{
     Array[File] Gusmap_times
     Int depth
     Int seed
-    File gatk_ref_depth
-    File gatk_ref_depth_bam
-    File gatk_alt_depth
-    File gatk_alt_depth_bam
-    File freebayes_ref_depth_bam
-    File freebayes_alt_depth_bam
-    File freebayes_ref_depth
-    File freebayes_alt_depth
   }
 
   command <<<
@@ -362,42 +354,12 @@ task JointReports{
 
       all_errors <- read.table("all_errors.txt")
 
-      # Adding allele counts to the report
-      gatk.ref.depth <- read.table("~{gatk_ref_depth}")
-
-      chr <- unique(sapply(strsplit(rownames(gatk.ref.depth), "_"), "[",1))
-
-      all_errors[,5] <- paste0(chr, "_",all_errors[,5])
-      colnames(all_errors) <- c("SNPCall", "GenoCall", "CountsFrom", "ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
-
-      files <- list(c("~{gatk_ref_depth}", "~{gatk_alt_depth}"), c("~{gatk_ref_depth_bam}", "~{gatk_alt_depth_bam}"),
-                    c("~{freebayes_ref_depth}", "~{freebayes_alt_depth}"), c("~{freebayes_ref_depth_bam}",
-                                                                               "~{freebayes_alt_depth_bam}"))
-      ref_alt <- c("ref", "alt")
-      SNPCall <- rep(c("gatk", "freebayes"), each=4)
-      CountsFrom <- rep(c("vcf", "bam"),2, each=2)
 
       ########################################################################################
       # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
       ########################################################################################
 
-      # Binding depth information for each genotype
-      z <- 1
-      data1 <- data.frame()
-      for(j in 1:length(files)){
-        for(i in 1:2){
-          if(i == 1) df_meth <- all_errors
-          alleles <- read.table(files[[j]][i])
-          alleles <- cbind(mks=rownames(alleles), alleles)
-          alleles <- melt(alleles, id.vars = c("mks"))
-          colnames(alleles) <- c("mks", "ind", ref_alt[i])
-          alleles <- cbind(SNPCall=SNPCall[z], CountsFrom = CountsFrom[z], alleles)
-          z <- z+ 1
-          df_meth <- merge(df_meth, alleles, by = c("SNPCall", "CountsFrom", "ind", "mks"))
 
-        }
-        data1 <- rbind(data1, df_meth)
-      }
 
       # Adding seed and depth info
       all_errors <- cbind(seed, depth, data1)
