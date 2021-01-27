@@ -21,7 +21,7 @@ workflow GatkGenotyping {
     input:
       bams=bams,
       bams_index=bais,
-      chunk_size=50
+      chunk_size=1
   }
 
   scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
@@ -35,8 +35,8 @@ workflow GatkGenotyping {
         reference_dict = references.ref_dict
     }
   }
-
-  call GatherVCFs {
+  # TODO: ACERTAR MERGE
+  call MergeVcfs {
     input:
       input_vcfs=HaplotypeCallerJointCall.vcf,
       input_vcfs_indexes=HaplotypeCallerJointCall.vcf_index,
@@ -45,7 +45,7 @@ workflow GatkGenotyping {
 
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=GatherVCFs.output_vcf,
+      vcf_in=MergeVcfs.output_vcf,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
@@ -165,7 +165,7 @@ task HaplotypeCallerJointCall {
 }
 
 
-task GatherVCFs {
+task MergeVcfs {
 
   input {
     Array[File] input_vcfs
@@ -175,18 +175,24 @@ task GatherVCFs {
 
   Int disk_size = ceil(size(input_vcfs, "GB") * 2)
 
-  command {
-    java -Xmx2g -jar /usr/picard/picard.jar \
-      MergeVcfs \
-      INPUT=~{sep=' INPUT=' input_vcfs} \
-      OUTPUT=~{output_vcf_name}
-  }
+  # We need to deal with setups where could be only one vcf in the input_vcfs array.
+  command <<<
+    vcfs=("~{sep='" "' input_vcfs}")
+    tbis=("~{sep='" "' input_vcfs_indexes}")
+    if [[ "${#vcfs[@]}" -eq 1 ]]; then
+      cp "${vcfs[0]}" ./~{output_vcf_name}
+      cp "${tbis[0]}" ./~{output_vcf_name}.tbi
+    else
+      bcftools merge -Oz -o ~{output_vcf_name} ~{sep=' ' input_vcfs}
+      tabix -p vcf ~{output_vcf_name}
+    fi
+  >>>
   output {
     File output_vcf = "~{output_vcf_name}"
     File output_vcf_index = "~{output_vcf_name}.tbi"
   }
   runtime {
-    docker: "us.gcr.io/broad-gotc-prod/picard-cloud:2.24.1"
+    docker: "lifebitai/bcftools:1.10.2"
     memory: "3 GB"
     disks: "local-disk " + 10 + " HDD"
     preemptible: 3

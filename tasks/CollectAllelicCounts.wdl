@@ -32,7 +32,7 @@ workflow CollectAllelicCountsToVcf {
         method = program
     }
 
-    call BamDepths2Vcf{
+    call BamDepths2Vcf {
         input:
         vcf_file = vcf_biallelics_splitted,
         ref_bam = BamCounts4Onemap.ref_bam,
@@ -220,8 +220,8 @@ task BamDepths2Vcf{
   runtime {
     docker: "cristaniguti/onemap_workflows"
     preemptible: 3
-    memory: "2 GB"
-    cpu: 1
+    memory: "4 GB"
+    cpu: 3
     disks: "local-disk " + disk_size + " HDD"
   }
 
