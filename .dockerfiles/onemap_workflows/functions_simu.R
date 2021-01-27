@@ -341,7 +341,7 @@ write_report <- function(filters_tab, out_name) {
   write.table(filters_tab, file=out_name, row.names=F, quote=F, col.names = F)
 }
 
-
+# Deprecated
 make_vcf <- function(vcf.old, depths, allele_file, out_vcf, cores=3){
   # The input od polyRAD need to be a VCF, then this part takes the allele depth from "depths" and put at AD field of input vcf
   idx <- system(paste0("grep -in 'CHROM' ", vcf.old), intern = T) # This part only works in linux OS
@@ -420,63 +420,55 @@ make_vcf <- function(vcf.old, depths, allele_file, out_vcf, cores=3){
   return(out_vcf)
 }
 
-adapt2app <- function(data){
+adapt2app <- function(datas_up_inp){
   
   # For errors
-  data[[1]]$errors <- apply(data[[1]][,10:13], 1, function(x) if(all(x==1)) NA else 1 - x[which.max(x)])
-  data[[1]]$ref[which(data[[1]]$ref == ".")] <- NA
-  data[[1]]$ref <- as.numeric(data[[1]]$ref)
-  # The onemap genotype codification do not diferenciate the homozyotes for each parent
-  data[[1]]$gabGT[data[[1]]$gabGT == 3 | data[[1]]$gabGT == 1] <- "homozygous"
-  data[[1]]$gabGT[data[[1]]$gabGT == 2] <- "heterozygote"
-  data[[1]]$methGT[data[[1]]$methGT == "3" | data[[1]]$methGT == "1"] <- "homozygous"
-  data[[1]]$methGT[data[[1]]$methGT == "2"] <- "heterozygote"
-  data[[1]]$methGT[data[[1]]$methGT == "0"] <- "missing"
-  
-  data[[1]]$methGT <- factor(data[[1]]$methGT, labels = c("missing", "homozygous", "heterozygote"), levels = c("missing", "homozygous", "heterozygote"))
-  data[[1]]$gabGT <- factor(data[[1]]$gabGT, labels = c("missing", "homozygous", "heterozygote"), levels = c("missing", "homozygous", "heterozygote"))
-  
-  data[[1]] <- fix_genocall_names(data[[1]])
+  datas_up_inp[[1]]$ref[which(datas_up_inp[[1]]$ref == ".")] <- NA
+  datas_up_inp[[1]]$alt[which(datas_up_inp[[1]]$alt == ".")] <- NA
+  datas_up_inp[[1]]$ref <- as.numeric(datas_up_inp[[1]]$ref)
+  datas_up_inp[[1]]$alt <- as.numeric(datas_up_inp[[1]]$alt)
+
+  datas_up_inp[[1]] <- fix_genocall_names(datas_up_inp[[1]])
   
   ####
-  data[[2]] <- data[[2]][,-3]
-  colnames(data[[2]]) <- c("seed", "depth", "mk.name", "pos" , "rf" , "type", "real.type", 
+  datas_up_inp[[2]] <- datas_up_inp[[2]][,-3]
+  colnames(datas_up_inp[[2]]) <- c("seed", "depth", "mk.name", "pos" , "rf" , "type", "real.type", 
                            "est.phases", "real.phases", "real.mks", "SNPCall", "GenoCall", 
                            "CountsFrom", "fake", "poscM", "poscM.norm", "diff")
   
-  data[[2]]$fake[which(data[[2]]$real.mks ==99)] <- "without-false"
-  data[[2]]$fake[which(data[[2]]$real.mks < 2)] <- "with-false"
+  datas_up_inp[[2]]$fake[which(datas_up_inp[[2]]$real.mks ==99)] <- "without-false"
+  datas_up_inp[[2]]$fake[which(datas_up_inp[[2]]$real.mks < 2)] <- "with-false"
   
-  data[[2]]$real.mks[which(data[[2]]$real.mks == 99 | data[[2]]$real.mks == 1)] <- "true markers"
-  data[[2]]$real.mks[which(data[[2]]$real.mks == 0)] <- "false positives"
+  datas_up_inp[[2]]$real.mks[which(datas_up_inp[[2]]$real.mks == 99 | datas_up_inp[[2]]$real.mks == 1)] <- "true markers"
+  datas_up_inp[[2]]$real.mks[which(datas_up_inp[[2]]$real.mks == 0)] <- "false positives"
   
-  data[[2]] <- fix_genocall_names(data[[2]])
-  
-  ###
-  colnames(data[[3]]) <- c("seed", "depth", "mis_markers", "n_markers", "distorted_markers", "redundant_markers", "SNPCall", "GenoCall", "CountsFrom")
-  
-  data[[3]] <- fix_genocall_names(data[[3]])
+  datas_up_inp[[2]] <- fix_genocall_names(datas_up_inp[[2]])
   
   ###
-  data[[4]] <- as.data.frame(data[[4]])
-  data[[4]]$fake <- as.character(data[[4]]$fake)
-  data[[4]]$fake[which(data[[4]]$fake =="FALSE")] <- "without-false"
-  data[[4]]$fake[which(data[[4]]$fake =="TRUE")] <- "with-false"
-  data[[4]]$fake <- as.factor(data[[4]]$fake)
+  colnames(datas_up_inp[[3]]) <- c("seed", "depth", "mis_markers", "n_markers", "distorted_markers", "redundant_markers", "SNPCall", "GenoCall", "CountsFrom")
   
-  data[[4]] <- fix_genocall_names(data[[4]])
+  datas_up_inp[[3]] <- fix_genocall_names(datas_up_inp[[3]])
+  
+  ###
+  datas_up_inp[[4]] <- as.data.frame(datas_up_inp[[4]])
+  datas_up_inp[[4]]$fake <- as.character(datas_up_inp[[4]]$fake)
+  datas_up_inp[[4]]$fake[which(datas_up_inp[[4]]$fake =="FALSE")] <- "without-false"
+  datas_up_inp[[4]]$fake[which(datas_up_inp[[4]]$fake =="TRUE")] <- "with-false"
+  datas_up_inp[[4]]$fake <- as.factor(datas_up_inp[[4]]$fake)
+  
+  datas_up_inp[[4]] <- fix_genocall_names(datas_up_inp[[4]])
   
   #####
-  data[[5]] <- data[[5]][,-7] ## Ajustar
-  names(data[[5]]) <- c("depth", "seed", "SNPCall", "(1)", "(2)", "(3)", "(4)", "(5)") ## Ajustars
-  data[[5]] <- gather(data[[5]], key,value,-SNPCall, -depth, -seed)
+  datas_up_inp[[5]] <- datas_up_inp[[5]][,-7] ## Ajustar
+  names(datas_up_inp[[5]]) <- c("depth", "seed", "SNPCall", "(1)", "(2)", "(3)", "(4)", "(5)") ## Ajustars
+  datas_up_inp[[5]] <- gather(datas_up_inp[[5]], key,value,-SNPCall, -depth, -seed)
   
-  data[[3]]$GenoCall <- factor(data[[3]]$GenoCall)
-  data[[3]] <- gather(data[[3]],key,value, -CountsFrom, -seed, -depth, -SNPCall, -GenoCall)
-  data[[3]]$key <- factor(data[[3]]$key)
+  datas_up_inp[[3]]$GenoCall <- factor(datas_up_inp[[3]]$GenoCall)
+  datas_up_inp[[3]] <- gather(datas_up_inp[[3]],key,value, -CountsFrom, -seed, -depth, -SNPCall, -GenoCall)
+  datas_up_inp[[3]]$key <- factor(datas_up_inp[[3]]$key)
   
   # Defining the options
-  cout <- table(data[[1]]$seed, data[[1]]$depth)
+  cout <- table(datas_up_inp[[1]]$seed, datas_up_inp[[1]]$depth)
   depthNames <- colnames(cout)
   depths <- seeds <- seedsNames <- vector()
   for(i in 1:length(depthNames)){
@@ -490,27 +482,27 @@ adapt2app <- function(data){
     }
   }
   
-  depth_choice <- as.list(unique(data[[1]]$depth))
-  names(depth_choice) <- as.character(unique(data[[1]]$depth))
+  depth_choice <- as.list(unique(datas_up_inp[[1]]$depth))
+  names(depth_choice) <- as.character(unique(datas_up_inp[[1]]$depth))
   seeds_choice <- as.list(1:length(seedsNames))
   names(seeds_choice) <- as.character(seedsNames)
   
-  result_list <- list("data1" = data[[1]], "data2"= data[[2]], 
-                      "data3"=data[[3]], "data4"=data[[4]], 
-                      "data5"=data[[5]], "choices" = list(depths, seeds, seeds_choice, depth_choice))
+  result_list <- list("data1" = datas_up_inp[[1]], "data2"= datas_up_inp[[2]], 
+                      "data3"=datas_up_inp[[3]], "data4"=datas_up_inp[[4]], 
+                      "data5"=datas_up_inp[[5]], "choices" = list(depths, seeds, seeds_choice, depth_choice))
   
   return(result_list)
 }
 
-fix_genocall_names <- function(data){
-  data$GenoCall <- as.factor(data$GenoCall)
-  temp <- levels(data$GenoCall)
-  idx <- grep(c("default", "default0.05"), temp)
+fix_genocall_names <- function(data_broken){
+  data_broken$GenoCall <- as.factor(data_broken$GenoCall)
+  temp <- levels(data_broken$GenoCall)
+  idx <- match(c("default", "default0.05"), temp)
   temp[idx] <- c("OneMap_version2", "SNPCaller0.05")
-  data$GenoCall <- as.character(data$GenoCall)
-  data$GenoCall[data$GenoCall == "default"] <- "OneMap_version2"
-  data$GenoCall[data$GenoCall == "default0.05"] <- "SNPCaller0.05"
-  data$GenoCall <- factor(data$GenoCall, labels = temp, levels = temp)
-  return(data)
+  data_broken$GenoCall <- as.character(data_broken$GenoCall)
+  data_broken$GenoCall[data_broken$GenoCall == "default"] <- "OneMap_version2"
+  data_broken$GenoCall[data_broken$GenoCall == "default0.05"] <- "SNPCaller0.05"
+  data_broken$GenoCall <- factor(data_broken$GenoCall, labels = temp, levels = temp)
+  return(data_broken)
 }
 

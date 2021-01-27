@@ -3,7 +3,7 @@ version 1.0
 import "snpcalling_empS.wdl"
 import "reference_struct.wdl"
 import "split_filt_vcf.wdl" as norm_filt
-import "CollectAllelicCounts.wdl" as counts
+import "utils.wdl" as utils
 
 
 workflow GatkGenotyping {
@@ -14,7 +14,8 @@ workflow GatkGenotyping {
     String program
     String parent1
     String parent2
-    Array[String] sample_names
+    Array[String] sampleNames
+    Int max_cores
   }
 
   call CreateChunks {
@@ -53,24 +54,24 @@ workflow GatkGenotyping {
       parent2 = parent2
   }
 
-  call counts.CollectAllelicCountsToVcf {
+  Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
+
+  call utils.ReplaceAD {
     input:
-      program=program,
-      sample_names=sample_names,
-      bams=bams,
-      bams_index=bais,
-      references=references,
-      vcf_biallelics_splitted=SplitFiltVCF.vcf_biallelics,
-      vcf_biallelics_tbi_splitted=SplitFiltVCF.vcf_biallelics_tbi
+      ref_fasta = references.ref_fasta,
+      ref_index = references.ref_fasta_index,
+      bams = map_bams["bam"],
+      bais = map_bams["bai"],
+      vcf = SplitFiltVCF.vcf_biallelics,
+      tbi = SplitFiltVCF.vcf_biallelics_tbi,
+      program = program
   }
 
   output {
     File vcf_biallelics = SplitFiltVCF.vcf_biallelics
     File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
     File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
-    File vcf_biallelics_bamcounts = CollectAllelicCountsToVcf.vcf_biallelics_bamcounts
-    File alt_bam = CollectAllelicCountsToVcf.alt_bam
-    File ref_bam = CollectAllelicCountsToVcf.ref_bam
+    File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
   }
 }
 

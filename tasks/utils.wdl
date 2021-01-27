@@ -1,6 +1,6 @@
 version 1.0
 
-import "alignment_struct.wdl"
+import "structs/alignment_struct.wdl"
 
 task TabixVcf {
   input {
@@ -25,9 +25,6 @@ task TabixVcf {
     File tbi = "freebayes.vcf.gz.tbi"
   }
 }
-
-
-
 
 
 task VcftoolsMerge {
@@ -82,7 +79,6 @@ task BcftoolsMerge {
     File vcf = "~{prefix}.variants.vcf"
   }
 }
-
 
 task VcftoolsApplyFilters {
 
@@ -226,8 +222,6 @@ task CalculateVcfMetrics {
   }
 }
 
-
-
 task ApplyRandomFilters{
   input{
     File gatk_vcf
@@ -263,45 +257,34 @@ task ApplyRandomFilters{
   }
 }
 
-task Gambis {
-  input{
-    File gatk_vcf_bam_counts
-    File freebayes_vcf_bam_counts
-    String method
-  }
 
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-      if("~{method}" == "gatk") choosed_bam = "~{gatk_vcf_bam_counts}" else choosed_bam = "~{freebayes_vcf_bam_counts}"
-
-      system(paste("cp", choosed_bam, "choosed_bam.vcf"))
-
-    RSCRIPT
-  >>>
-
-  output{
-    File choosed_bam = "choosed_bam.vcf"
-  }
-}
-
-task FiltChr {
+task ReplaceAD {
   input {
-    File vcf_bam
-    String chromosome
+    File ref_fasta
+    File ref_index
+    Array[File] bams
+    Array[File] bais
+    File vcf
+    File tbi
+    String program
   }
 
   command <<<
-    vcftools --gzvcf ~{vcf_bam} --chr ~{chromosome} --recode --stdout > bam_chr.vcf
+
+    bcftools view -G -v snps ~{vcf} -Oz -o sites.vcf.gz
+    bcftools index --tbi -f sites.vcf.gz
+    bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
+    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
+    bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o ~{program}_bam_vcf.vcf
+
   >>>
 
-  runtime {
-    docker:"taniguti/vcftools"
-    mem:"20GB"
-    cpu:1
-    time:"00:30:00"
+  runtime{
+    docker:"lifebitai/bcftools:1.10.2"
   }
 
   output {
-    File bam_chr = "bam_chr.vcf"
+    File bam_vcf =  "~{program}_bam_vcf.vcf"
   }
 }
+
