@@ -84,7 +84,6 @@ task RunBwaAlignmentSimu {
     for file in ~{sep= " " reads}; do
 
       sample=`basename -s .1.fq $file`
-      echo $sample
 
       bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
 

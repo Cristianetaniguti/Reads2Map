@@ -193,9 +193,6 @@ task FiltersReportEmp{
   }
 }
 
-
-
-
 task MapsReport{
   input {
    File onemap_obj
@@ -283,26 +280,61 @@ task MapsReport{
 task ErrorsReport {
   input {
     File onemap_obj
+    File vcfR_obj
     File simu_onemap_obj
+    File simu_vcfR
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
+    Int seed
+    Int depth
   }
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
+
         library(onemap)
-        source("/opt/scripts/functions_simu.R")
+        library(tidyverse)
 
-        onemap_obj <- load("~{onemap_obj}")
-        onemap_obj <- get(onemap_obj)
+        temp <- load("~{onemap_obj}")
+        df <- get(temp)
 
-        simu_onemap_obj <- load("~{simu_onemap_obj}")
-        simu_onemap_obj <- get(simu_onemap_obj)
+        temp <- load("~{vcfR_obj}")
+        vcf <- get(temp)
 
-        create_errors_report(onemap_obj = onemap_obj, simu_onemap_obj,
-                             "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                             "~{CountsFrom}")
+        p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "P1",
+        parent2 = "P2", vcf.par = "AD",recovering = FALSE, GTfrom = "vcf", alpha=0.1,
+        rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+
+        df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+        df <- cbind(seed = ~{seed}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
+                    GenoCall="~{GenotypeCall_program}", df)
+
+        simu <- load("~{simu_vcfR}")
+        vcf_simu <- get(simu)
+
+        gt.simu <- vcf_simu@gt[,-1]
+        gt.simu <- as.data.frame(cbind(mks = vcf_simu@fix[,3], gt.simu))
+        dptot <- gt.simu %>%
+          pivot_longer(!mks, names_to = "ind", values_to = "gabGT") %>% inner_join(df)
+
+        dptot <- as.data.frame(dptot)
+        colnames(dptot)[10] <- "methGT"
+
+        idx <- which(colnames(dptot) %in% c("gabGT", "gt.vcf"))
+        colnames(dptot)[idx[2]] <- "methGT"
+
+        for(i in idx){
+          dptot[,i] <- gsub("[|]", "/", dptot[,i])
+          dptot[,i][dptot[,i] == "." | dptot[,i] == "./."] <- "missing"
+          dptot[,i][dptot[,i] == "0/0"] <- "homozygous-ref"
+          dptot[,i][dptot[,i] == "1/1"] <- "homozygous-alt"
+          dptot[,i][dptot[,i] == "0/1" | dptot[,i] == "1/0"] <- "heterozygous"
+        }
+
+        dptot <- cbind(dptot, errors = apply(dptot[,13:16], 1, function(x) 1 - max(x)))
+
+        write.table(dptot, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)
 
       RSCRIPT
 
@@ -350,66 +382,6 @@ task GlobalError {
   }
 }
 
-
-task BamDepths2Vcf{
-  input{
-    File vcf_file
-    File ref_bam
-    File alt_bam
-    File example_alleles
-    String program
-  }
-
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-
-      library(onemap)
-      library(vcfR)
-      library(doParallel)
-      source("/opt/scripts/functions_simu.R")
-
-      system("cp ~{ref_bam} .")
-      system("cp ~{alt_bam} .")
-      system("cp ~{example_alleles} .")
-
-       ## Depths from bam
-       depths.alt <- read.table("~{alt_bam}", header = T)
-       depths.ref <- read.table("~{ref_bam}", header = T)
-
-       depths <- list("ref" = depths.ref, "alt"=depths.alt)
-
-       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
-          vcf.temp <- paste0("vcf.temp",".", sample(1000,1), ".vcf")
-          system(paste0("zcat ", "~{vcf_file}", " > ", vcf.temp))
-          vcf_file <- vcf.temp
-       } else {
-          vcf_file <- "~{vcf_file}"
-       }
-
-       allele_file <- paste0("~{example_alleles}")
-       bam_vcf <- make_vcf(vcf_file, depths, allele_file, "~{program}_bam_vcf.vcf")
-
-       bam_vcfR <- read.vcfR(bam_vcf)
-       save(bam_vcfR, file="~{program}_bam_vcfR.RData")
-
-    RSCRIPT
-
-  >>>
-
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    time:"15:00:00"
-    mem:"30GB"
-    cpu:1
-  }
-
-  output{
-    File bam_vcf = "~{program}_bam_vcf.vcf"
-    File bam_vcfR = "~{program}_bam_vcfR.RData"
-  }
-}
-
-
 task CheckDepths{
   input{
     File onemap_obj
@@ -449,7 +421,7 @@ task CheckDepths{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"30GB"
+    mem:"60GB"
     cpu:1
   }
 
@@ -485,7 +457,7 @@ task MapsReportEmp{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"24:00:00"
-    mem:"30GB"
+    mem:"60GB"
     cpu:4
   }
 
@@ -571,14 +543,6 @@ task JointReports{
     Array[File] Gusmap_times
     Int depth
     Int seed
-    File gatk_ref_depth
-    File gatk_ref_depth_bam
-    File gatk_alt_depth
-    File gatk_alt_depth_bam
-    File freebayes_ref_depth_bam
-    File freebayes_alt_depth_bam
-    File freebayes_ref_depth
-    File freebayes_alt_depth
   }
 
   command <<<
@@ -636,45 +600,15 @@ task JointReports{
 
       all_errors <- read.table("all_errors.txt")
 
-      # Adding allele counts to the report
-      gatk.ref.depth <- read.table("~{gatk_ref_depth}")
-
-      chr <- unique(sapply(strsplit(rownames(gatk.ref.depth), "_"), "[",1))
-
-      all_errors[,5] <- paste0(chr, "_",all_errors[,5])
-      colnames(all_errors) <- c("SNPCall", "GenoCall", "CountsFrom", "ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
-
-      files <- list(c("~{gatk_ref_depth}", "~{gatk_alt_depth}"), c("~{gatk_ref_depth_bam}", "~{gatk_alt_depth_bam}"),
-                    c("~{freebayes_ref_depth}", "~{freebayes_alt_depth}"), c("~{freebayes_ref_depth_bam}",
-                                                                               "~{freebayes_alt_depth_bam}"))
-      ref_alt <- c("ref", "alt")
-      SNPCall <- rep(c("gatk", "freebayes"), each=4)
-      CountsFrom <- rep(c("vcf", "bam"),2, each=2)
 
       ########################################################################################
       # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
       ########################################################################################
-
-      # Binding depth information for each genotype
-      z <- 1
-      data1 <- data.frame()
-      for(j in 1:length(files)){
-        for(i in 1:2){
-          if(i == 1) df_meth <- all_errors
-          alleles <- read.table(files[[j]][i])
-          alleles <- cbind(mks=rownames(alleles), alleles)
-          alleles <- melt(alleles, id.vars = c("mks"))
-          colnames(alleles) <- c("mks", "ind", ref_alt[i])
-          alleles <- cbind(SNPCall=SNPCall[z], CountsFrom = CountsFrom[z], alleles)
-          z <- z+ 1
-          df_meth <- merge(df_meth, alleles, by = c("SNPCall", "CountsFrom", "ind", "mks"))
-
-        }
-        data1 <- rbind(data1, df_meth)
-      }
-
-      # Adding seed and depth info
-      all_errors <- cbind(seed, depth, data1)
+      all_errors <- read.table("all_errors.txt")
+      colnames(all_errors) <- c("mks","ind","gabGT","seed","depth",
+                                "SNPCall","CountsFrom",
+                                "GenoCall","alt","ref","gt.onemap",
+                                "methGT","A","AB","BA","B","errors")
 
       ########################################################
       # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; simulated_phases
@@ -754,19 +688,20 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/onemap_workflows"
-    preemptible: 3
-    memory: "4 GB"
-    cpu: 1
+    time:"10:00:00"
+    mem:"30GB"
+    cpu:1
+    job_name:"family_joint"
   }
 
   output {
     File data1_depths_geno_prob = "data1_depths_geno_prob.rds"
     File data2_maps = "data2_maps.rds"
     File data3_filters = "data3_filters.rds"
-    File data4_times = "data4_times.rds"
-    File data6_RDatas = "data6_RDatas.llo"
-    File data7_gusmap = "gusmap_RDatas.RData"
-    File data8_names = "names.rds"
-    File multi_names2 = "multi_names.RData"
+    File data4_times   = "data4_times.rds"
+    File data6_RDatas  = "data6_RDatas.llo"
+    File data7_gusmap  = "gusmap_RDatas.RData"
+    File data8_names   = "names.rds"
+    File multi_names2   = "multi_names.RData"
   }
 }
