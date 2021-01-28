@@ -31,6 +31,7 @@ task BamCounts {
   input {
     String program
     Array[File] bam
+    File vcf
     File ref
     File ref_fai
     File ref_dict
@@ -59,6 +60,14 @@ task BamCounts {
 
     done
 
+    #/gatk/gatk  IndexFeatureFile \
+    # -F ~{vcf}
+
+    #/gatk/gatk VariantsToTable \
+    # -V ~{vcf} \
+    # -F CHROM -F POS -F REF -F ALT -GF GT \
+    # -O "~{program}_gt_table"
+
   >>>
 
   runtime{
@@ -70,6 +79,7 @@ task BamCounts {
 
   output{
     Array[File] counts = glob("*_~{program}_counts.tsv")
+    #File GT_vcf = "~{program}_gt_table" 
   }
 }
 
@@ -282,7 +292,7 @@ task BamCounts4Onemap{
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(R.utils)
-      system("cp ~{sep=" "  counts} .")
+      system("cp ~{sep=" "  counts} .") 
       names <- c("~{sep=" , "  sampleName}")
       names <- unlist(strsplit(names, split = " , "))
 
@@ -422,3 +432,34 @@ task FiltChr {
     File bam_chr = "bam_chr.vcf"
   }
 }
+
+task ReplaceAD {
+  input {
+    File ref_fasta
+    File ref_index
+    Array[File] bams
+    Array[File] bais
+    File vcf
+    File tbi
+    String program
+  }
+
+  command <<<
+
+    bcftools view -G -v snps ~{vcf} -Oz -o sites.vcf.gz
+    bcftools index --tbi -f sites.vcf.gz
+    bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
+    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
+    bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o ~{program}_bam_vcf.vcf
+
+  >>>
+
+  runtime{
+    docker:"lifebitai/bcftools:1.10.2"
+  }
+
+  output {
+    File bam_vcf =  "~{program}_bam_vcf.vcf"
+  }
+}
+

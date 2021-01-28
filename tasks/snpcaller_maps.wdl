@@ -5,6 +5,7 @@ import "./utilsR.wdl" as utilsR
 workflow SNPCallerMaps{
   input {
      File simu_onemap_obj
+     File simu_vcfR
      File onemap_obj
      File vcf_file
      File ref_alt_alleles
@@ -14,6 +15,8 @@ workflow SNPCallerMaps{
      String GenotypeCall_program
      String CountsFrom
      File? multi_obj
+     String seed
+     String depth
     }
 
 
@@ -59,7 +62,12 @@ workflow SNPCallerMaps{
       simu_onemap_obj = simu_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      CountsFrom = CountsFrom,
+      simu_vcfR = simu_vcfR,
+      vcfR_obj = GQProbs.vcfR_obj,
+      seed             = seed,
+      depth            = depth
+
   }
 
   output{
@@ -92,6 +100,7 @@ task GQProbs{
       }
 
       vcf <- read.vcfR("~{vcf_file}")
+      save(vcf, file="vcfR_obj.RData")
 
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
@@ -114,11 +123,12 @@ task GQProbs{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"50GB"
+    mem:"30GB"
     cpu:1
   }
 
   output{
     File gq_onemap_obj = "gq_onemap_obj.RData"
+    File vcfR_obj = "vcfR_obj.RData"
   }
 }

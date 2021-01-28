@@ -2,7 +2,7 @@
   "SimulatedReads.number_of_families": 1,
   "SimulatedReads.family": {
     "seed": 5050,
-    "popsize": 400,
+    "popsize": 200,
     "ploidy": 2,
     "cross": "F1"
   },

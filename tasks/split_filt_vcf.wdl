@@ -47,7 +47,7 @@ task BiallelicNormalization {
 
   runtime {
     docker: "lifebitai/bcftools"
-    mem:"40GB"
+    mem:"30GB"
     time:"05:00:00"
     cpu:1
   }
@@ -87,7 +87,7 @@ task SplitFilters{
 
   runtime {
     docker: "cristaniguti/vcftools"
-    mem:"60GB"
+    mem:"30GB"
     time:"20:00:00"
     cpu:1
   }

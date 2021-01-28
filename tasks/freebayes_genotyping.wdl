@@ -41,31 +41,16 @@ workflow FreebayesGenotyping {
       parent2 = parent2
   }
 
-  call utils.BamCounts {
-    input:
-      program=program,
-      bam=bam,
-      ref=references.ref_fasta,
-      ref_fai=references.ref_fasta_index,
-      ref_dict=references.ref_dict,
-      vcf=SplitFiltVCF.vcf_bi,
-      tbi=SplitFiltVCF.vcf_bi_tbi
-  }
+  Map[String, Array[File]] bams = {"bam": bam, "bai": bai}
 
-
-  call utils.BamCounts4Onemap {
+  call utils.ReplaceAD {
     input:
-      sampleName=sampleNames,
-      counts=BamCounts.counts,
-      method = program
-  }
-
-  call utilsR.BamDepths2Vcf{
-    input:
-      vcf_file = SplitFiltVCF.vcf_bi,
-      ref_bam = BamCounts4Onemap.ref_bam,
-      alt_bam = BamCounts4Onemap.alt_bam,
-      example_alleles = BamCounts4Onemap.ref_alt_alleles,
+      ref_fasta = references.ref_fasta,
+      ref_index = references.ref_fasta_index,
+      bams = bams["bam"],
+      bais = bams["bai"],
+      vcf = SplitFiltVCF.vcf_bi,
+      tbi = SplitFiltVCF.vcf_bi_tbi,
       program = program
   }
 
@@ -73,9 +58,7 @@ workflow FreebayesGenotyping {
     File vcf_bi = SplitFiltVCF.vcf_bi
     File tbi_bi = SplitFiltVCF.vcf_bi_tbi
     File vcf_multi = SplitFiltVCF.vcf_multi
-    File vcf_bi_bam_counts = BamDepths2Vcf.bam_vcf
-    File alt_bam = BamCounts4Onemap.alt_bam
-    File ref_bam = BamCounts4Onemap.ref_bam
+    File vcf_bi_bam_counts = ReplaceAD.bam_vcf
   }
 }
 
@@ -105,8 +88,8 @@ task RunFreebayes {
 
   runtime {
     docker: "taniguti/freebayes"
-    mem:"70GB"
-    time:"24:00:00"
+    mem:"60GB"
+    time:"14:00:00"
     cpu:20
   }
 

@@ -42,8 +42,8 @@ task vcf2onemap{
     >>>
     runtime{
       docker:"cristaniguti/onemap_workflows"
-      time:"15:00:00"
-      mem:"50GB"
+      time:"10:00:00"
+      mem:"30GB"
       cpu:1
     }
 
@@ -109,7 +109,7 @@ task MultiVcf2onemap{
     runtime{
       docker:"cristaniguti/onemap_workflows"
       time:"15:00:00"
-      mem:"70GB"
+      mem:"30GB"
       cpu:1
     }
 
@@ -146,7 +146,7 @@ task FiltersReport{
   runtime{
     docker: "cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"70GB"
+    mem:"30GB"
     cpu:1
   }
 
@@ -183,7 +183,7 @@ task FiltersReportEmp{
   runtime{
     docker: "cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"70GB"
+    mem:"30GB"
     cpu:1
   }
 
@@ -272,9 +272,9 @@ task MapsReport{
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    preemptible: 3
-    memory: "8 GB"
-    cpu: 4
+    time:"24:00:00"
+    mem:"50GB"
+    cpu:4
   }
 
   output {
@@ -287,26 +287,61 @@ task MapsReport{
 task ErrorsReport{
   input{
     File onemap_obj
+    File vcfR_obj
     File simu_onemap_obj
+    File simu_vcfR
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
+    String seed
+    String depth
   }
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
+        
         library(onemap)
-        source("/opt/scripts/functions_simu.R")
+        library(tidyverse)
 
-        onemap_obj <- load("~{onemap_obj}")
-        onemap_obj <- get(onemap_obj)
+        temp <- load("~{onemap_obj}")
+        df <- get(temp)
 
-        simu_onemap_obj <- load("~{simu_onemap_obj}")
-        simu_onemap_obj <- get(simu_onemap_obj)
+        temp <- load("~{vcfR_obj}")
+        vcf <- get(temp)
 
-        create_errors_report(onemap_obj = onemap_obj, simu_onemap_obj,
-                             "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                             "~{CountsFrom}")
+        p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "P1",
+        parent2 = "P2", vcf.par = "AD",recovering = FALSE, GTfrom = "vcf", alpha=0.1,
+        rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+
+        df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+        df <- cbind(seed = ~{"seed"}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
+                    GenoCall="~{GenotypeCall_program}", df)
+
+        simu <- load("~{simu_vcfR}")
+        vcf_simu <- get(simu)
+
+        gt.simu <- vcf_simu@gt[,-1]
+        gt.simu <- as.data.frame(cbind(mks = vcf_simu@fix[,3], gt.simu))
+        dptot <- gt.simu %>%
+          pivot_longer(!mks, names_to = "ind", values_to = "gabGT") %>% inner_join(df)
+
+        dptot <- as.data.frame(dptot)
+        colnames(dptot)[10] <- "methGT"
+
+        idx <- which(colnames(dptot) %in% c("gabGT", "gt.vcf"))
+        colnames(dptot)[idx[2]] <- "methGT"
+
+        for(i in idx){
+          dptot[,i] <- gsub("[|]", "/", dptot[,i])
+          dptot[,i][dptot[,i] == "." | dptot[,i] == "./."] <- "missing"
+          dptot[,i][dptot[,i] == "0/0"] <- "homozygous-ref"
+          dptot[,i][dptot[,i] == "1/1"] <- "homozygous-alt"
+          dptot[,i][dptot[,i] == "0/1" | dptot[,i] == "1/0"] <- "heterozygous"
+        }
+
+        dptot <- cbind(dptot, errors = apply(dptot[,13:16], 1, function(x) 1 - max(x)))
+
+        write.table(dptot, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)   
 
       RSCRIPT
 
@@ -315,7 +350,7 @@ task ErrorsReport{
   runtime{
     docker: "cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"70GB"
+    mem:"30GB"
     cpu:1
   }
 
@@ -345,7 +380,7 @@ task GlobalError {
   runtime {
     docker: "cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"70GB"
+    mem:"30GB"
     cpu:1
   }
 
@@ -362,6 +397,7 @@ task BamDepths2Vcf{
     File alt_bam
     File example_alleles
     String program
+    Int max_cores
   }
 
   command <<<
@@ -391,7 +427,7 @@ task BamDepths2Vcf{
        }
 
        allele_file <- paste0("~{example_alleles}")
-       bam_vcf <- make_vcf(vcf_file, depths, allele_file, "~{program}_bam_vcf.vcf")
+       bam_vcf <- make_vcf(vcf_file, depths, allele_file, "~{program}_bam_vcf.vcf", cores = ~{max_cores})
 
        bam_vcfR <- read.vcfR(bam_vcf)
        save(bam_vcfR, file="~{program}_bam_vcfR.RData")
@@ -402,8 +438,8 @@ task BamDepths2Vcf{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"20:00:00"
-    mem:"50GB"
+    time:"15:00:00"
+    mem:"30GB"
     cpu:1
   }
 
@@ -453,7 +489,7 @@ task CheckDepths{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"50GB"
+    mem:"60GB"
     cpu:1
   }
 
