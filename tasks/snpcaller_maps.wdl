@@ -7,7 +7,6 @@ workflow SNPCallerMaps{
      File simu_onemap_obj
      File simu_vcfR
      File onemap_obj
-     File vcfR_obj
      File vcf_file
      File ref_alt_alleles
      File simulated_phases
@@ -16,8 +15,8 @@ workflow SNPCallerMaps{
      String GenotypeCall_program
      String CountsFrom
      File? multi_obj
-     String seed
-     String depth
+     Int seed
+     Int depth
     }
 
 
@@ -66,9 +65,8 @@ workflow SNPCallerMaps{
       CountsFrom = CountsFrom,
       simu_vcfR = simu_vcfR,
       vcfR_obj = GQProbs.vcfR_obj,
-      seed             = seed,
-      depth            = depth
-
+      seed = seed,
+      depth = depth
   }
 
   output {

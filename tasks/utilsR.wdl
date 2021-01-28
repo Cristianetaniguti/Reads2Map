@@ -286,13 +286,13 @@ task ErrorsReport {
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
-    String seed
-    String depth
+    Int seed
+    Int depth
   }
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
-        
+
         library(onemap)
         library(tidyverse)
 
@@ -307,7 +307,7 @@ task ErrorsReport {
         rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
 
         df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
-        df <- cbind(seed = ~{"seed"}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
+        df <- cbind(seed = ~{seed}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
                     GenoCall="~{GenotypeCall_program}", df)
 
         simu <- load("~{simu_vcfR}")
@@ -334,7 +334,7 @@ task ErrorsReport {
 
         dptot <- cbind(dptot, errors = apply(dptot[,13:16], 1, function(x) 1 - max(x)))
 
-        write.table(dptot, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)   
+        write.table(dptot, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)
 
       RSCRIPT
 

@@ -12,9 +12,9 @@ workflow DefaultMaps {
      File simulated_phases
      String SNPCall_program
      String CountsFrom
-     File? multi_obj  
-     String seed
-     String depth
+     File? multi_obj
+     Int seed
+     Int depth
     }
 
     call utilsR.GlobalError{
@@ -66,8 +66,8 @@ workflow DefaultMaps {
                 CountsFrom = CountsFrom,
                 simu_vcfR = simu_vcfR,
                 vcfR_obj = vcfR_obj,
-                seed             = seed,
-                depth            = depth
+                seed = seed,
+                depth = depth
             }
      }
 

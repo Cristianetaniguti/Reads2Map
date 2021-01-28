@@ -8,7 +8,6 @@ workflow SnpBasedGenotypingSimulatedMaps {
   input {
     File simu_onemap_obj
     File simu_vcfR
-    File vcfR_obj
     File onemap_obj
     File vcf_file
     File ref_alt_alleles
@@ -19,8 +18,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String cross
     File? multi_obj
     Int max_cores
-    String seed
-    String depth
+    Int seed
+    Int depth
   }
 
   call OnemapProbsSimulated {
@@ -81,8 +80,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
               CountsFrom = CountsFrom,
               simu_vcfR = simu_vcfR,
               vcfR_obj = OnemapProbsSimulated.vcfR_obj,
-              seed             = seed,
-              depth            = depth
+              seed = seed,
+              depth = depth
           }
 
    }

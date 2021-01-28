@@ -152,7 +152,6 @@ workflow SimulatedMapsWorkflow {
         CountsFrom = "vcf",
         multi_obj = MultiVcf2onemap.onemap_obj,
         simu_vcfR = truth_vcf.vcfR_obj,
-        vcfR_obj = vcf2onemap.vcfR_obj,
         seed = family.seed,
         depth = sequencing.depth
     }
@@ -174,7 +173,6 @@ workflow SimulatedMapsWorkflow {
             multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
-            vcfR_obj = vcf2onemap.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth
         }
@@ -193,7 +191,6 @@ workflow SimulatedMapsWorkflow {
             multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
-            vcfR_obj = vcf2onemap.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth
         }
@@ -212,7 +209,6 @@ workflow SimulatedMapsWorkflow {
             multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
-            vcfR_obj = vcf2onemap.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth
         }
