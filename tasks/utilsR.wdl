@@ -230,24 +230,9 @@ task MapsReport{
 
       # It will not run if all markers are true markers
       if(all(info_fake[[2]][,8])){     
-        info_correct <- info_fake
+
         times_temp <- times_fake
-        
-        est.pos <- info_fake[[2]][,2]
-        real.type <- rep(NA, nrow(info_correct[[2]]))
-        temp.type <- simu_onemap_obj$segr.type[which(simu_onemap_obj$POS %in% est.pos)]
-        real.type[which(est.pos %in% as.character(simu_onemap_obj$POS))] <- temp.type
-        real.type[which(is.na(real.type))] <- "non-informative"
-        poscM <- ref_alt_alleles$pos.map[which(as.numeric(as.character(ref_alt_alleles$pos)) %in% as.numeric(as.character(est.pos)))]
-        poscM.norm <- poscM-poscM[1]
-        diff <- sqrt((poscM.norm - info_fake[[2]][,3])^2)
-        real.phase <- simulated_phases[which(simulated_phases$pos%in%est.pos),][,2]
-        
-        info_correct[[2]]$real.type <- real.type
-        info_correct[[2]]$real.phases <- real.phase
-        info_correct[[2]]$poscM <- poscM
-        info_correct[[2]]$poscM.norm <- poscM.norm
-        info_correct[[2]]$diff <- diff
+        info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
               
         save(map_df, file= paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_", fake, ".RData"))
         write_report(map_info, paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_",fake, ".txt"))
