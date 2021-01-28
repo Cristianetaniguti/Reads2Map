@@ -20,7 +20,7 @@ workflow GatkGenotyping {
     input:
       bams=bams,
       bams_index=bais,
-      chunk_size=1
+      chunk_size=30
   }
 
   scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
