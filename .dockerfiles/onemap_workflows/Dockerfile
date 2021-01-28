@@ -35,10 +35,10 @@ RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/')
 
 RUN R -e "devtools::install_github('Cristianetaniguti/onemap')"
 
-COPY ./functions_simu.R /opt/scripts/
-
-COPY ./functions_empirical.R /opt/scripts
-
 # Still in private repo
 COPY ./genotyping4onemap_0.1.7.tar.gz /opt/
 RUN R -e "install.packages('/opt/genotyping4onemap_0.1.7.tar.gz', type = 'source', repos=NULL)"
+
+COPY ./functions_simu.R /opt/scripts/
+
+COPY ./functions_empirical.R /opt/scripts
