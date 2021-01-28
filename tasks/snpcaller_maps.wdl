@@ -5,6 +5,7 @@ import "./utilsR.wdl" as utilsR
 workflow SNPCallerMaps{
   input {
      File simu_onemap_obj
+     File simu_vcfR
      File onemap_obj
      File vcf_file
      File ref_alt_alleles
@@ -14,16 +15,18 @@ workflow SNPCallerMaps{
      String GenotypeCall_program
      String CountsFrom
      File? multi_obj
+     Int seed
+     Int depth
     }
 
 
-  call GQProbs{
+  call GQProbs {
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
       cross = cross
   }
-  
+
   if (defined(multi_obj)) {
       call utilsR.AddMultiallelics{
           input:
@@ -31,7 +34,7 @@ workflow SNPCallerMaps{
             onemap_obj_bi = GQProbs.gq_onemap_obj
       }
   }
-        
+
   File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
 
   call utilsR.FiltersReport{
@@ -59,10 +62,14 @@ workflow SNPCallerMaps{
       simu_onemap_obj = simu_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      CountsFrom = CountsFrom,
+      simu_vcfR = simu_vcfR,
+      vcfR_obj = GQProbs.vcfR_obj,
+      seed = seed,
+      depth = depth
   }
 
-  output{
+  output {
     File RDatas = MapsReport.maps_RData
     File maps_report = MapsReport.maps_report
     File times = MapsReport.times
@@ -72,7 +79,7 @@ workflow SNPCallerMaps{
 }
 
 task GQProbs{
-  input{
+  input {
     File vcf_file
     File onemap_obj
     String cross
@@ -92,6 +99,7 @@ task GQProbs{
       }
 
       vcf <- read.vcfR("~{vcf_file}")
+      save(vcf, file="vcfR_obj.RData")
 
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
@@ -111,14 +119,15 @@ task GQProbs{
     RSCRIPT
 
   >>>
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    time:"48:00:00"
-    mem:"50GB"
-    cpu:1
+  runtime {
+    docker: "cristaniguti/onemap_workflows"
+    time:"10:00:00"
+    memory: "3 GB"
+    cpu: 1
   }
 
-  output{
+  output {
     File gq_onemap_obj = "gq_onemap_obj.RData"
+    File vcfR_obj = "vcfR_obj.RData"
   }
 }

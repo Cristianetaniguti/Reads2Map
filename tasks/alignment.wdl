@@ -84,7 +84,6 @@ task RunBwaAlignmentSimu {
     for file in ~{sep= " " reads}; do
 
       sample=`basename -s .1.fq $file`
-      echo $sample
 
       bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
 
@@ -102,8 +101,8 @@ task RunBwaAlignmentSimu {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    time:"72:00:00"
-    mem:"--nodes=1"
+    time:"14:00:00"
+    mem:"20GB"
     cpu:20
     job_name:"alignment"
   }
@@ -142,8 +141,8 @@ task AddAlignmentHeader {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"24:00:00"
-    mem:"--nodes=1"
+    time:"01:00:00"
+    mem:"10GB"
     cpu:1
   }
 

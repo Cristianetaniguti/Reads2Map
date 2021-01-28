@@ -50,8 +50,8 @@ workflow TestGenotypingR {
           SNPCall_program = method,
           parent1 = parent1,
           parent2 = parent2,
-          seed    = seed,
-          depth   = depth
+          seed = seed,
+          depth = depth
     }
 
     call default.DefaultMaps {
@@ -62,7 +62,11 @@ workflow TestGenotypingR {
         simulated_phases = simulated_phases,
         SNPCall_program = method,
         CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj
+        multi_obj = MultiVcf2onemap.onemap_obj,
+        simu_vcfR = truth_vcf.vcfR_obj,
+        vcfR_obj = vcf2onemap.vcfR_obj,
+        seed = seed,
+        depth = depth
     }
 
     call snpcaller.SNPCallerMaps {
@@ -76,7 +80,10 @@ workflow TestGenotypingR {
         SNPCall_program = method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj
+        multi_obj = MultiVcf2onemap.onemap_obj,
+        simu_vcfR = truth_vcf.vcfR_obj,
+        seed = seed,
+        depth = depth
     }
 
     Map[String, File] vcfs = {"vcf": analysis_vcf, "bam": analysis_bam}
@@ -94,7 +101,10 @@ workflow TestGenotypingR {
             CountsFrom = origin,
             cross = cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = truth_vcf.vcfR_obj,
+            seed = seed,
+            depth = depth
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -109,7 +119,10 @@ workflow TestGenotypingR {
             CountsFrom = origin,
             cross = cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = truth_vcf.vcfR_obj,
+            seed = seed,
+            depth = depth
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -124,7 +137,10 @@ workflow TestGenotypingR {
             CountsFrom = origin,
             cross = cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = truth_vcf.vcfR_obj,
+            seed = seed,
+            depth = depth
         }
       }
 

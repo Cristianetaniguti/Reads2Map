@@ -1,6 +1,6 @@
 version 1.0
 
-import "reads_simu.wdl" as sub
+import "SimulatedMapsWorkflow.wdl" as sub
 
 workflow SimulatedReads {
 
@@ -38,7 +38,7 @@ workflow SimulatedReads {
     }
 
     # Calling reads_simu for each seed
-    call sub.reads_simu as ReadSimulations {
+    call sub.SimulatedMapsWorkflow {
       input:
         references=references,
         family=fam,
@@ -49,17 +49,17 @@ workflow SimulatedReads {
 
   call JointTables {
     input:
-      data1=ReadSimulations.data1_depths_geno_prob,
-      data2=ReadSimulations.data2_maps,
-      data3=ReadSimulations.data3_filters,
-      data5=ReadSimulations.data5_SNPcall_efficiency,
-      data4=ReadSimulations.data4_times,
+      data1=SimulatedMapsWorkflow.data1_depths_geno_prob,
+      data2=SimulatedMapsWorkflow.data2_maps,
+      data3=SimulatedMapsWorkflow.data3_filters,
+      data5=SimulatedMapsWorkflow.data5_SNPcall_efficiency,
+      data4=SimulatedMapsWorkflow.data4_times,
       depth=sequencing.depth,
-      data6=ReadSimulations.data6_RDatas,
-      data7=ReadSimulations.data7_gusmap,
-      data8=ReadSimulations.data8_names,
-      data9=ReadSimulations.simu_haplo,
-      data10=ReadSimulations.multi_names
+      data6=SimulatedMapsWorkflow.data6_RDatas,
+      data7=SimulatedMapsWorkflow.data7_gusmap,
+      data8=SimulatedMapsWorkflow.data8_names,
+      data9=SimulatedMapsWorkflow.simu_haplo,
+      data10=SimulatedMapsWorkflow.multi_names
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -86,10 +86,9 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
-    time:"0:10:00"
-    cpu:1
-    mem:"1GB"
-    job_name: "create_seeds"
+    preemptible: 3
+    cpu: 1
+    memory: "1 GB"
   }
 
   output {
@@ -191,15 +190,14 @@ task JointTables{
     RSCRIPT
   >>>
 
-  runtime{
+  runtime {
       docker:"cristaniguti/onemap_workflows"
-      time:"03:00:00"
-      cpu:1
-      mem:"30GB"
-      job_name: "final_joint"
+      preemptible: 3
+      cpu: 2
+      memory: "8 GB"
   }
 
-  output{
+  output {
     File results = "SimulatedReads_results_depth~{depth}.tar.gz"
   }
 }

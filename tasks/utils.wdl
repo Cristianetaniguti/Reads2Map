@@ -15,7 +15,7 @@ task TabixVcf {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"24:00:00"
+    time:"01:00:00"
     mem:"10GB"
     cpu:1
   }
@@ -23,52 +23,6 @@ task TabixVcf {
   output {
     File vcf = "freebayes.vcf.gz"
     File tbi = "freebayes.vcf.gz.tbi"
-  }
-}
-
-
-task CollectAllelicCounts {
-  input {
-    String program
-    Array[File] bams
-    Array[File] bams_index
-    File ref
-    File ref_fai
-    File ref_dict
-    File vcf
-    File tbi
-  }
-
-  command <<<
-    set -e
-
-    java -jar /gatk/picard.jar VcfToIntervalList \
-      I=~{vcf} \
-      O=interval.list
-
-    mkdir links
-    for bam in ~{sep=" " bams}; do ln -s $bam links/; done
-    for bai in ~{sep=" " bams_index}; do ln -s $bai links/; done
-    for bam in links/*.bam; do
-      name=$(basename -s ".sorted.bam" "$bam")
-      /gatk/gatk CollectAllelicCounts \
-        --input "$bam" \
-        --reference ~{ref} \
-        --intervals interval.list \
-        --output "${name}_~{program}_counts.tsv"
-    done
-
-  >>>
-
-  runtime{
-    docker:"taniguti/gatk-picard"
-    mem:"20GB"
-    cpu:1
-    time:"48:00:00"
-  }
-
-  output{
-    Array[File] counts = glob("*_~{program}_counts.tsv")
   }
 }
 
@@ -92,7 +46,7 @@ task VcftoolsMerge {
     docker: "taniguti/vcftools"
     mem:"10GB"
     cpu:1
-    time:"24:00:00"
+    time:"01:00:00"
   }
 
   output {
@@ -118,14 +72,13 @@ task BcftoolsMerge {
     docker: "biocontainers/bcftools:1.3.1"
     mem:"5GB"
     cpu:1
-    time:"48:00:00"
+    time:"01:00:00"
   }
 
   output {
     File vcf = "~{prefix}.variants.vcf"
   }
 }
-
 
 task VcftoolsApplyFilters {
 
@@ -253,9 +206,9 @@ task CalculateVcfMetrics {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    mem:"30GB"
+    memory: "3 GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
@@ -269,82 +222,7 @@ task CalculateVcfMetrics {
   }
 }
 
-
-# This task convert the output from BamCounts to the depths input for onemap
-task BamCounts4Onemap{
-  input{
-    Array[File] counts
-    Array[String] sampleName
-    String method
-  }
-
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-      library(R.utils)
-      system("cp ~{sep=" "  counts} .")
-      names <- c("~{sep=" , "  sampleName}")
-      names <- unlist(strsplit(names, split = " , "))
-
-      system(paste("grep -n 'CONTIG'", paste0(names[1],"_", "~{method}","_counts.tsv"), "> idx"))
-      idx <- read.table("idx", stringsAsFactors = F)
-      idx <- strsplit(idx[,1], ":")[[1]][1]
-      idx <- as.numeric(idx) -1
-
-      file.counts <- read.table(paste0(names[1],"_", "~{method}","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
-
-      ref_depth_matrix2 <- alt_depth_matrix2  <- matrix(NA, nrow = dim(file.counts)[1], ncol = length(names))
-
-      for(j in 1:length(names)){
-        ## From picard tool
-
-        file.counts <- read.table(paste0(names[j],"_", "~{method}","_counts.tsv"), skip = idx, header=T, stringsAsFactors = F)
-
-        ref_depth_matrix2[,j] <- file.counts[,3]
-        alt_depth_matrix2[,j] <- file.counts[,4]
-
-        if (j == 1){
-          ref_allele <- file.counts[,5]
-          alt_allele <- file.counts[,6]
-        } else {
-          idx.ref <- which(ref_allele == "N")
-          idx.alt <- which(alt_allele == "N")
-          if (length(idx.ref)!=0){
-            ref_allele[idx.ref] <- file.counts[idx.ref,5]
-          }
-          if (length(idx.alt)!=0){
-            alt_allele[idx.alt] <- file.counts[idx.alt,6]
-          }
-        }
-
-        rownames(ref_depth_matrix2) <- rownames(alt_depth_matrix2) <- paste0(file.counts[,1],"_", file.counts[,2])
-        colnames(ref_depth_matrix2) <- colnames(alt_depth_matrix2) <- names
-
-        alleles <- data.frame(file.counts[,1],file.counts[,2], ref_allele, alt_allele)
-        write.table(alleles, file = paste0("~{method}","_ref_alt_alleles.txt"), col.names = F, row.names = F)
-
-        write.table(ref_depth_matrix2, file = paste0("~{method}","_ref_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-        write.table(alt_depth_matrix2, file = paste0("~{method}","_alt_depth_bam.txt"), quote=F, row.names=T, sep="\t", col.names=T)
-      }
-
-    RSCRIPT
-
-  >>>
-
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    mem:"30GB"
-    cpu:1
-    time:"01:00:00"
-  }
-
-  output{
-    File ref_bam      = "~{method}_ref_depth_bam.txt"
-    File alt_bam      = "~{method}_alt_depth_bam.txt"
-    File ref_alt_alleles    = "~{method}_ref_alt_alleles.txt"
-  }
-}
-
-task ApplyRandomFilters{
+task ApplyRandomFilters {
   input{
     File gatk_vcf
     File freebayes_vcf
@@ -364,14 +242,14 @@ task ApplyRandomFilters{
     vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
 
-  runtime{
+  runtime {
     docker:"taniguti/vcftools"
-    mem:"20GB"
+    memory: "2 GB"
     cpu:1
-    time:"00:30:00"
+    preemptible: 3
   }
 
-  output{
+  output {
     File gatk_vcf_filt = "gatk_vcf_filt.vcf"
     File freebayes_vcf_filt = "freebayes_vcf_filt.vcf"
     File gatk_vcf_bam_counts_filt = "gatk_vcf_bam_counts_filt.vcf"
@@ -379,45 +257,34 @@ task ApplyRandomFilters{
   }
 }
 
-task Gambis {
-  input{
-    File gatk_vcf_bam_counts
-    File freebayes_vcf_bam_counts
-    String method
-  }
 
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-      if("~{method}" == "gatk") choosed_bam = "~{gatk_vcf_bam_counts}" else choosed_bam = "~{freebayes_vcf_bam_counts}"
-
-      system(paste("cp", choosed_bam, "choosed_bam.vcf"))
-
-    RSCRIPT
-  >>>
-
-  output{
-    File choosed_bam = "choosed_bam.vcf"
-  }
-}
-
-task FiltChr {
+task ReplaceAD {
   input {
-    File vcf_bam
-    String chromosome
+    File ref_fasta
+    File ref_index
+    Array[File] bams
+    Array[File] bais
+    File vcf
+    File tbi
+    String program
   }
 
   command <<<
-    vcftools --gzvcf ~{vcf_bam} --chr ~{chromosome} --recode --stdout > bam_chr.vcf
+
+    bcftools view -G -v snps ~{vcf} -Oz -o sites.vcf.gz
+    bcftools index --tbi -f sites.vcf.gz
+    bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
+    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
+    bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o ~{program}_bam_vcf.vcf
+
   >>>
 
   runtime {
-    docker:"taniguti/vcftools"
-    mem:"20GB"
-    cpu:1
-    time:"00:30:00"
+    docker:"lifebitai/bcftools:1.10.2"
   }
 
   output {
-    File bam_chr = "bam_chr.vcf"
+    File bam_vcf =  "~{program}_bam_vcf.vcf"
   }
 }
+

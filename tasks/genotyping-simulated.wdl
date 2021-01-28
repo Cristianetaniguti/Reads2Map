@@ -7,6 +7,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
 
   input {
     File simu_onemap_obj
+    File simu_vcfR
     File onemap_obj
     File vcf_file
     File ref_alt_alleles
@@ -17,6 +18,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String cross
     File? multi_obj
     Int max_cores
+    Int seed
+    Int depth
   }
 
   call OnemapProbsSimulated {
@@ -38,7 +41,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
-  
+
        if (defined(multi_obj)) {
            call utilsR.AddMultiallelics{
              input:
@@ -46,8 +49,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
                onemap_obj_bi = item.right
            }
        }
-        
-       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])  
+
+       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
 
        call utilsR.FiltersReport {
             input:
@@ -74,7 +77,11 @@ workflow SnpBasedGenotypingSimulatedMaps {
               simu_onemap_obj = simu_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              simu_vcfR = simu_vcfR,
+              vcfR_obj = OnemapProbsSimulated.vcfR_obj,
+              seed = seed,
+              depth = depth
           }
 
    }
@@ -105,6 +112,7 @@ task OnemapProbsSimulated {
        library(genotyping4onemap)
        method <- "~{method}"
        vcf <- read.vcfR("~{vcf_file}")
+       save(vcf, file="vcfR_obj.RData")
 
        cross <- "~{cross}"
 
@@ -168,13 +176,13 @@ task OnemapProbsSimulated {
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"96:00:00"
-    mem:"70GB"
-    cpu:20
-    job_name:"poly_genotyping"
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
   output {
     File onemap_obj_out = "~{method}_onemap_obj.RData"
+    File vcfR_obj = "vcfR_obj.RData"
   }
 }

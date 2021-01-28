@@ -1,7 +1,7 @@
 version 1.0
 
 task vcf2onemap{
-   input{
+   input {
      File vcf_file
      String cross
      String SNPCall_program
@@ -40,10 +40,10 @@ task vcf2onemap{
         RSCRIPT
 
     >>>
-    runtime{
+    runtime {
       docker:"cristaniguti/onemap_workflows"
-      time:"72:00:01"
-      mem:"50GB"
+      preemptible: 3
+      memory: "2 GB"
       cpu:1
     }
 
@@ -55,7 +55,7 @@ task vcf2onemap{
 
 
 task MultiVcf2onemap{
-   input{
+   input {
      File? multi
      String cross
      String SNPCall_program
@@ -106,14 +106,14 @@ task MultiVcf2onemap{
         RSCRIPT
 
     >>>
-    runtime{
+    runtime {
       docker:"cristaniguti/onemap_workflows"
-      time:"72:00:01"
-      mem:"70GB"
-      cpu:1
+      preemptible: 3
+      memory: "3 GB"
+      cpu: 1
     }
 
-    output{
+    output {
       File onemap_obj = "~{SNPCall_program}_vcf_multi_onemap.obj.RData"
       File multi_names = "~{depth}_~{seed}_~{SNPCall_program}_multi.names.RData"
     }
@@ -143,14 +143,14 @@ task FiltersReport{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:02"
-    mem:"70GB"
+    preemptible: 3
+    memory:"3 GB"
     cpu:1
   }
 
-  output{
+  output {
     File filters_report = "filters_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
@@ -180,24 +180,21 @@ task FiltersReportEmp{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:02"
-    mem:"70GB"
+    time:"10:00:00"
+    mem:"30GB"
     cpu:1
   }
 
-  output{
+  output {
     File filters_report = "filters_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
 }
 
-
-
-
 task MapsReport{
-  input{
+  input {
    File onemap_obj
    File ref_alt_alleles
    File simu_onemap_obj
@@ -266,43 +263,78 @@ task MapsReport{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:03"
-    mem:"70GB"
-    cpu:4
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
-  output{
+  output {
     File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
     File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
 }
 
-task ErrorsReport{
-  input{
+task ErrorsReport {
+  input {
     File onemap_obj
+    File vcfR_obj
     File simu_onemap_obj
+    File simu_vcfR
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
+    Int seed
+    Int depth
   }
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
+
         library(onemap)
-        source("/opt/scripts/functions_simu.R")
+        library(tidyverse)
 
-        onemap_obj <- load("~{onemap_obj}")
-        onemap_obj <- get(onemap_obj)
+        temp <- load("~{onemap_obj}")
+        df <- get(temp)
 
-        simu_onemap_obj <- load("~{simu_onemap_obj}")
-        simu_onemap_obj <- get(simu_onemap_obj)
+        temp <- load("~{vcfR_obj}")
+        vcf <- get(temp)
 
-        create_errors_report(onemap_obj = onemap_obj, simu_onemap_obj,
-                             "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                             "~{CountsFrom}")
+        p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "P1",
+        parent2 = "P2", vcf.par = "AD",recovering = FALSE, GTfrom = "vcf", alpha=0.1,
+        rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+
+        df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
+        df <- cbind(seed = ~{seed}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
+                    GenoCall="~{GenotypeCall_program}", df)
+
+        simu <- load("~{simu_vcfR}")
+        vcf_simu <- get(simu)
+
+        gt.simu <- vcf_simu@gt[,-1]
+        gt.simu <- as.data.frame(cbind(mks = vcf_simu@fix[,3], gt.simu))
+        dptot <- gt.simu %>%
+          pivot_longer(!mks, names_to = "ind", values_to = "gabGT") %>% inner_join(df)
+
+        dptot <- as.data.frame(dptot)
+        colnames(dptot)[10] <- "methGT"
+
+        idx <- which(colnames(dptot) %in% c("gabGT", "gt.vcf"))
+        colnames(dptot)[idx[2]] <- "methGT"
+
+        for(i in idx){
+          dptot[,i] <- gsub("[|]", "/", dptot[,i])
+          dptot[,i][dptot[,i] == "." | dptot[,i] == "./."] <- "missing"
+          dptot[,i][dptot[,i] == "0/0"] <- "homozygous-ref"
+          dptot[,i][dptot[,i] == "1/1"] <- "homozygous-alt"
+          dptot[,i][dptot[,i] == "0/1" | dptot[,i] == "1/0"] <- "heterozygous"
+        }
+
+        dptot <- cbind(dptot, errors = apply(dptot[,13:16], 1, function(x) 1 - max(x)))
+
+        write.table(dptot, file="errors_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", row.names=F, quote=F, col.names=F)
 
       RSCRIPT
 
@@ -310,8 +342,8 @@ task ErrorsReport{
 
   runtime{
     docker: "cristaniguti/onemap_workflows"
-    time:"120:00:04"
-    mem:"70GB"
+    preemptible: 3
+    memory: "3 GB"
     cpu:1
   }
 
@@ -340,18 +372,15 @@ task GlobalError {
   >>>
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"72:00:05"
-    mem:"70GB"
-    cpu:1
+    preemptible: 3
+    memory: "3 GB"
+    cpu: 1
   }
 
-  output{
+  output {
     File error_onemap_obj = "onemap_obj_globalError.RData"
   }
 }
-
-
-
 
 task CheckDepths{
   input{
@@ -391,8 +420,8 @@ task CheckDepths{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"72:00:07"
-    mem:"50GB"
+    time:"10:00:00"
+    mem:"60GB"
     cpu:1
   }
 
@@ -427,7 +456,7 @@ task MapsReportEmp{
 
   runtime{
     docker:"cristaniguti/onemap_workflows"
-    time:"120:00:04"
+    time:"24:00:00"
     mem:"60GB"
     cpu:4
   }
@@ -440,8 +469,8 @@ task MapsReportEmp{
 }
 
 
-task AddMultiallelics{
-  input{
+task AddMultiallelics {
+  input {
    File? onemap_obj_multi
    File onemap_obj_bi
   }
@@ -468,11 +497,11 @@ task AddMultiallelics{
 
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/onemap_workflows"
-    time:"120:00:04"
-    mem:"30GB"
-    cpu:4
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
   output{
@@ -514,14 +543,6 @@ task JointReports{
     Array[File] Gusmap_times
     Int depth
     Int seed
-    File gatk_ref_depth
-    File gatk_ref_depth_bam
-    File gatk_alt_depth
-    File gatk_alt_depth_bam
-    File freebayes_ref_depth_bam
-    File freebayes_alt_depth_bam
-    File freebayes_ref_depth
-    File freebayes_alt_depth
   }
 
   command <<<
@@ -579,45 +600,15 @@ task JointReports{
 
       all_errors <- read.table("all_errors.txt")
 
-      # Adding allele counts to the report
-      gatk.ref.depth <- read.table("~{gatk_ref_depth}")
-
-      chr <- unique(sapply(strsplit(rownames(gatk.ref.depth), "_"), "[",1))
-
-      all_errors[,5] <- paste0(chr, "_",all_errors[,5])
-      colnames(all_errors) <- c("SNPCall", "GenoCall", "CountsFrom", "ind", "mks", "gabGT", "methGT", "A", "AB", "BA", "B")
-
-      files <- list(c("~{gatk_ref_depth}", "~{gatk_alt_depth}"), c("~{gatk_ref_depth_bam}", "~{gatk_alt_depth_bam}"),
-                    c("~{freebayes_ref_depth}", "~{freebayes_alt_depth}"), c("~{freebayes_ref_depth_bam}",
-                                                                               "~{freebayes_alt_depth_bam}"))
-      ref_alt <- c("ref", "alt")
-      SNPCall <- rep(c("gatk", "freebayes"), each=4)
-      CountsFrom <- rep(c("vcf", "bam"),2, each=2)
 
       ########################################################################################
       # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gabGT; methGT; A; AB; BA; B
       ########################################################################################
-
-      # Binding depth information for each genotype
-      z <- 1
-      data1 <- data.frame()
-      for(j in 1:length(files)){
-        for(i in 1:2){
-          if(i == 1) df_meth <- all_errors
-          alleles <- read.table(files[[j]][i])
-          alleles <- cbind(mks=rownames(alleles), alleles)
-          alleles <- melt(alleles, id.vars = c("mks"))
-          colnames(alleles) <- c("mks", "ind", ref_alt[i])
-          alleles <- cbind(SNPCall=SNPCall[z], CountsFrom = CountsFrom[z], alleles)
-          z <- z+ 1
-          df_meth <- merge(df_meth, alleles, by = c("SNPCall", "CountsFrom", "ind", "mks"))
-
-        }
-        data1 <- rbind(data1, df_meth)
-      }
-
-      # Adding seed and depth info
-      all_errors <- cbind(seed, depth, data1)
+      all_errors <- read.table("all_errors.txt")
+      colnames(all_errors) <- c("mks","ind","gabGT","seed","depth",
+                                "SNPCall","CountsFrom",
+                                "GenoCall","alt","ref","gt.onemap",
+                                "methGT","A","AB","BA","B","errors")
 
       ########################################################
       # Table2: seed; CountsFrom; ErrorProb; SNPcall; MK; rf; phases; simulated_phases
@@ -697,7 +688,7 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/onemap_workflows"
-    time:"48:00:00"
+    time:"10:00:00"
     mem:"30GB"
     cpu:1
     job_name:"family_joint"

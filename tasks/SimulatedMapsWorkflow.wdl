@@ -19,7 +19,7 @@ struct PopulationAnalysis {
     File multi
 }
 
-workflow reads_simu {
+workflow SimulatedMapsWorkflow {
 
   input {
     Reference references
@@ -44,8 +44,7 @@ workflow reads_simu {
       references=references,
       program="gatk",
       parent1 = "P1",
-      parent2 = "P2",
-      sample_names = CreateAlignmentFromSimulation.names
+      parent2 = "P2"
   }
 
   call freebayes.FreebayesGenotyping {
@@ -62,11 +61,11 @@ workflow reads_simu {
 
   call utils.CalculateVcfMetrics {
     input:
-      freebayesVCF     = FreebayesGenotyping.vcf_biallelics,
-      gatkVCF          = GatkGenotyping.vcf_biallelics,
-      ref_alt_alleles  = CreateAlignmentFromSimulation.ref_alt_alleles,
-      seed             = family.seed,
-      depth            = sequencing.depth
+      freebayesVCF = FreebayesGenotyping.vcf_biallelics,
+      gatkVCF = GatkGenotyping.vcf_biallelics,
+      ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+      seed = family.seed,
+      depth = sequencing.depth
   }
 
   call utilsR.vcf2onemap as truth_vcf {
@@ -131,7 +130,11 @@ workflow reads_simu {
         simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
         SNPCall_program = analysis.method,
         CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj
+        multi_obj = MultiVcf2onemap.onemap_obj,
+        simu_vcfR = truth_vcf.vcfR_obj,
+        vcfR_obj = vcf2onemap.vcfR_obj,
+        seed = family.seed,
+        depth = sequencing.depth
     }
 
     call snpcaller.SNPCallerMaps{
@@ -145,7 +148,10 @@ workflow reads_simu {
         SNPCall_program = analysis.method,
         GenotypeCall_program = "SNPCaller",
         CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj
+        multi_obj = MultiVcf2onemap.onemap_obj,
+        simu_vcfR = truth_vcf.vcfR_obj,
+        seed = family.seed,
+        depth = sequencing.depth
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -163,7 +169,10 @@ workflow reads_simu {
             CountsFrom = origin,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = truth_vcf.vcfR_obj,
+            seed = family.seed,
+            depth = sequencing.depth
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -178,7 +187,10 @@ workflow reads_simu {
             CountsFrom = origin,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = truth_vcf.vcfR_obj,
+            seed = family.seed,
+            depth = sequencing.depth
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -193,7 +205,10 @@ workflow reads_simu {
             CountsFrom = origin,
             cross = family.cross,
             multi_obj = MultiVcf2onemap.onemap_obj,
-            max_cores = max_cores
+            max_cores = max_cores,
+            simu_vcfR = truth_vcf.vcfR_obj,
+            seed = family.seed,
+            depth = sequencing.depth
         }
       }
 
@@ -241,15 +256,7 @@ workflow reads_simu {
     Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
     Gusmap_times              = flatten(GusmapMaps.times),
     depth                     = sequencing.depth,
-    seed                      = family.seed,
-    gatk_ref_depth            = CalculateVcfMetrics.gatk_ref_depth,
-    gatk_ref_depth_bam        = GatkGenotyping.ref_bam,
-    gatk_alt_depth            = CalculateVcfMetrics.gatk_alt_depth,
-    gatk_alt_depth_bam        = GatkGenotyping.alt_bam,
-    freebayes_ref_depth_bam   = FreebayesGenotyping.ref_bam,
-    freebayes_alt_depth_bam   = FreebayesGenotyping.alt_bam,
-    freebayes_ref_depth       = CalculateVcfMetrics.freebayes_ref_depth,
-    freebayes_alt_depth       = CalculateVcfMetrics.freebayes_alt_depth
+    seed                      = family.seed
   }
 
   output {
@@ -265,4 +272,3 @@ workflow reads_simu {
     File multi_names              = JointReports.multi_names2
   }
 }
-

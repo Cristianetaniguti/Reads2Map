@@ -17,7 +17,7 @@ def test_genotyping_with_r(workflow_data, workflow_runner):
 
     expected = {"gusmap_out": [workflow_data["gusmap_rdata_1"], workflow_data["gusmap_rdata_2"]]}
     workflow_runner(
-        "tests/workflows/TestGenotypingR.wdl",
+        "tests/genotyping_r/workflows/TestGenotypingR.wdl",
         inputs,
         expected
     )
