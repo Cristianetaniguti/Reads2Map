@@ -230,12 +230,13 @@ task MapsReport{
 
       # It will not run if all markers are true markers
       if(all(info_fake[[2]][,8])){     
-
+        cat("skip :) \n")
         times_temp <- times_fake
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
-              
-        save(map_df, file= paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_", fake, ".RData"))
-        write_report(map_info, paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_",fake, ".txt"))
+
+        map_df <- info_fake[[1]] 
+        save(map_df, file= paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_FALSE.RData"))
+        write_report(info_fake[[2]], paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_FALSE.txt"))
         
       } else {
         ## Without false SNPs

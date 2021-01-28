@@ -521,8 +521,10 @@ update_fake_info <- function(info_fake, simu_onemap_obj, ref_alt_alleles, simula
   
   info_correct[[2]][,5] <- real.type
   info_correct[[2]][,7] <- real.phase
+  info_correct[[2]][,10] <- FALSE
   info_correct[[2]][,13] <- poscM
   info_correct[[2]][,14] <- poscM.norm
   info_correct[[2]][,15] <- diff
+
   return(info_correct)
 }

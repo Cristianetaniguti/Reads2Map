@@ -79,6 +79,10 @@ task SplitFilters{
 
     vcf-concat ~{program}_multi1.recode.vcf ~{program}_multi2.recode.vcf  > ~{program}_multi.recode.vcf
 
+    vcftools --vcf ~{program}_multi.recode.vcf --maf 0.05 --out ~{program}_multi2 --recode
+
+    mv ~{program}_multi2.recode.vcf ~{program}_multi.recode.vcf
+
     bgzip ~{program}_multi.recode.vcf
     bgzip ~{program}_bi.recode.vcf
     tabix -p vcf ~{program}_bi.recode.vcf.gz

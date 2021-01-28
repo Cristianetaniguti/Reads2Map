@@ -75,7 +75,7 @@ task GusmapReport {
 
       # If there is no fake, map will not run again
       if(all(info_fake[[2]][,8])){
-
+        cat("skip :) \n")
         times_temp <- times_fake
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
   
