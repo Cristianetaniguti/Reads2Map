@@ -36,7 +36,7 @@ workflow GusmapMaps{
    }
 }
 
-task GusmapReport{
+task GusmapReport {
   input {
     File vcf_file
     String SNPCall_program
@@ -67,32 +67,38 @@ task GusmapReport{
       ref_alt_alleles <- read.table("~{ref_alt_alleles}")
       simulated_phases <- read.table("~{simulated_phases}")
 
-      times <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
+      times_fake <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
                                                      "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", TRUE)
-      times <- data.frame(meth = outname, time = times[3])
+      times <- data.frame(meth = outname, time = times_fake[3])
 
-      times_temp <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", FALSE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
+      # If there is no fake, map will not run again
+      if(all(info_fake[[2]][,8])){
+
+        times_temp <- times_fake
+        info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
+  
+      } else {
+        times_temp <- system.time(info_correct <- create_gusmap_report(vcf_file, gab= simu_onemap_obj,"gatk",
+                                                      "gusmap", FALSE, "vcf", ref_alt_alleles,simulated_phases))
+        
+        times_temp <- data.frame(meth = outname, time = times_temp[3])
+      }
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", FALSE)
-      times_temp <- data.frame(meth = outname, time = times_temp[3])
 
-    # Joint maps data.frames
-      map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE.txt")
-      map_joint <- map_temp
-      map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.txt")
-      map_joint <- rbind(map_joint, map_temp)
-      write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
+      # Joint maps data.frames
+      map_joint <- rbind(info_fake[[2]], info_correct[[2]])
+            write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
 
       # Joint RDatas
       RDatas_joint <- list()
-      map_temp <- load("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE.RData")
-      RDatas_joint[[1]] <- get(map_temp)
-      map_temp <- load("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.RData")
-      RDatas_joint[[2]] <- get(map_temp)
-      names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
+      RDatas_joint[[1]] <- info_fake[[1]]
+      RDatas_joint[[2]] <- info_correct[[1]]
+
+      names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
+                              "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
       save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
 
       # Joint times data.frames
@@ -103,17 +109,16 @@ task GusmapReport{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/onemap_workflows"
-    time:"24:00:00"
-    mem:"50GB"
+    preemptible: 3
+    memory: "4 GB"
     cpu:1
   }
 
-  output{
+  output {
     File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
     File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
   }
-
 }

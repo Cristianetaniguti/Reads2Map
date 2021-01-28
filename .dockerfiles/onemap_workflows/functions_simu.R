@@ -150,7 +150,7 @@ create_maps_report <- function(input.seq,
   
   save(map_df, file= paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_", fake, ".RData"))
   write_report(map_info, paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_",fake, ".txt"))
-  return(map_info)
+  return(list(map_df, map_info))
 }
 
 
@@ -304,6 +304,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   map_df <- mydata
   save(map_df, file = paste0(outname,".RData"))
   write_report(map_info, paste0(outname, ".txt"))
+  return(list(map_df, map_info))
 }
 # the errors report include markers with distortion and redundants
 create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom) {
@@ -512,3 +513,22 @@ fix_genocall_names <- function(data){
   return(data)
 }
 
+update_fake_info <- function(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases){
+  info_correct <- info_fake
+  est.pos <- info_fake[[2]][,2]
+  real.type <- rep(NA, nrow(info_correct[[2]]))
+  temp.type <- simu_onemap_obj$segr.type[which(simu_onemap_obj$POS %in% est.pos)]
+  real.type[which(est.pos %in% as.character(simu_onemap_obj$POS))] <- temp.type
+  real.type[which(is.na(real.type))] <- "non-informative"
+  poscM <- ref_alt_alleles$pos.map[which(as.numeric(as.character(ref_alt_alleles$pos)) %in% as.numeric(as.character(est.pos)))]
+  poscM.norm <- poscM-poscM[1]
+  diff <- sqrt((poscM.norm - info_fake[[2]][,3])^2)
+  real.phase <- simulated_phases[which(simulated_phases$pos%in%est.pos),][,2]
+  
+  info_correct[[2]][,5] <- real.type
+  info_correct[[2]][,7] <- real.phase
+  info_correct[[2]][,13] <- poscM
+  info_correct[[2]][,14] <- poscM.norm
+  info_correct[[2]][,15] <- diff
+  return(info_correct)
+}
