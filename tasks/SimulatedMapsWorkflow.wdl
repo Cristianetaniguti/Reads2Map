@@ -44,9 +44,7 @@ workflow SimulatedMapsWorkflow {
       references=references,
       program="gatk",
       parent1 = "P1",
-      parent2 = "P2",
-      sampleNames = CreateAlignmentFromSimulation.names,
-      max_cores = max_cores
+      parent2 = "P2"
   }
 
   call freebayes.FreebayesGenotyping {
