@@ -2,7 +2,6 @@ def test_read_simu(workflow_data, workflow_runner):
     inputs = {
         "parent1": "P1",
         "parent2": "P2",
-        "sample_names": ["P1", "P2", "F1_01", "F1_02"],
         "program": "gatk",
         "references": {
             "ref_fasta": workflow_data["ref_fasta"],

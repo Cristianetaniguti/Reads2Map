@@ -14,8 +14,6 @@ workflow GatkGenotyping {
     String program
     String parent1
     String parent2
-    Array[String] sampleNames
-    Int max_cores
   }
 
   call CreateChunks {
@@ -27,7 +25,7 @@ workflow GatkGenotyping {
 
   scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
 
-    call HaplotypeCallerJointCall {
+    call HaplotypeCaller {
       input:
         bams = read_lines(chunk.left),
         bams_index = read_lines(chunk.right),
@@ -36,17 +34,19 @@ workflow GatkGenotyping {
         reference_dict = references.ref_dict
     }
   }
-  # TODO: ACERTAR MERGE
-  call MergeVcfs {
+
+  call GATKJointCall {
     input:
-      input_vcfs=HaplotypeCallerJointCall.vcf,
-      input_vcfs_indexes=HaplotypeCallerJointCall.vcf_index,
-      output_vcf_name="gatk.vcf.gz"
+      vcfs=flatten(HaplotypeCaller.vcfs),
+      vcfs_index=flatten(HaplotypeCaller.vcfs_index),
+      reference_fasta=references.ref_fasta,
+      reference_fai=references.ref_fasta_index,
+      reference_dict=references.ref_dict
   }
 
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=MergeVcfs.output_vcf,
+      vcf_in=GATKJointCall.vcf,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
@@ -105,8 +105,9 @@ task CreateChunks {
 }
 
 ## Process all samples because it RAD experiments
-## usually do not have large ammount of reads (confirm?)
-task HaplotypeCallerJointCall {
+## usually do not have large ammount of reads.
+## NotE: if BAMS have same name it will be overrided in this task.
+task HaplotypeCaller {
   input {
     File reference_fasta
     File reference_dict
@@ -126,29 +127,62 @@ task HaplotypeCallerJointCall {
     mkdir vcfs
     ## gvcf for each sample
     for bam in *.bam; do
-      out_name=$(basename $bam)
+      out_name=$(basename -s ".bam" "$bam")
       /gatk/gatk HaplotypeCaller \
         -ERC GVCF \
         -R ~{reference_fasta} \
         -I "$bam" \
-        -O "vcfs/${out_name}.rawLikelihoods.g.vcf.gz" \
+        -O "vcfs/${out_name}.g.vcf.gz" \
         --max-reads-per-alignment-start 0
     done
+  >>>
 
+  runtime {
+    docker: "taniguti/gatk-picard"
+    memory: "4 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
+  }
+
+  output {
+    Array[File] vcfs = glob("vcfs/*.vcf.gz")
+    Array[File] vcfs_index = glob("vcfs/*.vcf.gz.tbi")
+  }
+}
+
+task GATKJointCall {
+  input {
+    Array[File] vcfs
+    Array[File] vcfs_index
+    File reference_fasta
+    File reference_fai
+    File reference_dict
+  }
+
+  Int disk_size = ceil(size(vcfs, "GB") + size(reference_fasta, "GB") + 5) * 2
+
+  command <<<
+    set -euo pipefail
     grep ">" ~{reference_fasta} | sed 's/^.//' > interval.list
-    # Create string as " sample.vcf.gz -V sample2.vcf.gz -V ..."
-    vcfs=$(find vcfs/ -maxdepth 1 -name '*.vcf.gz'| awk '{$1=$1}1' OFS=' -V ' RS='')
-    ## Combine into genomic database
-    /gatk/gatk GenomicsDBImport \
-        --genomicsdb-workspace-path gatk_database \
-        -L interval.list \
-        -V $vcfs
+    mkdir gvcfs
+    for i in ~{sep=" " vcfs}; do ln -s $i gvcfs/; done
+    for i in ~{sep=" " vcfs_index}; do ln -s $i gvcfs/; done
 
-    /gatk/gatk GenotypeGVCFs \
-        -R ~{reference_fasta} \
-        -O gatk.vcf.gz \
-        -G StandardAnnotation \
-        -V gendb://gatk_database
+    gatk --java-options "-Xmx3700m -Xms2g" GenomicsDBImport \
+      --batch-size 50 \
+      --genomicsdb-workspace-path cohort_db \
+      -L interval.list \
+      -V $(find gvcfs/*.g.vcf.gz -type l | paste -d',' -s | sed 's/,/ -V /g')
+
+    gatk --java-options "-Xmx30g -Xms20g" GenotypeGVCFs \
+      -R ~{reference_fasta} \
+      -V gendb://cohort_db \
+      -G StandardAnnotation \
+      -O gatk.vcf
+
+    bgzip gatk.vcf
+    tabix -p vcf gatk.vcf.gz
   >>>
 
   runtime {
@@ -162,41 +196,5 @@ task HaplotypeCallerJointCall {
   output {
     File vcf = "gatk.vcf.gz"
     File vcf_index = "gatk.vcf.gz.tbi"
-  }
-}
-
-
-task MergeVcfs {
-
-  input {
-    Array[File] input_vcfs
-    Array[File] input_vcfs_indexes
-    String output_vcf_name
-  }
-
-  Int disk_size = ceil(size(input_vcfs, "GB") * 2)
-
-  # We need to deal with setups where could be only one vcf in the input_vcfs array.
-  command <<<
-    vcfs=("~{sep='" "' input_vcfs}")
-    tbis=("~{sep='" "' input_vcfs_indexes}")
-    if [[ "${#vcfs[@]}" -eq 1 ]]; then
-      cp "${vcfs[0]}" ./~{output_vcf_name}
-      cp "${tbis[0]}" ./~{output_vcf_name}.tbi
-    else
-      bcftools merge -Oz -o ~{output_vcf_name} ~{sep=' ' input_vcfs}
-      tabix -p vcf ~{output_vcf_name}
-    fi
-  >>>
-  output {
-    File output_vcf = "~{output_vcf_name}"
-    File output_vcf_index = "~{output_vcf_name}.tbi"
-  }
-  runtime {
-    docker: "lifebitai/bcftools:1.10.2"
-    memory: "3 GB"
-    disks: "local-disk " + 10 + " HDD"
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
   }
 }
