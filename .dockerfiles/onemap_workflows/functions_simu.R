@@ -509,22 +509,22 @@ fix_genocall_names <- function(data_broken){
 
 update_fake_info <- function(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases){
   info_correct <- info_fake
-  est.pos <- info_fake[[2]][,2]
+  est.pos <- info_fake[[2]]$pos
   real.type <- rep(NA, nrow(info_correct[[2]]))
   temp.type <- simu_onemap_obj$segr.type[which(simu_onemap_obj$POS %in% est.pos)]
   real.type[which(est.pos %in% as.character(simu_onemap_obj$POS))] <- temp.type
   real.type[which(is.na(real.type))] <- "non-informative"
   poscM <- ref_alt_alleles$pos.map[which(as.numeric(as.character(ref_alt_alleles$pos)) %in% as.numeric(as.character(est.pos)))]
   poscM.norm <- poscM-poscM[1]
-  diff <- sqrt((poscM.norm - info_fake[[2]][,3])^2)
+  diff <- sqrt((poscM.norm - info_fake[[2]]$rf^2)
   real.phase <- simulated_phases[which(simulated_phases$pos%in%est.pos),][,2]
   
-  info_correct[[2]][,5] <- real.type
-  info_correct[[2]][,7] <- real.phase
-  info_correct[[2]][,10] <- FALSE
-  info_correct[[2]][,13] <- poscM
-  info_correct[[2]][,14] <- poscM.norm
-  info_correct[[2]][,15] <- diff
+  info_correct[[2]]$real.type <- real.type
+  info_correct[[2]]$real.phase <- real.phase
+  info_correct[[2]]$fake <- FALSE
+  info_correct[[2]]$poscM <- poscM
+  info_correct[[2]]$poscM.norm <- poscM.norm
+  info_correct[[2]]$diff <- diff
 
   return(info_correct)
 }
