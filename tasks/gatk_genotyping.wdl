@@ -175,14 +175,12 @@ task GATKJointCall {
       -L interval.list \
       -V $(find gvcfs/*.g.vcf.gz -type l | paste -d',' -s | sed 's/,/ -V /g')
 
-    gatk --java-options "-Xmx30g -Xms20g" GenotypeGVCFs \
+    gatk --java-options "-Xmx3700m -Xms2g" GenotypeGVCFs \
       -R ~{reference_fasta} \
       -V gendb://cohort_db \
       -G StandardAnnotation \
-      -O gatk.vcf
+      -O gatk.vcf.gz
 
-    bgzip gatk.vcf
-    tabix -p vcf gatk.vcf.gz
   >>>
 
   runtime {
@@ -195,6 +193,5 @@ task GATKJointCall {
 
   output {
     File vcf = "gatk.vcf.gz"
-    File vcf_index = "gatk.vcf.gz.tbi"
   }
 }
