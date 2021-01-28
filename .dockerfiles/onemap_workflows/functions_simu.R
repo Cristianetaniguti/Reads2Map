@@ -96,7 +96,7 @@ create_maps_report <- function(input.seq,
                                    around = 10)
     
     map_df <- map_avoid_unlinked(input.seq = seq_true, size = batch_size, 
-                                 phase_cores = 4, overlap = overlap)
+                                 phase_cores = 4, overlap = 30)
     
   } else {
     map_df <- map_avoid_unlinked(seq_true)
@@ -148,13 +148,11 @@ create_maps_report <- function(input.seq,
                            "poscM" = NA,
                            "poscM.norm" = NA, 
                            "diff" = NA)
-  }
-  
+  } 
   save(map_df, file= paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_", fake, ".RData"))
   write_report(map_info, paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_",fake, ".txt"))
-  return(map_info)
+  return(list(map_df, map_info))
 }
-
 
 create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsFrom, tot_mks, real_phases){
   ## Maps with gusmap
@@ -182,11 +180,11 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   write.csv(ped.file, file = "ped.file.csv")
   filelist = list.files(pattern = ".*.ra.tab")
   RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
-                   filter = list(MAF=0.05, MISS=0.5, BIN=0, DEPTH=0, PVALUE=0.05), sampthres = 0)
+                   filter = list(MAF=0.05, MISS=0.5, BIN=0, DEPTH=2, PVALUE=0.05), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.5,
-                                 BIN = 1, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=1000))
+                                 BIN = 1, DEPTH = 2, PVALUE = 0.05, MAXDEPTH=1000))
   
   # Suggested in vignette
   #mydata$rf_2pt(nClust=1)
@@ -306,6 +304,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   map_df <- mydata
   save(map_df, file = paste0(outname,".RData"))
   write_report(map_info, paste0(outname, ".txt"))
+  return(list(map_df, map_info))
 }
 # the errors report include markers with distortion and redundants
 create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom) {
@@ -427,14 +426,14 @@ adapt2app <- function(datas_up_inp){
   datas_up_inp[[1]]$alt[which(datas_up_inp[[1]]$alt == ".")] <- NA
   datas_up_inp[[1]]$ref <- as.numeric(datas_up_inp[[1]]$ref)
   datas_up_inp[[1]]$alt <- as.numeric(datas_up_inp[[1]]$alt)
-
+  
   datas_up_inp[[1]] <- fix_genocall_names(datas_up_inp[[1]])
   
   ####
   datas_up_inp[[2]] <- datas_up_inp[[2]][,-3]
   colnames(datas_up_inp[[2]]) <- c("seed", "depth", "mk.name", "pos" , "rf" , "type", "real.type", 
-                           "est.phases", "real.phases", "real.mks", "SNPCall", "GenoCall", 
-                           "CountsFrom", "fake", "poscM", "poscM.norm", "diff")
+                                   "est.phases", "real.phases", "real.mks", "SNPCall", "GenoCall", 
+                                   "CountsFrom", "fake", "poscM", "poscM.norm", "diff")
   
   datas_up_inp[[2]]$fake[which(datas_up_inp[[2]]$real.mks ==99)] <- "without-false"
   datas_up_inp[[2]]$fake[which(datas_up_inp[[2]]$real.mks < 2)] <- "with-false"

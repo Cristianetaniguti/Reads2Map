@@ -52,7 +52,7 @@ workflow FreebayesGenotyping {
 
   output {
     File vcf_biallelics = SplitFiltVCF.vcf_biallelics
-    File tbvcf_biallelics_tbii_bi = SplitFiltVCF.vcf_biallelics_tbi
+    File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
     File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
     File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
   }

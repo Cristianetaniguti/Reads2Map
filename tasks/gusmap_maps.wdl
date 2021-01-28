@@ -67,32 +67,53 @@ task GusmapReport {
       ref_alt_alleles <- read.table("~{ref_alt_alleles}")
       simulated_phases <- read.table("~{simulated_phases}")
 
-      times <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
+      times_fake <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
                                                      "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", TRUE)
       times <- data.frame(meth = outname, time = times[3])
 
-      times_temp <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", FALSE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
+      # If there is no fake, map will not run again
+      if(all(info_fake[[2]][,8])){
+        info_correct <- info_fake
+        times_temp <- times_fake
+        
+        est.pos <- info_fake[[2]][,2]
+        real.type <- rep(NA, nrow(info_correct[[2]]))
+        temp.type <- simu_onemap_obj$segr.type[which(simu_onemap_obj$POS %in% est.pos)]
+        real.type[which(est.pos %in% as.character(simu_onemap_obj$POS))] <- temp.type
+        real.type[which(is.na(real.type))] <- "non-informative"
+        poscM <- ref_alt_alleles$pos.map[which(as.numeric(as.character(ref_alt_alleles$pos)) %in% as.numeric(as.character(est.pos)))]
+        poscM.norm <- poscM-poscM[1]
+        diff <- sqrt((poscM.norm - info_fake[[2]][,3])^2)
+        real.phase <- simulated_phases[which(simulated_phases$pos%in%est.pos),][,2]
+        
+        info_correct[[2]]$real.type <- real.type
+        info_correct[[2]]$real.phases <- real.phase
+        info_correct[[2]]$poscM <- poscM
+        info_correct[[2]]$poscM.norm <- poscM.norm
+        info_correct[[2]]$diff <- diff
+        
+      } else {
+        times_temp <- system.time(info_correct <- create_gusmap_report(vcf_file, gab= simu_onemap_obj,"gatk",
+                                                      "gusmap", FALSE, "vcf", ref_alt_alleles,simulated_phases))
+        
+        times_temp <- data.frame(meth = outname, time = times_temp[3])
+      }
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", FALSE)
-      times_temp <- data.frame(meth = outname, time = times_temp[3])
 
-    # Joint maps data.frames
-      map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE.txt")
-      map_joint <- map_temp
-      map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.txt")
-      map_joint <- rbind(map_joint, map_temp)
-      write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
+      # Joint maps data.frames
+      map_joint <- rbind(info_fake[[2]], info_correct[[2]])
+            write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
 
       # Joint RDatas
       RDatas_joint <- list()
-      map_temp <- load("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE.RData")
-      RDatas_joint[[1]] <- get(map_temp)
-      map_temp <- load("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.RData")
-      RDatas_joint[[2]] <- get(map_temp)
-      names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
+      RDatas_joint[[1]] <- info_fake[[1]]
+      RDatas_joint[[2]] <- info_correct[[1]]
+
+      names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
+                              "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
       save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
 
       # Joint times data.frames
