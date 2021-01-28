@@ -67,7 +67,7 @@ task GusmapReport {
       ref_alt_alleles <- read.table("~{ref_alt_alleles}")
       simulated_phases <- read.table("~{simulated_phases}")
 
-      times_fake <- system.time(create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
+      times_fake <- system.time(info_fake <- create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
                                                      "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", TRUE)

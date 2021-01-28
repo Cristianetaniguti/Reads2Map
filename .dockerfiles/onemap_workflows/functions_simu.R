@@ -96,7 +96,7 @@ create_maps_report <- function(input.seq,
                                    around = 10)
     
     map_df <- map_avoid_unlinked(input.seq = seq_true, size = batch_size, 
-                                 phase_cores = 4, overlap = overlap)
+                                 phase_cores = 4, overlap = 30)
     
   } else {
     map_df <- map_avoid_unlinked(seq_true)
