@@ -182,10 +182,10 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   write.csv(ped.file, file = "ped.file.csv")
   filelist = list.files(pattern = ".*.ra.tab")
   RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
-                   filter = list(MAF=0.05, MISS=0.5, BIN=0, DEPTH=0, PVALUE=0.05), sampthres = 0)
+                   filter = list(MAF=0.05, MISS=0.25, BIN=0, DEPTH=0, PVALUE=0.05), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
-                   filter = list(MAF = 0.05, MISS = 0.5,
+                   filter = list(MAF = 0.05, MISS = 0.25,
                                  BIN = 1, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=1000))
   
   # Suggested in vignette
@@ -516,11 +516,11 @@ update_fake_info <- function(info_fake, simu_onemap_obj, ref_alt_alleles, simula
   real.type[which(is.na(real.type))] <- "non-informative"
   poscM <- ref_alt_alleles$pos.map[which(as.numeric(as.character(ref_alt_alleles$pos)) %in% as.numeric(as.character(est.pos)))]
   poscM.norm <- poscM-poscM[1]
-  diff <- sqrt((poscM.norm - info_fake[[2]]$rf^2)
+  diff <- sqrt((poscM.norm - info_fake[[2]]$rf)^2)
   real.phase <- simulated_phases[which(simulated_phases$pos%in%est.pos),][,2]
   
   info_correct[[2]]$real.type <- real.type
-  info_correct[[2]]$real.phase <- real.phase
+  info_correct[[2]]$real.phases <- real.phase
   info_correct[[2]]$fake <- FALSE
   info_correct[[2]]$poscM <- poscM
   info_correct[[2]]$poscM.norm <- poscM.norm
