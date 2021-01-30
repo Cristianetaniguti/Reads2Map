@@ -18,7 +18,7 @@
   },
   "SimulatedReads.global_seed": 8000, 
   "SimulatedReads.sequencing": {
-    "emp_vcf": "/home/cristiane/data/populus/gatk_maxmissing0.3maf0.05Chr10.recode.vcf",
+    "emp_vcf": "/home/cristiane/data/populus/gatk_noindels.recode.vcf",
     "enzyme1": "HinDIII",
     "enzyme2": "NlaIII",
     "library_type": "ddRAD",

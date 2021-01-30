@@ -217,42 +217,50 @@ task MapsReport{
       ref_alt_alleles <- read.table("~{ref_alt_alleles}")
       simulated_phases <- read.table("~{simulated_phases}")
 
-      ## Without false SNPs
-      times <-system.time(create_maps_report(input.seq = filtered_onemap,
-                                             tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
-                                             "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= F, "~{CountsFrom}", simulated_phases))
-
-      outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
-                        "_", "~{GenotypeCall_program}", "_", FALSE)
-
-      times <- data.frame(meth = outname, time = times[3])
-
-
       ## With false SNPs
-      times_temp <-system.time(create_maps_report(input.seq = filtered_onemap,
-                                             tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
-                                             "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                             fake= T, "~{CountsFrom}", simulated_phases))
+      times_fake <-system.time(info_fake <- create_maps_report(input.seq = filtered_onemap,
+                                                  tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
+                                                  "~{SNPCall_program}" , "~{GenotypeCall_program}",
+                                                  fake= T, "~{CountsFrom}", simulated_phases))
 
       outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
                         "_", "~{GenotypeCall_program}", "_", TRUE)
 
+      times <- data.frame(meth = outname, time = times_fake[3])
+
+      # It will not run if all markers are true markers
+      if(all(info_fake[[2]][,8])){     
+        cat("skip :) \n")
+        times_temp <- times_fake
+        info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
+
+        map_df <- info_fake[[1]] 
+        save(map_df, file= paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_FALSE.RData"))
+        write_report(info_fake[[2]], paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_","~{GenotypeCall_program}", "_FALSE.txt"))
+        
+      } else {
+        ## Without false SNPs
+        times_temp <-system.time(info_correct <- create_maps_report(input.seq = filtered_onemap,
+                                              tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
+                                              "~{SNPCall_program}" , "~{GenotypeCall_program}",
+                                              fake= F, "~{CountsFrom}", simulated_phases))
+      }
+
+      outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}",
+                  "_", "~{GenotypeCall_program}", "_", FALSE)
+
       # Joint maps data.frames
-      map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE.txt")
-      map_joint <- map_temp
-      map_temp <- read.table("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.txt")
-      map_joint <- rbind(map_joint, map_temp)
+      map_joint <- rbind(info_fake[[2]], info_correct[[2]])
       write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
 
       # Joint RDatas
       RDatas_joint <- list()
-      map_temp <- load("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE.RData")
-      RDatas_joint[[1]] <- get(map_temp)
-      map_temp <- load("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE.RData")
-      RDatas_joint[[2]] <- get(map_temp)
-      names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
+      RDatas_joint[[1]] <- info_fake[[1]]
+      RDatas_joint[[2]] <- info_correct
+      names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
+                               "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
       save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
+
 
       # Joint times data.frames
       times_temp <- data.frame(meth = outname, time = times_temp[3])
@@ -307,7 +315,7 @@ task ErrorsReport {
         rds.file = paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
 
         df <- readRDS(paste0("~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_vcf_depths.rds"))
-        df <- cbind(seed = ~{seed}, depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
+        df <- cbind(seed = "~{seed}"  , depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
                     GenoCall="~{GenotypeCall_program}", df)
 
         simu <- load("~{simu_vcfR}")

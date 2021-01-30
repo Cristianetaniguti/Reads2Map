@@ -96,7 +96,7 @@ create_maps_report <- function(input.seq,
                                    around = 10)
     
     map_df <- map_avoid_unlinked(input.seq = seq_true, size = batch_size, 
-                                 phase_cores = 4, overlap = overlap)
+                                 phase_cores = 4, overlap = 30)
     
   } else {
     map_df <- map_avoid_unlinked(seq_true)
@@ -152,7 +152,7 @@ create_maps_report <- function(input.seq,
   
   save(map_df, file= paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_", fake, ".RData"))
   write_report(map_info, paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_",fake, ".txt"))
-  return(map_info)
+  return(list(map_df, map_info))
 }
 
 
@@ -182,10 +182,10 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   write.csv(ped.file, file = "ped.file.csv")
   filelist = list.files(pattern = ".*.ra.tab")
   RAdata <- readRA(filelist, pedfile = "ped.file.csv", 
-                   filter = list(MAF=0.05, MISS=0.5, BIN=0, DEPTH=0, PVALUE=0.05), sampthres = 0)
+                   filter = list(MAF=0.05, MISS=0.25, BIN=0, DEPTH=0, PVALUE=0.05), sampthres = 0)
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
-                   filter = list(MAF = 0.05, MISS = 0.5,
+                   filter = list(MAF = 0.05, MISS = 0.25,
                                  BIN = 1, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=1000))
   
   # Suggested in vignette
@@ -306,6 +306,7 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   map_df <- mydata
   save(map_df, file = paste0(outname,".RData"))
   write_report(map_info, paste0(outname, ".txt"))
+  return(list(map_df, map_info))
 }
 # the errors report include markers with distortion and redundants
 create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom) {
@@ -506,3 +507,24 @@ fix_genocall_names <- function(data_broken){
   return(data_broken)
 }
 
+update_fake_info <- function(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases){
+  info_correct <- info_fake
+  est.pos <- info_fake[[2]]$pos
+  real.type <- rep(NA, nrow(info_correct[[2]]))
+  temp.type <- simu_onemap_obj$segr.type[which(simu_onemap_obj$POS %in% est.pos)]
+  real.type[which(est.pos %in% as.character(simu_onemap_obj$POS))] <- temp.type
+  real.type[which(is.na(real.type))] <- "non-informative"
+  poscM <- ref_alt_alleles$pos.map[which(as.numeric(as.character(ref_alt_alleles$pos)) %in% as.numeric(as.character(est.pos)))]
+  poscM.norm <- poscM-poscM[1]
+  diff <- sqrt((poscM.norm - info_fake[[2]]$rf)^2)
+  real.phase <- simulated_phases[which(simulated_phases$pos%in%est.pos),][,2]
+  
+  info_correct[[2]]$real.type <- real.type
+  info_correct[[2]]$real.phases <- real.phase
+  info_correct[[2]]$fake <- FALSE
+  info_correct[[2]]$poscM <- poscM
+  info_correct[[2]]$poscM.norm <- poscM.norm
+  info_correct[[2]]$diff <- diff
+
+  return(info_correct)
+}
