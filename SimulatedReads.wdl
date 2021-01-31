@@ -11,6 +11,7 @@ workflow SimulatedReads {
     Int number_of_families
     Int global_seed
     Int max_cores
+    String? filters
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -43,7 +44,8 @@ workflow SimulatedReads {
         references=references,
         family=fam,
         sequencing = sequencing,
-        max_cores = max_cores
+        max_cores = max_cores,
+        filters = filters
     }
   }
 

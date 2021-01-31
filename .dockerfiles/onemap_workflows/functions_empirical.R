@@ -8,7 +8,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
     input.seq <- make_seq(input.seq$twopt, input.seq$seq.num[order(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))])
   } 
   
-  if(length(seq_true$seq.num) > 100){
+  if(length(input.seq$seq.num) > 100){
     # batch size close to 60 and the overlap is 3/5 of the size (according with paper)
     #div <- round((length(input.seq$seq.num)/60),0)
     #size = round(length(input.seq$seq.num)/div,0)
@@ -23,7 +23,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
     time_par <- system.time(map_out <- map_avoid_unlinked(input.seq, 
                                                           size = batch_size, 
                                                           phase_cores = 4, 
-                                                          overlap = overlap, tol=10^(-3)))  
+                                                          overlap = 30, tol=10^(-3)))  
   } else {
     time_par <- system.time(map_out <- map_avoid_unlinked(input.seq))
   }
