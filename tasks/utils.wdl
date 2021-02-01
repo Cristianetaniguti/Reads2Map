@@ -15,7 +15,7 @@ task TabixVcf {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"01:00:00"
+    preemptible: 3
     mem:"10GB"
     cpu:1
   }
@@ -46,7 +46,7 @@ task VcftoolsMerge {
     docker: "taniguti/vcftools"
     mem:"10GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
@@ -102,9 +102,9 @@ task VcftoolsApplyFilters {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"5GB"
+    memory:"5GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
