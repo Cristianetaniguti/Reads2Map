@@ -183,7 +183,7 @@ task FiltersReportEmp{
   runtime {
     docker: "cristaniguti/onemap_workflows"
     preemptible: 3
-    memory:"30GB"
+    memory:"4 GB"
     cpu:1
   }
 
@@ -465,7 +465,7 @@ task MapsReportEmp{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     preemptible: 3
-    mem:"60GB"
+    memory:"8 GB"
     cpu:4
   }
 

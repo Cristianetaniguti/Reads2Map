@@ -16,7 +16,7 @@ task TabixVcf {
   runtime {
     docker: "taniguti/gatk-picard"
     preemptible: 3
-    mem:"10GB"
+    memory:"1 GB"
     cpu:1
   }
 
@@ -44,7 +44,7 @@ task VcftoolsMerge {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"10GB"
+    memory:"4 GB"
     cpu:1
     preemptible: 3
   }
@@ -70,9 +70,9 @@ task BcftoolsMerge {
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
-    mem:"5GB"
+    memory:"5 GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
@@ -102,7 +102,7 @@ task VcftoolsApplyFilters {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    memory:"5GB"
+    memory:"5 GB"
     cpu:1
     preemptible: 3
   }
