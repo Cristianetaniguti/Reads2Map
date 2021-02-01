@@ -101,10 +101,10 @@ task RunBwaAlignmentSimu {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    time:"14:00:00"
-    mem:"20GB"
-    cpu:20
-    job_name:"alignment"
+    memory: "1 GB"
+    cpu:4
+    preemptible: 3
+    disks: "local-disk " + 10 + " HDD"
   }
 
   output {

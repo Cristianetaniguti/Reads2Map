@@ -49,7 +49,7 @@ task BiallelicNormalization {
 
   runtime {
     docker: "lifebitai/bcftools"
-    memory: "2 GB"
+    memory: "1 GB"
     preemptible: 3
     cpu: 1
     disks: "local-disk " + disk_size + " HDD"

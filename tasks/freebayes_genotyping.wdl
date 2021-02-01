@@ -86,9 +86,9 @@ task RunFreebayes {
 
   runtime {
     docker: "taniguti/freebayes"
-    memory: "14 GB"
+    memory: "4 GB"
     preemptible: 3
-    cpu: 8
+    cpu: 4
     disks: "local-disk " + disk_size + " HDD"
   }
 

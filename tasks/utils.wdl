@@ -15,8 +15,8 @@ task TabixVcf {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"01:00:00"
-    mem:"10GB"
+    preemptible: 3
+    memory:"1 GB"
     cpu:1
   }
 
@@ -44,9 +44,9 @@ task VcftoolsMerge {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"10GB"
+    memory:"4 GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
@@ -70,9 +70,9 @@ task BcftoolsMerge {
   >>>
   runtime {
     docker: "biocontainers/bcftools:1.3.1"
-    mem:"5GB"
+    memory:"5 GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
@@ -102,9 +102,9 @@ task VcftoolsApplyFilters {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"10GB"
+    memory:"5 GB"
     cpu:1
-    time:"01:00:00"
+    preemptible: 3
   }
 
   output {
@@ -206,7 +206,7 @@ task CalculateVcfMetrics {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    memory: "3 GB"
+    memory: "4 GB"
     cpu:1
     preemptible: 3
   }
@@ -281,6 +281,9 @@ task ReplaceAD {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    memory: "2 GB"
+    cpu:1
+    preemptible: 3
   }
 
   output {

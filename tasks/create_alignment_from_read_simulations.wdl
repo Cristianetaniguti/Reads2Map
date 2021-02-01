@@ -388,7 +388,7 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    memory: "5 GB"
+    memory: "3 GB"
     cpu: 1
     preemptible: 3
     disks: "local-disk " + disk_size + " HDD"
@@ -851,7 +851,7 @@ task RADinitioSimulation{
 
   runtime{
     docker: "cristaniguti/radinitio"
-    memory: "6 GB"
+    memory: "3 GB"
     cpu:1
     preemptible: 3
     disks: "local-disk " + disk_size + " HDD"

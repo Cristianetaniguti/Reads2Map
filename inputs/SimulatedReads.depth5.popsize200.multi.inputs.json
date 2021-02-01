@@ -16,7 +16,7 @@
     "ref_fasta_index": "/home/cristiane/data/populus/inputs_short/Chr10.subset.fa.fai",
     "ref_pac": "/home/cristiane/data/populus/inputs_short/Chr10.subset.fa.pac"
   },
-  "SimulatedReads.global_seed": 8000, 
+  "SimulatedReads.global_seed": 8300, 
   "SimulatedReads.sequencing": {
     "emp_vcf": "/home/cristiane/data/populus/inputs_short/gatk_noindels_maxmissing0.25_mag0.05_subset.vcf",
     "enzyme1": "HinDIII",
