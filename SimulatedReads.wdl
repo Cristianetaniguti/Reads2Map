@@ -195,8 +195,8 @@ task JointTables{
   runtime {
       docker:"cristaniguti/onemap_workflows"
       preemptible: 3
-      cpu: 2
-      memory: "8 GB"
+      cpu: 1
+      memory: "3 GB"
   }
 
   output {

@@ -102,7 +102,7 @@ task VcftoolsApplyFilters {
   >>>
   runtime {
     docker: "taniguti/vcftools"
-    mem:"10GB"
+    mem:"5GB"
     cpu:1
     time:"01:00:00"
   }
@@ -206,7 +206,7 @@ task CalculateVcfMetrics {
 
   runtime {
     docker: "cristaniguti/onemap_workflows"
-    memory: "3 GB"
+    memory: "4 GB"
     cpu:1
     preemptible: 3
   }
@@ -281,6 +281,9 @@ task ReplaceAD {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    memory: "2 GB"
+    cpu:1
+    preemptible: 3
   }
 
   output {

@@ -274,7 +274,7 @@ task MapsReport{
   runtime {
     docker: "cristaniguti/onemap_workflows"
     preemptible: 3
-    memory: "8 GB"
+    memory: "4 GB"
     cpu: 4
   }
 
@@ -351,7 +351,7 @@ task ErrorsReport {
   runtime{
     docker: "cristaniguti/onemap_workflows"
     preemptible: 3
-    memory: "3 GB"
+    memory: "2 GB"
     cpu:1
   }
 
@@ -381,7 +381,7 @@ task GlobalError {
   runtime {
     docker: "cristaniguti/onemap_workflows"
     preemptible: 3
-    memory: "3 GB"
+    memory: "2 GB"
     cpu: 1
   }
 
@@ -429,7 +429,7 @@ task CheckDepths{
   runtime{
     docker:"cristaniguti/onemap_workflows"
     time:"10:00:00"
-    mem:"60GB"
+    mem:"3 GB"
     cpu:1
   }
 
@@ -508,7 +508,7 @@ task AddMultiallelics {
   runtime {
     docker:"cristaniguti/onemap_workflows"
     preemptible: 3
-    memory: "8 GB"
+    memory: "3 GB"
     cpu: 4
   }
 
@@ -696,10 +696,9 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/onemap_workflows"
-    time:"10:00:00"
-    mem:"30GB"
-    cpu:1
-    job_name:"family_joint"
+    preemptible: 3
+    memory: "3 GB"
+    cpu: 1
   }
 
   output {

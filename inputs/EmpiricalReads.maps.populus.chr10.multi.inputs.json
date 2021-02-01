@@ -15,8 +15,4 @@
   "Maps.filters": "--chr Chr10 --maf 0.05 --max-missing 0.75 --min-meanDP 6",
   "Maps.gatk_vcf": "/data1/aafgarci/cris/empirical/populus/gatk_vcf_bi_filt.recode.vcf",
   "Maps.freebayes_vcf_bam_counts": "/data1/aafgarci/cris/empirical/populus/freebayes_bam_bi_filt.recode.vcf"
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 11d8c1f56cb6a1877c0d579984b0f11026f0a3e0
