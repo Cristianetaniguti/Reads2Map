@@ -12,10 +12,11 @@ workflow DefaultMaps {
      File simulated_phases
      String SNPCall_program
      String CountsFrom
-     File? multi_obj
+     File multi_obj
      Int seed
      Int depth
      Int max_cores
+     String multiallelics
     }
 
     call utilsR.GlobalError{
@@ -29,7 +30,7 @@ workflow DefaultMaps {
 
     scatter(item in methods_and_objects){
 
-         if (defined(multi_obj)) {
+         if (multiallelics == "yes") {
             call utilsR.AddMultiallelics{
               input:
                 onemap_obj_multi = multi_obj,

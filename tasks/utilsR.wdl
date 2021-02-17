@@ -63,6 +63,7 @@ task MultiVcf2onemap{
      String parent2
      Int? seed
      Int? depth
+     String multiallelics
    }
 
    command <<<
@@ -92,8 +93,10 @@ task MultiVcf2onemap{
                                  f1 = f1,
                                  only_biallelic = F)
 
+          # If user choosed the option to not include the multiallelics,
+          # the object will still be available, but the markers are not considered
           multi_names <- list()
-          if(dim(onemap.obj[[1]])[2] == 0){
+          if(dim(onemap.obj[[1]])[2] == 0 | "~{multiallelics}" == "no"){
             multi_names[[1]] <- 0
           } else {
             multi_names[[1]] <- colnames(onemap.obj[[1]])
@@ -625,10 +628,10 @@ task JointReports{
       }
 
       snpcall_names <- str_split(names(multi_names_seed), pattern = "_", simplify = T)
+      maps_report <- as.data.frame(maps_report)
 
-      idx <- which(colnames(maps_report) == "real.mks")
       for(i in 1:length(multi_names_seed)){
-        maps_report[,idx][which(maps_report[,"seed"] == snpcall_names[i,2] & 
+        maps_report[,"real.mks"][which(maps_report[,"seed"] == snpcall_names[i,2] & 
                                     maps_report[,"depth"] == snpcall_names[i,1] &
                                     maps_report[,"SNPCall"] == snpcall_names[i,3] &  
                                     maps_report[,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"

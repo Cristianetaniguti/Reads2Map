@@ -18,6 +18,7 @@ workflow SNPCallerMaps{
      Int seed
      Int depth
      Int max_cores
+     String multiallelics
     }
 
 
@@ -28,7 +29,7 @@ workflow SNPCallerMaps{
       cross = cross
   }
 
-  if (defined(multi_obj)) {
+  if (multiallelics == "yes") {
       call utilsR.AddMultiallelics{
           input:
             onemap_obj_multi = multi_obj,

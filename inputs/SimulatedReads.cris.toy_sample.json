@@ -29,7 +29,7 @@
       "depth": "10",
       "depth_parents":"20",
       "ref_map": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.map.csv",
-      "multiallelics": "yes",
+      "multiallelics": "no",
       "vcf_parent1": "PT_F",
       "vcf_parent2": "PT_M"
     },

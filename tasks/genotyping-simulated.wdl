@@ -20,6 +20,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
     Int max_cores
     Int seed
     Int depth
+    String multiallelics
   }
 
   call OnemapProbsSimulated {
@@ -42,7 +43,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
 
   scatter (item in methods_and_objects) {
 
-       if (defined(multi_obj)) {
+      if (multiallelics == "yes") {
            call utilsR.AddMultiallelics{
              input:
                onemap_obj_multi = multi_obj,

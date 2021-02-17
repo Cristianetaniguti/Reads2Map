@@ -77,7 +77,6 @@ workflow SimulatedMapsWorkflow {
       parent2 = "P2"
   }
 
-
   if (defined(filters)) {
       call utils.ApplyRandomFilters {
           input:
@@ -95,10 +94,8 @@ workflow SimulatedMapsWorkflow {
     File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_biallelics])
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_biallelics_bamcounts])
 
-
     PopulationAnalysis gatk_processing = {"multi": GatkGenotyping.vcf_multiallelics, "method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
     PopulationAnalysis freebayes_processing = {"multi": FreebayesGenotyping.vcf_multiallelics, "method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
-
 
   scatter (analysis in [gatk_processing, freebayes_processing]){
 
@@ -112,14 +109,15 @@ workflow SimulatedMapsWorkflow {
     }
 
     call utilsR.MultiVcf2onemap{
-       input:
+      input:
           multi = analysis.multi,
           cross = family.cross,
           SNPCall_program = analysis.method,
           parent1 = "P1",
           parent2 = "P2",
           seed    = family.seed,
-          depth   = sequencing.depth
+          depth   = sequencing.depth,
+          multiallelics = sequencing.multiallelics
     }
 
     call default.DefaultMaps {
@@ -135,7 +133,8 @@ workflow SimulatedMapsWorkflow {
         vcfR_obj = vcf2onemap.vcfR_obj,
         seed = family.seed,
         depth = sequencing.depth,
-        max_cores = max_cores
+        max_cores = max_cores,
+        multiallelics = sequencing.multiallelics
     }
 
     call snpcaller.SNPCallerMaps{
@@ -153,7 +152,8 @@ workflow SimulatedMapsWorkflow {
         simu_vcfR = truth_vcf.vcfR_obj,
         seed = family.seed,
         depth = sequencing.depth,
-        max_cores = max_cores
+        max_cores = max_cores,
+        multiallelics = sequencing.multiallelics
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -174,7 +174,8 @@ workflow SimulatedMapsWorkflow {
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
-            depth = sequencing.depth
+            depth = sequencing.depth,
+            multiallelics = sequencing.multiallelics
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
@@ -192,7 +193,8 @@ workflow SimulatedMapsWorkflow {
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
-            depth = sequencing.depth
+            depth = sequencing.depth,
+            multiallelics = sequencing.multiallelics
         }
 
         call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
@@ -211,6 +213,7 @@ workflow SimulatedMapsWorkflow {
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth,
+            multiallelics = sequencing.multiallelics
         }
       }
 
