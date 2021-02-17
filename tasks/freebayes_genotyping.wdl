@@ -1,9 +1,9 @@
 version 1.0
 
-import "snpcalling_empS.wdl"
-import "reference_struct.wdl"
-import "split_filt_vcf.wdl" as norm_filt
-import "utils.wdl" as utils
+import "../structs/snpcalling_empS.wdl"
+import "../structs/reference_struct.wdl"
+import "./split_filt_vcf.wdl" as norm_filt
+import "./utils.wdl" as utils
 
 
 workflow FreebayesGenotyping {

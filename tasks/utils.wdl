@@ -1,6 +1,6 @@
 version 1.0
 
-import "alignment_struct.wdl"
+import "../structs/alignment_struct.wdl"
 
 task TabixVcf {
   input {
@@ -199,13 +199,13 @@ task CalculateVcfMetrics {
               }
         }
 
-        saveRDS(results_tot, file= "data5_SNPcall_efficiency.rds")
+        vroom::vroom_write(results_tot, "data5_SNPcall_efficiency.tsv.gz")
         RSCRIPT
 
   >>>
 
   runtime {
-    docker: "cristaniguti/onemap_workflows"
+    docker: "cristaniguti/reads2map"
     memory: "4 GB"
     cpu:1
     preemptible: 3
@@ -214,7 +214,7 @@ task CalculateVcfMetrics {
   output {
     File freebayes_pos = "freebayes_site_list.txt"
     File gatk_pos = "gatk_site_list.txt"
-    File data5_SNPcall_efficiency  = "data5_SNPcall_efficiency.rds"
+    File data5_SNPcall_efficiency  = "data5_SNPcall_efficiency.tsv.gz"
     File freebayes_ref_depth = "freebayes_ref_depth.txt"
     File freebayes_alt_depth = "freebayes_alt_depth.txt"
     File gatk_ref_depth = "gatk_ref_depth.txt"

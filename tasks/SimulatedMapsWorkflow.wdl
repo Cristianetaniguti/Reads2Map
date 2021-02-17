@@ -134,7 +134,8 @@ workflow SimulatedMapsWorkflow {
         simu_vcfR = truth_vcf.vcfR_obj,
         vcfR_obj = vcf2onemap.vcfR_obj,
         seed = family.seed,
-        depth = sequencing.depth
+        depth = sequencing.depth,
+        max_cores = max_cores
     }
 
     call snpcaller.SNPCallerMaps{
@@ -151,7 +152,8 @@ workflow SimulatedMapsWorkflow {
         multi_obj = MultiVcf2onemap.onemap_obj,
         simu_vcfR = truth_vcf.vcfR_obj,
         seed = family.seed,
-        depth = sequencing.depth
+        depth = sequencing.depth,
+        max_cores = max_cores
     }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
@@ -208,7 +210,7 @@ workflow SimulatedMapsWorkflow {
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
-            depth = sequencing.depth
+            depth = sequencing.depth,
         }
       }
 
@@ -220,7 +222,10 @@ workflow SimulatedMapsWorkflow {
           SNPCall_program = analysis.method,
           GenotypeCall_program = "gusmap",
           ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
-          simulated_phases = CreateAlignmentFromSimulation.simulated_phases
+          simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
+          seed = family.seed,
+          depth = sequencing.depth,
+          max_cores = max_cores
       }
   }
 
@@ -230,33 +235,32 @@ workflow SimulatedMapsWorkflow {
     default_maps_report       = flatten(DefaultMaps.maps_report),
     default_filters_report    = flatten(DefaultMaps.filters_report),
     default_errors_report     = flatten(DefaultMaps.errors_report),
-    default_times             = flatten(DefaultMaps.times),
+    default_times_report      = flatten(DefaultMaps.times),
     SNPCaller_RDatas          = SNPCallerMaps.RDatas,
     multi_names               = MultiVcf2onemap.multi_names,
     SNPCaller_maps_report     = SNPCallerMaps.maps_report,
     SNPCaller_filters_report  = SNPCallerMaps.filters_report,
     SNPCaller_errors_report   = SNPCallerMaps.errors_report,
-    SNPCaller_times           = SNPCallerMaps.times,
+    SNPCaller_times_report    = SNPCallerMaps.times,
     Updog_RDatas              = flatten(flatten(UpdogMaps.RDatas)),
     Updog_maps_report         = flatten(flatten(UpdogMaps.maps_report)),
     Updog_filters_report      = flatten(flatten(UpdogMaps.filters_report)),
     Updog_errors_report       = flatten(flatten(UpdogMaps.errors_report)),
-    Updog_times               = flatten(flatten(UpdogMaps.times)),
+    Updog_times_report        = flatten(flatten(UpdogMaps.times)),
     Polyrad_RDatas            = flatten(flatten(PolyradMaps.RDatas)),
     Polyrad_maps_report       = flatten(flatten(PolyradMaps.maps_report)),
     Polyrad_filters_report    = flatten(flatten(PolyradMaps.filters_report)),
     Polyrad_errors_report     = flatten(flatten(PolyradMaps.errors_report)),
-    Polyrad_times             = flatten(flatten(PolyradMaps.times)),
+    Polyrad_times_report      = flatten(flatten(PolyradMaps.times)),
     Supermassa_RDatas         = flatten(flatten(SupermassaMaps.RDatas)),
     Supermassa_maps_report    = flatten(flatten(SupermassaMaps.maps_report)),
     Supermassa_filters_report = flatten(flatten(SupermassaMaps.filters_report)),
     Supermassa_errors_report  = flatten(flatten(SupermassaMaps.errors_report)),
-    Supermassa_times          = flatten(flatten(SupermassaMaps.times)),
+    Supermassa_times_report   = flatten(flatten(SupermassaMaps.times)),
     Gusmap_RDatas             = flatten(GusmapMaps.RDatas),
     Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
-    Gusmap_times              = flatten(GusmapMaps.times),
-    depth                     = sequencing.depth,
-    seed                      = family.seed
+    Gusmap_times_report       = flatten(GusmapMaps.times),
+    max_cores                 = max_cores
   }
 
   output {
@@ -269,6 +273,5 @@ workflow SimulatedMapsWorkflow {
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
-    File multi_names              = JointReports.multi_names2
   }
 }

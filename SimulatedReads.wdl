@@ -1,6 +1,6 @@
 version 1.0
 
-import "SimulatedMapsWorkflow.wdl" as sub
+import "./tasks/SimulatedMapsWorkflow.wdl" as sub
 
 workflow SimulatedReads {
 
@@ -51,17 +51,16 @@ workflow SimulatedReads {
 
   call JointTables {
     input:
-      data1=SimulatedMapsWorkflow.data1_depths_geno_prob,
-      data2=SimulatedMapsWorkflow.data2_maps,
-      data3=SimulatedMapsWorkflow.data3_filters,
-      data5=SimulatedMapsWorkflow.data5_SNPcall_efficiency,
-      data4=SimulatedMapsWorkflow.data4_times,
-      depth=sequencing.depth,
-      data6=SimulatedMapsWorkflow.data6_RDatas,
-      data7=SimulatedMapsWorkflow.data7_gusmap,
-      data8=SimulatedMapsWorkflow.data8_names,
-      data9=SimulatedMapsWorkflow.simu_haplo,
-      data10=SimulatedMapsWorkflow.multi_names
+      data1_depths_geno_prob   = SimulatedMapsWorkflow.data1_depths_geno_prob,
+      data2_maps               = SimulatedMapsWorkflow.data2_maps,
+      data3_filters            = SimulatedMapsWorkflow.data3_filters,
+      data5_SNPcall_efficiency = SimulatedMapsWorkflow.data5_SNPcall_efficiency,
+      data4_times              = SimulatedMapsWorkflow.data4_times,
+      data6_RDatas             = SimulatedMapsWorkflow.data6_RDatas,
+      data7_gusmap             = SimulatedMapsWorkflow.data7_gusmap,
+      data8_names              = SimulatedMapsWorkflow.data8_names,
+      data9_simu_haplo         = SimulatedMapsWorkflow.simu_haplo,
+      depth                    = sequencing.depth
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -101,17 +100,16 @@ task ProduceFamiliesSeeds {
 
 task JointTables{
   input {
-    Array[File] data1
-    Array[File] data2
-    Array[File] data3
-    Array[File] data4
-    Array[File] data5
-    Array[File] data6
-    Array[File] data7
-    Array[File] data8
-    Array[File] data9
-    Array[File] data10
-    Int depth
+    Array[File] data1_depths_geno_prob  
+    Array[File] data2_maps              
+    Array[File] data3_filters           
+    Array[File] data5_SNPcall_efficiency
+    Array[File] data4_times             
+    Array[File] data6_RDatas            
+    Array[File] data7_gusmap            
+    Array[File] data8_names             
+    Array[File] data9_simu_haplo
+    Int depth        
   }
 
   command <<<
@@ -119,19 +117,19 @@ task JointTables{
     R --vanilla --no-save <<RSCRIPT
     library(tidyverse)
     library(largeList)
-    source("/opt/scripts/functions_simu.R")
+    library(vroom)
+
     datas <- list()
 
-    datas[[1]] <- c("~{sep=";" data1}")
-    datas[[2]] <- c("~{sep=";" data2}")
-    datas[[3]] <- c("~{sep=";" data3}")
-    datas[[4]] <- c("~{sep=";" data4}")
-    datas[[5]] <- c("~{sep=";" data5}")
-    datas[[6]] <- c("~{sep=";" data6}")
-    datas[[7]] <- c("~{sep=";" data7}")
-    datas[[8]] <- c("~{sep=";" data8}")
-    datas[[9]] <- c("~{sep=";" data9}")
-    datas[[10]] <- c("~{sep=";" data10}")
+    datas[[1]] <- c("~{sep=";" data1_depths_geno_prob  }")
+    datas[[2]] <- c("~{sep=";" data2_maps              }")
+    datas[[3]] <- c("~{sep=";" data3_filters           }")
+    datas[[4]] <- c("~{sep=";" data5_SNPcall_efficiency}")
+    datas[[5]] <- c("~{sep=";" data4_times             }")
+    datas[[6]] <- c("~{sep=";" data6_RDatas            }")
+    datas[[7]] <- c("~{sep=";" data7_gusmap            }")
+    datas[[8]] <- c("~{sep=";" data8_names             }")
+    datas[[9]] <- c("~{sep=";" data9_simu_haplo        }")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
@@ -153,16 +151,9 @@ task JointTables{
         }
         Rdatas <- do.call(c, Rdata_lst)
         save(Rdatas, file = "gusmap_RDatas.RData")
-      } else if(j == 10){
-        multi_names_depth <- list()
-        for(i in 1:length(datas[[j]])){
-          multi_temp2 <- load(datas[[j]][i])
-          multi_temp3 <- get(multi_temp2)
-          multi_names_depth <- c(multi_names_depth, multi_temp3)
-        }
       } else {
         for(i in 1:length(datas[[j]])){
-          data_lst[[i]] <- readRDS(datas[[j]][i])
+          data_lst[[i]] <- vroom(datas[[j]][i], delim = "\t")
         }
         if(j == 8){
           dat <- do.call(c, data_lst)
@@ -171,29 +162,28 @@ task JointTables{
       }
     }
 
-    result_list <- adapt2app(datas_up)
+    vroom_write(datas_up[[1]], "data1_depths_geno_prob.tsv.gz")
+    vroom_write(datas_up[[2]], "data2_maps.tsv.gz")
+    vroom_write(datas_up[[3]], "data3_filters.tsv.gz")
+    vroom_write(datas_up[[4]], "data4_times.tsv.gz")
+    vroom_write(datas_up[[5]], "data5_SNPcall_efficiency.tsv.gz")
+    vroom_write(datas_up[[9]], "simu_haplo.tsv.gz")
 
-    saveRDS(result_list[[1]], file="data1.rds")
-    saveRDS(result_list[[2]], file="data2.rds")
-    saveRDS(result_list[[3]], file="data3.rds")
-    saveRDS(result_list[[4]], file="data4.rds")
-    saveRDS(result_list[[5]], file="data5.rds")
-    saveRDS(datas_up[[9]], file="simu_haplo.rds")
+    data.names <- as.data.frame(datas_up[[8]])
+    print(data.names)
+    vroom_write(data.names, "names.tsv.gz")
 
-    choices <- result_list[[6]]
-    save(choices, file = "choices.RData")
-    saveRDS(datas_up[[8]], file = "names.rds")
-    save(multi_names_depth, file = "multi_names.RData")
-
-    system("mkdir SimulatedReads_results_depth~{depth}")
-    system("mv multi_names.RData gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
-    system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
+    system("mkdir SimulatedReads_results_depth10")
+    system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
+            data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPcall_efficiency.tsv.gz \
+            simu_haplo.tsv.gz  names.tsv.gz SimulatedReads_results_depth10")
+    system("tar -czvf SimulatedReads_results_depth10.tar.gz SimulatedReads_results_depth10")
 
     RSCRIPT
   >>>
 
   runtime {
-      docker:"cristaniguti/onemap_workflows"
+      docker:"cristaniguti/reads2map"
       preemptible: 3
       cpu: 1
       memory: "3 GB"

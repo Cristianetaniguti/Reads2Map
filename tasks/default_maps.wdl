@@ -15,6 +15,7 @@ workflow DefaultMaps {
      File? multi_obj
      Int seed
      Int depth
+     Int max_cores
     }
 
     call utilsR.GlobalError{
@@ -22,7 +23,7 @@ workflow DefaultMaps {
         onemap_obj = onemap_obj
     }
 
-    Array[String] methods                         = ["default", "default0.05"]
+    Array[String] methods                         = ["OneMap_version2", "SNPCaller0.05"]
     Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
     Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
@@ -43,7 +44,9 @@ workflow DefaultMaps {
                 onemap_obj = select_onemap_obj,
                 SNPCall_program = SNPCall_program,
                 GenotypeCall_program = item.left,
-                CountsFrom = CountsFrom
+                CountsFrom = CountsFrom,
+                seed = seed,
+                depth = depth
           }
 
           call utilsR.MapsReport{
@@ -54,7 +57,10 @@ workflow DefaultMaps {
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
-              simulated_phases = simulated_phases
+              simulated_phases = simulated_phases,
+              seed = seed,
+              depth = depth,
+              max_cores = max_cores
             }
 
             call utilsR.ErrorsReport{
@@ -67,7 +73,8 @@ workflow DefaultMaps {
                 simu_vcfR = simu_vcfR,
                 vcfR_obj = vcfR_obj,
                 seed = seed,
-                depth = depth
+                depth = depth,
+                max_cores = max_cores
             }
      }
 

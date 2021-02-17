@@ -334,7 +334,7 @@ task JointReports{
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"cristaniguti/reads2map"
     time:"10:00:00"
     mem:"80GB"
     cpu:1

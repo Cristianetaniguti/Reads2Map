@@ -57,7 +57,9 @@ workflow SnpBasedGenotypingSimulatedMaps {
               onemap_obj = select_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              seed = seed,
+              depth = depth
         }
 
         call utilsR.MapsReport {
@@ -68,7 +70,10 @@ workflow SnpBasedGenotypingSimulatedMaps {
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = item.left,
             CountsFrom = CountsFrom,
-            simulated_phases = simulated_phases
+            simulated_phases = simulated_phases,
+            seed = seed,
+            depth = depth,
+            max_cores = max_cores
           }
 
         call utilsR.ErrorsReport{
@@ -81,7 +86,8 @@ workflow SnpBasedGenotypingSimulatedMaps {
               simu_vcfR = simu_vcfR,
               vcfR_obj = OnemapProbsSimulated.vcfR_obj,
               seed = seed,
-              depth = depth
+              depth = depth,
+              max_cores = max_cores
           }
 
    }
@@ -169,20 +175,20 @@ task OnemapProbsSimulated {
 
        }
 
-       save(out_onemap_obj, file="~{method}_onemap_obj.RData")
+       save(out_onemap_obj, file="onemap_obj.RData")
      RSCRIPT
 
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"cristaniguti/reads2map"
     preemptible: 3
     memory: "8 GB"
     cpu: 4
   }
 
   output {
-    File onemap_obj_out = "~{method}_onemap_obj.RData"
+    File onemap_obj_out = "onemap_obj.RData"
     File vcfR_obj = "vcfR_obj.RData"
   }
 }

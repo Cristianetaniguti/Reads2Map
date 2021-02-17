@@ -1,8 +1,8 @@
 version 1.0
 
-import "reads_simuS.wdl"
-import "alignment_struct.wdl"
-import "alignment.wdl" as alg
+import "../structs/reads_simuS.wdl"
+import "../structs/alignment_struct.wdl"
+import "./alignment.wdl" as alg
 
 workflow CreateAlignmentFromSimulation {
     input {
@@ -485,7 +485,7 @@ task ConvertPedigreeSimulationToVcf {
                                           crosstype = "outcross")
 
     haplo_simu <- cbind(seed="~{seed}", depth="~{depth}",progeny_dat)
-    saveRDS(haplo_simu, file = "~{seed}_~{depth}_haplo_simu.rds")
+    vroom::vroom_write(haplo_simu, "~{seed}_~{depth}_haplo_simu.tsv.gz")
 
     # For RADinitio
     vcf_radinitio <- data.frame("CHROM"=1, "POS"=as.numeric(as.character(vcfR.object@fix[,2])), "ID"= ".","REF"=0, "ALT"=1,
@@ -498,7 +498,7 @@ task ConvertPedigreeSimulationToVcf {
   >>>
 
   runtime {
-    docker: "cristaniguti/onemap_workflows"
+    docker: "cristaniguti/reads2map"
     memory: "4 GB"
     cpu:1
     preemptible: 3
@@ -507,7 +507,7 @@ task ConvertPedigreeSimulationToVcf {
 
   output {
     File simu_vcf = "~{seed}_~{depth}_simu.vcf"
-    File simu_haplo = "~{seed}_~{depth}_haplo_simu.rds"
+    File simu_haplo = "~{seed}_~{depth}_haplo_simu.tsv.gz"
     File radinitio_vcf = "radinitio.vcf"
   }
 }

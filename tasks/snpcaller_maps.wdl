@@ -17,6 +17,7 @@ workflow SNPCallerMaps{
      File? multi_obj
      Int seed
      Int depth
+     Int max_cores
     }
 
 
@@ -42,7 +43,9 @@ workflow SNPCallerMaps{
       onemap_obj = select_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = "vcf"
+      CountsFrom = "vcf",
+      seed = seed,
+      depth = depth
   }
 
   call utilsR.MapsReport{
@@ -53,7 +56,10 @@ workflow SNPCallerMaps{
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
-      simulated_phases = simulated_phases
+      simulated_phases = simulated_phases,
+      seed = seed,
+      depth = depth,
+      max_cores = max_cores
   }
 
   call utilsR.ErrorsReport{
@@ -66,7 +72,8 @@ workflow SNPCallerMaps{
       simu_vcfR = simu_vcfR,
       vcfR_obj = GQProbs.vcfR_obj,
       seed = seed,
-      depth = depth
+      depth = depth,
+      max_cores = max_cores
   }
 
   output {
@@ -120,7 +127,7 @@ task GQProbs{
 
   >>>
   runtime {
-    docker: "cristaniguti/onemap_workflows"
+    docker: "cristaniguti/reads2map"
     preemptible: 3
     memory: "3 GB"
     cpu: 1

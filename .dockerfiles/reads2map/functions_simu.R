@@ -44,7 +44,7 @@ phaseToOPGP_OM <- function(x){
   }
 }
 
-create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
+create_filters_report <- function(onemap_obj, SNPCall, CountsFrom, GenoCall, seed, depth) {
   onemap_mis <- filter_missing(onemap_obj, threshold = 0.25)
   bins <- find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
@@ -58,28 +58,33 @@ create_filters_report <- function(onemap_obj, SNPcall, CountsFrom, Genocall) {
                             "n_markers"= total_variants,
                             "distorted_markers"=length(distorted), # After red removed
                             "redundant_markers"=total_variants - length(bins[[1]]),
-                            "SNPcall" = SNPcall,
-                            "Genocall" = Genocall,
-                            "CountsFrom" = CountsFrom)
+                            "after_filters"= length(seq1$seq.num),
+                            "SNPCall" = SNPCall,
+                            "GenoCall" = GenoCall,
+                            "CountsFrom" = CountsFrom, 
+                            seed, 
+                            depth)
   
-  write_report(filters_tab, paste0("filters_", SNPcall, "_", CountsFrom, "_",Genocall, ".txt"))
+  write_report(filters_tab, "filters_report")
   return(seq1)
 }
 
 create_maps_report <- function(input.seq, 
                                tot_mks,
                                gab, 
-                               SNPcall, 
-                               Genocall, 
+                               SNPCall, 
+                               GenoCall, 
                                fake, 
                                CountsFrom,
-                               real_phases) {
+                               real_phases, seed, depth, max_cores) {
   
   if(!fake){
     true_mks <- input.seq$seq.num[which(input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2])]
     seq_true <- make_seq(input.seq$twopt, true_mks) # only true markers are mapped
   } else {
     real.mks <- input.seq$data.name$POS[input.seq$seq.num] %in% tot_mks[,2]
+    real.mks[which(real.mks == T)] <- "true marker"
+    real.mks[which(real.mks == F)] <- "false positive"
     seq_true <- input.seq
   }
   
@@ -96,7 +101,7 @@ create_maps_report <- function(input.seq,
                                    around = 10)
     
     map_df <- map_avoid_unlinked(input.seq = seq_true, size = batch_size, 
-                                 phase_cores = 4, overlap = 30)
+                                 phase_cores = max_cores, overlap = 30)
     
   } else {
     map_df <- map_avoid_unlinked(seq_true)
@@ -104,27 +109,30 @@ create_maps_report <- function(input.seq,
   
   phases <- phaseToOPGP_OM(x = map_df)
   types <- input.seq$data.name$segr.type[map_df[[1]]]
-  real_type <- rep(NA, length(types))
-  temp_type <- gab$segr.type[which(as.character(gab$POS) %in% input.seq$data.name$POS[map_df[[1]]])]
-  real_type[which(input.seq$data.name$POS[map_df[[1]]] %in% as.character(gab$POS))] <- temp_type
-  real_type[which(is.na(real_type))] <- "non-informative"
-  real_phase <- real_phases[which(real_phases[,1] %in% input.seq$data.name$POS[map_df[[1]]]),2]
   pos <- input.seq$data.name$POS[map_df[[1]]]
-  poscM <- tot_mks$pos.map[which(as.numeric(as.character(tot_mks$pos)) %in% as.numeric(as.character(pos)))]
-  poscM.norm <- poscM-poscM[1]
-  diff= sqrt((poscM.norm - c(0,cumsum(haldane(map_df[[3]]))))^2)
   
   if(!fake){
-    map_info <- data.frame("mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
+    real_type <- rep(NA, length(types))
+    temp_type <- gab$segr.type[which(as.character(gab$POS) %in% input.seq$data.name$POS[map_df[[1]]])]
+    real_type[which(input.seq$data.name$POS[map_df[[1]]] %in% as.character(gab$POS))] <- temp_type
+    real_type[which(is.na(real_type))] <- "non-informative"
+    real_phase <- real_phases[which(real_phases[,1] %in% input.seq$data.name$POS[map_df[[1]]]),2]
+    poscM <- tot_mks$pos.map[which(as.numeric(as.character(tot_mks$pos)) %in% as.numeric(as.character(pos)))]
+    poscM.norm <- c(0,cumsum(diff(poscM)))
+    diff= sqrt((poscM.norm - c(0,cumsum(haldane(map_df$seq.rf))))^2)
+    
+    map_info <- data.frame(seed,
+                           depth,
+                           "mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
                            "pos" = input.seq$data.name$POS[map_df[[1]]],
                            "rf" = c(0,cumsum(haldane(map_df[[3]]))),
                            "type"= types,
                            "real.type" = real_type,
                            "est.phases"= unlist(phases),
                            "real.phases"= real_phase,
-                           "real.mks" = 99,
-                           "SNPcall" = SNPcall,
-                           "Genocall" = Genocall,
+                           "real.mks" = "true marker",
+                           "SNPCall" = SNPCall,
+                           "GenoCall" = GenoCall,
                            "CountsFrom" = CountsFrom,
                            "fake" = fake,
                            "poscM" = poscM,
@@ -133,7 +141,9 @@ create_maps_report <- function(input.seq,
   } else { # Including fake markers is not possible to do the comparisions
     # The fake markers can also be multiallelic markers
     real.mks <- real.mks[input.seq$seq.num %in% map_df$seq.num]
-    map_info <- data.frame("mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
+    map_info <- data.frame(seed,
+                           depth,
+                           "mk.name"= colnames(input.seq$data.name$geno)[map_df[[1]]],
                            "pos" = input.seq$data.name$POS[map_df[[1]]],
                            "rf" = c(0,cumsum(haldane(map_df[[3]]))),
                            "type"= types,
@@ -141,8 +151,8 @@ create_maps_report <- function(input.seq,
                            "est.phases"= unlist(phases),
                            "real.phases"= NA,
                            "real.mks" = real.mks,
-                           "SNPcall" = SNPcall,
-                           "Genocall" = Genocall,
+                           "SNPCall" = SNPCall,
+                           "GenoCall" = GenoCall,
                            "CountsFrom" = CountsFrom,
                            "fake" = fake,
                            "poscM" = NA,
@@ -150,13 +160,11 @@ create_maps_report <- function(input.seq,
                            "diff" = NA)
   }
   
-  save(map_df, file= paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_", fake, ".RData"))
-  write_report(map_info, paste0("map_", SNPcall, "_", CountsFrom, "_",Genocall, "_",fake, ".txt"))
   return(list(map_df, map_info))
 }
 
 
-create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsFrom, tot_mks, real_phases){
+create_gusmap_report <- function(vcf_file, gab, SNPCall, GenoCall, fake, CountsFrom, tot_mks, real_phases, seed, depth){
   ## Maps with gusmap
   RAfile <- VCFtoRA(vcf_file, makePed = T)
   filelist = list.files(pattern = ".*_ped.csv")
@@ -215,6 +223,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
     if(length(infer) > 0)
       config[infer] <- mydata$.__enclos_env__$private$config_infer[[1]][infer]
     real.mks <- mydata$.__enclos_env__$private$pos %in% tot_mks$pos
+    real.mks[which(real.mks == T)] <- "true marker"
+    real.mks[which(real.mks == F)] <- "false positive"
   }
   
   # Automatically remove markers with pos = inf
@@ -269,23 +279,27 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
   diff= sqrt((poscM.norm - dist.gus)^2)
   
   if(!fake){
-    map_info <- data.frame("mk.name"= mydata$.__enclos_env__$private$SNP_Names[keep.mks][which(pos%in%rast.pos)],
+    map_info <- data.frame(seed,
+                           depth,
+                           "mk.name"= mydata$.__enclos_env__$private$SNP_Names[keep.mks][which(pos%in%rast.pos)],
                            "pos" = rast.pos,
                            "rf" = dist.gus,
                            "type"= config,
                            "real.type" = real_type,
                            "est.phases"= phases.gus,
                            "real.phases"= real_phase,
-                           "real.mks" = 99,
-                           "SNPcall" = SNPcall,
-                           "Genocall" = Genocall,
+                           "real.mks" = "true marker",
+                           "SNPCall" = SNPCall,
+                           "GenoCall" = GenoCall,
                            "CountsFrom" = CountsFrom,
                            "fake" = fake,
                            "poscM" = poscM,
                            "poscM.norm" = poscM.norm,
                            "diff" = diff)
   } else {
-    map_info <- data.frame("mk.name"= mydata$.__enclos_env__$private$SNP_Names[which(pos%in%rast.pos)],
+    map_info <- data.frame(seed,
+                           depth,
+                           "mk.name"= mydata$.__enclos_env__$private$SNP_Names[which(pos%in%rast.pos)],
                            "pos" = rast.pos,
                            "rf" = dist.gus,
                            "type"= config,
@@ -293,8 +307,8 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                            "est.phases"= phases.gus,
                            "real.phases"= NA,
                            "real.mks" = real.mks[which(pos%in%rast.pos)],
-                           "SNPcall" = SNPcall,
-                           "Genocall" = Genocall,
+                           "SNPCall" = SNPCall,
+                           "GenoCall" = GenoCall,
                            "CountsFrom" = CountsFrom,
                            "fake" = fake,
                            "poscM" = NA,
@@ -302,14 +316,14 @@ create_gusmap_report <- function(vcf_file, gab, SNPcall, Genocall, fake, CountsF
                            "diff" = NA)
   }
   
-  outname <- paste0("map_", SNPcall, "_", CountsFrom, "_", Genocall, "_", fake)
   map_df <- mydata
-  save(map_df, file = paste0(outname,".RData"))
-  write_report(map_info, paste0(outname, ".txt"))
   return(list(map_df, map_info))
 }
+
+
+# deprecated
 # the errors report include markers with distortion and redundants
-create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom) {
+create_errors_report <- function(onemap_obj, gab, SNPCall, GenoCall, CountsFrom, seed, depth) {
   pos <- which(gab[[9]] %in% onemap_obj[[9]])
   if(length(pos) < 1) {
     out_data <- as.data.frame(matrix(NA, nrow=2, ncol=11))
@@ -332,14 +346,14 @@ create_errors_report <- function(onemap_obj, gab, SNPcall, Genocall, CountsFrom)
     colnames(meth.error) <- c("MK", "POS", "A", "AB", "BA", "B")
     error.info <- merge(gab.geno, meth.geno)
     error.info <- merge(error.info, meth.error)
-    out_data <- data.frame(SNPcall, Genocall, CountsFrom, error.info)
+    out_data <- data.frame(seed, depth, SNPCall, GenoCall, CountsFrom, error.info)
   }
-  outname <- paste0("errors_", SNPcall, "_", CountsFrom, "_", Genocall)
-  write_report(out_data, paste0(outname,".txt"))
+  outname <- paste0("errors_report")
+  write_report(out_data, outname)
 }
 
-write_report <- function(filters_tab, out_name) {
-  write.table(filters_tab, file=out_name, row.names=F, quote=F, col.names = F)
+write_report <- function(filters_tab, out_name, max_cores=1) {
+  vroom::vroom_write(filters_tab, paste0(out_name, ".tsv.gz"), num_threads= max_cores)
 }
 
 # Deprecated
@@ -421,6 +435,7 @@ make_vcf <- function(vcf.old, depths, allele_file, out_vcf, cores=3){
   return(out_vcf)
 }
 
+# deprecated
 adapt2app <- function(datas_up_inp){
   
   # For errors
@@ -428,14 +443,14 @@ adapt2app <- function(datas_up_inp){
   datas_up_inp[[1]]$alt[which(datas_up_inp[[1]]$alt == ".")] <- NA
   datas_up_inp[[1]]$ref <- as.numeric(datas_up_inp[[1]]$ref)
   datas_up_inp[[1]]$alt <- as.numeric(datas_up_inp[[1]]$alt)
-
+  
   datas_up_inp[[1]] <- fix_genocall_names(datas_up_inp[[1]])
   
   ####
   datas_up_inp[[2]] <- datas_up_inp[[2]][,-3]
   colnames(datas_up_inp[[2]]) <- c("seed", "depth", "mk.name", "pos" , "rf" , "type", "real.type", 
-                           "est.phases", "real.phases", "real.mks", "SNPCall", "GenoCall", 
-                           "CountsFrom", "fake", "poscM", "poscM.norm", "diff")
+                                   "est.phases", "real.phases", "real.mks", "SNPCall", "GenoCall", 
+                                   "CountsFrom", "fake", "poscM", "poscM.norm", "diff")
   
   datas_up_inp[[2]]$fake[which(datas_up_inp[[2]]$real.mks ==99)] <- "without-false"
   datas_up_inp[[2]]$fake[which(datas_up_inp[[2]]$real.mks < 2)] <- "with-false"
@@ -461,7 +476,7 @@ adapt2app <- function(datas_up_inp){
   
   #####
   datas_up_inp[[5]] <- datas_up_inp[[5]][,-7] ## Ajustar
-  names(datas_up_inp[[5]]) <- c("depth", "seed", "SNPCall", "(1)", "(2)", "(3)", "(4)", "(5)") ## Ajustars
+  names(datas_up_inp[[5]]) <- c("depth", "seed", "SNPCall", "(1)", "(2)", "(3)", "(4)", "(5)") ## Ajustar
   datas_up_inp[[5]] <- gather(datas_up_inp[[5]], key,value,-SNPCall, -depth, -seed)
   
   datas_up_inp[[3]]$GenoCall <- factor(datas_up_inp[[3]]$GenoCall)
@@ -495,6 +510,7 @@ adapt2app <- function(datas_up_inp){
   return(result_list)
 }
 
+#deprecated
 fix_genocall_names <- function(data_broken){
   data_broken$GenoCall <- as.factor(data_broken$GenoCall)
   temp <- levels(data_broken$GenoCall)
@@ -525,6 +541,6 @@ update_fake_info <- function(info_fake, simu_onemap_obj, ref_alt_alleles, simula
   info_correct[[2]]$poscM <- poscM
   info_correct[[2]]$poscM.norm <- poscM.norm
   info_correct[[2]]$diff <- diff
-
+  
   return(info_correct)
 }
