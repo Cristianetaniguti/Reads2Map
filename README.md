@@ -1,14 +1,14 @@
-## Building linkage maps with onemap_ht
+## Reads2Map
 
-OneMap workflows offers tools to compare performances of the selected software: GATK, freebayes, updog, polyRAD, supermassa and test their influences in building genetic maps with OneMap and GUSMap. The main workflows are the `SimulatedReads.wdl` and the `EmpiricalReads.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq data and performs the SNP and genotype calling and genetic map building with selected softwares.
+Reads2Map workflows offers tools to compare performances of the selected software: GATK, freebayes, updog, polyRAD, SuperMASSA and test their influences in building genetic maps with OneMap and GUSMap. The main workflows are the `SimulatedReads2Map.wdl` and the `EmpiricalReads2Map.wdl`. The `SimulatedReads2Map.wdl` simulates Illumina reads for RADseq data and performs the SNP and genotype calling and genetic map building with selected software.
 
 ## Quickstart
 
-This workflow requires docker hub images. First of all, download [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/) and install its requirements and [docker](https://docs.docker.com/install/).
+This workflows requires docker hub images. First of all, download [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/) and install its requirements and [docker](https://docs.docker.com/install/).
 
-### Run SimulatedReads workflow
+### Run SimulatedReads2Map workflow
 
-* Adapt the path of the inputs in `/SimulatedReads.input.json`
+* Adapt the path of the inputs in `/SimulatedReads2Map.input.json`
 
 *number_of_families* : an integer defining the number of families with `popsize` individuals to be simulated
 
@@ -62,18 +62,18 @@ docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev java -jar picard.jar Crea
 
 #### Test dataset for simulations
 
-As example, in the folder `data/toy_sample` is available a subset of populus chromosome 10 (find the entire genome [here](https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa)), its index files, the `doses` files, a reference VCF file with few variants `ref.variants.vcf` and a reference linkage map `ref.map.csv`. The path to the files must be defined in `SimulatedReads.inputs.json`.
+As example, in the folder `data/toy_sample` is available a subset of populus chromosome 10 (find the entire genome [here](https://phytozome.jgi.doe.gov/pz/portal.html#!bulk?org=Org_Ptrichocarpa)), its index files, the `doses` files, a reference VCF file with few variants `ref.variants.vcf` and a reference linkage map `ref.map.csv`. The path to the files must be defined in `SimulatedReads2Map.inputs.json`.
 
 ```
 Execute the workflow
-java -jar cromwell.jar run -i SimulatedReads.inputs.json SimulatedReads.inputs.wdl
+java -jar cromwell.jar run -i SimulatedReads2Map.inputs.json SimulatedReads2Map.inputs.wdl
 ```
 
 **Warning**: See section [Configurations](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/configurations.html) to choose the better available option for you or create a personalized one.
 
-### Run EmpiricalReads workflow
+### Run EmpiricalReads2Map workflow
 
-* Adapt the path of the inputs in `EmpiricalReads.inputs.json`
+* Adapt the path of the inputs in `EmpiricalReads2Map.inputs.json`
 
 *empirical.references*
 - ref_fasta: chromosome sequence in fasta format (only one chromosome at a time)
@@ -85,7 +85,7 @@ java -jar cromwell.jar run -i SimulatedReads.inputs.json SimulatedReads.inputs.w
 - ref_ann: index made by bwa index
 - ref_pac: index made by bwa index
 
-You can use docker images to create this indexes, see in `Run SimulatedReads workflow`.
+You can use docker images to create this indexes, see in `Run SimulatedReads2Map workflow`.
 
 *empirical.dataset*
 - samples_info: tsv file with first column with path to fastq file, second column with sample names and third column with sample names and lane specifications.
@@ -139,8 +139,8 @@ You can also download the full data set running the script "data/populus/downloa
 Here are some tutorials that better explain how to use the workflows:
 
 * [Introduction](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/introduction.html)
-* [Running SimulatedReads workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/simulatedreads.html)
-* [Running EmpiricalReads workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/EmpiricalReads.html)
+* [Running SimulatedReads2Map workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/SimulatedReads2Map.html)
+* [Running EmpiricalReads2Map workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/EmpiricalReads2Map.html)
 * [Configurations](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/configurations.html)
 * [High density maps](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/High_density_maps.html)
 

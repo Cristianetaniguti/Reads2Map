@@ -173,11 +173,11 @@ task JointTables{
     print(data.names)
     vroom_write(data.names, "names.tsv.gz")
 
-    system("mkdir SimulatedReads_results_depth10")
+    system("mkdir SimulatedReads_results_depth~{depth}")
     system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
             data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPcall_efficiency.tsv.gz \
-            simu_haplo.tsv.gz  names.tsv.gz SimulatedReads_results_depth10")
-    system("tar -czvf SimulatedReads_results_depth10.tar.gz SimulatedReads_results_depth10")
+            simu_haplo.tsv.gz  names.tsv.gz SimulatedReads_results_depth~{depth}")
+    system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT
   >>>
