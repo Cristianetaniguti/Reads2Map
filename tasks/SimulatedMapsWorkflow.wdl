@@ -270,7 +270,7 @@ workflow SimulatedMapsWorkflow {
     File data1_depths_geno_prob   = JointReports.data1_depths_geno_prob
     File data2_maps               = JointReports.data2_maps
     File data3_filters            = JointReports.data3_filters
-    File data5_SNPcall_efficiency = CalculateVcfMetrics.data5_SNPcall_efficiency
+    File data5_SNPCall_efficiency = CalculateVcfMetrics.data5_SNPCall_efficiency
     File data4_times              = JointReports.data4_times
     File data6_RDatas             = JointReports.data6_RDatas
     File data7_gusmap             = JointReports.data7_gusmap

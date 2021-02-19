@@ -594,7 +594,7 @@ task JointReports{
       }
 
       #########################################################################################
-      # Table1: GenoCall; mks; ind; SNPcall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
+      # Table1: GenoCall; mks; ind; SNPCall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
       # gt.vcf; gt.vcf.ref.alt; gabGT; A; AB; BA; B; errors; seed; depth
       #########################################################################################
 
@@ -605,7 +605,7 @@ task JointReports{
                                      supermassa = "~{sep=";" Supermassa_errors_report}")
 
       ##################################################################################
-      # Table2: seed; depth; CountsFrom; GenoCall; SNPcall; MK; rf; phases; real.phases;
+      # Table2: seed; depth; CountsFrom; GenoCall; SNPCall; MK; rf; phases; real.phases;
       # real.type; real.mks; fake; poscM; poscM.norm; diff
       ##################################################################################
 
@@ -638,7 +638,7 @@ task JointReports{
       }
 
       ################################################################################
-      # Table3: CountsFrom; seed; depth; SNPcall; GenoCall; n_mks; distorted; 
+      # Table3: CountsFrom; seed; depth; SNPCall; GenoCall; n_mks; distorted; 
       # redundant; mis; after
       ################################################################################
 
@@ -649,7 +649,7 @@ task JointReports{
                                    supermassa = "~{sep=";" Supermassa_filters_report}")
 
       #################################################################################
-      # Table4: seed; depth; CountsFrom; SNPcall; GenoCall; fake; times
+      # Table4: seed; depth; CountsFrom; SNPCall; GenoCall; fake; times
       #################################################################################
 
       times_report <- joint_reports(default = "~{sep=";" default_times_report}", 
@@ -660,7 +660,7 @@ task JointReports{
                                    gusmap = "~{sep=";" Gusmap_times_report}")
 
       ##################################################################################
-      # Table6: list of RDatas with name CountsFrom; seed; depth; SNPcall; GenoCall
+      # Table6: list of RDatas with name CountsFrom; seed; depth; SNPCall; GenoCall
       ##################################################################################
 
       default    <- str_split("~{sep=";" default_RDatas}", ";", simplify = T)

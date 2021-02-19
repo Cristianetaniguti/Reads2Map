@@ -161,7 +161,7 @@ task CalculateVcfMetrics {
           ref.ok <- sum(simulated.ref==ref[pos %in% simulated.pos])
           alt.ok <- sum(simulated.alt==alt[pos %in% simulated.pos])
 
-          result <- data.frame(depth = ~{depth}, seed = ~{seed}, SNPcall = i,mks_tot = nmk.filt, mks_ide = nmk.id, ok, fake=falso.positivo, ref.ok, alt.ok)
+          result <- data.frame(depth = ~{depth}, seed = ~{seed}, SNPCall = i,mks_tot = nmk.filt, mks_ide = nmk.id, ok, fake=falso.positivo, ref.ok, alt.ok)
           results_tot <- rbind(results_tot, result)
 
           # tables for mesure depth distribuition
@@ -199,7 +199,7 @@ task CalculateVcfMetrics {
               }
         }
 
-        vroom::vroom_write(results_tot, "data5_SNPcall_efficiency.tsv.gz")
+        vroom::vroom_write(results_tot, "data5_SNPCall_efficiency.tsv.gz")
         RSCRIPT
 
   >>>
@@ -214,7 +214,7 @@ task CalculateVcfMetrics {
   output {
     File freebayes_pos = "freebayes_site_list.txt"
     File gatk_pos = "gatk_site_list.txt"
-    File data5_SNPcall_efficiency  = "data5_SNPcall_efficiency.tsv.gz"
+    File data5_SNPCall_efficiency  = "data5_SNPCall_efficiency.tsv.gz"
     File freebayes_ref_depth = "freebayes_ref_depth.txt"
     File freebayes_alt_depth = "freebayes_alt_depth.txt"
     File gatk_ref_depth = "gatk_ref_depth.txt"

@@ -54,7 +54,7 @@ workflow SimulatedReads {
       data1_depths_geno_prob   = SimulatedMapsWorkflow.data1_depths_geno_prob,
       data2_maps               = SimulatedMapsWorkflow.data2_maps,
       data3_filters            = SimulatedMapsWorkflow.data3_filters,
-      data5_SNPcall_efficiency = SimulatedMapsWorkflow.data5_SNPcall_efficiency,
+      data5_SNPCall_efficiency = SimulatedMapsWorkflow.data5_SNPCall_efficiency,
       data4_times              = SimulatedMapsWorkflow.data4_times,
       data6_RDatas             = SimulatedMapsWorkflow.data6_RDatas,
       data7_gusmap             = SimulatedMapsWorkflow.data7_gusmap,
@@ -103,7 +103,7 @@ task JointTables{
     Array[File] data1_depths_geno_prob  
     Array[File] data2_maps              
     Array[File] data3_filters           
-    Array[File] data5_SNPcall_efficiency
+    Array[File] data5_SNPCall_efficiency
     Array[File] data4_times             
     Array[File] data6_RDatas            
     Array[File] data7_gusmap            
@@ -124,7 +124,7 @@ task JointTables{
     datas[[1]] <- c("~{sep=";" data1_depths_geno_prob  }")
     datas[[2]] <- c("~{sep=";" data2_maps              }")
     datas[[3]] <- c("~{sep=";" data3_filters           }")
-    datas[[4]] <- c("~{sep=";" data5_SNPcall_efficiency}")
+    datas[[4]] <- c("~{sep=";" data5_SNPCall_efficiency}")
     datas[[5]] <- c("~{sep=";" data4_times             }")
     datas[[6]] <- c("~{sep=";" data6_RDatas            }")
     datas[[7]] <- c("~{sep=";" data7_gusmap            }")
@@ -165,8 +165,8 @@ task JointTables{
     vroom_write(datas_up[[1]], "data1_depths_geno_prob.tsv.gz")
     vroom_write(datas_up[[2]], "data2_maps.tsv.gz")
     vroom_write(datas_up[[3]], "data3_filters.tsv.gz")
-    vroom_write(datas_up[[4]], "data4_times.tsv.gz")
-    vroom_write(datas_up[[5]], "data5_SNPcall_efficiency.tsv.gz")
+    vroom_write(datas_up[[5]], "data4_times.tsv.gz")
+    vroom_write(datas_up[[4]], "data5_SNPCall_efficiency.tsv.gz")
     vroom_write(datas_up[[9]], "simu_haplo.tsv.gz")
 
     data.names <- as.data.frame(datas_up[[8]])
@@ -175,7 +175,7 @@ task JointTables{
 
     system("mkdir SimulatedReads_results_depth~{depth}")
     system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
-            data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPcall_efficiency.tsv.gz \
+            data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPCall_efficiency.tsv.gz \
             simu_haplo.tsv.gz  names.tsv.gz SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
