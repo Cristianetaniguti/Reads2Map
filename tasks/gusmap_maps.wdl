@@ -81,7 +81,7 @@ task GusmapReport {
                                                      ~{seed}, ~{depth}))
 
       times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
-                          CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = TRUE,
+                          CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
                           time = times_fake[3])
 
       # If there is no false positive, map will not run again
@@ -105,14 +105,14 @@ task GusmapReport {
       # Joint RDatas
       RDatas_joint <- list()
       RDatas_joint[[1]] <- info_fake[[1]]
-      RDatas_joint[[2]] <- info_correct
+      RDatas_joint[[2]] <- info_correct[[1]]
       names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
                                "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
       save(RDatas_joint, file= "map.RData")
 
       # Joint times data.frames
       times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
-                               CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = FALSE,
+                               CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "without-false",
                                time = times_temp[3])
 
       times <- rbind(times, times_temp)

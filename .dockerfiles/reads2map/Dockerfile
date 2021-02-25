@@ -47,7 +47,7 @@ RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/')
           devtools::install_github('tpbilton/GUSbase');\
           devtools::install_github('tpbilton/GUSMap')"
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap' )"
+RUN R -e "devtools::install_github('Cristianetaniguti/onemap'  )"
 
 # Still in private repo
 COPY ./genotyping4onemap_0.1.7.tar.gz /opt/

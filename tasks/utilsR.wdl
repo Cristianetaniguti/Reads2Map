@@ -234,7 +234,7 @@ task MapsReport{
                                                   ~{seed}, ~{depth}, ~{max_cores}))
 
       times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
-                          CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = TRUE,
+                          CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
                           time = times_fake[3])
 
       # It will not run if all markers are true markers
@@ -242,8 +242,6 @@ task MapsReport{
         cat("skip :) \n")
         times_temp <- times_fake
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
-
-        map_df <- info_fake[[1]] 
         
       } else {
         ## Without false SNPs
@@ -261,14 +259,14 @@ task MapsReport{
       # Joint RDatas
       RDatas_joint <- list()
       RDatas_joint[[1]] <- info_fake[[1]]
-      RDatas_joint[[2]] <- info_correct
+      RDatas_joint[[2]] <- info_correct[[1]]
       names(RDatas_joint) <- c("map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
                                "map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
       save(RDatas_joint, file= "map.RData")
 
       # Joint times data.frames
       times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
-                               CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = FALSE,
+                               CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "without-false",
                                time = times_temp[3])
 
       times <- rbind(times, times_temp)
