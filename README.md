@@ -65,7 +65,7 @@ As example, in the folder `data/toy_sample` is available a subset of populus chr
 
 ```
 Execute the workflow
-java -jar cromwell.jar run -i SimulatedReads2Map.inputs.json SimulatedReads2Map.inputs.wdl
+java -jar cromwell.jar run -i SimulatedReads2Map.inputs.json SimulatedReads2Map.wdl
 ```
 
 **Warning**: See section [Configurations](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/configurations.html) to choose the better available option for you or create a personalized one.
@@ -127,7 +127,7 @@ data/populus_sub/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG
 # Open mySQL cointainer
 docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
 # Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i main.inputs.json main.wdl
+java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i EmpiricalReads2Map.inputs.json EmpiricalReads2Map.wdl
 ```
 
 You can also download the full data set running the script "data/populus/download_SRRs.sh" and run the workflow using "data/populus/sample_info" file.
