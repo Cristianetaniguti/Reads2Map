@@ -113,7 +113,7 @@ task VcftoolsApplyFilters {
   }
 }
 
-
+# Deprecated
 task CalculateVcfMetrics {
 
   input {
