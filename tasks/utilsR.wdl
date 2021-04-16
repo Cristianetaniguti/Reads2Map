@@ -554,7 +554,11 @@ task JointReports{
     Array[File] Gusmap_maps_report
     Array[File] Gusmap_times_report
     Array[File] multi_names
+    File Freebayes_eval
+    File GATK_eval
     Int max_cores
+    Int seed
+    Int depth
   }
 
   command <<<
@@ -657,6 +661,24 @@ task JointReports{
                                    supermassa = "~{sep=";" Supermassa_times_report}",
                                    gusmap = "~{sep=";" Gusmap_times_report}")
 
+      #################################################################################
+      # Table5 and 9: VariantEval  
+      #################################################################################
+      library(gsalib)
+      df <- gsa.read.gatkreport("~{Freebayes_eval}")
+      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["ValidationReport"]])
+      count1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
+
+      df <- gsa.read.gatkreport("~{GATK_eval}")
+      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["ValidationReport"]])
+      count2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
+ 
+      df <- rbind(eval1, eval2)
+      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = ~{max_cores})
+
+      df <- rbind(count1, count2)
+      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = ~{max_cores})
+
       ##################################################################################
       # Table6: list of RDatas with name CountsFrom; seed; depth; SNPCall; GenoCall
       ##################################################################################
@@ -678,10 +700,10 @@ task JointReports{
       all_RDatas <- unlist(all_RDatas, recursive = F)
 
       # Outputs
-      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = 4)
-      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = 4)
-      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = 4)
-      vroom_write(times_report, "data4_times.tsv.gz", num_threads = 4)
+      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(times_report, "data4_times.tsv.gz", num_threads = ~{max_cores})
 
       gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
       RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
@@ -716,8 +738,10 @@ task JointReports{
     File data2_maps = "data2_maps.tsv.gz"
     File data3_filters = "data3_filters.tsv.gz"
     File data4_times   = "data4_times.tsv.gz"
+    File data5_SNPCall_efficiency = "data5_SNPCall_efficiency.tsv.gz"
     File data6_RDatas  = "data6_RDatas.llo"
     File data7_gusmap  = "gusmap_RDatas.RData"
     File data8_names   = "names.tsv.gz"
+    File data10_counts  = "data10_CountVariants.tsv.gz"
   }
 }

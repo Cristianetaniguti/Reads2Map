@@ -16,6 +16,7 @@ workflow FreebayesGenotyping {
     String program
     Array[String] sample_names
     Int max_cores
+    File vcf_simu
   }
 
   call RunFreebayes {
@@ -29,10 +30,12 @@ workflow FreebayesGenotyping {
 
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=RunFreebayes.vcf,
+      vcf_in = RunFreebayes.vcf,
+      vcf_simu = vcf_simu,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
+      reference_dict = references.ref_dict,
       parent1 = parent1,
       parent2 = parent2
   }
@@ -52,9 +55,10 @@ workflow FreebayesGenotyping {
 
   output {
     File vcf_biallelics = SplitFiltVCF.vcf_biallelics
-    File tbvcf_biallelics_tbii_bi = SplitFiltVCF.vcf_biallelics_tbi
+    File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
     File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
     File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
+    File vcfEval = SplitFiltVCF.vcfEval
   }
 }
 

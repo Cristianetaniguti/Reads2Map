@@ -44,7 +44,10 @@ workflow SimulatedMapsWorkflow {
       references=references,
       program="gatk",
       parent1 = "P1",
-      parent2 = "P2"
+      parent2 = "P2",
+      vcf_simu = CreateAlignmentFromSimulation.true_vcf,
+      seed    = family.seed,
+      depth   = sequencing.depth
   }
 
   call freebayes.FreebayesGenotyping {
@@ -56,16 +59,8 @@ workflow SimulatedMapsWorkflow {
       parent1 = "P1",
       parent2 = "P2",
       sample_names = CreateAlignmentFromSimulation.names,
-      max_cores = max_cores
-  }
-
-  call utils.CalculateVcfMetrics {
-    input:
-      freebayesVCF = FreebayesGenotyping.vcf_biallelics,
-      gatkVCF = GatkGenotyping.vcf_biallelics,
-      ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
-      seed = family.seed,
-      depth = sequencing.depth
+      max_cores = max_cores,
+      vcf_simu = CreateAlignmentFromSimulation.true_vcf
   }
 
   call utilsR.vcf2onemap as truth_vcf {
@@ -263,18 +258,24 @@ workflow SimulatedMapsWorkflow {
     Gusmap_RDatas             = flatten(GusmapMaps.RDatas),
     Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
     Gusmap_times_report       = flatten(GusmapMaps.times),
-    max_cores                 = max_cores
+    GATK_eval                 = GatkGenotyping.vcfEval,
+    Freebayes_eval            = FreebayesGenotyping.vcfEval,
+    max_cores                 = max_cores,
+    seed                      = family.seed,
+    depth                     = sequencing.depth,
   }
 
   output {
     File data1_depths_geno_prob   = JointReports.data1_depths_geno_prob
     File data2_maps               = JointReports.data2_maps
     File data3_filters            = JointReports.data3_filters
-    File data5_SNPCall_efficiency = CalculateVcfMetrics.data5_SNPCall_efficiency
     File data4_times              = JointReports.data4_times
+    File data5_SNPCall_efficiency = JointReports.data5_SNPCall_efficiency
     File data6_RDatas             = JointReports.data6_RDatas
     File data7_gusmap             = JointReports.data7_gusmap
     File data8_names              = JointReports.data8_names
+    File data10_counts            = JointReports.data10_counts
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
+    File Plots                    = GatkGenotyping.Plots
   }
 }

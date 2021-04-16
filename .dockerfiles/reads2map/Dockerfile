@@ -4,7 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update \
    && apt-get install -y libcurl4-gnutls-dev \ 
-   libssl-dev=1.1.1-1ubuntu2.1~18.04.7 \
+   libssl-dev \
    libftgl2=2.1.3~rc5-4+nmu1.2 \
    libglu1-mesa-dev=9.0.0-2.1build1 \
    libfreetype6-dev=2.8.1-2ubuntu2.1  \
@@ -24,30 +24,36 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD5
     && apt update \
     && apt install -y r-base
 
-RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('devtools', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('stringi', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('vcfR', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('reshape2', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('ggplot2', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('doParallel', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('matrixStats', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('BiocManager', repos='http://brieger.esalq.usp.br/CRAN/'); \
-          install.packages('tidyverse', repos='http://brieger.esalq.usp.br/CRAN/'); \
-          install.packages('largeList', repos='http://brieger.esalq.usp.br/CRAN/'); \
-          install.packages('data.table', repos='http://brieger.esalq.usp.br/CRAN/'); \
-          install.packages('ape', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('memuse', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('pinfsc50', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('vegan', repos='http://brieger.esalq.usp.br/CRAN/');\
-          install.packages('vroom', repos='http://brieger.esalq.usp.br/CRAN/');\
-          BiocManager::install('pcaMethods');\
-          BiocManager::install('VariantAnnotation', ask=F);\
-          install.packages('polyRAD', repos='http://brieger.esalq.usp.br/CRAN/');\
-          devtools::install_github('tpbilton/GUSbase');\
-          devtools::install_github('tpbilton/GUSMap')"
+RUN R -e 'install.packages("remotes")'
+RUN R -e 'remotes::install_github("r-lib/remotes", ref = "97bbf81")'
 
-RUN R -e "devtools::install_github('Cristianetaniguti/onemap'  )"
+RUN Rscript -e 'remotes::install_version("R.utils",upgrade="never", version = "2.10.1")'
+RUN Rscript -e 'install.packages("devtools")'
+RUN Rscript -e 'remotes::install_version("stringi",upgrade="never", version = "1.5.3")'
+RUN Rscript -e 'remotes::install_version("vcfR",upgrade="never", version = "1.12.0")'
+RUN Rscript -e 'remotes::install_version("reshape2",upgrade="never", version = "1.4.4")'
+RUN Rscript -e 'remotes::install_version("ggplot2",upgrade="never", version = "3.3.3")'
+RUN Rscript -e 'remotes::install_version("doParallel",upgrade="never", version = "1.0.16")'
+RUN Rscript -e 'remotes::install_version("matrixStats",upgrade="never", version = "0.58.0")'
+RUN Rscript -e 'remotes::install_version("BiocManager",upgrade="never", version = "1.30.12")'
+RUN Rscript -e 'remotes::install_version("tidyverse",upgrade="never", version = "1.3.0")'
+RUN Rscript -e 'remotes::install_version("largeList",upgrade="never", version = "0.3.0")'
+RUN Rscript -e 'remotes::install_version("data.table",upgrade="never", version = "1.14.0")'
+RUN Rscript -e 'remotes::install_version("ape",upgrade="never", version = "5.4-1")'
+RUN Rscript -e 'remotes::install_version("memuse",upgrade="never", version = "4.1-0")'
+RUN Rscript -e 'remotes::install_version("pinfsc50",upgrade="never", version = "1.2.0")'
+RUN Rscript -e 'remotes::install_version("vegan",upgrade="never", version = "2.5-7")'
+RUN Rscript -e 'remotes::install_version("vroom",upgrade="never", version = "1.4.0")'
+
+RUN Rscript -e 'BiocManager::install("pcaMethods")'
+RUN Rscript -e 'BiocManager::install("VariantAnnotation", ask=F)'
+
+RUN Rscript -e 'remotes::install_version("polyRAD",upgrade="never")'
+RUN Rscript -e 'remotes::install_version("gsalib",upgrade="never", version = "2.1")'
+
+RUN Rscript -e 'remotes::install_github("tpbilton/GUSbase", ref = "92119b9c57faa7abeede8236d24a4a8e85fb3df7")'
+RUN Rscript -e 'remotes::install_github("tpbilton/GUSMap", ref = "4d7d4057049819d045750d760a45976c8f30dac6")'
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap", ref = "666f3cfb29fa586930abb5979b133132133afe68")'
 
 # Still in private repo
 COPY ./genotyping4onemap_0.1.7.tar.gz /opt/

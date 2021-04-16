@@ -60,7 +60,9 @@ workflow SimulatedReads {
       data7_gusmap             = SimulatedMapsWorkflow.data7_gusmap,
       data8_names              = SimulatedMapsWorkflow.data8_names,
       data9_simu_haplo         = SimulatedMapsWorkflow.simu_haplo,
-      depth                    = sequencing.depth
+      data10_counts            = SimulatedMapsWorkflow.data10_counts,
+      depth                    = sequencing.depth,
+      plots                    = SimulatedMapsWorkflow.Plots
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -109,6 +111,8 @@ task JointTables{
     Array[File] data7_gusmap            
     Array[File] data8_names             
     Array[File] data9_simu_haplo
+    Array[File] data10_counts
+    Array[File] plots
     Int depth        
   }
 
@@ -130,6 +134,7 @@ task JointTables{
     datas[[7]] <- c("~{sep=";" data7_gusmap            }")
     datas[[8]] <- c("~{sep=";" data8_names             }")
     datas[[9]] <- c("~{sep=";" data9_simu_haplo        }")
+    datas[[10]] <- c("~{sep=";" data10_counts        }")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
@@ -168,6 +173,7 @@ task JointTables{
     vroom_write(datas_up[[5]], "data4_times.tsv.gz")
     vroom_write(datas_up[[4]], "data5_SNPCall_efficiency.tsv.gz")
     vroom_write(datas_up[[9]], "simu_haplo.tsv.gz")
+    vroom_write(datas_up[[10]], "data10_counts.tsv.gz")
 
     data.names <- as.data.frame(datas_up[[8]])
     print(data.names)
@@ -175,8 +181,8 @@ task JointTables{
 
     system("mkdir SimulatedReads_results_depth~{depth}")
     system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
-            data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPCall_efficiency.tsv.gz \
-            simu_haplo.tsv.gz  names.tsv.gz SimulatedReads_results_depth~{depth}")
+            data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPCall_efficiency.tsv.gz data10_counts.tsv.gz \
+            simu_haplo.tsv.gz  names.tsv.gz ~{sep=" " plots} SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT

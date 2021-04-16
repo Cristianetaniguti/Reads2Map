@@ -4,6 +4,7 @@ import "../structs/snpcalling_empS.wdl"
 import "../structs/reference_struct.wdl"
 import "split_filt_vcf.wdl" as norm_filt
 import "utils.wdl" as utils
+import "hard_filtering.wdl" as hard_filt
 
 
 workflow GatkGenotyping {
@@ -14,6 +15,9 @@ workflow GatkGenotyping {
     String program
     String parent1
     String parent2
+    File vcf_simu
+    Int seed
+    Int depth
   }
 
   call CreateChunks {
@@ -44,12 +48,24 @@ workflow GatkGenotyping {
       reference_dict=references.ref_dict
   }
 
+  call hard_filt.HardFiltering {
+    input:
+      references = references,
+      vcf_file = GATKJointCall.vcf,
+      vcf_tbi  = GATKJointCall.vcf_tbi,
+      simu_vcf = vcf_simu,
+      seed = seed,
+      depth = depth
+  }
+
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=GATKJointCall.vcf,
+      vcf_in=HardFiltering.filt_vcf,
+      vcf_simu = vcf_simu,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
+      reference_dict = references.ref_dict,
       parent1 = parent1,
       parent2 = parent2
   }
@@ -72,6 +88,8 @@ workflow GatkGenotyping {
     File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
     File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
     File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
+    File vcfEval = SplitFiltVCF.vcfEval
+    File Plots = HardFiltering.Plots
   }
 }
 
@@ -193,5 +211,6 @@ task GATKJointCall {
 
   output {
     File vcf = "gatk.vcf.gz"
+    File vcf_tbi = "gatk.vcf.gz.tbi"
   }
 }
