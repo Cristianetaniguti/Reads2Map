@@ -74,6 +74,7 @@ task RunBwaAlignmentSimu {
     Array[File] reads
     Reference references
     Int max_cores
+    String rm_dupli
   }
 
   command <<<
@@ -92,11 +93,38 @@ task RunBwaAlignmentSimu {
       bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
           java -jar /picard.jar SortSam \
             I=/dev/stdin \
-            O="${sample}.sorted.bam" \
+            O="${sample}.sorted_temp.bam" \
             TMP_DIR=./tmp \
             SORT_ORDER=coordinate \
             CREATE_INDEX=true
+
+      if [ "~{rm_dupli}" = "TRUE" ]; then
+        java -jar /picard.jar MarkDuplicates \
+            I="${sample}.sorted_temp.bam" \
+            O="${sample}.sorted.bam" \
+            CLEAR_DT="false" \
+            METRICS_FILE= "${sample}_dup_metrics.txt" \
+            REMOVE_SEQUENCING_DUPLICATES=true \
+            CREATE_INDEX=true
+
+      else
+        java -jar /picard.jar MarkDuplicates \
+            I="${sample}.sorted_temp.bam" \
+            O="${sample}.sorted_temp2.bam" \
+            CLEAR_DT="false" \
+            METRICS_FILE= "${sample}_dup_metrics.txt" 
+
+        mv "${sample}.sorted_temp.bam" "${sample}.sorted.bam"
+        mv "${sample}.sorted_temp.bai" "${sample}.sorted.bai"
+
+      fi
+                  
     done
+
+    mkdir dup_metrics
+    mv *_dup_metrics.txt dup_metrics
+    tar -czvf dup_metrics.tar.gz dup_metrics
+
   >>>
 
   runtime {
@@ -110,6 +138,7 @@ task RunBwaAlignmentSimu {
   output {
     Array[File] bam = glob("*.sorted.bam")
     Array[File] bai = glob("*.sorted.bai")
+    File dup_metrics = "dup_metrics.tar.gz"
   }
 }
 

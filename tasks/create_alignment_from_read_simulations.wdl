@@ -136,7 +136,8 @@ workflow CreateAlignmentFromSimulation {
     input:
       reads     = fastq,
       references = references,
-      max_cores = max_cores
+      max_cores = max_cores,
+      rm_dupli = sequencing.rm_dupli
   }
 
   output {
