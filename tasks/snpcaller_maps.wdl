@@ -33,11 +33,11 @@ workflow SNPCallerMaps{
       call utilsR.AddMultiallelics{
           input:
             onemap_obj_multi = multi_obj,
-            onemap_obj_bi = GQProbs.gq_onemap_obj
+            onemap_obj_bi = GQProbs.pl_onemap_obj
       }
   }
 
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.pl_onemap_obj])
 
   call utilsR.FiltersReport{
     input:
@@ -112,17 +112,17 @@ task GQProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      # MAPS REPORT - GQ
-      gq <- extract_depth(vcfR.object=vcf,
+      # MAPS REPORT - PL
+      pl <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par="GQ",
+                               vcf.par="PL",
                                parent1="P1",
                                parent2="P2",
                                f1 = f1,
                                recovering=FALSE)
 
-      gq_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=gq)
-      save(gq_onemap_obj, file="gq_onemap_obj.RData")
+      pl_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs = pl)
+      save(pl_onemap_obj, file="pl_onemap_obj.RData")
 
     RSCRIPT
 
@@ -135,7 +135,7 @@ task GQProbs{
   }
 
   output {
-    File gq_onemap_obj = "gq_onemap_obj.RData"
+    File pl_onemap_obj = "pl_onemap_obj.RData"
     File vcfR_obj = "vcfR_obj.RData"
   }
 }
