@@ -96,12 +96,12 @@ task MultiVcf2onemap{
           # If user choosed the option to not include the multiallelics,
           # the object will still be available, but the markers are not considered
           multi_names <- list()
-          if(dim(onemap.obj[[1]])[2] == 0 | "~{multiallelics}" == "no"){
+          if(dim(onemap.obj[[1]])[2] == 0 | "~{multiallelics}" == "FALSE"){
             multi_names[[1]] <- 0
           } else {
             multi_names[[1]] <- colnames(onemap.obj[[1]])
           }
-          names(multi_names) <- "~{depth}_~{seed}_~{SNPCall_program}"
+          names(multi_names) <- "~{depth}~{"_" + seed + "_"}~{SNPCall_program}"
           save(multi_names, file = "multi.names.RData")
           save(onemap.obj, file=paste0("vcf_multi_onemap.obj.RData"))
 
@@ -218,6 +218,8 @@ task MapsReport{
       library(onemap)
       source("/opt/scripts/functions_simu.R")
 
+      if(~{max_cores} > 4) cores = 4 else cores = ~{max_cores}
+
       filtered_onemap <- load("~{onemap_obj}")
       filtered_onemap <- get(filtered_onemap)
 
@@ -231,7 +233,7 @@ task MapsReport{
                                                   tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                                   "~{SNPCall_program}" , "~{GenotypeCall_program}",
                                                   fake= T, "~{CountsFrom}", simulated_phases, 
-                                                  ~{seed}, ~{depth}, ~{max_cores}))
+                                                  ~{seed}, ~{depth}, cores))
 
       times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
                           CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
@@ -249,7 +251,7 @@ task MapsReport{
                                               tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                               "~{SNPCall_program}" , "~{GenotypeCall_program}",
                                               fake= F, "~{CountsFrom}", simulated_phases, 
-                                              ~{seed}, ~{depth}, ~{max_cores}))
+                                              ~{seed}, ~{depth}, cores))
       }
 
       # Joint maps data.frames
@@ -451,6 +453,7 @@ task MapsReportEmp{
    String SNPCall_program
    String GenotypeCall_program
    String CountsFrom
+   Int max_cores
   }
 
   command <<<
@@ -461,8 +464,20 @@ task MapsReportEmp{
       temp <- load("~{sequence_obj}")
       sequence <- get(temp)
 
-      create_map_report(input.seq = sequence, CountsFrom = "~{CountsFrom}",
-                        SNPCall = "~{SNPCall_program}", GenoCall="~{GenotypeCall_program}")
+      if(~{max_cores} > 4) cores = 4 else cores = ~{max_cores}
+
+      times_temp <- system.time(df <- create_map_report(input.seq = sequence, CountsFrom = "~{CountsFrom}",
+                                      SNPCall = "~{SNPCall_program}", GenoCall="~{GenotypeCall_program}", max_cores = cores))
+
+      vroom::vroom_write(df[[2]], "map_report.tsv.gz", num_threads = ~{max_cores})
+      save(df[[1]],  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
+    
+      times <- data.frame(SNPCall = "~{SNPCall_program}", 
+                          CountsFrom = "~{CountsFrom}", 
+                          GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
+                          time = times_fake[3])
+
+      vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
 
     RSCRIPT
 
@@ -476,9 +491,9 @@ task MapsReportEmp{
   }
 
   output{
-    File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+    File maps_report = "map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
-    File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+    File times = "times_report.tsv.gz"
   }
 }
 

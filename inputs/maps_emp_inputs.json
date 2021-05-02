@@ -1,0 +1,19 @@
+{
+  "Maps.freebayes_multi": "/home/cristiane/data/populus/toy_sample_emp/freebayes_multi.recode.vcf.gz",
+  "Maps.freebayes_vcf": "/home/cristiane/data/populus/toy_sample_emp/freebayes_bi.recode.vcf.gz",
+  "Maps.dataset": {
+    "parent2": "PT_M",
+    "name": "populus_toy",
+    "parent1": "PT_F",
+    "chromosome": "Chr10",
+    "cross": "F1",
+    "multiallelics": "TRUE"
+  },
+  "Maps.gatk_vcf_bam_counts": "/home/cristiane/data/populus/toy_sample_emp/gatk_bam_vcf.vcf",
+  "Maps.max_cores": "4",
+  "Maps.gatk_multi": "/home/cristiane/data/populus/toy_sample_emp/gatk_multi.recode.vcf.gz",
+  "Maps.filters": "--chr Chr10 --maf 0.05 --max-missing 0.75 --min-meanDP 6 --minQ 20",
+  "Maps.gatk_vcf": "/home/cristiane/data/populus/toy_sample_emp/gatk_bi.recode.vcf.gz",
+  "Maps.freebayes_vcf_bam_counts": "/home/cristiane/data/populus/toy_sample_emp/freebayes_bam_vcf.vcf"
+}
+

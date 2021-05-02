@@ -3,7 +3,7 @@ version 1.0
 workflow SplitFiltVCF{
   input {
     File vcf_in
-    File vcf_simu
+    File? vcf_simu
     String program
     File reference
     File reference_idx
@@ -73,7 +73,7 @@ task BiallelicNormalization {
 task VariantEval {
   input {
     File vcf_norm
-    File vcf_simu
+    File? vcf_simu
     File reference
     File reference_idx
     File reference_dict
@@ -82,7 +82,7 @@ task VariantEval {
   Int disk_size = ceil(size(vcf_norm, "GB") + size(reference, "GB") + size(vcf_simu, "GB") + 2)
 
   command <<<
-    java -jar /usr/GenomeAnalysisTK.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} -D ~{vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt
+    java -jar /usr/GenomeAnalysisTK.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt
   >>>
 
   runtime {
@@ -110,6 +110,7 @@ task SplitFilters {
   Int disk_size = ceil(size(vcf_in, "GB") + 2)
 
   command <<<
+    # TODO: Change for bcftools
     vcftools --gzvcf ~{vcf_in}  --min-alleles 3 --recode --out ~{program}_multi1
 
     vcftools --gzvcf ~{vcf_in}  --min-alleles 2 --max-alleles 2 --recode --out ~{program}_bi1
@@ -126,7 +127,14 @@ task SplitFilters {
 
     mv ~{program}_multi2.recode.vcf ~{program}_multi.recode.vcf
 
-    bgzip ~{program}_multi.recode.vcf
+   # sort
+    grep "^#" ~{program}_multi.recode.vcf > output.vcf
+    grep -v "^#" ~{program}_multi.recode.vcf| sort -k1,1V -k2,2g >> output.vcf
+
+    mv output.vcf ~{program}_multi.recode.vcf
+
+    bgzip ~{program}_multi.recode.vcf    
+
     bgzip ~{program}_bi.recode.vcf
     tabix -p vcf ~{program}_bi.recode.vcf.gz
     tabix -p vcf ~{program}_multi.recode.vcf.gz

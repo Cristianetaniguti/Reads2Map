@@ -29,7 +29,7 @@ workflow SNPCallerMaps{
       cross = cross
   }
 
-  if (multiallelics == "yes") {
+  if (multiallelics == "TRUE") {
       call utilsR.AddMultiallelics{
           input:
             onemap_obj_multi = multi_obj,

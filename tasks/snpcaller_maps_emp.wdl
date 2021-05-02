@@ -15,6 +15,7 @@ workflow SNPCallerMaps{
      String chromosome
      File? multi_obj
      String multiallelics
+     Int max_cores
     }
 
   call GQProbs{
@@ -28,24 +29,25 @@ workflow SNPCallerMaps{
 
   call utilsR.CheckDepths{
     input:
-      onemap_obj = GQProbs.gq_onemap_obj,
+      onemap_obj = GQProbs.pl_onemap_obj,
       vcfR_obj = GQProbs.vcfR_obj,
       parent1 = parent1,
       parent2 = parent2,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      CountsFrom = CountsFrom,
+      max_cores = max_cores
   }
 
-  if (multiallelics == "yes") {
+  if (multiallelics == "TRUE") {
      call utilsR.AddMultiallelics{
          input:
            onemap_obj_multi = multi_obj,
-           onemap_obj_bi = GQProbs.gq_onemap_obj
+           onemap_obj_bi = GQProbs.pl_onemap_obj
       }
   }
         
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.pl_onemap_obj])
 
   call utilsR.FiltersReportEmp{
     input:
@@ -61,7 +63,8 @@ workflow SNPCallerMaps{
       sequence_obj = FiltersReportEmp.onemap_obj_filtered,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = "SNPCaller",
-      CountsFrom = CountsFrom
+      CountsFrom = CountsFrom,
+      max_cores = max_cores
   }
 
   output{
@@ -102,16 +105,16 @@ task GQProbs{
       onemap_obj <- get(onemap_obj)
 
       # MAPS REPORT - GQ
-      gq <- extract_depth(vcfR.object=vcf,
+      pl <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par="GQ",
+                               vcf.par="PL",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      gq_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=gq)
-      save(gq_onemap_obj, file="gq_onemap_obj.RData")
+      pl_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs=pl)
+      save(pl_onemap_obj, file="pl_onemap_obj.RData")
 
     RSCRIPT
 
@@ -124,7 +127,7 @@ task GQProbs{
   }
 
   output{
-    File gq_onemap_obj = "gq_onemap_obj.RData"
+    File pl_onemap_obj = "pl_onemap_obj.RData"
     File vcfR_obj = "vcfR.RData"
   }
 }

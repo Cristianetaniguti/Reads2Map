@@ -14,6 +14,7 @@ task RunBwaAlignment {
     Array[String] libraries
     Reference references
     Int max_cores
+    String rm_dupli
   }
 
   command <<<
@@ -40,29 +41,48 @@ task RunBwaAlignment {
 
     if [ "${#BAMS[@]}" -gt 1 ]; then
       java -jar /picard.jar MergeSamFiles ${BAMS[@]} \
-        O=~{sampleName}.sorted.bam \
+        O=~{sampleName}.sorted_temp.bam \
         CREATE_INDEX=true \
         TMP_DIR=./tmp
-      mv ~{sampleName}.sorted.bai ~{sampleName}.sorted.bam.bai
     else
-      mv ~{sampleName}*.bam ~{sampleName}.sorted.bam
-      mv ~{sampleName}*.bai ~{sampleName}.sorted.bam.bai
+      mv ~{sampleName}*.bam ~{sampleName}.sorted_temp.bam
+      mv ~{sampleName}*.bai ~{sampleName}.sorted_temp.bai
+    fi
+
+    if [ "~{rm_dupli}" = "TRUE" ]; then
+      java -jar /picard.jar MarkDuplicates \
+          I="~{sampleName}.sorted_temp.bam" \
+          O="~{sampleName}.sorted.bam" \
+          CLEAR_DT="false" \
+          METRICS_FILE= "~{sampleName}_dup_metrics.txt" \
+          REMOVE_SEQUENCING_DUPLICATES=true \
+          CREATE_INDEX=true    
+    else
+      java -jar /picard.jar MarkDuplicates \
+          I="~{sampleName}.sorted_temp.bam" \
+          O="~{sampleName}.sorted_temp2.bam" \
+          CLEAR_DT="false" \
+          METRICS_FILE= "~{sampleName}_dup_metrics.txt"
+
+      mv "~{sampleName}.sorted_temp.bam" "~{sampleName}.sorted.bam"
+      mv "~{sampleName}.sorted_temp.bai" "~{sampleName}.sorted.bai"    
     fi
 
   >>>
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    time:"72:00:00"
-    mem:"--nodes=1"
-    cpu:20
-    job_name:"alignment_loop"
+    memory: "1 GB"
+    cpu:4
+    preemptible: 3
+    disks: "local-disk " + 10 + " HDD"
   }
 
   output {
-    Alignment algn = {"bam": "~{sampleName}.sorted.bam", "bai": "~{sampleName}.sorted.bam.bai", "sample": "~{sampleName}"}
+    Alignment algn = {"bam": "~{sampleName}.sorted.bam", "bai": "~{sampleName}.sorted.bai", "sample": "~{sampleName}"}
     File bam = "~{sampleName}.sorted.bam"
-    File bai = "~{sampleName}.sorted.bam.bai"
+    File bai = "~{sampleName}.sorted.bai"
+    File dup_metrics = "~{sampleName}_dup_metrics.txt"
   }
 }
 
@@ -87,8 +107,6 @@ task RunBwaAlignmentSimu {
       sample=`basename -s .1.fq $file`
 
       bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
-
-      echo $bwa_header
 
       bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
           java -jar /picard.jar SortSam \

@@ -43,7 +43,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
 
   scatter (item in methods_and_objects) {
 
-      if (multiallelics == "yes") {
+      if (multiallelics == "TRUE") {
            call utilsR.AddMultiallelics{
              input:
                onemap_obj_multi = multi_obj,

@@ -1,5 +1,5 @@
 # Functions
-create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
+create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall, max_cores){
   # Check genome position
   pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
   sort.pos <- sort(pos)
@@ -20,25 +20,18 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
                                    overlap = 30,
                                    around = 10)
     
-    time_par <- system.time(map_out <- map_avoid_unlinked(input.seq, 
-                                                          size = batch_size, 
-                                                          phase_cores = 4, 
-                                                          overlap = 30, tol=10^(-3)))  
+    map_out <- map_avoid_unlinked(input.seq, 
+                                  size = batch_size, 
+                                  phase_cores = max_cores, 
+                                  overlap = 30)
   } else {
-    time_par <- system.time(map_out <- map_avoid_unlinked(input.seq))
+    map_out <- map_avoid_unlinked(input.seq)
   }
   
-  file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
-  #p <- rf_graph_table(map_out)
-  #ggsave(p, filename = paste0(file.name,"_heatmap.png"))
-  
-  times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
-  write_report(times_df, paste0("times_",file.name,".txt"))
   sizes_df <- data.frame(CountsFrom, SNPCall, GenoCall, "mks" = colnames(map_out$data.name$geno)[map_out$seq.num],
                          "pos" = map_out$data.name$POS[map_out$seq.num], rf = cumsum(c(0,kosambi(map_out$seq.rf))),
                          type = map_out$data.name$segr.type[map_out$seq.num], phases = phaseToOPGP_OM(map_out))
-  write_report(sizes_df, paste0("map_",file.name,".txt"))
-  save(map_out, file = paste0("map_",file.name,".RData"))
+  return(list(map_out, sizes_df))
 }
 
 phaseToOPGP_OM <- function(x){
@@ -189,7 +182,7 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.25,
-                                 BIN = 0, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=500))
+                                 BIN = 1, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=1000))
   
   # Suggested in vignette
   #mydata$rf_2pt(nClust=1)

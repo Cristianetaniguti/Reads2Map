@@ -72,6 +72,10 @@ java -jar cromwell.jar run -i SimulatedReads2Map.inputs.json SimulatedReads2Map.
 
 ### Run EmpiricalReads2Map workflow
 
+The EmpiricalReads2Map workflow requires demultiplexed and cleaned FASTQ files. We made available a suggestion for preprocessing reads in PreprocessingReads.wdl. Check its tutorial [here](PreprocessingReads.html).
+
+
+
 * Adapt the path of the inputs in `EmpiricalReads2Map.inputs.json`
 
 *empirical.references*

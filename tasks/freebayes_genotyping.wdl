@@ -14,9 +14,8 @@ workflow FreebayesGenotyping {
     String parent1
     String parent2
     String program
-    Array[String] sample_names
     Int max_cores
-    File vcf_simu
+    File? vcf_simu
   }
 
   call RunFreebayes {

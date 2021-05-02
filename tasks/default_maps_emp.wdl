@@ -13,6 +13,7 @@ workflow DefaultMaps {
      String chromosome
      File? multi_obj
      String multiallelics
+     Int max_cores
     }
 
     call utilsR.GlobalError{
@@ -20,7 +21,7 @@ workflow DefaultMaps {
         onemap_obj = onemap_obj
     }
 
-    Array[String] methods                         = ["default", "default0.05"]
+    Array[String] methods                         = ["OneMap_version2", "SNPCaller0.05"]
     Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
     Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
@@ -34,10 +35,11 @@ workflow DefaultMaps {
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              max_cores = max_cores
          }
         
-         if (defined(multi_obj)) {
+         if (multiallelics == "TRUE") {
             call utilsR.AddMultiallelics{
               input:
                 onemap_obj_multi = multi_obj,
@@ -61,7 +63,8 @@ workflow DefaultMaps {
               sequence_obj = FiltersReportEmp.onemap_obj_filtered,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              max_cores = max_cores
             }
      }
 

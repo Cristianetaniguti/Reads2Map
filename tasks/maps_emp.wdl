@@ -1,12 +1,12 @@
 version 1.0
 
-import "maps_empS.wdl"
+import "structs/maps_empS.wdl"
 
-import "default_maps_emp.wdl" as default
-import "snpcaller_maps_emp.wdl" as snpcaller
-import "gusmap_maps_emp.wdl" as gusmap
-import "utils.wdl" as utils
-import "utilsR.wdl" as utilsR
+import "tasks/default_maps_emp.wdl" as default
+import "tasks/snpcaller_maps_emp.wdl" as snpcaller
+import "tasks/gusmap_maps_emp.wdl" as gusmap
+import "tasks/utils.wdl" as utils
+import "tasks/utilsR.wdl" as utilsR
 
 import "genotyping.wdl" as genotyping
 
@@ -62,15 +62,14 @@ workflow Maps {
                 parent2 = dataset.parent2
         }
 
-        if (dataset.multiallelics == "yes"){
-           call utilsR.MultiVcf2onemap{
+        call utilsR.MultiVcf2onemap{
              input:
-               multi = analysis.multi,
-               cross = dataset.cross,
-               SNPCall_program = analysis.method,
-               parent1 = dataset.parent1,
-               parent2 = dataset.parent2,
-          }
+                multi = analysis.multi,
+                cross = dataset.cross,
+                SNPCall_program = analysis.method,
+                parent1 = "P1",
+                parent2 = "P2",
+                multiallelics = dataset.multiallelics
         }
 
         call default.DefaultMaps {
@@ -83,7 +82,8 @@ workflow Maps {
                 CountsFrom = "vcf",
                 chromosome = dataset.chromosome,
                 multi_obj = MultiVcf2onemap.onemap_obj,
-                multiallelics = dataset.multiallelics
+                multiallelics = dataset.multiallelics,
+                max_cores = max_cores
         }
 
         call snpcaller.SNPCallerMaps {
@@ -98,7 +98,8 @@ workflow Maps {
                 parent2 = dataset.parent2,
                 chromosome = dataset.chromosome,
                 multi_obj = MultiVcf2onemap.onemap_obj,
-                multiallelics = dataset.multiallelics
+                multiallelics = dataset.multiallelics,
+                max_cores = max_cores
         }
 
         Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}

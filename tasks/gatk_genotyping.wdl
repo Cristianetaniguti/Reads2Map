@@ -5,6 +5,7 @@ import "../structs/reference_struct.wdl"
 import "split_filt_vcf.wdl" as norm_filt
 import "utils.wdl" as utils
 import "hard_filtering.wdl" as hard_filt
+import "hard_filtering_emp.wdl" as hard_filt_emp
 
 
 workflow GatkGenotyping {
@@ -15,9 +16,9 @@ workflow GatkGenotyping {
     String program
     String parent1
     String parent2
-    File vcf_simu
-    Int seed
-    Int depth
+    File? vcf_simu
+    Int? seed
+    Int? depth
   }
 
   call CreateChunks {
@@ -48,19 +49,35 @@ workflow GatkGenotyping {
       reference_dict=references.ref_dict
   }
 
-  call hard_filt.HardFiltering {
-    input:
-      references = references,
-      vcf_file = GATKJointCall.vcf,
-      vcf_tbi  = GATKJointCall.vcf_tbi,
-      simu_vcf = vcf_simu,
-      seed = seed,
-      depth = depth
+  # Simulations
+  if(defined(seed)){
+    call hard_filt.HardFiltering {
+      input:
+        references = references,
+        vcf_file = GATKJointCall.vcf,
+        vcf_tbi  = GATKJointCall.vcf_tbi,
+        simu_vcf = vcf_simu,
+        seed = seed,
+        depth = depth
+    }
   }
+
+  # Empirical
+  if(!defined(seed)){
+    call hard_filt_emp.HardFilteringEmp {
+      input:
+        references = references,
+        vcf_file = GATKJointCall.vcf,
+        vcf_tbi  = GATKJointCall.vcf_tbi
+    }
+  }
+
+  File filt_vcf = select_first([HardFiltering.filt_vcf, HardFilteringEmp.filt_vcf])
+  File QualPlots = select_first([HardFiltering.Plots, HardFilteringEmp.Plots])
 
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=HardFiltering.filt_vcf,
+      vcf_in=filt_vcf,
       vcf_simu = vcf_simu,
       program=program,
       reference = references.ref_fasta,
@@ -89,7 +106,7 @@ workflow GatkGenotyping {
     File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
     File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
     File vcfEval = SplitFiltVCF.vcfEval
-    File Plots = HardFiltering.Plots
+    File Plots = QualPlots
   }
 }
 
