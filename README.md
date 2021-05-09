@@ -43,7 +43,7 @@ docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev java -jar picard.jar Crea
 
 *sequencing*:
 - library_type: the options RADseq, WGS and Exome are available.
-- multiallelics: Define with "yes" or "no", if the analysis should try to include multiallelic markers in the linkage maps.
+- multiallelics: Define with "TRUE" or "FALSE", if the analysis should try to include multiallelic markers in the linkage maps.
 - emp_vcf: reference VCF file with the variants to be simulated.
 - emp_bam: reference BAM file. It will be used to define the reads profile in WGS and Exome simulation.
 - ref_map: reference linkage map, it is a text file with two columns, one named "cM" with values for centimorgan position of markers and other named "bp" with the respective base pair position of each marker. The markers in your reference map do not need to be the same of the VCF file. Using splines, this map is used to train a model to define the position in certimorgan of the simulated variants in the genome.  

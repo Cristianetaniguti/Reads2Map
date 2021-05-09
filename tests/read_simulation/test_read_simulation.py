@@ -31,7 +31,7 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
             "depth": 10,
             "depth_parents": 10,
             "ref_map": workflow_data["ref_map"],
-            "multiallelics": "yes",
+            "multiallelics": "TRUE",
             "vcf_parent1": "PT_F",
             "vcf_parent2": "PT_M"
         },

@@ -67,8 +67,8 @@ workflow Maps {
                 multi = analysis.multi,
                 cross = dataset.cross,
                 SNPCall_program = analysis.method,
-                parent1 = "P1",
-                parent2 = "P2",
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
                 multiallelics = dataset.multiallelics
         }
 
@@ -161,7 +161,8 @@ workflow Maps {
                 SNPCall_program = analysis.method,
                 GenotypeCall_program = "gusmap",
                 parent1 = dataset.parent1,
-                parent2 = dataset.parent2
+                parent2 = dataset.parent2,
+                max_cores = max_cores
         }
     }
 

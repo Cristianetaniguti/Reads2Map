@@ -58,7 +58,6 @@ workflow SimulatedMapsWorkflow {
       program="freebayes",
       parent1 = "P1",
       parent2 = "P2",
-      sample_names = CreateAlignmentFromSimulation.names,
       max_cores = max_cores,
       vcf_simu = CreateAlignmentFromSimulation.true_vcf
   }

@@ -1,5 +1,15 @@
 FROM cristaniguti/onemap_git:latest
 
+# For supermassa
+RUN apt-get update \
+    && apt install -y python2 python-tk curl
+
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py 
+RUN python2 get-pip.py 
+RUN pip install matplotlib==2.0.2 numpy 
+RUN ln -s /usr/bin/python2 /usr/bin/python
+
+
 RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('stringi', repos='http://brieger.esalq.usp.br/CRAN/');\
           install.packages('vcfR', repos='http://brieger.esalq.usp.br/CRAN/');\
@@ -20,5 +30,7 @@ RUN R -e "install.packages('R.utils', repos='http://brieger.esalq.usp.br/CRAN/')
           devtools::install_github('tpbilton/GUSbase');\
           devtools::install_github('tpbilton/GUSMap')"
 
-RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap', auth_token ='1bcc1d0962f96c9b4d9afc936b807ab2d0804d01')"
+RUN R -e "devtools::install_github('Cristianetaniguti/genotyping4onemap', auth_token ='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' )"
 
+RUN Rscript -e "install.packages('filelock')"
+RUN Rscript -e "install.packages('vroom')"

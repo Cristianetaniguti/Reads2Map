@@ -470,12 +470,13 @@ task MapsReportEmp{
                                       SNPCall = "~{SNPCall_program}", GenoCall="~{GenotypeCall_program}", max_cores = cores))
 
       vroom::vroom_write(df[[2]], "map_report.tsv.gz", num_threads = ~{max_cores})
-      save(df[[1]],  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
+      map_out <- df[[1]]
+      save(map_out,  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
     
       times <- data.frame(SNPCall = "~{SNPCall_program}", 
                           CountsFrom = "~{CountsFrom}", 
                           GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
-                          time = times_fake[3])
+                          time = times_temp[3])
 
       vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
 

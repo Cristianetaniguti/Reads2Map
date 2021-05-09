@@ -9,6 +9,7 @@ workflow GusmapMaps {
     String GenotypeCall_program
     String parent1
     String parent2
+    Int max_cores
   }
 
   Array[String] counts                      = ["vcf", "bam"]
@@ -23,7 +24,8 @@ workflow GusmapMaps {
           GenotypeCall_program = GenotypeCall_program,
           CountsFrom = vcf.left,
           parent1 = parent1,
-          parent2 = parent2
+          parent2 = parent2,
+          max_cores = max_cores
         }
     }
 
@@ -42,6 +44,7 @@ task GusmapReport{
     String CountsFrom
     String parent1
     String parent2
+    Int max_cores
   }
 
   command <<<
@@ -58,23 +61,32 @@ task GusmapReport{
           vcf_file <- "~{vcf_file}"
        }
 
-      create_gusmap_report(vcf_file,"~{SNPCall_program}", "~{CountsFrom}",
-                           "~{GenotypeCall_program}", "~{parent1}", "~{parent2}")
+      times_temp <- system.time(info <- create_gusmap_report(vcf_file,"~{SNPCall_program}", "~{CountsFrom}",
+                           "~{GenotypeCall_program}", "~{parent1}", "~{parent2}"))
+
+      times <- data.frame(SNPCall = "~{SNPCall_program}", 
+                    CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}",
+                    time = times_temp[3])
+
+      vroom::vroom_write(info[[2]], "map_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
+      map_out <- info[[1]]
+      save(map_out, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
 
     RSCRIPT
 
   >>>
 
   runtime{
-    docker: "cristaniguti/reads2map"
-    time:"20:00:00"
-    mem:"50GB"
-    cpu:1
+    docker:"cristaniguti/reads2map"
+    preemptible: 3
+    memory:"8 GB"
+    cpu:4
   }
 
   output{
-    File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+    File maps_report = "map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
-    File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+    File times = "times_report.tsv.gz"
   }
 }
