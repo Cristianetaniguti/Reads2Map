@@ -8,7 +8,7 @@ import "tasks/gusmap_maps_emp.wdl" as gusmap
 import "tasks/utils.wdl" as utils
 import "tasks/utilsR.wdl" as utilsR
 
-import "genotyping.wdl" as genotyping
+import "tasks/genotyping.wdl" as genotyping
 
 struct PopulationAnalysis {
     String method

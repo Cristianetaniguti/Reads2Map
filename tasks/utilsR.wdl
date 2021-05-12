@@ -476,7 +476,7 @@ task MapsReportEmp{
       times <- data.frame(SNPCall = "~{SNPCall_program}", 
                           CountsFrom = "~{CountsFrom}", 
                           GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
-                          time = times_temp[3])
+                          time = times_temp[3])   
 
       vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
 

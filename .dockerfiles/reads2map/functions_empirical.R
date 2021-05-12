@@ -84,16 +84,17 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
   bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
-  segr <- onemap::test_segregation(onemap_bins)
+  twopts <- rf_2pts(input.obj = onemap_bins, rm_mks = T) # Do not keep redundant markers
+  new_obj <- twopts$data.name
+  segr <- onemap::test_segregation(new_obj)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
-  twopts <- rf_2pts(onemap_bins) # Do not keep redundant markers
-  chr <- which(onemap_bins$CHROM %in% chromosome)
+  chr <- which(new_obj$CHROM %in% chromosome)
   chr_no_dist <- chr[which(chr%in%no_distorted)]
   seq1 <- make_seq(twopts, chr_no_dist)
   total_variants <- onemap_obj[[3]]
   lgs <- group(seq1)
-  lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups)))))
+  lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups[-which(lgs$groups== 0)])))))
   filters_tab <- data.frame(CountsFrom,
                             SNPCall,
                             GenoCall,
@@ -254,7 +255,7 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
                          "rf" = dist.gus,
                          "type"= config,
                          "phases"= phases.gus)
-
+  
   return(list(map_out, map_info))
 }
 

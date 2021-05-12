@@ -16,7 +16,7 @@
     "ref_fasta_index": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.fai",
     "ref_pac": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.pac"
 },
-  "SimulatedReads.global_seed": 2100, 
+  "SimulatedReads.global_seed": 2103, 
   "SimulatedReads.sequencing": {
     "emp_vcf": "/home/cristiane/data/populus/inputs_short37cM/gatk_noindels_maxmissing0.75_maf0.05.recode_subset.vcf",
     "enzyme1": "HinDIII",
@@ -26,8 +26,8 @@
     "pcr_cycles": "5",
     "read_length": "150",
     "insert_size":"350",
-    "depth": "10",
-    "depth_parents":"80",
+    "depth": "20",
+    "depth_parents":"160",
     "ref_map": "/home/cristiane/data/populus/inputs_short37cM/ref.map.chr10.taniguti_subset.csv",
     "multiallelics": "TRUE",
     "vcf_parent1": "PT_F",

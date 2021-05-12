@@ -844,8 +844,8 @@ task RADinitioSimulation{
 
     # Add fake phred score of 40 (H in Illumina 1.8+ Phred+33)
     # Only in forward read
-    for i in results_progeny/rad_reads/*.1.fa.gz; do /seqtk/./seqtk seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
-    for i in results_parents/rad_reads/*.1.fa.gz; do /seqtk/./seqtk  seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
+    for i in results_progeny/rad_reads/*.1.fa.gz; do /seqtk/./seqtk seq -F 'I' $i > $(basename ${i/.fa.gz}.fq); done
+    for i in results_parents/rad_reads/*.1.fa.gz; do /seqtk/./seqtk  seq -F 'I' $i > $(basename ${i/.fa.gz}.fq); done
 
   >>>
 
