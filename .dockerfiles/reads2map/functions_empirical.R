@@ -94,7 +94,12 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
   seq1 <- make_seq(twopts, chr_no_dist)
   total_variants <- onemap_obj[[3]]
   lgs <- group(seq1)
-  lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups[-which(lgs$groups== 0)])))))
+  if(all(lgs$groups == 0)) {
+    nongroup <- length(seq1$seq.num)
+  } else {
+    lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups[-which(lgs$groups== 0)])))))
+    nongroup <- length(seq1$seq.num) - length(lg1$seq.num)
+  }
   filters_tab <- data.frame(CountsFrom,
                             SNPCall,
                             GenoCall,
@@ -104,7 +109,7 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
                             "selected_chr_no_dist" = length(chr_no_dist),
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
-                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
+                            "non-grouped_markers" = nongroup)
   write_report(filters_tab, paste0("filters_report"))
   return(lg1)
 }

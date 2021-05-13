@@ -682,11 +682,11 @@ task JointReports{
       #################################################################################
       library(gsalib)
       df <- gsa.read.gatkreport("~{Freebayes_eval}")
-      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["ValidationReport"]])
+      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
       count1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
 
       df <- gsa.read.gatkreport("~{GATK_eval}")
-      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["ValidationReport"]])
+      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
       count2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
  
       df <- rbind(eval1, eval2)
