@@ -1,6 +1,6 @@
 version 1.0
 
-import "./tasks/reads_simu.wdl" as sub
+import "./tasks/SimulatedMapsWorkflow.wdl" as sub
 
 workflow SimulatedReads {
 
@@ -11,6 +11,7 @@ workflow SimulatedReads {
     Int number_of_families
     Int global_seed
     Int max_cores
+    String? filters
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -38,28 +39,30 @@ workflow SimulatedReads {
     }
 
     # Calling reads_simu for each seed
-    call sub.reads_simu as ReadSimulations {
+    call sub.SimulatedMapsWorkflow {
       input:
         references=references,
         family=fam,
         sequencing = sequencing,
-        max_cores = max_cores
+        max_cores = max_cores,
+        filters = filters
     }
   }
 
   call JointTables {
     input:
-      data1=ReadSimulations.data1_depths_geno_prob,
-      data2=ReadSimulations.data2_maps,
-      data3=ReadSimulations.data3_filters,
-      data5=ReadSimulations.data5_SNPcall_efficiency,
-      data4=ReadSimulations.data4_times,
-      depth=sequencing.depth,
-      data6=ReadSimulations.data6_RDatas,
-      data7=ReadSimulations.data7_gusmap,
-      data8=ReadSimulations.data8_names,
-      data9=ReadSimulations.simu_haplo,
-      data10=ReadSimulations.multi_names
+      data1_depths_geno_prob   = SimulatedMapsWorkflow.data1_depths_geno_prob,
+      data2_maps               = SimulatedMapsWorkflow.data2_maps,
+      data3_filters            = SimulatedMapsWorkflow.data3_filters,
+      data5_SNPCall_efficiency = SimulatedMapsWorkflow.data5_SNPCall_efficiency,
+      data4_times              = SimulatedMapsWorkflow.data4_times,
+      data6_RDatas             = SimulatedMapsWorkflow.data6_RDatas,
+      data7_gusmap             = SimulatedMapsWorkflow.data7_gusmap,
+      data8_names              = SimulatedMapsWorkflow.data8_names,
+      data9_simu_haplo         = SimulatedMapsWorkflow.simu_haplo,
+      data10_counts            = SimulatedMapsWorkflow.data10_counts,
+      depth                    = sequencing.depth,
+      plots                    = SimulatedMapsWorkflow.Plots
   }
 
   # Here you can reference outputs from the sub workflow. Remember that
@@ -86,10 +89,9 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
-    time:"0:10:00"
-    cpu:1
-    mem:"1GB"
-    job_name: "create_seeds"
+    preemptible: 3
+    cpu: 1
+    memory: "1 GB"
   }
 
   output {
@@ -100,17 +102,18 @@ task ProduceFamiliesSeeds {
 
 task JointTables{
   input {
-    Array[File] data1
-    Array[File] data2
-    Array[File] data3
-    Array[File] data4
-    Array[File] data5
-    Array[File] data6
-    Array[File] data7
-    Array[File] data8
-    Array[File] data9
-    Array[File] data10
-    Int depth
+    Array[File] data1_depths_geno_prob  
+    Array[File] data2_maps              
+    Array[File] data3_filters           
+    Array[File] data5_SNPCall_efficiency
+    Array[File] data4_times             
+    Array[File] data6_RDatas            
+    Array[File] data7_gusmap            
+    Array[File] data8_names             
+    Array[File] data9_simu_haplo
+    Array[File] data10_counts
+    Array[File] plots
+    Int depth        
   }
 
   command <<<
@@ -118,19 +121,20 @@ task JointTables{
     R --vanilla --no-save <<RSCRIPT
     library(tidyverse)
     library(largeList)
-    source("/opt/scripts/functions_simu.R")
+    library(vroom)
+
     datas <- list()
 
-    datas[[1]] <- c("~{sep=";" data1}")
-    datas[[2]] <- c("~{sep=";" data2}")
-    datas[[3]] <- c("~{sep=";" data3}")
-    datas[[4]] <- c("~{sep=";" data4}")
-    datas[[5]] <- c("~{sep=";" data5}")
-    datas[[6]] <- c("~{sep=";" data6}")
-    datas[[7]] <- c("~{sep=";" data7}")
-    datas[[8]] <- c("~{sep=";" data8}")
-    datas[[9]] <- c("~{sep=";" data9}")
-    datas[[10]] <- c("~{sep=";" data10}")
+    datas[[1]] <- c("~{sep=";" data1_depths_geno_prob  }")
+    datas[[2]] <- c("~{sep=";" data2_maps              }")
+    datas[[3]] <- c("~{sep=";" data3_filters           }")
+    datas[[4]] <- c("~{sep=";" data5_SNPCall_efficiency}")
+    datas[[5]] <- c("~{sep=";" data4_times             }")
+    datas[[6]] <- c("~{sep=";" data6_RDatas            }")
+    datas[[7]] <- c("~{sep=";" data7_gusmap            }")
+    datas[[8]] <- c("~{sep=";" data8_names             }")
+    datas[[9]] <- c("~{sep=";" data9_simu_haplo        }")
+    datas[[10]] <- c("~{sep=";" data10_counts        }")
 
     datas <- lapply(datas, function(x) unlist(strsplit(x, ";")))
 
@@ -152,16 +156,9 @@ task JointTables{
         }
         Rdatas <- do.call(c, Rdata_lst)
         save(Rdatas, file = "gusmap_RDatas.RData")
-      } else if(j == 10){
-        multi_names_depth <- list()
-        for(i in 1:length(datas[[j]])){
-          multi_temp2 <- load(datas[[j]][i])
-          multi_temp3 <- get(multi_temp2)
-          multi_names_depth <- c(multi_names_depth, multi_temp3)
-        }
       } else {
         for(i in 1:length(datas[[j]])){
-          data_lst[[i]] <- readRDS(datas[[j]][i])
+          data_lst[[i]] <- vroom(datas[[j]][i], delim = "\t")
         }
         if(j == 8){
           dat <- do.call(c, data_lst)
@@ -170,36 +167,35 @@ task JointTables{
       }
     }
 
-    result_list <- adapt2app(datas_up)
+    vroom_write(datas_up[[1]], "data1_depths_geno_prob.tsv.gz")
+    vroom_write(datas_up[[2]], "data2_maps.tsv.gz")
+    vroom_write(datas_up[[3]], "data3_filters.tsv.gz")
+    vroom_write(datas_up[[5]], "data4_times.tsv.gz")
+    vroom_write(datas_up[[4]], "data5_SNPCall_efficiency.tsv.gz")
+    vroom_write(datas_up[[9]], "simu_haplo.tsv.gz")
+    vroom_write(datas_up[[10]], "data10_counts.tsv.gz")
 
-    saveRDS(result_list[[1]], file="data1.rds")
-    saveRDS(result_list[[2]], file="data2.rds")
-    saveRDS(result_list[[3]], file="data3.rds")
-    saveRDS(result_list[[4]], file="data4.rds")
-    saveRDS(result_list[[5]], file="data5.rds")
-    saveRDS(datas_up[[9]], file="simu_haplo.rds")
-
-    choices <- result_list[[6]]
-    save(choices, file = "choices.RData")
-    saveRDS(datas_up[[8]], file = "names.rds")
-    save(multi_names_depth, file = "multi_names.RData")
+    data.names <- as.data.frame(datas_up[[8]])
+    print(data.names)
+    vroom_write(data.names, "names.tsv.gz")
 
     system("mkdir SimulatedReads_results_depth~{depth}")
-    system("mv multi_names.RData gusmap_RDatas.RData sequences.llo data1.rds data2.rds data3.rds data4.rds data5.rds simu_haplo.rds choices.RData names.rds SimulatedReads_results_depth~{depth}")
+    system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
+            data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPCall_efficiency.tsv.gz data10_counts.tsv.gz \
+            simu_haplo.tsv.gz  names.tsv.gz ~{sep=" " plots} SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT
   >>>
 
-  runtime{
-      docker:"cristaniguti/onemap_workflows"
-      time:"03:00:00"
-      cpu:1
-      mem:"30GB"
-      job_name: "final_joint"
+  runtime {
+      docker:"cristaniguti/reads2map"
+      preemptible: 3
+      cpu: 1
+      memory: "3 GB"
   }
 
-  output{
+  output {
     File results = "SimulatedReads_results_depth~{depth}.tar.gz"
   }
 }

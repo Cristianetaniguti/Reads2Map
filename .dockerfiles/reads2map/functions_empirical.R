@@ -1,5 +1,5 @@
 # Functions
-create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
+create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall, max_cores){
   # Check genome position
   pos <- as.numeric(input.seq$data.name$POS[input.seq$seq.num])
   sort.pos <- sort(pos)
@@ -8,7 +8,7 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
     input.seq <- make_seq(input.seq$twopt, input.seq$seq.num[order(as.numeric(input.seq$data.name$POS[input.seq$seq.num]))])
   } 
   
-  if(length(seq_true$seq.num) > 100){
+  if(length(input.seq$seq.num) > 100){
     # batch size close to 60 and the overlap is 3/5 of the size (according with paper)
     #div <- round((length(input.seq$seq.num)/60),0)
     #size = round(length(input.seq$seq.num)/div,0)
@@ -20,25 +20,18 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall){
                                    overlap = 30,
                                    around = 10)
     
-    time_par <- system.time(map_out <- map_avoid_unlinked(input.seq, 
-                                                          size = batch_size, 
-                                                          phase_cores = 4, 
-                                                          overlap = overlap, tol=10^(-3)))  
+    map_out <- map_avoid_unlinked(input.seq, 
+                                  size = batch_size, 
+                                  phase_cores = max_cores, 
+                                  overlap = 30)
   } else {
-    time_par <- system.time(map_out <- map_avoid_unlinked(input.seq))
+    map_out <- map_avoid_unlinked(input.seq)
   }
   
-  file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
-  #p <- rf_graph_table(map_out)
-  #ggsave(p, filename = paste0(file.name,"_heatmap.png"))
-  
-  times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
-  write_report(times_df, paste0("times_",file.name,".txt"))
   sizes_df <- data.frame(CountsFrom, SNPCall, GenoCall, "mks" = colnames(map_out$data.name$geno)[map_out$seq.num],
                          "pos" = map_out$data.name$POS[map_out$seq.num], rf = cumsum(c(0,kosambi(map_out$seq.rf))),
                          type = map_out$data.name$segr.type[map_out$seq.num], phases = phaseToOPGP_OM(map_out))
-  write_report(sizes_df, paste0("map_",file.name,".txt"))
-  save(map_out, file = paste0("map_",file.name,".RData"))
+  return(list(map_out, sizes_df))
 }
 
 phaseToOPGP_OM <- function(x){
@@ -52,7 +45,7 @@ phaseToOPGP_OM <- function(x){
            link.phases[i + 1, ] <- link.phases[i, ] * c(-1, 1),
            link.phases[i + 1, ] <- link.phases[i, ] * c(-1, -1))
   }
-  if (class(x$data.name)[2] == "outcross") {
+  if (is(x$data.name ,"outcross")) {
     link.phases <- apply(link.phases, 1, function(x) paste(as.character(x), collapse = "."))
     parents <- matrix("", length(x$seq.num), 4)
     for (i in 1:length(x$seq.num)) 
@@ -69,6 +62,8 @@ phaseToOPGP_OM <- function(x){
       parents[3:4,] <- parents[4:3,]
     
     phases <- GUSMap:::parHapToOPGP(parents)
+    multi <- which(sapply(phases, is.null))
+    phases[multi] <- NA
     phases[which(phases == 1 | phases == 4)] <- 17 
     phases[which(phases == 2 | phases == 3)] <- 18
     phases[which(phases == 5 | phases == 8)] <- 19
@@ -84,19 +79,28 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chromosome) {
+  # onemap_prob <- filter_prob(onemap_obj, threshold = 0.8)
+  onemap_mis <- filter_missing(onemap_obj, threshold = 0.25)
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
   bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
-  segr <- onemap::test_segregation(onemap_bins)
+  twopts <- rf_2pts(input.obj = onemap_bins, rm_mks = T) # Do not keep redundant markers
+  new_obj <- twopts$data.name
+  segr <- onemap::test_segregation(new_obj)
   distorted <- onemap::select_segreg(segr, distorted = T)
   no_distorted <- onemap::select_segreg(segr, distorted = F, numbers = T)
-  twopts <- rf_2pts(onemap_bins) # Do not keep redundant markers
-  chr <- which(onemap_bins$CHROM %in% chromosome)
+  chr <- which(new_obj$CHROM %in% chromosome)
   chr_no_dist <- chr[which(chr%in%no_distorted)]
   seq1 <- make_seq(twopts, chr_no_dist)
   total_variants <- onemap_obj[[3]]
   lgs <- group(seq1)
-  lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups)))))
+  if(all(lgs$groups == 0)) {
+    nongroup <- length(seq1$seq.num)
+    lg1 <- seq1
+  } else {
+    lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups[-which(lgs$groups== 0)])))))
+    nongroup <- length(seq1$seq.num) - length(lg1$seq.num)
+  }
   filters_tab <- data.frame(CountsFrom,
                             SNPCall,
                             GenoCall,
@@ -106,13 +110,13 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
                             "selected_chr_no_dist" = length(chr_no_dist),
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
-                            "non-grouped_markers" = length(seq1$seq.num) - length(lg1$seq.num))
-  write_report(filters_tab, paste0("filters_", SNPCall, "_", CountsFrom, "_",GenoCall, ".txt"))
+                            "non-grouped_markers" = nongroup)
+  write_report(filters_tab, paste0("filters_report"))
   return(lg1)
 }
 
-write_report <- function(tab, out_name) {
-  write.table(tab, file=out_name, row.names=F, quote=F, col.names=F)
+write_report <- function(tab, out_name, max_cores=1) {
+  vroom::vroom_write(tab, paste0(out_name, ".tsv.gz"), num_threads= max_cores)
 }
 
 make_vcf <- function(vcf.old, depths, method, allele_file, out_vcf){
@@ -189,7 +193,7 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   
   mydata <- makeFS(RAobj = RAdata, pedfile = "ped.file.csv", 
                    filter = list(MAF = 0.05, MISS = 0.25,
-                                 BIN = 0, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=500))
+                                 BIN = 1, DEPTH = 0, PVALUE = 0.05, MAXDEPTH=1000))
   
   # Suggested in vignette
   #mydata$rf_2pt(nClust=1)
@@ -206,34 +210,30 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
     config[infer] <- mydata$.__enclos_env__$private$config_infer[[1]][infer]
   
   # Automatically remove markers with pos = inf
-  time_par <- system.time({
-    inf.mk <- 0
-    rast.pos <- pos
-    while(length(inf.mk) > 0){
-      depth_Ref <- list(depth_Ref_m)
-      depth_Alt <- list(depth_Alt_m)
-      
-      phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
-                                           config, ep=0.001, reltol=1e-3)
-      
-      rf_est <- GUSMap:::rf_est_FS(init_r = 0.01, ep = 0.001, 
-                                   ref = depth_Ref, 
-                                   alt = depth_Alt, 
-                                   OPGP=list(as.integer(phases.gus)),
-                                   nThreads = 1)
-      
-      # Remove Inf markers
-      inf.mk <- which(is.infinite(haldane(rf_est$rf)))
-      if(length(inf.mk) > 0){
-        depth_Ref_m <- depth_Ref_m[,-inf.mk]
-        depth_Alt_m <- depth_Alt_m[,-inf.mk]
-        config <- config[-inf.mk]
-        rast.pos <- rast.pos[-inf.mk]
-      }
+  inf.mk <- 0
+  rast.pos <- pos
+  while(length(inf.mk) > 0){
+    depth_Ref <- list(depth_Ref_m)
+    depth_Alt <- list(depth_Alt_m)
+    
+    phases.gus <- GUSMap:::infer_OPGP_FS(depth_Ref_m, depth_Alt_m, 
+                                         config, ep=0.001, reltol=1e-3)
+    
+    rf_est <- GUSMap:::rf_est_FS(init_r = 0.01, ep = 0.001, 
+                                 ref = depth_Ref, 
+                                 alt = depth_Alt, 
+                                 OPGP=list(as.integer(phases.gus)),
+                                 nThreads = 1)
+    
+    # Remove Inf markers
+    inf.mk <- which(is.infinite(haldane(rf_est$rf)))
+    if(length(inf.mk) > 0){
+      depth_Ref_m <- depth_Ref_m[,-inf.mk]
+      depth_Alt_m <- depth_Alt_m[,-inf.mk]
+      config <- config[-inf.mk]
+      rast.pos <- rast.pos[-inf.mk]
     }
-  })
-
-  times_df <- data.frame(SNPCall,CountsFrom, GenoCall, time_par[3])
+  }
   
   #rf_est$rf[which(rf_est$rf > 0.5)] <- 0.4999999
   dist.gus <- c(0,cumsum(haldane(rf_est$rf)))
@@ -252,8 +252,6 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
   
   file.name <- paste0(SNPCall, "_", CountsFrom, "_", GenoCall)
   map_out <- mydata
-  save(map_out, file = paste0("map_", file.name,".RData"))
-  write_report(times_df, paste0("times_", file.name,".txt"))
   
   map_info <- data.frame("CountsFrom" = CountsFrom,
                          "SNPCall"= SNPCall,
@@ -263,8 +261,8 @@ create_gusmap_report <- function(vcf_file,SNPCall, CountsFrom, GenoCall, parent1
                          "rf" = dist.gus,
                          "type"= config,
                          "phases"= phases.gus)
-  write_report(map_info, paste0("map_",file.name,".txt"))
-  return(map_info)
+  
+  return(list(map_out, map_info))
 }
 
 fix_genocall_names <- function(data){

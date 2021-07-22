@@ -12,9 +12,11 @@ workflow DefaultMaps {
      File simulated_phases
      String SNPCall_program
      String CountsFrom
-     File? multi_obj  
-     String seed
-     String depth
+     File multi_obj
+     Int seed
+     Int depth
+     Int max_cores
+     String multiallelics
     }
 
     call utilsR.GlobalError{
@@ -22,28 +24,30 @@ workflow DefaultMaps {
         onemap_obj = onemap_obj
     }
 
-    Array[String] methods                         = ["default", "default0.05"]
+    Array[String] methods                         = ["OneMap_version2", "SNPCaller0.05"]
     Array[File] objects                           = [onemap_obj, GlobalError.error_onemap_obj]
     Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
     scatter(item in methods_and_objects){
-    
-         if (defined(multi_obj)) {
+
+         if (multiallelics == "TRUE") {
             call utilsR.AddMultiallelics{
               input:
                 onemap_obj_multi = multi_obj,
                 onemap_obj_bi = item.right
            }
          }
-        
-         File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])        
-    
+
+         File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
+
          call utilsR.FiltersReport{
               input:
                 onemap_obj = select_onemap_obj,
                 SNPCall_program = SNPCall_program,
                 GenotypeCall_program = item.left,
-                CountsFrom = CountsFrom
+                CountsFrom = CountsFrom,
+                seed = seed,
+                depth = depth
           }
 
           call utilsR.MapsReport{
@@ -54,7 +58,10 @@ workflow DefaultMaps {
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
-              simulated_phases = simulated_phases
+              simulated_phases = simulated_phases,
+              seed = seed,
+              depth = depth,
+              max_cores = max_cores
             }
 
             call utilsR.ErrorsReport{
@@ -66,12 +73,13 @@ workflow DefaultMaps {
                 CountsFrom = CountsFrom,
                 simu_vcfR = simu_vcfR,
                 vcfR_obj = vcfR_obj,
-                seed             = seed,
-                depth            = depth
+                seed = seed,
+                depth = depth,
+                max_cores = max_cores
             }
      }
 
-     output{
+     output {
         Array[File] RDatas = MapsReport.maps_RData
         Array[File] maps_report = MapsReport.maps_report
         Array[File] times = MapsReport.times

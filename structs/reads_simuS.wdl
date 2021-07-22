@@ -26,6 +26,7 @@ struct Sequencing{
   String multiallelics
   String vcf_parent1
   String vcf_parent2
+  String rm_dupli
 }
 
 struct OptionalFilters{

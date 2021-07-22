@@ -1,0 +1,18 @@
+{
+  "Maps.freebayes_multi": "/data1/aafgarci/cris/empirical/populus/freebayes_multi.recode.vcf",
+  "Maps.freebayes_vcf": "/data1/aafgarci/cris/empirical/populus/freebayes_vcf_bi_filt.recode.vcf",
+  "Maps.dataset": {
+    "parent2": "PT_M",
+    "name": "populus",
+    "parent1": "PT_F",
+    "chromosome": "Chr10",
+    "cross": "F1",
+    "multiallelics": "yes"
+  },
+  "Maps.gatk_vcf_bam_counts": "/data1/aafgarci/cris/empirical/populus/gatk_bam_bi_filt.recode.vcf",
+  "Maps.max_cores": "20",
+  "Maps.gatk_multi": "/data1/aafgarci/cris/empirical/populus/gatk_multi.recode.vcf",
+  "Maps.filters": "--chr Chr10 --maf 0.05 --max-missing 0.75 --min-meanDP 6",
+  "Maps.gatk_vcf": "/data1/aafgarci/cris/empirical/populus/gatk_vcf_bi_filt.recode.vcf",
+  "Maps.freebayes_vcf_bam_counts": "/data1/aafgarci/cris/empirical/populus/freebayes_bam_bi_filt.recode.vcf"
+}

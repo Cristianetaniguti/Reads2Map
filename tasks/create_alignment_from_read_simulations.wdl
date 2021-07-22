@@ -64,7 +64,7 @@ workflow CreateAlignmentFromSimulation {
       parfile     = parfile_sele
   }
 
-  # 
+  #
   call ConvertPedigreeSimulationToVcf {
     input:
       seed            = family.seed,
@@ -136,7 +136,8 @@ workflow CreateAlignmentFromSimulation {
     input:
       reads     = fastq,
       references = references,
-      max_cores = max_cores
+      max_cores = max_cores,
+      rm_dupli = sequencing.rm_dupli
   }
 
   output {
@@ -166,10 +167,10 @@ task GenerateAlternativeGenome {
 
   runtime {
     docker: "taniguti/pirs-ddrad-cutadapt"
-    mem:"10GB"
-    cpu:1
-    time:"10:00:00"
-    job_name:"create_alternative"
+    memory: "4 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + 5 + " HDD"
   }
 
   output {
@@ -194,6 +195,7 @@ task CreatePedigreeSimulatorInputs {
     String cross
   }
 
+  Int disk_size = ceil(size(ref, "GB") + size(snps, "GB") + size(indels, "GB") + 5)
 
   command <<<
 
@@ -349,10 +351,10 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker: "cristaniguti/r-samtools"
-    mem:"20GB"
-    cpu:1
-    time:"10:00:00"
-    job_name:"pedsim_inputs"
+    memory:"8 GB"
+    cpu: 2
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -374,6 +376,8 @@ task RunPedigreeSimulator {
     File parfile
   }
 
+  Int disk_size = ceil(size(mapfile, "GB") + size(founderfile, "GB") + 5)
+
   command <<<
     set -e
     sed -i 's+chromosome.txt+~{chromfile}+g' ~{parfile}
@@ -385,10 +389,10 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"5GB"
-    cpu:1
-    time:"05:00:00"
-    job_name:"pedigreesim"
+    memory: "3 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -409,68 +413,34 @@ task ConvertPedigreeSimulationToVcf {
     File ref_alt_alleles
   }
 
+  Int disk_size = ceil(size(genotypes_dat, "GB") + size(map_file, "GB") + 5 )
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
 
     library(onemap)
+    library(pedigreesim2onemap)
     library(vcfR)
 
-    # Function
-    add_head <- function(vcf, outname, type="simu"){
-      
-      vcf_vector <- apply(vcf, 1, function(x) paste(x, collapse = "\t"))
-      header1 <- paste0(colnames(vcf), collapse = "\t")
-      
-      if(type == "radinitio"){
-      header <- paste0("##fileformat=VCFv4.2", "\n",
-                      "##source=tskit 0.3.4", "\n",
-                      "##FILTER=<ID=PASS,Description=\"All filters passed\">", "\n",
-                      "##contig=<ID=1,length=1999993>","\n",
-                      "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",'\n',
-                      "#", header1)
-      } else {
-        ##source=RADinitio version 1.1.1 - radinitio.merge_vcf()
-        header <- paste0("##fileformat=VCFv4.2", "\n",
-                        "##source=RADinitio version 1.1.1 - radinitio.merge_vcf()", "\n",
-                        "##FILTER=<ID=PASS,Description=\"All filters passed\">", "\n",
-                        "##contig=<ID=1,length=1999993>","\n",
-                        "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",'\n',
-                        "#", header1)
-      }
-      
-      vcf <- c(header,vcf_vector)
-      write.table(vcf, file = outname, quote = FALSE, row.names = FALSE,  col.names = FALSE)
-    }
-
-
     mks <- read.table("~{ref_alt_alleles}", stringsAsFactors = FALSE)
-    pos <- mks[,2]
-    chr <- mks[,1]
 
     set.seed(~{seed})
     pedsim2vcf(inputfile = "~{genotypes_dat}",
                map.file = "~{map_file}",
                chrom.file = "~{chrom_file}",
                out.file = "temp.vcf",
-               miss.perc = 0, 
+               miss.perc = 0,
                counts = FALSE,
-               pos = pos, 
+               pos = mks[,2],
                haplo.ref = "P1_1",
-               chr = chr, 
+               chr = mks[,1],
                phase = TRUE,
+               reference.alleles = mks[,3]
                use.as.alleles=TRUE)
 
     vcfR.object <- read.vcfR("temp.vcf")
 
-    # Fix alternative and reference alleles
-    vcfR.object@fix[,4] <- mks[,3]
-    vcfR.object@fix[,5] <- mks[,4]
-    vcfR.object@fix[,c(6,8)] <- "."
-    vcfR.object@fix[,7] <- "."
-
-    vcf_simu <- data.frame(vcfR.object@fix, vcfR.object@gt, stringsAsFactors = FALSE)
-
-    add_head(vcf_simu, "~{seed}_~{depth}_simu.vcf")
+    change_header(vcfR.object, "~{seed}_~{depth}_simu.vcf")
 
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
     inds_sele <- INDS_temp[-c(which(INDS_temp=="P1"), which(INDS_temp=="P2"))]
@@ -480,10 +450,10 @@ task ConvertPedigreeSimulationToVcf {
                                           crosstype = "outcross")
 
     haplo_simu <- cbind(seed="~{seed}", depth="~{depth}",progeny_dat)
-    saveRDS(haplo_simu, file = "~{seed}_~{depth}_haplo_simu.rds")
+    vroom::vroom_write(haplo_simu, "~{seed}_~{depth}_haplo_simu.tsv.gz")
 
     # For RADinitio
-    vcf_radinitio <- data.frame("CHROM"=1, "POS"=as.numeric(as.character(vcfR.object@fix[,2])), "ID"= ".","REF"=0, "ALT"=1, 
+    vcf_radinitio <- data.frame("CHROM"=1, "POS"=as.numeric(as.character(vcfR.object@fix[,2])), "ID"= ".","REF"=0, "ALT"=1,
                              "QUAL"=".", "FILTER"=".","INFO"=".",vcfR.object@gt, stringsAsFactors = FALSE)
 
     add_head(vcf_radinitio, "radinitio.vcf", type="radinitio")
@@ -493,16 +463,16 @@ task ConvertPedigreeSimulationToVcf {
   >>>
 
   runtime {
-    docker: "cristaniguti/onemap_workflows"
-    mem:"20GB"
+    docker: "cristaniguti/reads2map"
+    memory: "4 GB"
     cpu:1
-    time:"24:00:00"
-    job_name:"pedsim2vcf"
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
     File simu_vcf = "~{seed}_~{depth}_simu.vcf"
-    File simu_haplo = "~{seed}_~{depth}_haplo_simu.rds"
+    File simu_haplo = "~{seed}_~{depth}_haplo_simu.tsv.gz"
     File radinitio_vcf = "radinitio.vcf"
   }
 }
@@ -515,6 +485,8 @@ task RunVcf2diploid {
     File simu_vcf
   }
 
+  Int disk_size = ceil(size(ref_genome, "GB") + size(simu_vcf, "GB") + 2)
+
   command <<<
     java -jar /usr/jars/vcf2diploid.jar -id ~{sampleName} -chr ~{ref_genome} -vcf ~{simu_vcf}
 
@@ -522,10 +494,10 @@ task RunVcf2diploid {
 
   runtime {
     docker: "taniguti/java-in-the-cloud"
-    mem:"30GB"
-    cpu:1
-    time:"10:00:00"
-    job_name:"vcf2diploid"
+    memory: "3 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -543,6 +515,8 @@ task GenerateSampleNames {
     File simulated_vcf
   }
 
+  Int disk_size = ceil(size(simulated_vcf, "GB") + 2)
+
   command <<<
     export PATH=$PATH:/opt/conda/bin
 
@@ -559,9 +533,10 @@ task GenerateSampleNames {
 
   runtime {
     docker: "taniguti/miniconda-alpine"
-    mem:"1GB"
-    cpu:1
-    time:"00:10:00"
+    memory: "1 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
@@ -571,7 +546,7 @@ task GenerateSampleNames {
 
 
 task Vcf2PedigreeSimulator{
-  input{
+  input {
     File vcf_file
     File? ref_map
     Int seed
@@ -579,6 +554,8 @@ task Vcf2PedigreeSimulator{
     String vcf_parent1
     String vcf_parent2
   }
+
+  Int disk_size = ceil(size(vcf_file, "GB") +  5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -614,10 +591,10 @@ task Vcf2PedigreeSimulator{
 
   runtime {
       docker: "cristaniguti/r-samtools"
-      mem:"30GB"
+      memory: "4 GB"
       cpu:1
-      time:"05:00:00"
-      job_name:"vcf2pedigreesim"
+      preemptible: 3
+      disks: "local-disk " + disk_size + " HDD"
   }
 
   output{
@@ -638,6 +615,8 @@ task SimuscopProfile{
     File   vcf
     Reference  references
   }
+
+  Int disk_size = ceil(size(vcf, "GB") + size(references.ref_fasta, "GB") + 5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -663,10 +642,10 @@ task SimuscopProfile{
 
   runtime {
     docker: "cristaniguti/simuscopr"
-    mem:"30GB"
-    cpu:1
-    time:"10:00:00"
-    job_name:"wgs_profile"
+    memory: "3 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output{
@@ -678,13 +657,15 @@ task SimuscopSimulation{
  input {
     String library_type
     String sampleName
-    Int    depth
-    File?   emp_bam
-    File   vcf
-    Reference   references
+    Int depth
+    File? emp_bam
+    File vcf
+    Reference references
     String chrom
-    File   profile
+    File profile
   }
+
+  Int disk_size = ceil(size(vcf, "GB") + size(references.ref_fasta, "GB") + 5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -727,10 +708,10 @@ task SimuscopSimulation{
 
   runtime {
     docker: "cristaniguti/simuscopr"
-    mem:"40GB"
+    memory: "8 GB"
     cpu:1
-    time:"05:00:00"
-    job_name:"wgs_simu"
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
    }
 
   output {
@@ -757,11 +738,14 @@ task RADinitioSimulation{
     String chrom
   }
 
+  # Difficult to guess how much disk we'll need here.
+  Int disk_size = ceil(size(simu_vcf, "GB") + size(radinitio_vcf, "GB") + size(references.ref_fasta, "GB") + 5)
+
   command <<<
 
     echo -e ~{sep=" " names} > temp
     echo "~{chrom}" > chrom.list
-    
+
     tr -s ' ' '\n' < temp > temp2
     sed 's/$/\tpop0/' temp2 > popmap.tsv
 
@@ -778,7 +762,7 @@ task RADinitioSimulation{
 
     vcftools --vcf ~{simu_vcf} --indv P1 --indv P2 --recode --out parents
     vcftools --vcf ~{simu_vcf} --remove-indv P1 --remove-indv P2 --recode --out progeny
-    
+
     vcftools --vcf ~{radinitio_vcf} --indv P1 --indv P2 --recode --out parents.rad
     vcftools --vcf ~{radinitio_vcf} --remove-indv P1 --remove-indv P2 --recode --out progeny.rad
 
@@ -825,20 +809,20 @@ task RADinitioSimulation{
 
     # Add fake phred score of 40 (H in Illumina 1.8+ Phred+33)
     # Only in forward read
-    for i in results_progeny/rad_reads/*.1.fa.gz; do /seqtk/./seqtk seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
-    for i in results_parents/rad_reads/*.1.fa.gz; do /seqtk/./seqtk  seq -F 'H' $i > $(basename ${i/.fa.gz}.fq); done
+    for i in results_progeny/rad_reads/*.1.fa.gz; do /seqtk/./seqtk seq -F 'I' $i > $(basename ${i/.fa.gz}.fq); done
+    for i in results_parents/rad_reads/*.1.fa.gz; do /seqtk/./seqtk  seq -F 'I' $i > $(basename ${i/.fa.gz}.fq); done
 
   >>>
 
   runtime{
     docker: "cristaniguti/radinitio"
-    mem:"30GB"
+    memory: "3 GB"
     cpu:1
-    time:"24:00:00"
-    job_name:"rad_simu"
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
-  output{
+  output {
     Array[File] fastq_rad = glob("*.fq")
   }
 }

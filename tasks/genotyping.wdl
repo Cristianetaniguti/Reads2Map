@@ -49,10 +49,11 @@ workflow SnpBasedGenotypingMaps {
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              max_cores = max_cores
        }
 
-         if (defined(multi_obj)) {
+         if (multi_obj == "TRUE") {
           call utilsR.AddMultiallelics{
             input:
               onemap_obj_multi = multi_obj,
@@ -76,7 +77,8 @@ workflow SnpBasedGenotypingMaps {
             sequence_obj = FiltersReportEmp.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = item.left,
-            CountsFrom = CountsFrom
+            CountsFrom = CountsFrom,
+            max_cores = max_cores
           }
 
    }
@@ -171,7 +173,7 @@ task OnemapProbs{
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"cristaniguti/reads2map"
     time:"20:00:00"
     mem:"50GB"
     cpu:20

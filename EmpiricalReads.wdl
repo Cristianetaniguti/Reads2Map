@@ -15,6 +15,7 @@ workflow EmpiricalReads {
         SplitVCF splitvcf
         String? filters
         Int max_cores
+        String rm_dupli
     }
 
     # TODO: Conferir splitvcf
@@ -23,7 +24,8 @@ workflow EmpiricalReads {
             samples_info = samples_info,
             references = references,
             splitvcf = splitvcf,
-            max_cores = max_cores
+            max_cores = max_cores,
+            rm_dupli = rm_dupli
     }
 
     call maps.Maps {

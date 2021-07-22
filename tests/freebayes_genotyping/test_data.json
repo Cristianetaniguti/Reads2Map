@@ -1,0 +1,54 @@
+{
+    "ref_fasta": {
+        "name": "sub2M.fa"
+    },
+    "ref_dict": {
+        "name": "sub2M.dict"
+    },
+    "ref_ann": {
+        "name": "sub2M.fa.ann"
+    },
+    "ref_sa": {
+        "name": "sub2M.fa.sa"
+    },
+    "ref_amb": {
+        "name": "sub2M.fa.amb"
+    },
+    "ref_bwt": {
+        "name": "sub2M.fa.bwt"
+    },
+    "ref_fasta_index": {
+        "name": "sub2M.fa.fai"
+    },
+    "ref_pac": {
+        "name": "sub2M.fa.pac"
+    },
+    "P1_bam": {
+        "name": "P1.sorted.bam"
+    },
+    "P2_bam": {
+        "name": "P2.sorted.bam"
+    },
+    "F1_01_bam": {
+        "name": "F1_01.sorted.bam"
+    },
+    "F1_02_bam": {
+        "name": "F1_02.sorted.bam"
+    },
+    "P1_bai": {
+        "name": "P1.sorted.bam.bai"
+    },
+    "P2_bai": {
+        "name": "P2.sorted.bam.bai"
+    },
+    "F1_01_bai": {
+        "name": "F1_01.sorted.bam.bai"
+    },
+    "F1_02_bai": {
+        "name": "F1_02.sorted.bam.bai"
+    },
+    "vcf_bi_freebayes": {
+        "name": "freebayes_bi.recode.vcf.gz",
+        "type": "vcf"
+    }
+}

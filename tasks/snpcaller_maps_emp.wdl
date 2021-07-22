@@ -15,9 +15,10 @@ workflow SNPCallerMaps{
      String chromosome
      File? multi_obj
      String multiallelics
+     Int max_cores
     }
 
-  call GQProbs{
+  call SNPCallerProbs{
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
@@ -28,24 +29,25 @@ workflow SNPCallerMaps{
 
   call utilsR.CheckDepths{
     input:
-      onemap_obj = GQProbs.gq_onemap_obj,
-      vcfR_obj = GQProbs.vcfR_obj,
+      onemap_obj = SNPCallerProbs.probs_onemap_obj,
+      vcfR_obj = SNPCallerProbs.vcfR_obj,
       parent1 = parent1,
       parent2 = parent2,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom
+      CountsFrom = CountsFrom,
+      max_cores = max_cores
   }
 
-  if (multiallelics == "yes") {
+  if (multiallelics == "TRUE") {
      call utilsR.AddMultiallelics{
          input:
            onemap_obj_multi = multi_obj,
-           onemap_obj_bi = GQProbs.gq_onemap_obj
+           onemap_obj_bi = SNPCallerProbs.probs_onemap_obj
       }
   }
         
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, SNPCallerProbs.probs_onemap_obj])
 
   call utilsR.FiltersReportEmp{
     input:
@@ -61,7 +63,8 @@ workflow SNPCallerMaps{
       sequence_obj = FiltersReportEmp.onemap_obj_filtered,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = "SNPCaller",
-      CountsFrom = CountsFrom
+      CountsFrom = CountsFrom,
+      max_cores = max_cores
   }
 
   output{
@@ -73,7 +76,7 @@ workflow SNPCallerMaps{
   }
 }
 
-task GQProbs{
+task SNPCallerProbs{
   input{
     File vcf_file
     File onemap_obj
@@ -101,30 +104,31 @@ task GQProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      # MAPS REPORT - GQ
-      gq <- extract_depth(vcfR.object=vcf,
+      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+
+      probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par="GQ",
+                               vcf.par=par,
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      gq_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=gq)
-      save(gq_onemap_obj, file="gq_onemap_obj.RData")
+      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs=probs)
+      save(probs_onemap_obj, file="probs_onemap_obj.RData")
 
     RSCRIPT
 
   >>>
   runtime{
-    docker:"cristaniguti/onemap_workflows"
+    docker:"cristaniguti/reads2map"
     time:"10:00:00"
     mem:"30GB"
     cpu:1
   }
 
   output{
-    File gq_onemap_obj = "gq_onemap_obj.RData"
+    File probs_onemap_obj = "probs_onemap_obj.RData"
     File vcfR_obj = "vcfR.RData"
   }
 }

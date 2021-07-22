@@ -1,64 +1,63 @@
 version 1.0
 
-# import "../structs/alignment_struct.wdl"
-# import "../structs/reads_simuS.wdl"
 import "../structs/snpcalling_empS.wdl"
 import "../structs/reference_struct.wdl"
+import "./split_filt_vcf.wdl" as norm_filt
 import "./utils.wdl" as utils
-import "./utilsR.wdl" as utilsR
-import "split_filt_vcf.wdl" as norm_filt
 
 
 workflow FreebayesGenotyping {
   input {
-    Array[File] bam
-    Array[File] bai
+    Array[File] bams
+    Array[File] bais
     Reference references
     String parent1
     String parent2
-    String chrom
     String program
-    Array[String] sampleNames
     Int max_cores
+    File? vcf_simu
   }
 
   call RunFreebayes {
     input:
       reference=references.ref_fasta,
       reference_idx=references.ref_fasta_index,
-      bam=bam,
-      bai=bai,
+      bam=bams,
+      bai=bais,
       max_cores = max_cores
   }
 
   call norm_filt.SplitFiltVCF {
     input:
-      vcf_in=RunFreebayes.vcf,
+      vcf_in = RunFreebayes.vcf,
+      vcf_simu = vcf_simu,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
+      reference_dict = references.ref_dict,
       parent1 = parent1,
       parent2 = parent2
   }
 
-  Map[String, Array[File]] bams = {"bam": bam, "bai": bai}
+  Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
 
   call utils.ReplaceAD {
     input:
       ref_fasta = references.ref_fasta,
       ref_index = references.ref_fasta_index,
-      bams = bams["bam"],
-      bais = bams["bai"],
-      vcf = SplitFiltVCF.vcf_bi,
-      tbi = SplitFiltVCF.vcf_bi_tbi,
+      bams = map_bams["bam"],
+      bais = map_bams["bai"],
+      vcf = SplitFiltVCF.vcf_biallelics,
+      tbi = SplitFiltVCF.vcf_biallelics_tbi,
       program = program
   }
 
   output {
-    File vcf_bi = SplitFiltVCF.vcf_bi
-    File tbi_bi = SplitFiltVCF.vcf_bi_tbi
-    File vcf_multi = SplitFiltVCF.vcf_multi
-    File vcf_bi_bam_counts = ReplaceAD.bam_vcf
+    File vcf_biallelics = SplitFiltVCF.vcf_biallelics
+    File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
+    File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
+    File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
+    File vcfEval = SplitFiltVCF.vcfEval
   }
 }
 
@@ -72,6 +71,8 @@ task RunFreebayes {
     Int max_cores
   }
 
+  Int disk_size = ceil(size(reference, "GB") + size(bam, "GB") * 2)
+
   command <<<
    # needed for some singularity versions
    export PATH="/freebayes/vcflib/bin:${PATH}"
@@ -82,15 +83,16 @@ task RunFreebayes {
    ln -sf ~{sep=" " bai} .
 
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
-   --genotype-qualities -f ~{reference}  *.bam > "freebayes.vcf"
+   --genotype-qualities -f ~{reference} *.bam > "freebayes.vcf"
 
   >>>
 
   runtime {
     docker: "taniguti/freebayes"
-    mem:"60GB"
-    time:"14:00:00"
-    cpu:20
+    memory: "4 GB"
+    preemptible: 3
+    cpu: 4
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {

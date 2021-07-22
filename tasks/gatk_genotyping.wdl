@@ -2,195 +2,232 @@ version 1.0
 
 import "../structs/snpcalling_empS.wdl"
 import "../structs/reference_struct.wdl"
-import "./utils.wdl" as utils
-import "./utilsR.wdl" as utilsR
 import "split_filt_vcf.wdl" as norm_filt
+import "utils.wdl" as utils
+import "hard_filtering.wdl" as hard_filt
+import "hard_filtering_emp.wdl" as hard_filt_emp
+
 
 workflow GatkGenotyping {
   input {
-    Array[File] bam
-    Array[File] bai
+    Array[File] bams
+    Array[File] bais
     Reference references
     String program
     String parent1
     String parent2
-    String chrom
-    Array[String] sampleNames
-    Int max_cores
+    File? vcf_simu
+    Int? seed
+    Int? depth
   }
 
-  call HaplotypeCallerERC {
-     input:
-       ref        = references.ref_fasta,
-       geno_fai   = references.ref_fasta_index,
-       bam_rg     = bam,
-       geno_dict  = references.ref_dict
-   }
-
-  Map[String, Array[File]] vcfs = {"vcf": HaplotypeCallerERC.GVCF, "idx": HaplotypeCallerERC.GVCF_idx}
-
-  call CreateGatkDatabase{
+  call CreateChunks {
     input:
-      path_gatkDatabase = "my_database",
-      GVCFs             = vcfs["vcf"],
-      GVCFs_idx         = vcfs["idx"],
-      ref               = references.ref_fasta
+      bams=bams,
+      bams_index=bais,
+      chunk_size=30
   }
 
-  call GenotypeGVCFs {
-    input:
-      workspace_tar = CreateGatkDatabase.workspace_tar,
-      fasta=references.ref_fasta,
-      fasta_fai=references.ref_fasta_index,
-      fasta_dict=references.ref_dict
+  scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
+
+    call HaplotypeCaller {
+      input:
+        bams = read_lines(chunk.left),
+        bams_index = read_lines(chunk.right),
+        reference_fasta = references.ref_fasta,
+        reference_fai = references.ref_fasta_index,
+        reference_dict = references.ref_dict
+    }
   }
 
-  call norm_filt.SplitFiltVCF{
+  call GATKJointCall {
     input:
-      vcf_in=GenotypeGVCFs.vcf,
+      vcfs=flatten(HaplotypeCaller.vcfs),
+      vcfs_index=flatten(HaplotypeCaller.vcfs_index),
+      reference_fasta=references.ref_fasta,
+      reference_fai=references.ref_fasta_index,
+      reference_dict=references.ref_dict
+  }
+
+  # Simulations
+  if(defined(seed)){
+    call hard_filt.HardFiltering {
+      input:
+        references = references,
+        vcf_file = GATKJointCall.vcf,
+        vcf_tbi  = GATKJointCall.vcf_tbi,
+        simu_vcf = vcf_simu,
+        seed = seed,
+        depth = depth
+    }
+  }
+
+  # Empirical
+  if(!defined(seed)){
+    call hard_filt_emp.HardFilteringEmp {
+      input:
+        references = references,
+        vcf_file = GATKJointCall.vcf,
+        vcf_tbi  = GATKJointCall.vcf_tbi
+    }
+  }
+
+  File filt_vcf = select_first([HardFiltering.filt_vcf, HardFilteringEmp.filt_vcf])
+  File QualPlots = select_first([HardFiltering.Plots, HardFilteringEmp.Plots])
+
+  call norm_filt.SplitFiltVCF {
+    input:
+      vcf_in=filt_vcf,
+      vcf_simu = vcf_simu,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
+      reference_dict = references.ref_dict,
       parent1 = parent1,
       parent2 = parent2
   }
 
-  Map[String, Array[File]] bams = {"bam": bam, "bai": bai}
+  Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
 
   call utils.ReplaceAD {
     input:
       ref_fasta = references.ref_fasta,
       ref_index = references.ref_fasta_index,
-      bams = bams["bam"],
-      bais = bams["bai"],
-      vcf = SplitFiltVCF.vcf_bi,
-      tbi = SplitFiltVCF.vcf_bi_tbi,
+      bams = map_bams["bam"],
+      bais = map_bams["bai"],
+      vcf = SplitFiltVCF.vcf_biallelics,
+      tbi = SplitFiltVCF.vcf_biallelics_tbi,
       program = program
   }
 
   output {
-    File vcf_bi = SplitFiltVCF.vcf_bi
-    File tbi_bi = SplitFiltVCF.vcf_bi_tbi
-    File vcf_multi = SplitFiltVCF.vcf_multi
-    File vcf_bi_bam_counts = ReplaceAD.bam_vcf
+    File vcf_biallelics = SplitFiltVCF.vcf_biallelics
+    File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
+    File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
+    File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
+    File vcfEval = SplitFiltVCF.vcfEval
+    File Plots = QualPlots
   }
 }
 
-
-task HaplotypeCallerERC {
+task CreateChunks {
   input {
-    File ref
-    File geno_fai
-    Array[File] bam_rg
-    File geno_dict
+    Array[String] bams
+    Array[String] bams_index
+    Int chunk_size
   }
 
   command <<<
+    set -e
+    for i in ~{sep=" " bams}; do echo $i >> lof_bams.txt; done
+    for i in ~{sep=" " bams_index}; do echo $i >> lof_bais.txt; done
 
-    for bam in ~{sep= " " bam_rg}; do
+    split -l ~{chunk_size} lof_bams.txt bams.
+    split -l ~{chunk_size} lof_bais.txt bais.
+  >>>
 
-      samtools index $bam
-      sample=`basename -s .sorted.bam $bam`
-      echo $sample
+  runtime {
+    docker: "ubuntu:20.04"
+    memory: "2 GB"
+    preemptible: 3
+    cpu: 1
+  }
 
+  output {
+    Array[File] bams_chunks = glob("bams.*")
+    Array[File] bais_chunks = glob("bais.*")
+  }
+}
+
+## Process all samples because it RAD experiments
+## usually do not have large ammount of reads.
+## NotE: if BAMS have same name it will be overrided in this task.
+task HaplotypeCaller {
+  input {
+    File reference_fasta
+    File reference_dict
+    File reference_fai
+    Array[File] bams
+    Array[File] bams_index
+  }
+
+  Int disk_size = ceil(size(reference_fasta, "GB") + size(bams, "GB") * 2)
+
+  command <<<
+    set -euo pipefail
+
+    for bam in ~{sep=" " bams}; do ln -s $bam .; done
+    for bai in ~{sep=" " bams_index}; do ln -s $bai .; done
+
+    mkdir vcfs
+    ## gvcf for each sample
+    for bam in *.bam; do
+      out_name=$(basename -s ".bam" "$bam")
       /gatk/gatk HaplotypeCaller \
         -ERC GVCF \
-        -R ~{ref} \
+        -R ~{reference_fasta} \
         -I "$bam" \
-        -O "rawLikelihoods.g.vcf" \
+        -O "vcfs/${out_name}.g.vcf.gz" \
         --max-reads-per-alignment-start 0
-
-      mv rawLikelihoods.g.vcf $sample.rawLikelihoods.g.vcf
-      mv rawLikelihoods.g.vcf.idx $sample.rawLikelihoods.g.vcf.idx
-
     done
+  >>>
+
+  runtime {
+    docker: "taniguti/gatk-picard"
+    memory: "4 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
+  }
+
+  output {
+    Array[File] vcfs = glob("vcfs/*.vcf.gz")
+    Array[File] vcfs_index = glob("vcfs/*.vcf.gz.tbi")
+  }
+}
+
+task GATKJointCall {
+  input {
+    Array[File] vcfs
+    Array[File] vcfs_index
+    File reference_fasta
+    File reference_fai
+    File reference_dict
+  }
+
+  Int disk_size = ceil(size(vcfs, "GB") + size(reference_fasta, "GB") + 5) * 2
+
+  command <<<
+    set -euo pipefail
+    grep ">" ~{reference_fasta} | sed 's/^.//' > interval.list
+    mkdir gvcfs
+    for i in ~{sep=" " vcfs}; do ln -s $i gvcfs/; done
+    for i in ~{sep=" " vcfs_index}; do ln -s $i gvcfs/; done
+
+    gatk --java-options "-Xmx3700m -Xms2g" GenomicsDBImport \
+      --batch-size 50 \
+      --genomicsdb-workspace-path cohort_db \
+      -L interval.list \
+      -V $(find gvcfs/*.g.vcf.gz -type l | paste -d',' -s | sed 's/,/ -V /g')
+
+    gatk --java-options "-Xmx3700m -Xms2g" GenotypeGVCFs \
+      -R ~{reference_fasta} \
+      -V gendb://cohort_db \
+      -G StandardAnnotation \
+      -O gatk.vcf.gz
 
   >>>
 
   runtime {
     docker: "taniguti/gatk-picard"
-    mem:"20GB"
-    cpu:1
-    time:"14:00:00"
-  }
-
-  output {
-    Array[File] GVCF = glob("*.rawLikelihoods.g.vcf")
-    Array[File] GVCF_idx = glob("*.rawLikelihoods.g.vcf.idx")
-  }
-}
-
-task CreateGatkDatabase {
-  input {
-    String path_gatkDatabase
-    Array[File] GVCFs
-    Array[File] GVCFs_idx
-    File ref
-  }
-
-  command <<<
-
-     grep ">" ~{ref} > interval_list_temp
-     sed 's/^.//' interval_list_temp > interval.list
-
-     ln -sf ~{sep=" " GVCFs} .
-     ln -sf ~{sep=" " GVCFs_idx} .
-     
-     VCFS=$(echo *.g.vcf)
-     VCFS=${VCFS// / -V }
-
-     /gatk/gatk GenomicsDBImport \
-        --genomicsdb-workspace-path ~{path_gatkDatabase} \
-        -L interval.list \
-        -V $VCFS
-
-     tar -cf ~{path_gatkDatabase}.tar ~{path_gatkDatabase}
-
-  >>>
-
-  runtime {
-      docker: "taniguti/gatk-picard"
-      mem:"30GB"
-      cpu:1
-      time:"15:00:00"
-  }
-
-  output {
-      File workspace_tar = "${path_gatkDatabase}.tar"
-  }
-}
-
-# Variant calling on gVCF
-task GenotypeGVCFs {
-
-  input {
-    File workspace_tar
-    File fasta
-    File fasta_fai
-    File fasta_dict
-  }
-
-  command <<<
-    tar -xf ~{workspace_tar}
-    WORKSPACE=$( basename ~{workspace_tar} .tar)
-
-    /gatk/gatk GenotypeGVCFs \
-        -R ~{fasta} \
-        -O gatk.vcf.gz \
-        -G StandardAnnotation \
-        -V gendb://$WORKSPACE
-
-  >>>
-
-  runtime {
-    docker: "taniguti/gatk-picard"
-    mem:"30GB"
-    cpu:1
-    time:"10:00:00"
+    memory: "4 GB"
+    cpu: 1
+    preemptible: 3
+    disks: "local-disk " + disk_size + " HDD"
   }
 
   output {
     File vcf = "gatk.vcf.gz"
-    File tbi = "gatk.vcf.gz.tbi"
+    File vcf_tbi = "gatk.vcf.gz.tbi"
   }
 }

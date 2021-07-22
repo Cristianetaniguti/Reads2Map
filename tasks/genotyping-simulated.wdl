@@ -18,8 +18,9 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String cross
     File? multi_obj
     Int max_cores
-    String seed
-    String depth
+    Int seed
+    Int depth
+    String multiallelics
   }
 
   call OnemapProbsSimulated {
@@ -41,23 +42,25 @@ workflow SnpBasedGenotypingSimulatedMaps {
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
-  
-       if (defined(multi_obj)) {
+
+      if (multiallelics == "TRUE") {
            call utilsR.AddMultiallelics{
              input:
                onemap_obj_multi = multi_obj,
                onemap_obj_bi = item.right
            }
        }
-        
-       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])  
+
+       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
 
        call utilsR.FiltersReport {
             input:
               onemap_obj = select_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
-              CountsFrom = CountsFrom
+              CountsFrom = CountsFrom,
+              seed = seed,
+              depth = depth
         }
 
         call utilsR.MapsReport {
@@ -68,7 +71,10 @@ workflow SnpBasedGenotypingSimulatedMaps {
             SNPCall_program = SNPCall_program,
             GenotypeCall_program = item.left,
             CountsFrom = CountsFrom,
-            simulated_phases = simulated_phases
+            simulated_phases = simulated_phases,
+            seed = seed,
+            depth = depth,
+            max_cores = max_cores
           }
 
         call utilsR.ErrorsReport{
@@ -80,8 +86,9 @@ workflow SnpBasedGenotypingSimulatedMaps {
               CountsFrom = CountsFrom,
               simu_vcfR = simu_vcfR,
               vcfR_obj = OnemapProbsSimulated.vcfR_obj,
-              seed             = seed,
-              depth            = depth
+              seed = seed,
+              depth = depth,
+              max_cores = max_cores
           }
 
    }
@@ -169,21 +176,20 @@ task OnemapProbsSimulated {
 
        }
 
-       save(out_onemap_obj, file="~{method}_onemap_obj.RData")
+       save(out_onemap_obj, file="onemap_obj.RData")
      RSCRIPT
 
   >>>
 
   runtime{
-    docker:"cristaniguti/onemap_workflows"
-    time:"20:00:00"
-    mem:"70GB"
-    cpu:20
-    job_name:"poly_genotyping"
+    docker:"cristaniguti/reads2map"
+    preemptible: 3
+    memory: "8 GB"
+    cpu: 4
   }
 
   output {
-    File onemap_obj_out = "~{method}_onemap_obj.RData"
+    File onemap_obj_out = "onemap_obj.RData"
     File vcfR_obj = "vcfR_obj.RData"
   }
 }

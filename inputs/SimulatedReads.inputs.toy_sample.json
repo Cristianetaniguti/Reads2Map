@@ -7,18 +7,18 @@
     "cross": "F1"
   },
   "SimulatedReads.references": {
-    "ref_fasta": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa",
-    "ref_dict": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.dict",
-    "ref_ann": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.ann",
-    "ref_sa": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.sa",
-    "ref_amb": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.amb",
-    "ref_bwt": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.bwt",
-    "ref_fasta_index": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.fai",
-    "ref_pac": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.pac"
+    "ref_fasta": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa",
+    "ref_dict": "gs://taniguti-ephemeral/onemap-toy/sub2M.dict",
+    "ref_ann": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa.ann",
+    "ref_sa": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa.sa",
+    "ref_amb": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa.amb",
+    "ref_bwt": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa.bwt",
+    "ref_fasta_index": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa.fai",
+    "ref_pac": "gs://taniguti-ephemeral/onemap-toy/sub2M.fa.pac"
   },
-  "SimulatedReads.global_seed": 1818, 
+  "SimulatedReads.global_seed": 1818,
   "SimulatedReads.sequencing": {
-    "emp_vcf": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.variants.vcf",
+    "emp_vcf": "gs://taniguti-ephemeral/onemap-toy/ref.variants.noindel.recode.vcf",
     "enzyme1": "HinDIII",
     "enzyme2": "NlaIII",
     "library_type": "ddRAD",
@@ -28,11 +28,10 @@
     "insert_size":"500",
     "depth": "10",
     "depth_parents":"10",
-    "ref_map": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.map.csv",
+    "ref_map": "gs://taniguti-ephemeral/onemap-toy/ref.map.csv",
     "multiallelics": "yes",
     "vcf_parent1": "PT_F",
     "vcf_parent2": "PT_M"
   },
   "SimulatedReads.max_cores": "4"
 }
-

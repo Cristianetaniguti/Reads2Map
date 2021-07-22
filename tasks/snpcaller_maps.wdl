@@ -15,34 +15,38 @@ workflow SNPCallerMaps{
      String GenotypeCall_program
      String CountsFrom
      File? multi_obj
-     String seed
-     String depth
+     Int seed
+     Int depth
+     Int max_cores
+     String multiallelics
     }
 
 
-  call GQProbs{
+  call SNPCallerProbs {
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
       cross = cross
   }
-  
-  if (defined(multi_obj)) {
+
+  if (multiallelics == "TRUE") {
       call utilsR.AddMultiallelics{
           input:
             onemap_obj_multi = multi_obj,
-            onemap_obj_bi = GQProbs.gq_onemap_obj
+            onemap_obj_bi = SNPCallerProbs.probs_onemap_obj
       }
   }
-        
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.gq_onemap_obj])
+
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, SNPCallerProbs.probs_onemap_obj])
 
   call utilsR.FiltersReport{
     input:
       onemap_obj = select_onemap_obj,
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = "vcf"
+      CountsFrom = "vcf",
+      seed = seed,
+      depth = depth
   }
 
   call utilsR.MapsReport{
@@ -53,7 +57,10 @@ workflow SNPCallerMaps{
       SNPCall_program = SNPCall_program,
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
-      simulated_phases = simulated_phases
+      simulated_phases = simulated_phases,
+      seed = seed,
+      depth = depth,
+      max_cores = max_cores
   }
 
   call utilsR.ErrorsReport{
@@ -64,13 +71,13 @@ workflow SNPCallerMaps{
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
       simu_vcfR = simu_vcfR,
-      vcfR_obj = GQProbs.vcfR_obj,
-      seed             = seed,
-      depth            = depth
-
+      vcfR_obj = SNPCallerProbs.vcfR_obj,
+      seed = seed,
+      depth = depth,
+      max_cores = max_cores
   }
 
-  output{
+  output {
     File RDatas = MapsReport.maps_RData
     File maps_report = MapsReport.maps_report
     File times = MapsReport.times
@@ -79,8 +86,8 @@ workflow SNPCallerMaps{
   }
 }
 
-task GQProbs{
-  input{
+task SNPCallerProbs{
+  input {
     File vcf_file
     File onemap_obj
     String cross
@@ -105,30 +112,31 @@ task GQProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      # MAPS REPORT - GQ
-      gq <- extract_depth(vcfR.object=vcf,
+      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+
+      probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par="GQ",
+                               vcf.par=par,
                                parent1="P1",
                                parent2="P2",
                                f1 = f1,
                                recovering=FALSE)
 
-      gq_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=gq)
-      save(gq_onemap_obj, file="gq_onemap_obj.RData")
+      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs = probs)
+      save(probs_onemap_obj, file="probs_onemap_obj.RData")
 
     RSCRIPT
 
   >>>
-  runtime{
-    docker:"cristaniguti/onemap_workflows"
-    time:"10:00:00"
-    mem:"30GB"
-    cpu:1
+  runtime {
+    docker: "cristaniguti/reads2map"
+    preemptible: 3
+    memory: "3 GB"
+    cpu: 1
   }
 
-  output{
-    File gq_onemap_obj = "gq_onemap_obj.RData"
+  output {
+    File probs_onemap_obj = "probs_onemap_obj.RData"
     File vcfR_obj = "vcfR_obj.RData"
   }
 }

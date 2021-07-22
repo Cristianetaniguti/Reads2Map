@@ -1,0 +1,38 @@
+{
+    "SimulatedReads.number_of_families": 2,
+    "SimulatedReads.family": {
+      "seed": 5050,
+      "popsize": 20,
+      "ploidy": 2,
+      "cross": "F1"
+    },
+    "SimulatedReads.references": {
+      "ref_fasta": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa",
+      "ref_dict": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.dict",
+      "ref_ann": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.ann",
+      "ref_sa": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.sa",
+      "ref_amb": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.amb",
+      "ref_bwt": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.bwt",
+      "ref_fasta_index": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.fai",
+      "ref_pac": "/home/cristiane/github/onemap_workflows/data/toy_sample/sub2M.fa.pac"
+    },
+    "SimulatedReads.global_seed": 1818,
+    "SimulatedReads.sequencing": {
+      "emp_vcf": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.variants.noindel.recode.vcf",
+      "enzyme1": "HinDIII",
+      "enzyme2": "NlaIII",
+      "library_type": "ddRAD",
+      "chromosome": "Chr10",
+      "pcr_cycles": "0",
+      "read_length": "300",
+      "insert_size":"500",
+      "depth": "10",
+      "depth_parents":"20",
+      "ref_map": "/home/cristiane/github/onemap_workflows/data/toy_sample/ref.map.csv",
+      "multiallelics": "yes",
+      "vcf_parent1": "PT_F",
+      "vcf_parent2": "PT_M",
+      "rm_dupli": "FALSE"
+    },
+    "SimulatedReads.max_cores": "4"
+  }  

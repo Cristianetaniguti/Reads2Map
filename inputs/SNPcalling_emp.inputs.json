@@ -1,0 +1,23 @@
+{
+  "SNPCalling.samples_info": {
+    "samples_info": "/home/cristiane/github/onemap_workflows/data/populus/sample_info_sub"
+  },
+  "SNPCalling.CreateAlignmentFromFamilies.rm_dupli": "FALSE",
+  "SNPCalling.max_cores": "4",
+  "SNPCalling.references": {
+    "ref_fasta": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa",
+    "ref_dict": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.dict",
+    "ref_ann": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.ann",
+    "ref_sa": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.sa",
+    "ref_amb": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.amb",
+    "ref_bwt": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.fai",
+    "ref_pac": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.pac"
+  },
+  "SNPCalling.splitvcf": {
+    "chromosome": "Chr10",
+    "parent1": "PT_F",
+    "parent2": "PT_M"
+  }
+}
+

@@ -1,8 +1,8 @@
 version 1.0
 
 
-workflow GusmapMaps{
-  input{
+workflow GusmapMaps {
+  input {
     File simu_onemap_obj
     File vcf_file
     File new_vcf_file
@@ -10,14 +10,17 @@ workflow GusmapMaps{
     String GenotypeCall_program
     File ref_alt_alleles
     File simulated_phases
+    Int seed
+    Int depth
+    Int max_cores
   }
 
-  Array[String] counts                      = ["vcf", "bam"]
-  Array[File] vcfs                          = [vcf_file, new_vcf_file]
+  Array[String] counts = ["vcf", "bam"]
+  Array[File] vcfs = [vcf_file, new_vcf_file]
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
 
-  scatter(vcf in counts_and_vcfs){
-    call GusmapReport{
+  scatter (vcf in counts_and_vcfs) {
+    call GusmapReport {
         input:
           vcf_file = vcf.right,
           simu_onemap_obj = simu_onemap_obj,
@@ -25,7 +28,10 @@ workflow GusmapMaps{
           GenotypeCall_program = GenotypeCall_program,
           CountsFrom = vcf.left,
           ref_alt_alleles = ref_alt_alleles,
-          simulated_phases = simulated_phases
+          simulated_phases = simulated_phases,
+          seed = seed,
+          depth = depth,
+          max_cores = max_cores
         }
     }
 
@@ -45,6 +51,9 @@ task GusmapReport {
     File simu_onemap_obj
     File ref_alt_alleles
     File simulated_phases
+    Int seed
+    Int depth
+    Int max_cores
   }
 
   command <<<
@@ -68,57 +77,61 @@ task GusmapReport {
       simulated_phases <- read.table("~{simulated_phases}")
 
       times_fake <- system.time(info_fake <- create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases))
+                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases,
+                                                     ~{seed}, ~{depth}))
 
-      outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", TRUE)
-      times <- data.frame(meth = outname, time = times_fake[3])
+      times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
+                          CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
+                          time = times_fake[3])
 
-      # If there is no fake, map will not run again
-      if(all(info_fake[[2]][,8])){
+      # If there is no false positive, map will not run again
+      if(all(info_fake[[2]][,"real.mks"] == "true marker")){
         cat("skip :) \n")
         times_temp <- times_fake
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
   
       } else {
-        times_temp <- system.time(info_correct <- create_gusmap_report(vcf_file, gab= simu_onemap_obj,"gatk",
-                                                      "gusmap", FALSE, "vcf", ref_alt_alleles,simulated_phases))
+        times_temp <- system.time(info_correct <- create_gusmap_report(vcf_file, gab= simu_onemap_obj, "gatk",
+                                                      "gusmap", FALSE, "vcf", ref_alt_alleles,simulated_phases,
+                                                     ~{seed}, ~{depth}))
         
-        times_temp <- data.frame(meth = outname, time = times_temp[3])
       }
 
-      outname <- paste0("map_", "~{SNPCall_program}", "_", "~{CountsFrom}", "_", "~{GenotypeCall_program}", "_", FALSE)
 
       # Joint maps data.frames
       map_joint <- rbind(info_fake[[2]], info_correct[[2]])
-            write.table(map_joint, file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
+      vroom::vroom_write(map_joint, "map_report.tsv.gz", num_threads = ~{max_cores})
 
       # Joint RDatas
       RDatas_joint <- list()
       RDatas_joint[[1]] <- info_fake[[1]]
       RDatas_joint[[2]] <- info_correct[[1]]
-
       names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
-                              "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
-      save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
+                               "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
+      save(RDatas_joint, file= "map.RData")
 
       # Joint times data.frames
+      times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
+                               CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "without-false",
+                               time = times_temp[3])
+
       times <- rbind(times, times_temp)
-      write.table(times, "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt", col.names = F)
+      vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
 
     RSCRIPT
 
   >>>
 
   runtime {
-    docker: "cristaniguti/onemap_workflows"
-    time:"14:00:00"
-    mem:"30GB"
+    docker: "cristaniguti/reads2map"
+    preemptible: 3
+    memory: "4 GB"
     cpu:1
   }
 
   output {
-    File maps_report = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
-    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
-    File times = "times_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.txt"
+    File maps_report = "map_report.tsv.gz"
+    File maps_RData = "map.RData"
+    File times = "times_report.tsv.gz"
   }
 }

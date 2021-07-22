@@ -4,7 +4,7 @@ Reads2Map workflows offers tools to build linkage maps in diploid outcrossing sp
 
 ## Quickstart
 
-This workflow requires docker hub images. First of all, download [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/) and install its requirements and [docker](https://docs.docker.com/install/).
+This workflows requires docker hub images. First of all, download [cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/) and install its requirements and [docker](https://docs.docker.com/install/).
 
 ### Run SimulatedReads2Map workflow
 
@@ -43,7 +43,7 @@ docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev java -jar picard.jar Crea
 
 *sequencing*:
 - library_type: the options RADseq, WGS and Exome are available.
-- multiallelics: Define with "yes" or "no", if the analysis should try to include multiallelic markers in the linkage maps.
+- multiallelics: Define with "TRUE" or "FALSE", if the analysis should try to include multiallelic markers in the linkage maps.
 - emp_vcf: reference VCF file with the variants to be simulated.
 - emp_bam: reference BAM file. It will be used to define the reads profile in WGS and Exome simulation.
 - ref_map: reference linkage map, it is a text file with two columns, one named "cM" with values for centimorgan position of markers and other named "bp" with the respective base pair position of each marker. The markers in your reference map do not need to be the same of the VCF file. Using splines, this map is used to train a model to define the position in certimorgan of the simulated variants in the genome.  
@@ -71,6 +71,10 @@ java -jar cromwell.jar run -i SimulatedReads2Map.inputs.json SimulatedReads2Map.
 **Warning**: See section [Configurations](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/configurations.html) to choose the better available option for you or create a personalized one.
 
 ### Run EmpiricalReads2Map workflow
+
+The EmpiricalReads2Map workflow requires demultiplexed and cleaned FASTQ files. We made available a suggestion for preprocessing reads in PreprocessingReads.wdl. Check its tutorial [here](PreprocessingReads.html).
+
+
 
 * Adapt the path of the inputs in `EmpiricalReads2Map.inputs.json`
 
@@ -138,7 +142,7 @@ You can also download the full data set running the script "data/populus/downloa
 Here are some tutorials that better explain how to use the workflows:
 
 * [Introduction](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/introduction.html)
-* [Running SimulatedReads2Map workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/simulatedreads.html)
+* [Running SimulatedReads2Map workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/SimulatedReads2Map.html)
 * [Running EmpiricalReads2Map workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/EmpiricalReads2Map.html)
 * [Configurations](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/configurations.html)
 * [High density maps](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/High_density_maps.html)

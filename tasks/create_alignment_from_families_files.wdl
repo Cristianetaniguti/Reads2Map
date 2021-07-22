@@ -22,6 +22,7 @@ workflow CreateAlignmentFromFamilies {
         File families_info
         Reference references
         Int max_cores
+        String rm_dupli
     }
 
     call SepareIndividuals {
@@ -36,7 +37,8 @@ workflow CreateAlignmentFromFamilies {
                 reads1      = sample.reads,
                 libraries   = sample.libraries,
                 references  = references,
-                max_cores   = max_cores
+                max_cores   = max_cores,
+                rm_dupli    = rm_dupli
         }
     }
 
@@ -45,6 +47,7 @@ workflow CreateAlignmentFromFamilies {
         Array[File] bam = RunBwaAlignment.bam
         Array[File] bai = RunBwaAlignment.bai
         Array[String] names = SepareIndividuals.dataset.names
+        Array[File] dup_metrics = RunBwaAlignment.dup_metrics
     }
 }
 

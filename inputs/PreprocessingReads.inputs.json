@@ -1,9 +1,9 @@
 {
   "PreprocessingReads.spec": {
     "adapter": "AGATCGGAAGAG",
-    "raw_dict": "/home/cristiane/github/errors_workflow/data/populus_sub_ig/process_radtags_test.tar.gz",
+    "raw_dict": "/home/cristiane/data/populus/raw.tar.gz",
     "enzyme": "hindIII",
     "enzyme2": "nlaIII",
-    "barcode": "barcode_file"
+    "barcode": "/home/cristiane/data/populus/barcode_file"
   }
 }
