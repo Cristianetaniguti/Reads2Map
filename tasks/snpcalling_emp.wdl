@@ -13,7 +13,6 @@ workflow SNPCalling {
   input {
     Samples_info samples_info
     Reference references
-    SplitVCF splitvcf
     Int max_cores
     String rm_dupli
   }
@@ -31,9 +30,7 @@ workflow SNPCalling {
       bams=CreateAlignmentFromFamilies.bam,
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
-      program="gatk",
-      parent1 = splitvcf.parent1,
-      parent2 = splitvcf.parent2
+      program="gatk"
   }
 
   call freebayes.FreebayesGenotyping {
@@ -42,20 +39,16 @@ workflow SNPCalling {
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
       program="freebayes",
-      parent1 = splitvcf.parent1,
-      parent2 = splitvcf.parent2,
       max_cores = max_cores
   }
 
   output {
-    File gatk_vcf_bi = GatkGenotyping.vcf_biallelics
-    File gatk_vcf_multi = GatkGenotyping.vcf_multiallelics
-    File gatk_vcf_bi_bam_count = GatkGenotyping.vcf_biallelics_bamcounts
+    File gatk_vcf = GatkGenotyping.vcf_norm
+    File gatk_vcf_bam_count = GatkGenotyping.vcf_norm_bamcounts
     File gatk_vcfEval = GatkGenotyping.vcfEval
     File Plots = GatkGenotyping.Plots
-    File freebayes_vcf_bi = FreebayesGenotyping.vcf_biallelics
-    File freebayes_vcf_multi = FreebayesGenotyping.vcf_multiallelics
-    File freebayes_vcf_bi_bam_count = FreebayesGenotyping.vcf_biallelics_bamcounts
+    File freebayes_vcf = FreebayesGenotyping.vcf_norm
+    File freebayes_vcf_bam_count = FreebayesGenotyping.vcf_norm_bamcounts
     File freebayes_vcfEval = FreebayesGenotyping.vcfEval
   }
 }

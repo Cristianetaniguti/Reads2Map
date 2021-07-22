@@ -1,6 +1,6 @@
 version 1.0
 
-workflow SplitFiltVCF{
+workflow Normalization{
   input {
     File vcf_in
     File? vcf_simu
@@ -8,8 +8,6 @@ workflow SplitFiltVCF{
     File reference
     File reference_idx
     File reference_dict
-    String parent1
-    String parent2
   }
 
   call BiallelicNormalization {
@@ -22,24 +20,16 @@ workflow SplitFiltVCF{
   call VariantEval {
     input:
       vcf_norm = BiallelicNormalization.vcf_norm,
+      vcf_norm_tbi = BiallelicNormalization.vcf_norm_tbi,
       vcf_simu = vcf_simu,
       reference = reference,
       reference_idx = reference_idx,
       reference_dict = reference_dict
   }
 
-  call SplitFilters {
-    input:
-      vcf_in = BiallelicNormalization.vcf_norm,
-      program = program,
-      parent1 = parent1,
-      parent2 = parent2
-  }
-
   output {
-    File vcf_biallelics = SplitFilters.vcf_biallelics
-    File vcf_biallelics_tbi = SplitFilters.vcf_biallelics_tbi
-    File vcf_multiallelics = SplitFilters.vcf_multiallelics
+    File vcf_norm = BiallelicNormalization.vcf_norm
+    File vcf_norm_tbi = BiallelicNormalization.vcf_norm_tbi
     File vcfEval = VariantEval.vcfEval
   }
 }
@@ -55,6 +45,9 @@ task BiallelicNormalization {
 
   command <<<
     bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
+
+    bgzip vcf_norm.vcf
+    tabix -p vcf vcf_norm.vcf.gz
   >>>
 
   runtime {
@@ -66,13 +59,15 @@ task BiallelicNormalization {
   }
 
   output {
-    File vcf_norm = "vcf_norm.vcf"
+    File vcf_norm = "vcf_norm.vcf.gz"
+    File vcf_norm_tbi = "vcf_norm.vcf.gz.tbi"
   }
 }
 
 task VariantEval {
   input {
     File vcf_norm
+    File vcf_norm_tbi
     File? vcf_simu
     File reference
     File reference_idx
@@ -99,6 +94,7 @@ task VariantEval {
 
 }
 
+# Deprecated
 task SplitFilters {
   input {
     File vcf_in

@@ -14,8 +14,6 @@ workflow GatkGenotyping {
     Array[File] bais
     Reference references
     String program
-    String parent1
-    String parent2
     File? vcf_simu
     Int? seed
     Int? depth
@@ -75,16 +73,14 @@ workflow GatkGenotyping {
   File filt_vcf = select_first([HardFiltering.filt_vcf, HardFilteringEmp.filt_vcf])
   File QualPlots = select_first([HardFiltering.Plots, HardFilteringEmp.Plots])
 
-  call norm_filt.SplitFiltVCF {
+  call norm_filt.Normalization {
     input:
-      vcf_in=filt_vcf,
+      vcf_in= filt_vcf,
       vcf_simu = vcf_simu,
       program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
-      reference_dict = references.ref_dict,
-      parent1 = parent1,
-      parent2 = parent2
+      reference_dict = references.ref_dict
   }
 
   Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
@@ -95,17 +91,15 @@ workflow GatkGenotyping {
       ref_index = references.ref_fasta_index,
       bams = map_bams["bam"],
       bais = map_bams["bai"],
-      vcf = SplitFiltVCF.vcf_biallelics,
-      tbi = SplitFiltVCF.vcf_biallelics_tbi,
+      vcf = Normalization.vcf_norm,
+      tbi = Normalization.vcf_norm_tbi,
       program = program
   }
 
   output {
-    File vcf_biallelics = SplitFiltVCF.vcf_biallelics
-    File vcf_biallelics_tbi = SplitFiltVCF.vcf_biallelics_tbi
-    File vcf_multiallelics = SplitFiltVCF.vcf_multiallelics
-    File vcf_biallelics_bamcounts = ReplaceAD.bam_vcf
-    File vcfEval = SplitFiltVCF.vcfEval
+    File vcf_norm = Normalization.vcf_norm
+    File vcf_norm_bamcounts = ReplaceAD.bam_vcf
+    File vcfEval = Normalization.vcfEval
     File Plots = QualPlots
   }
 }

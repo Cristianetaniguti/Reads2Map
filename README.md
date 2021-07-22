@@ -102,7 +102,7 @@ You can download black cottonwood genome assembly (FASTA) and RADseq reads from 
 ```
 # Download a subset of RADseq data from populus study using the docker image "cristaniguti/sratoolkit" with the SRA toolkit
 
-for i in SRR6249785 SRR6249786 SRR6249787 SRR6249788; do
+for i in SRR6249808 SRR6249795 SRR6249788 SRR6249787 SRR6249786 SRR6249785; do
     docker run -v $(pwd):/opt/ cristaniguti/sratoolkit ./fasterq-dump $i -O /opt/
     head -n 80000 $i.fastq > $i.sub.fastq # Just a subset of the reads
 done
