@@ -419,38 +419,10 @@ task ConvertPedigreeSimulationToVcf {
     R --vanilla --no-save <<RSCRIPT
 
     library(onemap)
+    library(pedigreesim2onemap)
     library(vcfR)
 
-    # Function
-    add_head <- function(vcf, outname, type="simu"){
-
-      vcf_vector <- apply(vcf, 1, function(x) paste(x, collapse = "\t"))
-      header1 <- paste0(colnames(vcf), collapse = "\t")
-
-      if(type == "radinitio"){
-        header <- paste0("##fileformat=VCFv4.2", "\n",
-                        "##source=tskit 0.3.4", "\n",
-                        "##FILTER=<ID=PASS,Description=\"All filters passed\">", "\n",
-                        "##contig=<ID=1,length=1999993>","\n",
-                        "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",'\n',
-                        "#", header1)
-      } else {
-        ##source=RADinitio version 1.1.1 - radinitio.merge_vcf()
-        header <- paste0("##fileformat=VCFv4.2", "\n",
-                        "##source=RADinitio version 1.1.1 - radinitio.merge_vcf()", "\n",
-                        "##FILTER=<ID=PASS,Description=\"All filters passed\">", "\n",
-                        "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">",'\n',
-                        "#", header1)
-      }
-
-      vcf <- c(header,vcf_vector)
-      write.table(vcf, file = outname, quote = FALSE, row.names = FALSE,  col.names = FALSE)
-    }
-
-
     mks <- read.table("~{ref_alt_alleles}", stringsAsFactors = FALSE)
-    pos <- mks[,2]
-    chr <- mks[,1]
 
     set.seed(~{seed})
     pedsim2vcf(inputfile = "~{genotypes_dat}",
@@ -459,23 +431,16 @@ task ConvertPedigreeSimulationToVcf {
                out.file = "temp.vcf",
                miss.perc = 0,
                counts = FALSE,
-               pos = pos,
+               pos = mks[,2],
                haplo.ref = "P1_1",
-               chr = chr,
+               chr = mks[,1],
                phase = TRUE,
+               reference.alleles = mks[,3]
                use.as.alleles=TRUE)
 
     vcfR.object <- read.vcfR("temp.vcf")
 
-    # Fix alternative and reference alleles
-    vcfR.object@fix[,4] <- mks[,3]
-    vcfR.object@fix[,5] <- mks[,4]
-    vcfR.object@fix[,c(6,8)] <- "."
-    vcfR.object@fix[,7] <- "."
-
-    vcf_simu <- data.frame(vcfR.object@fix, vcfR.object@gt, stringsAsFactors = FALSE)
-
-    add_head(vcf_simu, "~{seed}_~{depth}_simu.vcf")
+    change_header(vcfR.object, "~{seed}_~{depth}_simu.vcf")
 
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
     inds_sele <- INDS_temp[-c(which(INDS_temp=="P1"), which(INDS_temp=="P2"))]

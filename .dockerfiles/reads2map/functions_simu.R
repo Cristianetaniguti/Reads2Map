@@ -45,8 +45,8 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj, SNPCall, CountsFrom, GenoCall, seed, depth) {
-  onemap_prob <- filter_prob(onemap_obj, threshold = 0.8)
-  onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+  # onemap_prob <- filter_prob(onemap_obj, threshold = 0.8)
+  onemap_mis <- filter_missing(onemap_obj, threshold = 0.25)
   bins <- find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
   segr <- test_segregation(onemap_bins)

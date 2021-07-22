@@ -22,7 +22,7 @@ workflow SNPCallerMaps{
     }
 
 
-  call GQProbs {
+  call SNPCallerProbs {
     input:
       vcf_file = vcf_file,
       onemap_obj = onemap_obj,
@@ -33,11 +33,11 @@ workflow SNPCallerMaps{
       call utilsR.AddMultiallelics{
           input:
             onemap_obj_multi = multi_obj,
-            onemap_obj_bi = GQProbs.pl_onemap_obj
+            onemap_obj_bi = SNPCallerProbs.probs_onemap_obj
       }
   }
 
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, GQProbs.pl_onemap_obj])
+  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, SNPCallerProbs.probs_onemap_obj])
 
   call utilsR.FiltersReport{
     input:
@@ -71,7 +71,7 @@ workflow SNPCallerMaps{
       GenotypeCall_program = GenotypeCall_program,
       CountsFrom = CountsFrom,
       simu_vcfR = simu_vcfR,
-      vcfR_obj = GQProbs.vcfR_obj,
+      vcfR_obj = SNPCallerProbs.vcfR_obj,
       seed = seed,
       depth = depth,
       max_cores = max_cores
@@ -86,7 +86,7 @@ workflow SNPCallerMaps{
   }
 }
 
-task GQProbs{
+task SNPCallerProbs{
   input {
     File vcf_file
     File onemap_obj
@@ -112,17 +112,18 @@ task GQProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      # MAPS REPORT - PL
-      pl <- extract_depth(vcfR.object=vcf,
+      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+
+      probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par="PL",
+                               vcf.par=par,
                                parent1="P1",
                                parent2="P2",
                                f1 = f1,
                                recovering=FALSE)
 
-      pl_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs = pl)
-      save(pl_onemap_obj, file="pl_onemap_obj.RData")
+      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs = probs)
+      save(probs_onemap_obj, file="probs_onemap_obj.RData")
 
     RSCRIPT
 
@@ -135,7 +136,7 @@ task GQProbs{
   }
 
   output {
-    File pl_onemap_obj = "pl_onemap_obj.RData"
+    File probs_onemap_obj = "probs_onemap_obj.RData"
     File vcfR_obj = "vcfR_obj.RData"
   }
 }

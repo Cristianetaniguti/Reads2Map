@@ -79,8 +79,8 @@ phaseToOPGP_OM <- function(x){
 }
 
 create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chromosome) {
-  onemap_prob <- filter_prob(onemap_obj, threshold = 0.8)
-  onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+  # onemap_prob <- filter_prob(onemap_obj, threshold = 0.8)
+  onemap_mis <- filter_missing(onemap_obj, threshold = 0.25)
   onemap_mis <- onemap::filter_missing(onemap_obj, threshold = 0.25)
   bins <- onemap::find_bins(onemap_mis)
   onemap_bins <- create_data_bins(onemap_mis, bins)
@@ -96,6 +96,7 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
   lgs <- group(seq1)
   if(all(lgs$groups == 0)) {
     nongroup <- length(seq1$seq.num)
+    lg1 <- seq1
   } else {
     lg1 <- make_seq(lgs, as.numeric(names(which.max(table(lgs$groups[-which(lgs$groups== 0)])))))
     nongroup <- length(seq1$seq.num) - length(lg1$seq.num)

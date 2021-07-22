@@ -29,7 +29,7 @@
     "depth": "20",
     "depth_parents":"160",
     "ref_map": "/home/cristiane/data/populus/inputs_short37cM/ref.map.chr10.taniguti_subset.csv",
-    "multiallelics": "TRUE",
+    "multiallelics": "FALSE",
     "vcf_parent1": "PT_F",
     "vcf_parent2": "PT_M",
     "rm_dupli": "FALSE"

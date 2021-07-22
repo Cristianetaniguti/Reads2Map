@@ -65,7 +65,8 @@ task GusmapReport{
                            "~{GenotypeCall_program}", "~{parent1}", "~{parent2}"))
 
       times <- data.frame(SNPCall = "~{SNPCall_program}", 
-                    CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}",
+                    CountsFrom = "~{CountsFrom}", 
+                    GenoCall =  "~{GenotypeCall_program}",
                     time = times_temp[3])
 
       vroom::vroom_write(info[[2]], "map_report.tsv.gz", num_threads = ~{max_cores})
