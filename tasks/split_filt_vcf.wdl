@@ -52,10 +52,15 @@ task BiallelicNormalization {
 
   runtime {
     docker: "lifebitai/bcftools"
-    memory: "1 GB"
-    preemptible: 3
-    cpu: 1
-    disks: "local-disk " + disk_size + " HDD"
+    #memory: "1 GB"
+    #preemptible: 3
+    #cpu: 1
+    #disks: "local-disk " + disk_size + " HDD"
+    job_name: "BiallelicNormalization"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    cpu:"--ntasks=1"
+    time:"00:30:00"
   }
 
   output {
@@ -82,10 +87,15 @@ task VariantEval {
 
   runtime {
     docker: "broadinstitute/gatk3:3.8-1"
-    memory: "1 GB"
-    preemptible: 3
-    cpu: 1
-    disks: "local-disk " + disk_size + " HDD"
+    #memory: "1 GB"
+    #preemptible: 3
+    #cpu: 1
+    #disks: "local-disk " + disk_size + " HDD"
+    job_name: "VariantEval"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    cpu:"--ntasks=1"
+    time:"00:20:00"
   }
 
   output {
@@ -139,10 +149,15 @@ task SplitFilters {
 
   runtime {
     docker: "cristaniguti/vcftools"
-    memory: "2 GB"
-    preemptible: 3
-    cpu: 1
-    disks: "local-disk " + disk_size + " HDD"
+    #memory: "2 GB"
+    #preemptible: 3
+    #cpu: 1
+    #disks: "local-disk " + disk_size + " HDD"
+    job_name: "SplitFilters"
+    node:"--nodes=1"
+    mem:"--mem=2GB"
+    cpu:"--ntasks=1"
+    time:"00:40:00"
   }
 
   output {

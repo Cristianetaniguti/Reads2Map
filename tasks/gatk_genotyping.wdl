@@ -122,9 +122,14 @@ task CreateChunks {
 
   runtime {
     docker: "ubuntu:20.04"
-    memory: "2 GB"
-    preemptible: 3
-    cpu: 1
+    # memory: "2 GB"
+    # preemptible: 3
+    # cpu: 1
+    job_name: "CreateChunks"
+    node:"--nodes=1"
+    mem:"--mem=1GB"
+    cpu:"--ntasks=1"
+    time:"00:05:00"
   }
 
   output {
@@ -168,10 +173,15 @@ task HaplotypeCaller {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    memory: "4 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "4 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "HaplotypeCaller"
+    node:"--nodes=1"
+    mem:"--mem=32GB"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output {
@@ -214,10 +224,15 @@ task GATKJointCall {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    memory: "4 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "4 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "GATKJointCall"
+    node:"--nodes=1"
+    mem:"--mem=64GB"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output {

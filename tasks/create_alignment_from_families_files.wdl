@@ -78,10 +78,12 @@ task SepareIndividuals {
     >>>
 
     runtime {
+        job_name: "SeparateIndividuals"
         docker: "python:3.7"
-	mem:"--nodes=1"
-	cpu:1
-	time:"24:00:00"
+        node:"--nodes=1"
+        mem:"--mem=1G"
+        cpu:"--ntasks=1"
+        time:"00:05:00"
     }
 
     output {

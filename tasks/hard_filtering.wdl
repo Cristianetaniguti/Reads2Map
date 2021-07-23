@@ -89,7 +89,6 @@ task VariantsToTable {
             -F ReadPosRankSum \
             -O Total.table
 
-
         gatk VariantsToTable \
             -V FalsePositives.vcf.gz \
             -F CHROM -F POS \
@@ -116,9 +115,14 @@ task VariantsToTable {
 
     runtime {
         docker: "taniguti/gatk-picard"
-        memory: "1 GB"
-        cpu: 1
-        disks: "local-disk " + disk_size + " HDD"
+        # memory: "1 GB"
+        # cpu: 1
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "VariantsToTable"
+        node:"--nodes=1"
+        mem:"--mem=10GB"
+        cpu:"--ntasks=1"
+        time:"01:00:00"
     }
 
     output {
@@ -219,9 +223,14 @@ task QualPlots {
 
     runtime {
         docker: "cristaniguti/reads2map"
-        memory: "1 GB"
-        cpu: 1
-        disks: "local-disk " + disk_size + " HDD"
+        # memory: "1 GB"
+        # cpu: 1
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "QualPlots"
+        node:"--nodes=1"
+        mem:"--mem=10GB"
+        cpu:"--ntasks=1"
+        time:"01:00:00"
     }
 
     output {
@@ -262,9 +271,14 @@ task VariantFiltration {
 
     runtime {
         docker: "taniguti/gatk-picard"
-        memory: "1 GB"
-        cpu: 1
-        disks: "local-disk " + disk_size + " HDD"
+        # memory: "1 GB"
+        # cpu: 1
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "VariantsToTable"
+        node:"--nodes=1"
+        mem:"--mem=10GB"
+        cpu:"--ntasks=1"
+        time:"00:30:00"
     }
 
     output {

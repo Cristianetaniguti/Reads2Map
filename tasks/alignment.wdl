@@ -72,10 +72,15 @@ task RunBwaAlignment {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    memory: "1 GB"
-    cpu:4
-    preemptible: 3
-    disks: "local-disk " + 10 + " HDD"
+    # memory: "1 GB"
+    # cpu:4
+    # preemptible: 3
+    # disks: "local-disk " + 10 + " HDD"
+    job_name: "RunBwaAlignment"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    cpu:"--ntasks-per-node=10"
+    time:"00:20:00"
   }
 
   output {
@@ -147,10 +152,15 @@ task RunBwaAlignmentSimu {
 
   runtime {
     docker: "kfdrc/bwa-picard:latest-dev"
-    memory: "1 GB"
-    cpu:4
-    preemptible: 3
-    disks: "local-disk " + 10 + " HDD"
+    # memory: "1 GB"
+    # cpu:4
+    # preemptible: 3
+    # disks: "local-disk " + 10 + " HDD"
+    job_name: "RunBwaAlignmentSimu"
+    node:"--nodes=1"
+    mem:"--mem=1GB"
+    cpu:"--ntasks-per-node=10"
+    time:"00:20:00"
   }
 
   output {
@@ -188,9 +198,14 @@ task AddAlignmentHeader {
 
   runtime {
     docker: "taniguti/gatk-picard"
-    time:"01:00:00"
-    mem:"10GB"
-    cpu:1
+    # time:"01:00:00"
+    # mem:"1GB"
+    # cpu:1
+    job_name: "AddAlignmentHeader"
+    node:"--nodes=1"
+    mem:"--mem=5GB"
+    cpu:"--ntasks=1"
+    time:"00:20:00"
   }
 
   output {

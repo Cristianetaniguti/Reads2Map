@@ -282,9 +282,14 @@ task ReplaceAD {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
-    memory: "2 GB"
-    cpu:1
-    preemptible: 3
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "ReplaceAD"
+    node:"--nodes=1"
+    mem:"--mem=32GB"
+    cpu:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
