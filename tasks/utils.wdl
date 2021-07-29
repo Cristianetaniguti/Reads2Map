@@ -278,6 +278,7 @@ task ReplaceAD {
     bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
     bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o ~{program}_bam_vcf.vcf
 
+    bgzip ~{program}_bam_vcf.vcf
   >>>
 
   runtime {
@@ -288,12 +289,13 @@ task ReplaceAD {
     job_name: "ReplaceAD"
     node:"--nodes=1"
     mem:"--mem=32GB"
-    cpu:"--ntasks=1"
+    tasks:"--ntasks=1"
     time:"01:00:00"
   }
 
   output {
-    File bam_vcf =  "~{program}_bam_vcf.vcf"
+    File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
   }
 }
+
 

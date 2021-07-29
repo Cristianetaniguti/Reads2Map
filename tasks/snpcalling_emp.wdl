@@ -14,6 +14,7 @@ workflow SNPCalling {
     Samples_info samples_info
     Reference references
     Int max_cores
+    Int chunk_size
     String rm_dupli
   }
 
@@ -22,7 +23,8 @@ workflow SNPCalling {
       families_info=samples_info.samples_info,
       references=references,
       max_cores = max_cores,
-      rm_dupli = rm_dupli
+      rm_dupli = rm_dupli,
+      chunk_size = chunk_size
   }
 
   call gatk.GatkGenotyping {
@@ -30,6 +32,7 @@ workflow SNPCalling {
       bams=CreateAlignmentFromFamilies.bam,
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
+      chunk_size = chunk_size,
       program="gatk"
   }
 

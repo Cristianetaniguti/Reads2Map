@@ -17,13 +17,14 @@ workflow GatkGenotyping {
     File? vcf_simu
     Int? seed
     Int? depth
+    Int chunk_size
   }
 
   call CreateChunks {
     input:
       bams=bams,
       bams_index=bais,
-      chunk_size=30
+      chunk_size=chunk_size
   }
 
   scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
@@ -127,7 +128,7 @@ task CreateChunks {
     # cpu: 1
     job_name: "CreateChunks"
     node:"--nodes=1"
-    mem:"--mem=1GB"
+    mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"00:05:00"
   }
@@ -167,7 +168,8 @@ task HaplotypeCaller {
         -R ~{reference_fasta} \
         -I "$bam" \
         -O "vcfs/${out_name}.g.vcf.gz" \
-        --max-reads-per-alignment-start 0
+        --max-reads-per-alignment-start 0 
+
     done
   >>>
 
@@ -179,9 +181,9 @@ task HaplotypeCaller {
     # disks: "local-disk " + disk_size + " HDD"
     job_name: "HaplotypeCaller"
     node:"--nodes=1"
-    mem:"--mem=32GB"
-    cpu:"--ntasks=1"
-    time:"05:00:00"
+    mem:"--mem=64G"
+    tasks:"--ntasks=1"
+    time:"07:00:00"
   }
 
   output {
@@ -218,7 +220,7 @@ task GATKJointCall {
       -R ~{reference_fasta} \
       -V gendb://cohort_db \
       -G StandardAnnotation \
-      -O gatk.vcf.gz
+      -O gatk.vcf.gz 
 
   >>>
 
@@ -230,8 +232,8 @@ task GATKJointCall {
     # disks: "local-disk " + disk_size + " HDD"
     job_name: "GATKJointCall"
     node:"--nodes=1"
-    mem:"--mem=64GB"
-    cpu:"--ntasks=1"
+    mem:"--mem=50G"
+    tasks:"--ntasks=1"
     time:"05:00:00"
   }
 

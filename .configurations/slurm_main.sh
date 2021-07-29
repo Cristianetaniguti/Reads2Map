@@ -1,14 +1,14 @@
 #!/bin/bash
 
+#SBATCH --export=NONE
 #SBATCH -J cromwell_main
-#SBATCH -c 3
-#SBATCH --mem 10240
-#SBATCH -p short
-#SBATCH -o /data1/aafgarci/cris/main.log
-#SBATCH -e /data1/aafgarci/cris/main.err
+#SBATCH --nodes=1                    
+#SBATCH --mem=1G
+#SBATCH --time=01:30:00
+#SBATCH -o /scratch/user/chtaniguti/main.log
+#SBATCH -e /scratch/user/chtaniguti/main.err
 
-java -jar -Dconfig.file=/home/cristiane/github/onemap_workflows/.configurations/cromwell_cache.conf \
-     -jar /home/cristiane/cromwell-55.jar \
-     run /home/cristiane/github/onemap_workflows/SimulatedReads.wdl \
-     -i /home/cristiane/github/onemap_workflows/inputs/SimulatedReads.inputs.toy_sample.json \
-     -o /home/cristiane/github/onemap_workflows/.configurations/options.json
+java -jar -Dconfig.file=/scratch/user/chtaniguti/Reads2Map/.configurations/cromwell_cache.conf \
+     -jar /scratch/user/chtaniguti/cromwell-65.jar \
+     run /scratch/user/chtaniguti/Reads2Map/tasks/snpcalling_emp.wdl \
+     -i /scratch/user/chtaniguti/Reads2Map/inputs/toy_sample_emp.inputs.json 

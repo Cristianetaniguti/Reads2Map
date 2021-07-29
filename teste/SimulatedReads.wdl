@@ -1,1 +1,0 @@
-../SimulatedReads.wdl

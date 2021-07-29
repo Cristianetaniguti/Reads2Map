@@ -87,11 +87,11 @@ task RunFreebayes {
     # preemptible: 3
     # cpu: 4
     # disks: "local-disk " + disk_size + " HDD"
-    job_name: "RunFreebayes"
+    job_name: "RunFreebayes" 
     node:"--nodes=1"
-    mem:"--mem=64GB"
-    cpu:"--ntasks-per-node=10"
-    time:"10:00:00"
+    mem:"--mem=64G"
+    tasks:"--ntasks-per-node=10"
+    time:"07:00:00"
   }
 
   output {

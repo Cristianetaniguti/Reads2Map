@@ -58,8 +58,8 @@ task BiallelicNormalization {
     #disks: "local-disk " + disk_size + " HDD"
     job_name: "BiallelicNormalization"
     node:"--nodes=1"
-    mem:"--mem=10GB"
-    cpu:"--ntasks=1"
+    mem:"--mem=10G"
+    tasks:"--ntasks=1"
     time:"00:30:00"
   }
 
@@ -93,9 +93,9 @@ task VariantEval {
     #disks: "local-disk " + disk_size + " HDD"
     job_name: "VariantEval"
     node:"--nodes=1"
-    mem:"--mem=10GB"
-    cpu:"--ntasks=1"
-    time:"00:20:00"
+    mem:"--mem=10G"
+    tasks:"--ntasks=1"
+    time:"00:10:00"
   }
 
   output {
@@ -156,7 +156,7 @@ task SplitFilters {
     job_name: "SplitFilters"
     node:"--nodes=1"
     mem:"--mem=2GB"
-    cpu:"--ntasks=1"
+    tasks:"--ntasks=1"
     time:"00:40:00"
   }
 
