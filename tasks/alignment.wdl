@@ -44,7 +44,7 @@ task RunBwaAlignment {
 
     # Check if there are replicated samples
     for index in ${!sampleName_unique[*]}; do
-      NFILES=($(echo ${sampleName_unique[$index]}*.bam))
+      NFILES=($(echo ${sampleName_unique[$index]}.*.bam))
       echo ${NFILES[*]}
       echo ${#NFILES[@]}
       REP=()
@@ -94,7 +94,7 @@ task RunBwaAlignment {
     node:"--nodes=1"
     mem:"--mem=32GB"
     tasks:"--ntasks-per-node=10"
-    time:"00:20:00"
+    time:"00:40:00"
   }
 
   output {

@@ -89,9 +89,9 @@ task RunFreebayes {
     # disks: "local-disk " + disk_size + " HDD"
     job_name: "RunFreebayes" 
     node:"--nodes=1"
-    mem:"--mem=64G"
-    tasks:"--ntasks-per-node=10"
-    time:"07:00:00"
+    mem:"--mem=50G"
+    tasks:"--ntasks-per-node=20"
+    time:"72:00:00"
   }
 
   output {

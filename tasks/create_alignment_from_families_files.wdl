@@ -35,7 +35,7 @@ workflow CreateAlignmentFromFamilies {
     output {
         Array[File] bam = flatten(RunBwaAlignment.bam)
         Array[File] bai = flatten(RunBwaAlignment.bai)
-        Array[File] dup_metrics = flatten(RunBwaAlignment.dup_metrics)
+        Array[Array[File]] dup_metrics = RunBwaAlignment.dup_metrics
     }
 }
 
