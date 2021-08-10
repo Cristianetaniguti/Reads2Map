@@ -20,3 +20,4 @@ figures_gabaritos
 **/data/
 **/__pycache__/**
 import_paths.txt
+.vscode/
