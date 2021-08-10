@@ -59,8 +59,8 @@ task RunBwaAlignment {
           CREATE_INDEX=true \
           TMP_DIR=./tmp
       else
-        mv ${sampleName_unique[$index]}*.bam ${sampleName_unique[$index]}.sorted_temp.bam
-        mv ${sampleName_unique[$index]}*.bai ${sampleName_unique[$index]}.sorted_temp.bai
+        mv ${sampleName_unique[$index]}.*.bam ${sampleName_unique[$index]}.sorted_temp.bam
+        mv ${sampleName_unique[$index]}.*.bai ${sampleName_unique[$index]}.sorted_temp.bai
       fi
 
       if [ "~{rm_dupli}" = "TRUE" ]; then
@@ -209,7 +209,7 @@ task AddAlignmentHeader {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "taniguti/gatk-picard:0.0.1"
     # time:"01:00:00"
     # mem:"1GB"
     # cpu:1

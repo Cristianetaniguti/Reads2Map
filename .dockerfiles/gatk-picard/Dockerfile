@@ -1,5 +1,5 @@
-FROM broadinstitute/gatk:4.1.0.0
+FROM broadinstitute/gatk:4.2.1.0
 
-RUN wget https://github.com/broadinstitute/picard/releases/download/2.20.2/picard.jar 
+RUN wget https://github.com/broadinstitute/picard/releases/download/2.25.7/picard.jar 
 
 WORKDIR /gatk

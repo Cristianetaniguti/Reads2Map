@@ -173,7 +173,7 @@ task OnemapProbs{
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     time:"20:00:00"
     mem:"50GB"
     cpu:20

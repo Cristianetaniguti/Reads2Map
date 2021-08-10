@@ -41,7 +41,7 @@ task vcf2onemap{
 
     >>>
     runtime {
-      docker:"cristaniguti/reads2map"
+      docker:"cristaniguti/reads2map:0.0.1"
       preemptible: 3
       memory: "2 GB"
       cpu:1
@@ -109,7 +109,7 @@ task MultiVcf2onemap{
 
     >>>
     runtime {
-      docker:"cristaniguti/reads2map"
+      docker:"cristaniguti/reads2map:0.0.1"
       preemptible: 3
       memory: "3 GB"
       cpu: 1
@@ -150,7 +150,7 @@ task FiltersReport{
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory:"3 GB"
     cpu:1
@@ -187,7 +187,7 @@ task FiltersReportEmp{
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory:"4 GB"
     cpu:1
@@ -279,7 +279,7 @@ task MapsReport{
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "4 GB"
     cpu: 4
@@ -355,7 +355,7 @@ task ErrorsReport {
   >>>
 
   runtime{
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "2 GB"
     cpu:4
@@ -385,7 +385,7 @@ task GlobalError {
 
   >>>
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "2 GB"
     cpu: 1
@@ -435,7 +435,7 @@ task CheckDepths{
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory:"3 GB"
     cpu:4
@@ -485,7 +485,7 @@ task MapsReportEmp{
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory:"8 GB"
     cpu:4
@@ -528,7 +528,7 @@ task AddMultiallelics {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "3 GB"
     cpu: 4
@@ -743,7 +743,7 @@ task JointReports{
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "3 GB"
     cpu: 4

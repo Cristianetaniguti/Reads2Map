@@ -47,8 +47,6 @@ task SepareChunks {
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
-            library(rjson)
-
             df <- read.table("~{families_info}")
             split_df <- split.data.frame(df, df[,2])
 
@@ -69,7 +67,7 @@ task SepareChunks {
 
     runtime {
         job_name: "SepareChunksIndividuals"
-        docker: "cristaniguti/r-samtools"
+        docker: "cristaniguti/r-samtools:0.0.1"
         node:"--nodes=1"
         mem:"--mem=1G"
         tasks:"--ntasks=1"

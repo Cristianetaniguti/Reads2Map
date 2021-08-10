@@ -166,7 +166,7 @@ task GenerateAlternativeGenome {
   >>>
 
   runtime {
-    docker: "taniguti/pirs-ddrad-cutadapt"
+    docker: "taniguti/pirs-ddrad-cutadapt:0.0.1"
     memory: "4 GB"
     cpu: 1
     preemptible: 3
@@ -200,6 +200,7 @@ task CreatePedigreeSimulatorInputs {
   command <<<
 
       R --vanilla --no-save <<RSCRIPT
+      library(onemapUTILs)
       # Needs optimization
       ploidy <- as.integer("~{ploidy}")
       doses <- read.table("~{doses}", sep=",")
@@ -338,7 +339,6 @@ task CreatePedigreeSimulatorInputs {
 
       write.table(founder_file, file = paste0("founders.txt"), quote=FALSE, col.names = TRUE, row.names = FALSE, sep = "\t" )
 
-      source("/opt/scripts/vcf2pedigreeSim.R")
       simulated_phases <- compare_phases(founder_file)
 
       create_parfile(~{seed}, ~{popsize})
@@ -350,7 +350,7 @@ task CreatePedigreeSimulatorInputs {
   >>>
 
   runtime {
-    docker: "cristaniguti/r-samtools"
+    docker: "cristaniguti/r-samtools:0.0.1"
     memory:"8 GB"
     cpu: 2
     preemptible: 3
@@ -388,7 +388,7 @@ task RunPedigreeSimulator {
   >>>
 
   runtime {
-    docker: "taniguti/java-in-the-cloud"
+    docker: "taniguti/java-in-the-cloud:0.0.1"
     memory: "3 GB"
     cpu: 1
     preemptible: 3
@@ -419,7 +419,7 @@ task ConvertPedigreeSimulationToVcf {
     R --vanilla --no-save <<RSCRIPT
 
     library(onemap)
-    library(pedigreesim2onemap)
+    library(onemapUTILS)
     library(vcfR)
 
     mks <- read.table("~{ref_alt_alleles}", stringsAsFactors = FALSE)
@@ -463,7 +463,7 @@ task ConvertPedigreeSimulationToVcf {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     memory: "4 GB"
     cpu:1
     preemptible: 3
@@ -493,7 +493,7 @@ task RunVcf2diploid {
   >>>
 
   runtime {
-    docker: "taniguti/java-in-the-cloud"
+    docker: "taniguti/java-in-the-cloud:0.0.1"
     memory: "3 GB"
     cpu: 1
     preemptible: 3
@@ -532,7 +532,7 @@ task GenerateSampleNames {
   >>>
 
   runtime {
-    docker: "taniguti/miniconda-alpine"
+    docker: "taniguti/miniconda-alpine:0.0.1"
     memory: "1 GB"
     cpu: 1
     preemptible: 3
@@ -562,7 +562,7 @@ task Vcf2PedigreeSimulator{
 
     # Warning: The markers in vcf out of the reference map interval will be excluded
 
-    source("/opt/scripts/vcf2pedigreeSim.R")
+    library(onemapUTILS)
     library(vcfR)
 
     vcf <- read.vcfR("~{vcf_file}")
@@ -590,7 +590,7 @@ task Vcf2PedigreeSimulator{
   >>>
 
   runtime {
-      docker: "cristaniguti/r-samtools"
+      docker: "cristaniguti/r-samtools:0.0.1"
       memory: "4 GB"
       cpu:1
       preemptible: 3
@@ -641,7 +641,7 @@ task SimuscopProfile{
   >>>
 
   runtime {
-    docker: "cristaniguti/simuscopr"
+    docker: "cristaniguti/simuscopr:0.0.1"
     memory: "3 GB"
     cpu: 1
     preemptible: 3
@@ -707,7 +707,7 @@ task SimuscopSimulation{
   >>>
 
   runtime {
-    docker: "cristaniguti/simuscopr"
+    docker: "cristaniguti/simuscopr:0.0.1"
     memory: "8 GB"
     cpu:1
     preemptible: 3
@@ -815,7 +815,7 @@ task RADinitioSimulation{
   >>>
 
   runtime{
-    docker: "cristaniguti/radinitio"
+    docker: "cristaniguti/radinitio:0.0.1"
     memory: "3 GB"
     cpu:1
     preemptible: 3

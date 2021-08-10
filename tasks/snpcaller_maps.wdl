@@ -129,7 +129,7 @@ task SNPCallerProbs{
 
   >>>
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "3 GB"
     cpu: 1

@@ -48,16 +48,19 @@ RUN Rscript -e 'remotes::install_version("vroom",upgrade="never", version = "1.4
 RUN Rscript -e 'BiocManager::install("pcaMethods")'
 RUN Rscript -e 'BiocManager::install("VariantAnnotation", ask=F)'
 
-RUN Rscript -e 'remotes::install_version("polyRAD",upgrade="never")'
+RUN Rscript -e 'remotes::install_github("lvclark/polyRAD", ref = "e22ea55372413fe01eb06bb7448f3789a16c8451")'
 RUN Rscript -e 'remotes::install_version("gsalib",upgrade="never", version = "2.1")'
 
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSbase", ref = "92119b9c57faa7abeede8236d24a4a8e85fb3df7")'
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSMap", ref = "4d7d4057049819d045750d760a45976c8f30dac6")'
-RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap"                                      )'
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap", ref="prepare_for_cran")'
+
+RUN Rscript -e 'remotes::install_github("dcgerard/updog", ref = "eaa231c869e8d2e4c1fd11dc28e53e6270c9d5c0")'
+
 
 # Still in private repo
-COPY ./genotyping4onemap_0.1.7.tar.gz /opt/
-RUN R -e "install.packages('/opt/genotyping4onemap_0.1.7.tar.gz', type = 'source', repos=NULL)"
+COPY ./onemapUTILS_0.2.0.tar.gz /opt/
+RUN R -e "install.packages('/opt/onemapUTILS_0.2.0.tar.gz', type = 'source', repos=NULL)"
 
 COPY ./functions_simu.R /opt/scripts/
 

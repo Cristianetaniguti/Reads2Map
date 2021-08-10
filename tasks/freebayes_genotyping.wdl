@@ -82,7 +82,7 @@ task RunFreebayes {
   >>>
 
   runtime {
-    docker: "taniguti/freebayes"
+    docker: "taniguti/freebayes:0.0.1"
     # memory: "4 GB"
     # preemptible: 3
     # cpu: 4

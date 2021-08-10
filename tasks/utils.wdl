@@ -14,7 +14,7 @@ task TabixVcf {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "taniguti/gatk-picard:0.0.1"
     preemptible: 3
     memory:"1 GB"
     cpu:1
@@ -43,7 +43,7 @@ task VcftoolsMerge {
 
   >>>
   runtime {
-    docker: "taniguti/vcftools"
+    docker: "taniguti/vcftools:0.0.1"
     memory:"4 GB"
     cpu:1
     preemptible: 3
@@ -101,7 +101,7 @@ task VcftoolsApplyFilters {
 
   >>>
   runtime {
-    docker: "taniguti/vcftools"
+    docker: "taniguti/vcftools:0.0.1"
     memory:"5 GB"
     cpu:1
     preemptible: 3
@@ -206,7 +206,7 @@ task CalculateVcfMetrics {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     memory: "4 GB"
     cpu:1
     preemptible: 3
@@ -244,7 +244,7 @@ task ApplyRandomFilters {
   >>>
 
   runtime {
-    docker:"taniguti/vcftools"
+    docker:"taniguti/vcftools:0.0.1"
     memory: "2 GB"
     cpu:1
     preemptible: 3
@@ -257,7 +257,6 @@ task ApplyRandomFilters {
     File freebayes_vcf_bam_counts_filt = "freebayes_vcf_bam_counts_filt.vcf"
   }
 }
-
 
 task ReplaceAD {
   input {
@@ -290,7 +289,7 @@ task ReplaceAD {
     node:"--nodes=1"
     mem:"--mem=32GB"
     tasks:"--ntasks=1"
-    time:"01:00:00"
+    time:"05:00:00"
   }
 
   output {

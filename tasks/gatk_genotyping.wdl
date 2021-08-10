@@ -202,7 +202,7 @@ task HaplotypeCaller {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "taniguti/gatk-picard:0.0.1"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
@@ -252,7 +252,7 @@ task ImportGVCFs  {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "taniguti/gatk-picard:0.0.1"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
@@ -295,7 +295,7 @@ task GenotypeGVCFs   {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "taniguti/gatk-picard:0.0.1"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
@@ -332,7 +332,7 @@ task MergeVCFs {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
+    docker: "taniguti/gatk-picard:0.0.1"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3

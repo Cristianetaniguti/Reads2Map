@@ -116,7 +116,7 @@ task OnemapProbsSimulated {
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
        library(vcfR)
-       library(genotyping4onemap)
+       library(onemapUTILS)
        method <- "~{method}"
        vcf <- read.vcfR("~{vcf_file}")
        save(vcf, file="vcfR_obj.RData")
@@ -182,7 +182,7 @@ task OnemapProbsSimulated {
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "8 GB"
     cpu: 4

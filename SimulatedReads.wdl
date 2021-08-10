@@ -189,7 +189,7 @@ task JointTables{
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map"
+      docker:"cristaniguti/reads2map:0.0.1"
       preemptible: 3
       cpu: 1
       memory: "3 GB"

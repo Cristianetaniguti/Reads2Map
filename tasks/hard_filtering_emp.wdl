@@ -68,7 +68,7 @@ task VariantsToTable {
     >>>
 
     runtime {
-        docker: "taniguti/gatk-picard"
+        docker: "taniguti/gatk-picard:0.0.1"
         # memory: "1 GB"
         # cpu: 1
         # disks: "local-disk " + disk_size + " HDD"
@@ -162,7 +162,7 @@ task QualPlots {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map"
+        docker: "cristaniguti/reads2map:0.0.1"
         # memory: "1 GB"
         # cpu: 1
         # disks: "local-disk " + disk_size + " HDD"
@@ -211,7 +211,7 @@ task VariantFiltration {
     >>>
 
     runtime {
-        docker: "taniguti/gatk-picard"
+        docker: "taniguti/gatk-picard:0.0.1"
         # memory: "1 GB"
         # cpu: 1
         # disks: "local-disk " + disk_size + " HDD"

@@ -4,6 +4,6 @@ RUN apt update \
    && apt-get install -y samtools
 
 RUN R -e "install.packages('vcfR', repos='http://brieger.esalq.usp.br/CRAN/')"
-RUN R -e "install.packages('rjson', repos='http://brieger.esalq.usp.br/CRAN/')"
 
-COPY ./vcf2pedigreeSim.R /opt/scripts/
+COPY ./onemapUTILS_0.2.0.tar.gz /opt/
+RUN R -e "install.packages('/opt/onemapUTILS_0.2.0.tar.gz', type = 'source', repos=NULL)"

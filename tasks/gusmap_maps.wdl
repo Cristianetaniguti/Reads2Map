@@ -123,7 +123,7 @@ task GusmapReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "4 GB"
     cpu:1

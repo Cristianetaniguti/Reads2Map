@@ -55,7 +55,7 @@ task ProcessRadTags {
     >>>
 
     runtime {
-      docker:"taniguti/stacks"
+      docker:"taniguti/stacks:0.0.1"
     }
 
     output {

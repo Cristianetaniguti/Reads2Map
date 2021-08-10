@@ -51,7 +51,7 @@ task BiallelicNormalization {
   >>>
 
   runtime {
-    docker: "lifebitai/bcftools"
+    docker: "lifebitai/bcftools:0.0.1"
     #memory: "1 GB"
     #preemptible: 3
     #cpu: 1
@@ -148,7 +148,7 @@ task SplitFilters {
   >>>
 
   runtime {
-    docker: "cristaniguti/vcftools"
+    docker: "cristaniguti/vcftools:0.0.1"
     #memory: "2 GB"
     #preemptible: 3
     #cpu: 1
