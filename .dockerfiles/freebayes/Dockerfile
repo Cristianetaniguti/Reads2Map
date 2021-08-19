@@ -1,16 +1,7 @@
-FROM ubuntu:18.04
+FROM conda/miniconda2
 
 RUN apt update \
-    && apt install -y git build-essential zlib1g-dev libbz2-dev liblzma-dev parallel python \
-    && git clone --recursive --branch v1.3.5 https://github.com/ekg/freebayes.git \
-    && cd freebayes \
-    && make \
-    && make install
+    && apt install -y  parallel vcftools
 
-
-RUN cd /freebayes/vcflib/ \
-    && make
-
-ENV PATH="/freebayes/vcflib/bin:${PATH}"
-ENV PATH="/freebayes/scripts:${PATH}"
-ENV PATH="/freebayes/vcflib/scripts:${PATH}"
+RUN conda install -y -c bioconda freebayes \
+    && conda install -y -c bioconda vcflib
