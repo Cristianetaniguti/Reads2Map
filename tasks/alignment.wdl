@@ -182,52 +182,6 @@ task RunBwaAlignmentSimu {
   }
 }
 
-
-# Add info to alignment header
-task AddAlignmentHeader {
-  input {
-    String sampleName
-    File bam_file
-    File bam_idx
-  }
-
-  command <<<
-    mkdir tmp
-    java -jar /gatk/picard.jar AddOrReplaceReadGroups \
-      I=~{bam_file} \
-      O=~{sampleName}_rg.bam \
-      RGLB=lib-~{sampleName} \
-      RGPL=illumina \
-      RGID=FLOWCELL1.LANE1.~{sampleName} \
-      RGSM=~{sampleName} \
-      RGPU=FLOWCELL1.LANE1.~{sampleName} \
-      CREATE_INDEX=true \
-      TMP_DIR=tmp
-
-    mv ~{sampleName}_rg.bai ~{sampleName}_rg.bam.bai
-
-  >>>
-
-  runtime {
-    docker: "taniguti/gatk-picard:0.0.1"
-    # time:"01:00:00"
-    # mem:"1GB"
-    # cpu:1
-    job_name: "AddAlignmentHeader"
-    node:"--nodes=1"
-    mem:"--mem=1G"
-    tasks:"--ntasks=1"
-    time:"00:10:00"
-  }
-
-  output {
-    Alignment algn = {"bam": "${sampleName}_rg.bam", "bai": "${sampleName}_rg.bam.bai", "sample": "${sampleName}"}
-    File bam = "~{sampleName}_rg.bam"
-    File bai = "~{sampleName}_rg.bam.bai"
-  }
-}
-
-
 task CreateChunksFastq {
   input {
     Array[String] sampleFile

@@ -54,7 +54,7 @@ task VariantsToTable {
 
     command <<<
 
-        gatk VariantsToTable \
+        /usr/gitc/gatk4/./gatk VariantsToTable \
             -V ~{vcf_file} \
             -F CHROM -F POS \
             -F QD \
@@ -68,7 +68,7 @@ task VariantsToTable {
     >>>
 
     runtime {
-        docker: "taniguti/gatk-picard:0.0.1"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         # memory: "1 GB"
         # cpu: 1
         # disks: "local-disk " + disk_size + " HDD"
@@ -191,7 +191,7 @@ task VariantFiltration {
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
 
     command <<<
-        /gatk/gatk VariantFiltration \
+        /usr/gitc/gatk4/./gatk VariantFiltration \
             -V ~{vcf_file} \
             -filter "QD < 2.0" --filter-name "QD2" \
             -filter "QUAL < 30.0" --filter-name "QUAL30" \
@@ -202,7 +202,7 @@ task VariantFiltration {
             -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" \
             -O gatk_filters.vcf.gz
 
-        /gatk/gatk SelectVariants \
+        /usr/gitc/gatk4/./gatk SelectVariants \
             -R ~{reference} \
             -V gatk_filters.vcf.gz \
             --exclude-filtered \
@@ -211,7 +211,7 @@ task VariantFiltration {
     >>>
 
     runtime {
-        docker: "taniguti/gatk-picard:0.0.1"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         # memory: "1 GB"
         # cpu: 1
         # disks: "local-disk " + disk_size + " HDD"

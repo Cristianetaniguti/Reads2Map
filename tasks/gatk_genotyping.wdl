@@ -191,7 +191,7 @@ task HaplotypeCaller {
     ## gvcf for each sample
     for bam in *.bam; do
       out_name=$(basename -s ".bam" "$bam")
-      gatk --java-options "-Xmx10G -Xms2G" HaplotypeCaller \
+      /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" HaplotypeCaller \
         -ERC GVCF \
         -R ~{reference_fasta} \
         -I "$bam" \
@@ -202,7 +202,7 @@ task HaplotypeCaller {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard:0.0.1"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
@@ -239,7 +239,7 @@ task ImportGVCFs  {
     for i in ~{sep=" " vcfs}; do ln -s $i gvcfs/; done
     for i in ~{sep=" " vcfs_index}; do ln -s $i gvcfs/; done
 
-    gatk --java-options "-Xmx10G -Xms2G" GenomicsDBImport \
+    /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" GenomicsDBImport \
       --batch-size 50 \
       --reader-threads 5 \
       --genomicsdb-workspace-path cohort_db \
@@ -252,7 +252,7 @@ task ImportGVCFs  {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard:0.0.1"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
@@ -285,7 +285,7 @@ task GenotypeGVCFs   {
 
     tar -xf ~{workspace_tar}
 
-    gatk --java-options "-Xmx10G -Xms2G" GenotypeGVCFs \
+    /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" GenotypeGVCFs \
       -R ~{reference_fasta} \
       -V gendb://cohort_db \
       -L ~{interval} \
@@ -295,7 +295,7 @@ task GenotypeGVCFs   {
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard:0.0.1"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
@@ -325,14 +325,14 @@ task MergeVCFs {
 
   command <<<
 
-    gatk --java-options "-Xmx10G -Xms2G" \
+    /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" \
       MergeVcfs \
       -I ~{sep=' -I' input_vcfs} \
       -O gatk_joint.vcf.gz
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard:0.0.1"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     # memory: "4 GB"
     # cpu: 1
     # preemptible: 3
