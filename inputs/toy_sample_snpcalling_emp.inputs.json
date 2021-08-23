@@ -1,6 +1,6 @@
 {
   "SNPCalling.samples_info": {
-    "samples_info": "/home/cris/Reads2Map/data/toy_genome/samples_info_pop_sub"
+    "samples_info": "/home/cris/Reads2Map/data/toy_empirical/samples_info_pop_sub"
   },
   "SNPCalling.max_cores": "3",
   "SNPCalling.references": {

@@ -51,7 +51,7 @@ task BiallelicNormalization {
   >>>
 
   runtime {
-    docker: "lifebitai/bcftools:0.0.1"
+    docker: "lifebitai/bcftools:s3"
     #memory: "1 GB"
     #preemptible: 3
     #cpu: 1
@@ -82,11 +82,11 @@ task VariantEval {
   Int disk_size = ceil(size(vcf_norm, "GB") + size(reference, "GB") + size(vcf_simu, "GB") + 2)
 
   command <<<
-    java -jar /usr/GenomeAnalysisTK.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt
+    java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt
   >>>
 
   runtime {
-    docker: "broadinstitute/gatk3:3.8-1"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     #memory: "1 GB"
     #preemptible: 3
     #cpu: 1
@@ -148,7 +148,7 @@ task SplitFilters {
   >>>
 
   runtime {
-    docker: "cristaniguti/vcftools:0.0.1"
+    docker: "cristaniguti/split_markers:0.0.1"
     #memory: "2 GB"
     #preemptible: 3
     #cpu: 1

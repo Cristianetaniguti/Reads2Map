@@ -18,7 +18,7 @@ task VcftoolsMerge {
 
   >>>
   runtime {
-    docker: "taniguti/vcftools:0.0.1"
+    docker: "cristaniguti/split_markers:0.0.1"
     memory:"4 GB"
     cpu:1
     preemptible: 3
@@ -51,7 +51,7 @@ task VcftoolsApplyFilters {
 
   >>>
   runtime {
-    docker: "taniguti/vcftools:0.0.1"
+    docker: "cristaniguti/split_markers:0.0.1"
     memory:"5 GB"
     cpu:1
     preemptible: 3
@@ -84,7 +84,7 @@ task ApplyRandomFilters {
   >>>
 
   runtime {
-    docker:"taniguti/vcftools:0.0.1"
+    docker:"cristaniguti/split_markers:0.0.1"
     memory: "2 GB"
     cpu:1
     preemptible: 3
@@ -127,9 +127,9 @@ task ReplaceAD {
     # preemptible: 3
     job_name: "ReplaceAD"
     node:"--nodes=1"
-    mem:"--mem=32GB"
+    mem:"--mem=50GB"
     tasks:"--ntasks=1"
-    time:"05:00:00"
+    time:"24:00:00"
   }
 
   output {

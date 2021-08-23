@@ -166,7 +166,7 @@ task GenerateAlternativeGenome {
   >>>
 
   runtime {
-    docker: "taniguti/pirs-ddrad-cutadapt:0.0.1"
+    docker: "cristaniguti/pirs-ddrad-cutadapt:0.0.1"
     memory: "4 GB"
     cpu: 1
     preemptible: 3
@@ -388,7 +388,7 @@ task RunPedigreeSimulator {
   >>>
 
   runtime {
-    docker: "taniguti/java-in-the-cloud:0.0.1"
+    docker: "cristaniguti/java-in-the-cloud:0.0.1"
     memory: "3 GB"
     cpu: 1
     preemptible: 3
@@ -493,7 +493,7 @@ task RunVcf2diploid {
   >>>
 
   runtime {
-    docker: "taniguti/java-in-the-cloud:0.0.1"
+    docker: "cristaniguti/java-in-the-cloud:0.0.1"
     memory: "3 GB"
     cpu: 1
     preemptible: 3
@@ -532,7 +532,7 @@ task GenerateSampleNames {
   >>>
 
   runtime {
-    docker: "taniguti/miniconda-alpine:0.0.1"
+    docker: "cristaniguti/miniconda-alpine:0.0.1"
     memory: "1 GB"
     cpu: 1
     preemptible: 3
@@ -641,7 +641,7 @@ task SimuscopProfile{
   >>>
 
   runtime {
-    docker: "cristaniguti/simuscopr:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.1"
     memory: "3 GB"
     cpu: 1
     preemptible: 3
@@ -707,7 +707,7 @@ task SimuscopSimulation{
   >>>
 
   runtime {
-    docker: "cristaniguti/simuscopr:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.1"
     memory: "8 GB"
     cpu:1
     preemptible: 3

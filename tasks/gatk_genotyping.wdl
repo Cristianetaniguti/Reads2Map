@@ -211,7 +211,7 @@ task HaplotypeCaller {
     node:"--nodes=1"
     mem:"--mem=20G"
     tasks:"--ntasks=1"
-    time:"03:00:00"
+    time:"5:00:00"
   }
 
   output {
@@ -341,7 +341,7 @@ task MergeVCFs {
     node:"--nodes=1"
     mem:"--mem=20G"
     tasks:"--ntasks=1"
-    time:"05:00:00"
+    time:"10:00:00"
   } 
 
   output {

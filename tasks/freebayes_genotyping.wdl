@@ -69,10 +69,6 @@ task RunFreebayes {
 
   command <<<
    # needed for some singularity versions
-   export PATH="/freebayes/vcflib/bin:${PATH}"
-   export PATH="/freebayes/scripts:${PATH}"
-   export PATH="/freebayes/vcflib/scripts:${PATH}"
-
    ln -sf ~{sep=" " bam} .
    ln -sf ~{sep=" " bai} .
 

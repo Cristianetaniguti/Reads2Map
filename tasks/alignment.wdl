@@ -19,9 +19,7 @@ task RunBwaAlignment {
 
   command <<<
     mkdir tmp
-    export PATH=$PATH:/bin
-    export PATH=$PATH:/picard.jar
-
+    
     reads_list=( ~{sep=" " reads} )
     lib_list=( ~{sep=" " libraries} )
     sampleName_list=( ~{sep=" " sampleName})
@@ -29,8 +27,8 @@ task RunBwaAlignment {
     for index in ${!reads_list[*]}; do
       echo "${reads_list[$index]} is in ${lib_list[$index]}"
       bwa_header="@RG\tID:${sampleName_list[$index]}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:${sampleName_list[$index]}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
-          java -jar /picard.jar SortSam \
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
+          java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
             O="${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam" \
             TMP_DIR=./tmp \
@@ -54,7 +52,7 @@ task RunBwaAlignment {
         done
         echo ${REP[*]}
 
-        java -jar /picard.jar MergeSamFiles ${REP[*]} \
+        java -jar /usr/gitc/picard.jar MergeSamFiles ${REP[*]} \
           O=${sampleName_unique[$index]}.sorted_temp.bam \
           CREATE_INDEX=true \
           TMP_DIR=./tmp
@@ -64,7 +62,7 @@ task RunBwaAlignment {
       fi
 
       if [ "~{rm_dupli}" = "TRUE" ]; then
-        java -jar /picard.jar MarkDuplicates \
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sampleName_unique[$index]}.sorted_temp.bam" \
             O="${sampleName_unique[$index]}.sorted.bam" \
             CLEAR_DT="false" \
@@ -72,7 +70,7 @@ task RunBwaAlignment {
             REMOVE_SEQUENCING_DUPLICATES=true \
             CREATE_INDEX=true    
       else
-        java -jar /picard.jar MarkDuplicates \
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sampleName_unique[$index]}.sorted_temp.bam" \
             O="${sampleName_unique[$index]}.sorted_temp2.bam" \
             CLEAR_DT="false" \
@@ -85,7 +83,7 @@ task RunBwaAlignment {
   >>>
 
   runtime {
-    docker: "kfdrc/bwa-picard:latest-dev"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     # memory: "1 GB"
     # cpu:4
     # preemptible: 3
@@ -116,17 +114,14 @@ task RunBwaAlignmentSimu {
 
   command <<<
     mkdir tmp
-    export PATH=$PATH:/bin
-    export PATH=$PATH:/picard.jar
-
     for file in ~{sep= " " reads}; do
 
       sample=`basename -s .1.fq $file`
 
       bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
 
-      bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
-          java -jar /picard.jar SortSam \
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
+          java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
             O="${sample}.sorted_temp.bam" \
             TMP_DIR=./tmp \
@@ -134,7 +129,7 @@ task RunBwaAlignmentSimu {
             CREATE_INDEX=true
 
       if [ "~{rm_dupli}" = "TRUE" ]; then
-        java -jar /picard.jar MarkDuplicates \
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sample}.sorted_temp.bam" \
             O="${sample}.sorted.bam" \
             CLEAR_DT="false" \
@@ -143,7 +138,7 @@ task RunBwaAlignmentSimu {
             CREATE_INDEX=true
 
       else
-        java -jar /picard.jar MarkDuplicates \
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sample}.sorted_temp.bam" \
             O="${sample}.sorted_temp2.bam" \
             CLEAR_DT="false" \
@@ -163,7 +158,7 @@ task RunBwaAlignmentSimu {
   >>>
 
   runtime {
-    docker: "kfdrc/bwa-picard:latest-dev"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     # memory: "1 GB"
     # cpu:4
     # preemptible: 3
