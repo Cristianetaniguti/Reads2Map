@@ -10,7 +10,7 @@ RUN apt-get update \
     vcftools=0.1.16-1build1 
 
 RUN apt-get install -y \
-    python3-pip=20.0.2-5ubuntu1.1 \
+    python3-pip \
     && python3 -m pip install radinitio 
 
 RUN git clone https://github.com/lh3/seqtk.git \
