@@ -67,7 +67,7 @@ task SepareChunks {
 
     runtime {
         job_name: "SepareChunksIndividuals"
-        docker: "cristaniguti/r-samtools:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.1"
         node:"--nodes=1"
         mem:"--mem=1G"
         tasks:"--ntasks=1"

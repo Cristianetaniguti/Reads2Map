@@ -350,7 +350,7 @@ task CreatePedigreeSimulatorInputs {
   >>>
 
   runtime {
-    docker: "cristaniguti/r-samtools:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.1"
     memory:"8 GB"
     cpu: 2
     preemptible: 3
@@ -590,7 +590,7 @@ task Vcf2PedigreeSimulator{
   >>>
 
   runtime {
-      docker: "cristaniguti/r-samtools:0.0.1"
+      docker: "cristaniguti/reads2map:0.0.1"
       memory: "4 GB"
       cpu:1
       preemptible: 3

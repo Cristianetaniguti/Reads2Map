@@ -17,6 +17,7 @@ RUN apt update \
    devscripts=2.17.12ubuntu1.1 \
    software-properties-common=0.96.24.32.14 \
    libgit2-dev=0.26.0+dfsg.1-1.1ubuntu0.2 \
+   samtools \
    && pip install matplotlib==2.0.2 numpy
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 \
