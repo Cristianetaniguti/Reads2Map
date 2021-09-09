@@ -1,0 +1,9 @@
+{
+    "PreprocessingReads.spec": {
+      "adapter": "AGATCGGAAGAG",
+      "raw_dict": "/scratch/user/chtaniguti/euc_raw/A_1/A_1_raw.tar.gz",
+      "enzyme": "hindIII",
+      "barcode": "/scratch/user/chtaniguti/euc_raw/A_1/barcode_A_1.txt"
+    }
+}
+  

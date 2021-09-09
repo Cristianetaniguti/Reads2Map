@@ -19,7 +19,7 @@ struct PopulationAnalysis {
     File multi
 }
 
-workflow SimulatedMapsWorkflow {
+workflow SimulatedSingleFamily {
 
   input {
     Reference references

@@ -103,6 +103,7 @@ workflow SnpBasedGenotypingSimulatedMaps {
 }
 
 
+# Remove, use utils
 task OnemapProbsSimulated {
   input {
     File vcf_file

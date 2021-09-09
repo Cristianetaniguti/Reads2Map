@@ -53,5 +53,6 @@ workflow SNPCalling {
     File freebayes_vcf = FreebayesGenotyping.vcf_norm
     File freebayes_vcf_bam_count = FreebayesGenotyping.vcf_norm_bamcounts
     File freebayes_vcfEval = FreebayesGenotyping.vcfEval
+    File merged_bam = CreateAlignmentFromFamilies.merged_bam
   }
 }

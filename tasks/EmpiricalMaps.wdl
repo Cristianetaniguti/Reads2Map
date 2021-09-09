@@ -14,7 +14,6 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
-    File? multi
 }
 
 workflow Maps {
@@ -26,9 +25,9 @@ workflow Maps {
         File gatk_vcf_bam_counts
         File freebayes_vcf_bam_counts
         String? filters
-        File? gatk_multi
-        File? freebayes_multi
         Int max_cores
+        File merged_bam
+        File reference
     }
 
     if (defined(filters)) {
@@ -48,47 +47,70 @@ workflow Maps {
     File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, freebayes_vcf])
     File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, freebayes_vcf_bam_counts])
 
-    PopulationAnalysis gatk_processing = {"multi": gatk_multi,"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"multi": freebayes_multi,"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
+    # Re-Genotyping with updog, supermassa and polyrad; and building maps with onemap
     scatter (analysis in [gatk_processing, freebayes_processing]) {
 
-        call utilsR.vcf2onemap {
-            input:
-                vcf_file = analysis.vcf,
-                cross = dataset.cross,
-                SNPCall_program = analysis.method,
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2
-        }
+        Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
 
-        call utilsR.MultiVcf2onemap{
-             input:
-                multi = analysis.multi,
-                cross = dataset.cross,
+        scatter (origin in ["vcf", "bam"]) {
+
+            call OneMapMaps as updogMaps {
+                vcf_file = vcfs[origin],
                 SNPCall_program = analysis.method,
+                GenotypeCall_program = "updog",
+                CountsFrom = origin,
+                cross = dataset.cross,
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2,
-                multiallelics = dataset.multiallelics
-        }
-
-        call default.DefaultMaps {
-            input:
-                onemap_obj = vcf2onemap.onemap_obj,
-                vcfR_obj = vcf2onemap.vcfR_obj,
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2,
-                SNPCall_program = analysis.method,
-                CountsFrom = "vcf",
                 chromosome = dataset.chromosome,
-                multi_obj = MultiVcf2onemap.onemap_obj,
                 multiallelics = dataset.multiallelics,
                 max_cores = max_cores
+            }
+
+            call OneMapMaps as supermassaMaps {
+                vcf_file = vcfs[origin],
+                SNPCall_program = analysis.method,
+                GenotypeCall_program = "supermassa",
+                CountsFrom = origin,
+                cross = dataset.cross,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                chromosome = dataset.chromosome,
+                multiallelics = dataset.multiallelics,
+                max_cores = max_cores
+            }
+
+            call OneMapMaps as polyradMaps {
+                vcf_file = vcfs[origin],
+                SNPCall_program = analysis.method,
+                GenotypeCall_program = "polyrad",
+                CountsFrom = origin,
+                cross = dataset.cross,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                chromosome = dataset.chromosome,
+                multiallelics = dataset.multiallelics,
+                max_cores = max_cores
+            }
+        }
+
+       # Build maps with GUSMap
+       call gusmap.GusmapMaps {
+            input:
+              vcf_file = analysis.vcf,
+              new_vcf_file = analysis.bam,
+              SNPCall_program = analysis.method,
+              GenotypeCall_program = "gusmap",
+              parent1 = dataset.parent1,
+              parent2 = dataset.parent2,
+              max_cores = max_cores
         }
 
         call snpcaller.SNPCallerMaps {
             input:
-                onemap_obj = vcf2onemap.onemap_obj,
                 vcf_file = analysis.vcf,
                 cross = dataset.cross,
                 SNPCall_program = analysis.method,
@@ -97,105 +119,20 @@ workflow Maps {
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2,
                 chromosome = dataset.chromosome,
-                multi_obj = MultiVcf2onemap.onemap_obj,
                 multiallelics = dataset.multiallelics,
-                max_cores = max_cores
-        }
-
-        Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
-
-        scatter (origin in ["vcf", "bam"]) {
-            call genotyping.SnpBasedGenotypingMaps as UpdogMaps {
-                input:
-                    onemap_obj = vcf2onemap.onemap_obj,
-                    vcf_file = vcfs[origin],
-                    SNPCall_program = analysis.method,
-                    GenotypeCall_program = "updog",
-                    CountsFrom = origin,
-                    cross = dataset.cross,
-                    parent1 = dataset.parent1,
-                    parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome,
-                    multi_obj = MultiVcf2onemap.onemap_obj,
-                    multiallelics = dataset.multiallelics,
-                    max_cores = max_cores
-            }
-
-            call genotyping.SnpBasedGenotypingMaps as SupermassaMaps {
-                input:
-                    onemap_obj = vcf2onemap.onemap_obj,
-                    vcf_file = vcfs[origin],
-                    SNPCall_program = analysis.method,
-                    GenotypeCall_program = "supermassa",
-                    CountsFrom = origin,
-                    cross = dataset.cross,
-                    parent1 = dataset.parent1,
-                    parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome,
-                    multi_obj = MultiVcf2onemap.onemap_obj,
-                    multiallelics = dataset.multiallelics,
-                    max_cores = max_cores
-            }
-
-            call genotyping.SnpBasedGenotypingMaps as PolyradMaps {
-                input:
-                    onemap_obj = vcf2onemap.onemap_obj,
-                    vcf_file = vcfs[origin],
-                    SNPCall_program = analysis.method,
-                    GenotypeCall_program = "polyrad",
-                    CountsFrom = origin,
-                    cross = dataset.cross,
-                    parent1 = dataset.parent1,
-                    parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome,
-                    multi_obj = MultiVcf2onemap.onemap_obj,
-                    multiallelics = dataset.multiallelics,
-                    max_cores = max_cores
-            }
-        }
-
-        call gusmap.GusmapMaps {
-            input:
-                vcf_file = analysis.vcf,
-                new_vcf_file = analysis.bam,
-                SNPCall_program = analysis.method,
-                GenotypeCall_program = "gusmap",
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2,
                 max_cores = max_cores
         }
     }
 
+    # Compress files
     call JointReports {
         input:
-            default_RDatas = flatten(DefaultMaps.RDatas),
-            default_maps_report = flatten(DefaultMaps.maps_report),
-            default_filters_report = flatten(DefaultMaps.filters_report),
-            default_errors_report = flatten(DefaultMaps.errors_report),
-            default_times_report = flatten(DefaultMaps.times),
-            SNPCaller_RDatas = SNPCallerMaps.RDatas,
-            SNPCaller_maps_report = SNPCallerMaps.maps_report,
-            SNPCaller_filters_report = SNPCallerMaps.filters_report,
-            SNPCaller_errors_report = SNPCallerMaps.errors_report,
-            SNPCaller_times_report = SNPCallerMaps.times,
-            Updog_RDatas = flatten(flatten(UpdogMaps.RDatas)),
-            Updog_maps_report = flatten(flatten(UpdogMaps.maps_report)),
-            Updog_filters_report = flatten(flatten(UpdogMaps.filters_report)),
-            Updog_errors_report = flatten(flatten(UpdogMaps.errors_report)),
-            Updog_times_report = flatten(flatten(UpdogMaps.times)),
-            Polyrad_RDatas = flatten(flatten(PolyradMaps.RDatas)),
-            Polyrad_maps_report = flatten(flatten(PolyradMaps.maps_report)),
-            Polyrad_filters_report = flatten(flatten(PolyradMaps.filters_report)),
-            Polyrad_errors_report = flatten(flatten(PolyradMaps.errors_report)),
-            Polyrad_times_report = flatten(flatten(PolyradMaps.times)),
-            Supermassa_RDatas = flatten(flatten(SupermassaMaps.RDatas)),
-            Supermassa_maps_report = flatten(flatten(SupermassaMaps.maps_report)),
-            Supermassa_filters_report = flatten(flatten(SupermassaMaps.filters_report)),
-            Supermassa_errors_report = flatten(flatten(SupermassaMaps.errors_report)),
-            Supermassa_times_report = flatten(flatten(SupermassaMaps.times)),
-            Gusmap_RDatas = flatten(GusmapMaps.RDatas),
-            Gusmap_maps_report = flatten(GusmapMaps.maps_report),
-            Gusmap_times_report = flatten(GusmapMaps.times),
+            default = flatten(DefaultMaps.files),
+            SNPCaller = SNPCallerMaps.files,
+            Updog = flatten(flatten(UpdogMaps.files)),
+            Polyrad = flatten(flatten(PolyradMaps.files)),
+            Supermassa_files = flatten(flatten(SupermassaMaps.files)),
+            Gusmap = flatten(GusmapMaps.files),
             max_cores = max_cores
     }
 
@@ -207,33 +144,11 @@ workflow Maps {
 task JointReports{
   input{
     Array[File] default_RDatas
-    Array[File] default_maps_report
-    Array[File] default_filters_report
-    Array[File] default_errors_report
-    Array[File] default_times_report
     Array[File] SNPCaller_RDatas
-    Array[File] SNPCaller_maps_report
-    Array[File] SNPCaller_filters_report
-    Array[File] SNPCaller_errors_report
-    Array[File] SNPCaller_times_report
     Array[File] Updog_RDatas
-    Array[File] Updog_maps_report
-    Array[File] Updog_filters_report
-    Array[File] Updog_errors_report
-    Array[File] Updog_times_report
     Array[File] Polyrad_RDatas
-    Array[File] Polyrad_maps_report
-    Array[File] Polyrad_filters_report
-    Array[File] Polyrad_errors_report
-    Array[File] Polyrad_times_report
     Array[File] Supermassa_RDatas
-    Array[File] Supermassa_maps_report
-    Array[File] Supermassa_filters_report
-    Array[File] Supermassa_errors_report
-    Array[File] Supermassa_times_report
     Array[File] Gusmap_RDatas
-    Array[File] Gusmap_maps_report
-    Array[File] Gusmap_times_report
     Int max_cores
   }
 

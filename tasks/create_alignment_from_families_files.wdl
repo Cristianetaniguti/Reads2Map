@@ -32,10 +32,17 @@ workflow CreateAlignmentFromFamilies {
         }
     }
 
+    # Store for WhatsHap 
+    call MergeBams {
+        input:
+            bam_files = flatten(RunBwaAlignment.bam)
+    }
+
     output {
         Array[File] bam = flatten(RunBwaAlignment.bam)
         Array[File] bai = flatten(RunBwaAlignment.bai)
         Array[Array[File]] dup_metrics = RunBwaAlignment.dup_metrics
+        File merged_bam = MergeBams.merged_bam
     }
 }
 
@@ -76,5 +83,28 @@ task SepareChunks {
 
     output {
         Array[File] chunks = glob("chunk*")
+    }
+}
+
+task MergeBams{
+    input {
+        Array[File] bam_files
+    }
+
+    command <<<
+        samtools merge merged.bam ~{sep=" " bam_files}
+    >>>
+
+    runtime {
+        job_name: "MergeBams"
+        docker: "cristaniguti/reads2map:0.0.1"
+        node:"--nodes=1"
+        mem:"--mem=10G"
+        tasks:"--ntasks=1"
+        time:"01:00:00"
+    }
+
+    output {
+        File merged_bam = "merged.bam"
     }
 }

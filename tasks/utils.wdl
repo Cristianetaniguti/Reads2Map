@@ -138,3 +138,132 @@ task ReplaceAD {
 }
 
 
+# Deprecated
+task MergeVCFLines {
+  input {
+    File vcf_file
+    File reference
+    File reference_idx
+  }
+
+  command <<<
+
+    bcftools norm -m+any ~{vcf_file} -f ~{reference} -o multiallelics.vcf.gz
+
+  >>>
+
+  runtime {
+    docker:"lifebitai/bcftools:1.10.2"
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "ReplaceAD"
+    node:"--nodes=1"
+    mem:"--mem=50GB"
+    tasks:"--ntasks=1"
+    time:"24:00:00"
+  }
+
+  output {
+    File multi_vcf = "multiallelics.vcf.gz"
+  }
+}
+
+
+# Phase VCF file according with WhatsHap
+# Require BAM files
+task RunWhatsHap {
+  input{
+    File merged_bam
+    File reference
+    File vcf_file
+  }
+
+  command <<<
+    whatshap phase -o phased.vcf --reference=~{reference} ~{vcf_file} ~{merged_bam} --tag=PS
+  >>>
+
+  runtime{
+    docker:"cristaniguti/whatshap:0.0.1"
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "WhatsHap"
+    node:"--nodes=1"
+    mem:"--mem=50GB"
+    tasks:"--ntasks=1"
+    time:"24:00:00"
+  }
+
+  output{
+    phased_vcf = "phased.vcf"
+  }
+}
+
+
+task Compress {
+    input:
+      String name 
+      Array[File] RDatas
+      Array[File] maps_report
+      Array[File] times
+      Array[File] filters_report
+      Array[File] errors_report
+
+    command <<<
+
+      tar -czvf ~{name}.tar.gz ~{sep=" " RDatas} ~{sep=" " maps_report} \
+                ~{sep=" " times} ~{sep=" " filters_report} ~{sep=" " errors_report}
+
+    >>>
+
+  runtime{
+    docker:"cristaniguti/ubuntu:20.04"
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "WhatsHap"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    tasks:"--ntasks=1"
+    time:"01:00:00"
+  }
+
+  output {
+    File tar_gz_report = "~{name}.tar.gz"
+  }
+
+}
+
+
+task CompressGusmap {
+    input:
+      String name 
+      Array[File] RDatas
+      Array[File] maps_report
+      Array[File] times
+
+    command <<<
+
+      tar -czvf ~{name}.tar.gz ~{sep=" " RDatas} ~{sep=" " maps_report} \
+                ~{sep=" " times} 
+
+    >>>
+
+  runtime{
+    docker:"cristaniguti/ubuntu:20.04"
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "WhatsHap"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    tasks:"--ntasks=1"
+    time:"01:00:00"
+  }
+
+  output {
+    File tar_gz_report = "~{name}.tar.gz"
+  }
+
+}

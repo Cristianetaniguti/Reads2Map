@@ -2,7 +2,7 @@ version 1.0
 
 import "../structs/snpcalling_empS.wdl"
 import "../structs/reference_struct.wdl"
-import "split_filt_vcf.wdl" as norm_filt
+import "norm_filt_vcf.wdl" as norm_filt
 import "utils.wdl" as utils
 import "hard_filtering.wdl" as hard_filt
 import "hard_filtering_emp.wdl" as hard_filt_emp
@@ -211,7 +211,7 @@ task HaplotypeCaller {
     node:"--nodes=1"
     mem:"--mem=20G"
     tasks:"--ntasks=1"
-    time:"5:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -261,7 +261,7 @@ task ImportGVCFs  {
     node:"--nodes=1"
     mem:"--mem=20G"
     tasks:"--ntasks-per-node=5"
-    time:"10:00:00"
+    time:"24:00:00"
   }
 
   output {
@@ -304,7 +304,7 @@ task GenotypeGVCFs   {
     node:"--nodes=1"
     mem:"--mem=20G"
     tasks:"--ntasks=1"
-    time:"10:00:00"
+    time:"24:00:00"
   }
 
   output {

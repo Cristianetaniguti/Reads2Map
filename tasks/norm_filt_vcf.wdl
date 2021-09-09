@@ -34,6 +34,8 @@ workflow Normalization{
   }
 }
 
+# Split all markers by row in VCF
+# Fix indels positions
 task BiallelicNormalization {
   input {
     File vcf_file
@@ -44,14 +46,14 @@ task BiallelicNormalization {
   Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 2)
 
   command <<<
-    bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
+    bcftools norm ~{vcf_file} -m-any --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
 
     bgzip vcf_norm.vcf
     tabix -p vcf vcf_norm.vcf.gz
   >>>
 
   runtime {
-    docker: "lifebitai/bcftools:s3"
+    docker: "lifebitai/bcftools:1.10.2"
     #memory: "1 GB"
     #preemptible: 3
     #cpu: 1
@@ -95,7 +97,7 @@ task VariantEval {
     node:"--nodes=1"
     mem:"--mem=10G"
     tasks:"--ntasks=1"
-    time:"00:10:00"
+    time:"01:00:00"
   }
 
   output {
@@ -103,69 +105,3 @@ task VariantEval {
   }
 
 }
-
-# Deprecated
-task SplitFilters {
-  input {
-    File vcf_in
-    String program
-    String parent1
-    String parent2
-  }
-
-  Int disk_size = ceil(size(vcf_in, "GB") + 2)
-
-  command <<<
-    # TODO: Change for bcftools
-    vcftools --gzvcf ~{vcf_in}  --min-alleles 3 --recode --out ~{program}_multi1
-
-    vcftools --gzvcf ~{vcf_in}  --min-alleles 2 --max-alleles 2 --recode --out ~{program}_bi1
-
-    Rscript /opt/scripts/split.R ~{program}_bi1.recode.vcf ~{parent1} ~{parent2} position_multi2.txt
-
-    vcftools --vcf ~{program}_bi1.recode.vcf --positions position_multi2.txt --recode --out ~{program}_multi2
-
-    vcftools --vcf ~{program}_bi1.recode.vcf --exclude-positions position_multi2.txt --recode --out ~{program}_bi
-
-    vcf-concat ~{program}_multi1.recode.vcf ~{program}_multi2.recode.vcf  > ~{program}_multi.recode.vcf
-
-    vcftools --vcf ~{program}_multi.recode.vcf --maf 0.05 --out ~{program}_multi2 --recode
-
-    mv ~{program}_multi2.recode.vcf ~{program}_multi.recode.vcf
-
-   # sort
-    grep "^#" ~{program}_multi.recode.vcf > output.vcf
-    grep -v "^#" ~{program}_multi.recode.vcf| sort -k1,1V -k2,2g >> output.vcf
-
-    mv output.vcf ~{program}_multi.recode.vcf
-
-    bgzip ~{program}_multi.recode.vcf    
-
-    bgzip ~{program}_bi.recode.vcf
-    tabix -p vcf ~{program}_bi.recode.vcf.gz
-    tabix -p vcf ~{program}_multi.recode.vcf.gz
-
-  >>>
-
-  runtime {
-    docker: "cristaniguti/split_markers:0.0.1"
-    #memory: "2 GB"
-    #preemptible: 3
-    #cpu: 1
-    #disks: "local-disk " + disk_size + " HDD"
-    job_name: "SplitFilters"
-    node:"--nodes=1"
-    mem:"--mem=2GB"
-    tasks:"--ntasks=1"
-    time:"00:40:00"
-  }
-
-  output {
-    File vcf_multiallelics = "~{program}_multi.recode.vcf.gz"
-    File vcf_multiallelics_tbi = "~{program}_multi.recode.vcf.gz.tbi"
-    File vcf_biallelics = "~{program}_bi.recode.vcf.gz"
-    File vcf_biallelics_tbi = "~{program}_bi.recode.vcf.gz.tbi"
-  }
-}
-
-

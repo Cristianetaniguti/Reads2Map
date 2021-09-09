@@ -7,62 +7,6 @@ task vcf2onemap{
      String SNPCall_program
      String parent1
      String parent2
-   }
-
-   command <<<
-
-        R --vanilla --no-save <<RSCRIPT
-          library(onemap)
-          library(vcfR)
-
-          cross <- "~{cross}"
-
-          if(cross == "F1"){
-            cross <- "outcross"
-            f1 = NULL
-          } else if (cross == "F2"){
-            cross <- "f2 intercross"
-            f1 = "F1"
-          }
-
-          ## READING VCF FROM PIPELINE
-          vcf <- read.vcfR("~{vcf_file}")
-          save(vcf, file="vcfR_obj.RData")
-
-          onemap.obj <- onemap_read_vcfR(vcfR.object=vcf,
-                                 cross= cross,
-                                 parent1="~{parent1}",
-                                 parent2="~{parent2}",
-                                 f1 = f1)
-
-          save(onemap.obj, file=paste0("vcf_onemap.obj.RData"))
-
-        RSCRIPT
-
-    >>>
-    runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
-      preemptible: 3
-      memory: "2 GB"
-      cpu:1
-    }
-
-    output{
-      File onemap_obj = "vcf_onemap.obj.RData"
-      File vcfR_obj = "vcfR_obj.RData"
-    }
-}
-
-
-task MultiVcf2onemap{
-   input {
-     File? multi
-     String cross
-     String SNPCall_program
-     String parent1
-     String parent2
-     Int? seed
-     Int? depth
      String multiallelics
    }
 
@@ -82,28 +26,14 @@ task MultiVcf2onemap{
             f1 = "F1"
           }
 
-          vcf_file <- "~{multi}"
           ## READING VCF FROM PIPELINE
-          vcf <- read.vcfR(vcf_file)
+          onemap.obj <- onemap_read_vcfR(vcf="~{vcf_file}",
+                                         cross= cross,
+                                         parent1="~{parent1}",
+                                         parent2="~{parent2}",
+                                         f1 = f1)
 
-          onemap.obj <- onemap_read_vcfR(vcfR.object=vcf,
-                                 cross= cross,
-                                 parent1="~{parent1}",
-                                 parent2="~{parent2}",
-                                 f1 = f1,
-                                 only_biallelic = F)
-
-          # If user choosed the option to not include the multiallelics,
-          # the object will still be available, but the markers are not considered
-          multi_names <- list()
-          if(dim(onemap.obj[[1]])[2] == 0 | "~{multiallelics}" == "FALSE"){
-            multi_names[[1]] <- 0
-          } else {
-            multi_names[[1]] <- colnames(onemap.obj[[1]])
-          }
-          names(multi_names) <- "~{depth}~{"_" + seed + "_"}~{SNPCall_program}"
-          save(multi_names, file = "multi.names.RData")
-          save(onemap.obj, file=paste0("vcf_multi_onemap.obj.RData"))
+          save(onemap.obj, file=paste0("vcf_onemap.obj.RData"))
 
         RSCRIPT
 
@@ -111,16 +41,14 @@ task MultiVcf2onemap{
     runtime {
       docker:"cristaniguti/reads2map:0.0.1"
       preemptible: 3
-      memory: "3 GB"
-      cpu: 1
+      memory: "2 GB"
+      cpu:1
     }
 
-    output {
-      File onemap_obj = "vcf_multi_onemap.obj.RData"
-      File multi_names = "multi.names.RData"
+    output{
+      File onemap_obj = "vcf_onemap.obj.RData"
     }
 }
-
 
 task FiltersReport{
   input{
@@ -194,7 +122,7 @@ task FiltersReportEmp{
   }
 
   output {
-    File filters_report = "filters_report.tsv.gz"
+    File filters_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_filters_report.tsv.gz"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
 }
@@ -368,7 +296,7 @@ task ErrorsReport {
 
 task GlobalError {
   input {
-    File onemap_obj
+    File vcf_file
   }
 
   command <<<
@@ -428,7 +356,7 @@ task CheckDepths{
       df <- cbind(SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
                   GenoCall="~{GenotypeCall_program}", df ~{", seed=" + seed} ~{", depth= " + depth})
 
-      vroom::vroom_write(df, "errors_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(df, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_errors_report.tsv.gz", num_threads = ~{max_cores})
 
     RSCRIPT
 
@@ -442,7 +370,7 @@ task CheckDepths{
   }
 
   output{
-    File errors_report = "errors_report.tsv.gz"
+    File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_errors_report.tsv.gz"
   }
 
 }
@@ -469,7 +397,7 @@ task MapsReportEmp{
       times_temp <- system.time(df <- create_map_report(input.seq = sequence, CountsFrom = "~{CountsFrom}",
                                       SNPCall = "~{SNPCall_program}", GenoCall="~{GenotypeCall_program}", max_cores = cores))
 
-      vroom::vroom_write(df[[2]], "map_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(df[[2]], "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz", num_threads = ~{max_cores})
       map_out <- df[[1]]
       save(map_out,  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
     
@@ -478,7 +406,7 @@ task MapsReportEmp{
                           GenoCall =  "~{GenotypeCall_program}",
                           time = times_temp[3])   
 
-      vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(times, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz", num_threads = ~{max_cores})
 
     RSCRIPT
 
@@ -492,13 +420,13 @@ task MapsReportEmp{
   }
 
   output{
-    File maps_report = "map_report.tsv.gz"
+    File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
-    File times = "times_report.tsv.gz"
+    File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz"
   }
 }
 
-
+# Deprecated
 task AddMultiallelics {
   input {
    File? onemap_obj_multi
@@ -759,5 +687,246 @@ task JointReports{
     File data7_gusmap  = "gusmap_RDatas.RData"
     File data8_names   = "names.tsv.gz"
     File data10_counts  = "data10_CountVariants.tsv.gz"
+  }
+}
+
+# Deprecated - made with whatshap
+# Update the position and reference and alternative allele to 
+# multiallelic conversion by MergeVCFLines with bcftools
+task UpdateVCFPositions{
+   input {
+     File vcf_file
+     String SNPCall_program
+     Int? seed
+     Int? depth
+     String multiallelics
+   }
+
+   command <<<
+
+        R --vanilla --no-save <<RSCRIPT
+          library(vcfR)
+          library(vroom)
+
+          vcf_file <- "~{vcf_file}"
+          ## READING VCF FROM PIPELINE
+          vcf <- read.vcfR(vcf_file)
+
+          pos <- split(vcf@fix[,2], vcf@fix[,1])
+          ref <- split(vcf@fix[,4], vcf@fix[,1])
+          alt <- split(vcf@fix[,5], vcf@fix[,1])
+
+          # replace positions close by 150 pb by same position
+          up_pos <- pos
+          up_ref <- ref
+          up_alt <- alt
+          for(j in 1:length(pos)){
+            diffe <- diff(as.numeric(pos[[j]])) < 100
+            for(i in 1:length(diffe)){
+              if(diffe[i]) {
+                up_pos[[j]][i+1] <- as.numeric(up_pos[[j]][i])
+                up_ref[[j]][i+1] <- paste0(up_ref[[j]][i], up_ref[[j]][i+1])
+                up_alt[[j]][i+1] <- paste0(up_alt[[j]][i], up_alt[[j]][i+1])
+              }
+            }
+          }
+
+          # Keep data.frame with original positions and size of each mnp
+          mnps_info <- data.frame(chrom = vcf@fix[,1], pos = vcf@fix[,2], pos_up = unlist(up_pos))
+
+          nmk.by.mnp <- data.frame(pos_up = names(table(unlist(up_pos))),
+                                  number = as.numeric(table(unlist(up_pos)))) 
+
+          mnps_info <- merge(mnps_info, nmk.by.mnp, by = "pos_up")
+          take.sizes <- split(as.numeric(mnps_info[['pos']]), mnps_info[['pos_up']])
+          sizes <- sapply(take.sizes, function(x) x[length(x)] - x[1])
+          sizes.by.mnp <- data.frame(pos_up = names(sizes),
+                                  size = as.numeric(sizes)) 
+
+          mnps_info <- merge(mnps_info, sizes.by.mnp, by = "pos_up")
+          vroom_write(mnps_info, file = "mnps_info.tsv.gz")
+
+          up_pos <- do.call(c, up_pos)
+          up_ref <- do.call(c, up_ref)
+          up_alt <- do.call(c, up_alt)
+
+          vcf@fix[,2] <- up_pos
+          vcf@fix[,3] <- vcf@fix[,7] <- vcf@fix[,8] <- "."
+          vcf@fix[,4] <- up_ref
+          vcf@fix[,5] <- up_alt
+
+          write.vcf(vcf, file="updated_pos.vcf.gz")
+
+        RSCRIPT
+
+    >>>
+    runtime {
+      docker:"cristaniguti/reads2map:0.0.1"
+      preemptible: 3
+      memory: "3 GB"
+      cpu: 1
+    }
+
+    output {
+      File vcf_updated = "updated_pos.vcf.gz"
+      File multi_info = "mnps_info.tsv.gz"
+    }
+}
+
+# Genotype calling with updog, polyrad and supermassa
+# Exclusive for biallelic markers, input VCF file are normalized with -m-any
+task ReGenotyping{
+  input {
+    String GenotypeCall_program
+    File vcf_file
+    String cross
+    String parent1
+    String parent2
+    Int max_cores
+  }
+
+  command <<<
+     R --vanilla --no-save <<RSCRIPT
+       library(onemap)
+       library(onemapUTILS)
+
+       method <- "~{GenotypeCall_program}"
+       cross <- "~{cross}"
+
+       if(cross == "F1"){
+          cross <- "outcross"
+          f1 = NULL
+       } else if (cross == "F2"){
+          cross <- "f2 intercross"
+          f1 = "F1"
+       }
+
+       out_vcf <- "regeno.vcf"
+
+        if (method == "updog") {
+            out_onemap_obj <- updog_genotype(vcf="~{vcf_file}",
+                                            vcf.par="AD",
+                                            out_vcf = out_vcf,
+                                            parent1="~{parent1}",
+                                            parent2="~{parent2}",
+                                            f1 = f1,
+                                            crosstype= cross,
+                                            recovering=TRUE,
+                                            mean_phred=20,
+                                            cores="~{max_cores}",
+                                            depths=NULL,
+                                            global_error = NULL,
+                                            use_genotypes_errors = FALSE,
+                                            use_genotypes_probs = TRUE)
+        } else if (method == "supermassa") {
+            out_onemap_obj <- supermassa_genotype(vcf="~{vcf_file}",
+                                                  vcf.par="AD",
+                                                  out_vcf = out_vcf,
+                                                  parent1="~{parent1}",
+                                                  parent2="~{parent2}",
+                                                  crosstype= cross,
+                                                  f1 = f1,
+                                                  recovering=TRUE,
+                                                  mean_phred=20,
+                                                  cores="~{max_cores}",
+                                                  depths=NULL,
+                                                  global_error = NULL,
+                                                  use_genotypes_errors = FALSE,
+                                                  use_genotypes_probs = TRUE)
+        } else if (method == "polyrad") {
+            out_onemap_obj <- polyRAD_genotype(vcf="~{vcf_file}",
+                                              parent1="~{parent1}",
+                                              parent2="~{parent2}",
+                                              f1 = f1,
+                                              out_vcf = out_vcf,
+                                              crosstype= cross,
+                                              global_error = NULL,
+                                              use_genotypes_errors = FALSE,
+                                              use_genotypes_probs = TRUE)
+        }
+
+     RSCRIPT
+  >>>
+
+  runtime{
+    docker:"cristaniguti/reads2map:0.0.1"
+    time:"20:00:00"
+    mem:"50GB"
+    cpu:20
+  }
+
+  output {
+    File regeno_vcf = "regeno.vcf"
+  }
+}
+
+task SetProbs{
+  input{
+    File vcf_file
+    String cross
+    String parent1
+    String parent2
+    String addDefault
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      library(vcfR)
+
+      cross <- "~{cross}"
+
+      if(cross == "F1"){
+         f1 = NULL
+      } else if (cross == "F2"){
+         f1 = "F1"
+      }
+
+      vcf <- read.vcfR("~{vcf_file}")
+      save(vcf, file = "vcfR.RData")
+          
+      onemap.obj <- onemap_read_vcfR(vcfR.object = vcf,
+                                     cross= cross,
+                                     parent1="~{parent1}",
+                                     parent2="~{parent2}",
+                                     f1 = f1)
+
+      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+
+      probs <- extract_depth(vcfR.object=vcf,
+                               onemap.object=onemap_obj,
+                               vcf.par=par,
+                               parent1="~{parent1}",
+                               parent2="~{parent2}",
+                               f1 = f1,
+                               recovering=FALSE)
+
+      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs=probs)
+      globalerror_onemap_obj <- create_probs(onemap.obj = onemap_obj, global_error = 0.05)
+
+      if(~{addDefault} == "TRUE"){
+        default_onemap_obj <- create_probs(onemap.obj = onemap_obj, global_error = 10^(-5))
+        save(default_onemap_obj, file="default_onemap_obj.RData")
+      }
+
+
+      save(probs_onemap_obj, file="probs_onemap_obj.RData")
+      save(globalerror_onemap_obj, file="globalerror_onemap_obj.RData")
+
+    RSCRIPT
+
+  >>>
+  runtime{
+    docker:"cristaniguti/reads2map:0.0.1"
+    time:"10:00:00"
+    mem:"30GB"
+    cpu:1
+  }
+
+  output{
+    File probs_onemap_obj = "probs_onemap_obj.RData"
+    File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
+    File? default_onemap_obj = "default_onemap_obj.RData"
+    File vcfR_obj = "vcfR.RData"
   }
 }

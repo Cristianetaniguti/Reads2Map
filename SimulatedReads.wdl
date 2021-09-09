@@ -1,6 +1,6 @@
 version 1.0
 
-import "./tasks/SimulatedMapsWorkflow.wdl" as sub
+import "./tasks/SimulatedSingleFamily.wdl" as sub
 
 workflow SimulatedReads {
 
@@ -39,7 +39,7 @@ workflow SimulatedReads {
     }
 
     # Calling reads_simu for each seed
-    call sub.SimulatedMapsWorkflow {
+    call sub.SimulatedSingleFamily {
       input:
         references=references,
         family=fam,
@@ -51,18 +51,18 @@ workflow SimulatedReads {
 
   call JointTables {
     input:
-      data1_depths_geno_prob   = SimulatedMapsWorkflow.data1_depths_geno_prob,
-      data2_maps               = SimulatedMapsWorkflow.data2_maps,
-      data3_filters            = SimulatedMapsWorkflow.data3_filters,
-      data5_SNPCall_efficiency = SimulatedMapsWorkflow.data5_SNPCall_efficiency,
-      data4_times              = SimulatedMapsWorkflow.data4_times,
-      data6_RDatas             = SimulatedMapsWorkflow.data6_RDatas,
-      data7_gusmap             = SimulatedMapsWorkflow.data7_gusmap,
-      data8_names              = SimulatedMapsWorkflow.data8_names,
-      data9_simu_haplo         = SimulatedMapsWorkflow.simu_haplo,
-      data10_counts            = SimulatedMapsWorkflow.data10_counts,
+      data1_depths_geno_prob   = SimulatedSingleFamily.data1_depths_geno_prob,
+      data2_maps               = SimulatedSingleFamily.data2_maps,
+      data3_filters            = SimulatedSingleFamily.data3_filters,
+      data5_SNPCall_efficiency = SimulatedSingleFamily.data5_SNPCall_efficiency,
+      data4_times              = SimulatedSingleFamily.data4_times,
+      data6_RDatas             = SimulatedSingleFamily.data6_RDatas,
+      data7_gusmap             = SimulatedSingleFamily.data7_gusmap,
+      data8_names              = SimulatedSingleFamily.data8_names,
+      data9_simu_haplo         = SimulatedSingleFamily.simu_haplo,
+      data10_counts            = SimulatedSingleFamily.data10_counts,
       depth                    = sequencing.depth,
-      plots                    = SimulatedMapsWorkflow.Plots
+      plots                    = SimulatedSingleFamily.Plots
   }
 
   # Here you can reference outputs from the sub workflow. Remember that

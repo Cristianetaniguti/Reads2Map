@@ -111,7 +111,7 @@ create_filters_report <- function(onemap_obj, SNPCall,CountsFrom, GenoCall, chro
                             "distorted_markers"= length(distorted),
                             "redundant_markers"= total_variants - length(bins[[1]]),
                             "non-grouped_markers" = nongroup)
-  write_report(filters_tab, paste0("filters_report"))
+  write_report(filters_tab, paste0(SNPCall, "_",GenoCall, "_",CountsFrom,"_filters_report"))
   return(lg1)
 }
 

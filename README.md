@@ -36,9 +36,17 @@ This workflows requires docker hub images. First of all, download [cromwell](htt
 You can use the docker images to built the indexes files for the reference genome. See a example for `Chr10.populus.fa`:
 
 ```
-docker run -v $(pwd):/opt/ cristaniguti/r-samtools samtools faidx /opt/Chr10.populus.fa
-docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev bwa index /opt/Chr10.populus.fa
-docker run -v $(pwd):/opt/ kfdrc/bwa-picard:latest-dev java -jar picard.jar CreateSequenceDictionary R=/opt/Chr10.populus.fa O=/opt/Chr10.populus.dict
+docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z samtools faidx /data/Chr10.populus.fa
+docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z /usr/gitc/./bwa index /data/Chr10.populus.fa
+docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z java -jar /usr/gitc/picard.jar CreateSequenceDictionary R=/data/Chr10.populus.fa O=/data/Chr10.populus.dict
+```
+
+or with singularity:
+
+```
+singularity run --bind $(pwd):/data/ us.gcr.io_broad-gotc-prod_genomes-in-the-cloud_2.5.7-2021-06-09_16-47-48Z.sif samtools faidx /data/Chr10.populus.fa
+singularity run --bind $(pwd):/data/ us.gcr.io_broad-gotc-prod_genomes-in-the-cloud_2.5.7-2021-06-09_16-47-48Z.sif /usr/gitc/./bwa index /data/Chr10.populus.fa
+singularity run --bind $(pwd):/data/  us.gcr.io_broad-gotc-prod_genomes-in-the-cloud_2.5.7-2021-06-09_16-47-48Z.sif java -jar /usr/gitc/picard.jar CreateSequenceDictionary R=/data/Chr10.populus.fa O=/data/Chr10.populus.dict
 ```
 
 *sequencing*:

@@ -91,7 +91,7 @@ task RunBwaAlignment {
     job_name: "RunBwaAlignment"
     node:"--nodes=1"
     mem:"--mem=32GB"
-    tasks:"--ntasks-per-node=10"
+    tasks:"--ntasks-per-node=11"
     time:"00:40:00"
   }
 
@@ -166,7 +166,7 @@ task RunBwaAlignmentSimu {
     job_name: "RunBwaAlignmentSimu"
     node:"--nodes=1"
     mem:"--mem=1GB"
-    tasks:"--ntasks-per-node=10"
+    tasks:"--ntasks-per-node=11"
     time:"00:20:00"
   }
 
