@@ -3,7 +3,7 @@ version 1.0
 import "./utilsR.wdl" as utilsR
 import "./utils.wdl" as utils
 
-workflow OneMapMaps {
+workflow onemapMaps {
 
   input {
     File vcf_file
@@ -20,25 +20,30 @@ workflow OneMapMaps {
     String multiallelics
   }
 
+  call utils.SplitMarkers{
+      input:
+          vcf_file = vcf_file
+  }
+  
   call utilsR.ReGenotyping {
       input:
-          vcf_file = vcf_file,
+          vcf_file = SplitMarkers.biallelics,
           GenotypeCall_program = GenotypeCall_program,
-          cross = dataset.cross,
-          parent1 = dataset.parent1,
-          parent2 = dataset.parent2,
+          cross = cross,
+          parent1 = parent1,
+          parent2 = parent2,
           max_cores = max_cores
-  
-  if(multiallelics == 'TRUE') {
-      call utils.RunWhatsHap{
-          input:
-              vcf_file = ReGenotyping.regeno_vcf,
-              merged_bam = merged_bam,
-              reference = reference
-      }
   }
 
-  File updated_vcf = select_first([RunWhatsHap.phased_vcf, ReGenotyping.regeno_vcf])
+  if (multiallelics == "TRUE") {
+    call utils.JointMarkers{
+      input:
+        biallelic_vcf = ReGenotyping.regeno_vcf,
+        multiallelic_vcf = SplitMarkers.multiallelics
+    }
+  }
+
+  File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
 
   call utilsR.SetProbs{
     input:
@@ -46,11 +51,11 @@ workflow OneMapMaps {
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
-      addDefault = FALSE
+      multiallelics = multiallelics
   }
 
   Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05"]
-  Array[File] objects                           = [SetProbs.probs_obj_out, SetProbs.globalerror_onemap_obj]
+  Array[File] objects                           = [SetProbs.probs_onemap_obj, SetProbs.globalerror_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
@@ -85,12 +90,12 @@ workflow OneMapMaps {
           }
    }
 
-   call Compress {
+   call utils.Compress {
       input:
-        RDatas = MapsReportEmp.maps_RData
-        maps_report = MapsReportEmp.maps_report
-        times = MapsReportEmp.times
-        filters_report = FiltersReportEmp.filters_report
+        RDatas = MapsReportEmp.maps_RData,
+        maps_report = MapsReportEmp.maps_report,
+        times = MapsReportEmp.times,
+        filters_report = FiltersReportEmp.filters_report,
         errors_report = CheckDepths.errors_report,
         name = "regeno_maps"
    }

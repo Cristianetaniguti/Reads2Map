@@ -297,6 +297,7 @@ task ErrorsReport {
 task GlobalError {
   input {
     File vcf_file
+    File onemap_obj
   }
 
   command <<<
@@ -306,7 +307,7 @@ task GlobalError {
     onemap_obj <- load("~{onemap_obj}")
     onemap_obj <- get(onemap_obj)
 
-    onemap_obj_globalError <- create_probs(onemap.obj = onemap_obj, global_error = 0.05)
+    onemap_obj_globalError <- create_probs(input.obj = onemap_obj, global_error = 0.05)
     save(onemap_obj_globalError, file = "onemap_obj_globalError.RData")
 
     RSCRIPT
@@ -426,46 +427,6 @@ task MapsReportEmp{
   }
 }
 
-# Deprecated
-task AddMultiallelics {
-  input {
-   File? onemap_obj_multi
-   File onemap_obj_bi
-  }
-
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-      library(onemap)
-
-      temp <- load("~{onemap_obj_multi}")
-      onemap_obj_multi <- get(temp)
-
-      temp <- load("~{onemap_obj_bi}")
-      onemap_obj_bi <- get(temp)
-
-      onemap_obj <- create_probs(onemap_obj_multi, global_error = 0.05) # All multiallelics receives global_error = 0.05
-
-      onemap_both <- combine_onemap(onemap_obj_bi, onemap_obj_multi)
-
-      onemap_both <- sort_by_pos(onemap_both)
-
-      save(onemap_both, file=paste0("onemap_obj_both.RData"))
-
-    RSCRIPT
-
-  >>>
-
-  runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
-    preemptible: 3
-    memory: "3 GB"
-    cpu: 4
-  }
-
-  output{
-      File onemap_obj_both = "onemap_obj_both.RData"
-  }
-}
 
 task JointReports{
   input {
@@ -866,7 +827,7 @@ task SetProbs{
     String cross
     String parent1
     String parent2
-    String addDefault
+    String multiallelics
   }
 
   command <<<
@@ -877,6 +838,7 @@ task SetProbs{
       cross <- "~{cross}"
 
       if(cross == "F1"){
+         cross <- "outcross"
          f1 = NULL
       } else if (cross == "F2"){
          f1 = "F1"
@@ -884,31 +846,27 @@ task SetProbs{
 
       vcf <- read.vcfR("~{vcf_file}")
       save(vcf, file = "vcfR.RData")
+
+      if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
           
       onemap.obj <- onemap_read_vcfR(vcfR.object = vcf,
                                      cross= cross,
                                      parent1="~{parent1}",
                                      parent2="~{parent2}",
-                                     f1 = f1)
+                                     f1 = f1, only_biallelic = only_biallelic)
 
-      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+      #if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
-                               onemap.object=onemap_obj,
-                               vcf.par=par,
+                               onemap.object=onemap.obj,
+                               vcf.par="GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs=probs)
-      globalerror_onemap_obj <- create_probs(onemap.obj = onemap_obj, global_error = 0.05)
-
-      if(~{addDefault} == "TRUE"){
-        default_onemap_obj <- create_probs(onemap.obj = onemap_obj, global_error = 10^(-5))
-        save(default_onemap_obj, file="default_onemap_obj.RData")
-      }
-
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+      globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
       save(globalerror_onemap_obj, file="globalerror_onemap_obj.RData")
@@ -926,7 +884,77 @@ task SetProbs{
   output{
     File probs_onemap_obj = "probs_onemap_obj.RData"
     File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
-    File? default_onemap_obj = "default_onemap_obj.RData"
+    File vcfR_obj = "vcfR.RData"
+  }
+}
+
+
+task SetProbsDefault{
+  input{
+    File vcf_file
+    String cross
+    String parent1
+    String parent2
+    String multiallelics
+  }
+
+  command <<<
+    R --vanilla --no-save <<RSCRIPT
+      library(onemap)
+      library(vcfR)
+
+      cross <- "~{cross}"
+
+      if(cross == "F1"){
+        cross <- "outcross"
+        f1 = NULL
+      } else if (cross == "F2"){
+        f1 = "F1"
+      }
+
+      vcf <- read.vcfR("~{vcf_file}")
+      save(vcf, file = "vcfR.RData")
+      
+      if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
+
+      onemap.obj <- onemap_read_vcfR(vcfR.object = vcf,
+                                     cross= cross,
+                                     parent1="~{parent1}",
+                                     parent2="~{parent2}",
+                                     f1 = f1, only_biallelic = only_biallelic)
+
+      # if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+
+      probs <- extract_depth(vcfR.object=vcf,
+                               onemap.object=onemap.obj,
+                               vcf.par="GQ",
+                               parent1="~{parent1}",
+                               parent2="~{parent2}",
+                               f1 = f1,
+                               recovering=FALSE)
+
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+      globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
+
+      default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
+      save(default_onemap_obj, file="default_onemap_obj.RData")
+      save(probs_onemap_obj, file="probs_onemap_obj.RData")
+      save(globalerror_onemap_obj, file="globalerror_onemap_obj.RData")
+
+    RSCRIPT
+
+  >>>
+  runtime{
+    docker:"cristaniguti/reads2map:0.0.1"
+    time:"10:00:00"
+    mem:"30GB"
+    cpu:1
+  }
+
+  output{
+    File probs_onemap_obj = "probs_onemap_obj.RData"
+    File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
+    File default_onemap_obj = "default_onemap_obj.RData"
     File vcfR_obj = "vcfR.RData"
   }
 }

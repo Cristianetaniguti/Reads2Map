@@ -98,6 +98,52 @@ task ApplyRandomFilters {
   }
 }
 
+task SplitMarkers {
+  input{
+    File vcf_file
+  }
+
+  command <<<
+    bcftools view --max-alleles 2 --min-alleles 2 --output-type z --output-file biallelics.vcf.gz  ~{vcf_file}
+    bcftools view --min-alleles 3 --types mnps --output-type z --output-file multiallelics.vcf.gz  ~{vcf_file}
+  >>>
+
+  runtime {
+    docker:"lifebitai/bcftools:1.10.2"
+    memory: "2 GB"
+    cpu:1
+    preemptible: 3
+  }
+
+  output {
+    File biallelics = "biallelics.vcf.gz"
+    File multiallelics = "multiallelics.vcf.gz"
+  }
+}
+
+task JointMarkers{
+  input{
+    File biallelic_vcf
+    File multiallelic_vcf
+  }
+
+  command <<<
+
+    bcftools merge ~{biallelic_vcf} ~{multiallelic_vcf} --output merged.vcf.gz
+  >>>
+
+  runtime {
+    docker:"lifebitai/bcftools:1.10.2"
+    memory: "2 GB"
+    cpu:1
+    preemptible: 3
+  }
+
+  output {
+    File merged_vcf = "merged.vcf.gz"
+  }
+}
+
 task ReplaceAD {
   input {
     File ref_fasta
@@ -172,10 +218,11 @@ task MergeVCFLines {
 
 # Phase VCF file according with WhatsHap
 # Require BAM files
+# Take long time to run
 task RunWhatsHap {
   input{
-    File merged_bam
-    File reference
+    File? merged_bam
+    File? reference
     File vcf_file
   }
 
@@ -184,7 +231,7 @@ task RunWhatsHap {
   >>>
 
   runtime{
-    docker:"cristaniguti/whatshap:0.0.1"
+    docker:"cristaniguti/miniconda-alpine:0.0.1"
     # memory: "2 GB"
     # cpu:1
     # preemptible: 3
@@ -196,24 +243,30 @@ task RunWhatsHap {
   }
 
   output{
-    phased_vcf = "phased.vcf"
+    File phased_vcf = "phased.vcf"
   }
 }
 
 
 task Compress {
-    input:
+    input{
       String name 
       Array[File] RDatas
       Array[File] maps_report
       Array[File] times
       Array[File] filters_report
       Array[File] errors_report
+    }
 
     command <<<
 
-      tar -czvf ~{name}.tar.gz ~{sep=" " RDatas} ~{sep=" " maps_report} \
-                ~{sep=" " times} ~{sep=" " filters_report} ~{sep=" " errors_report}
+      mkdir ~{name}
+
+      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
+        ~{sep=" " times} ~{sep=" " filters_report} \
+        ~{sep=" " errors_report}  ~{name}
+
+      tar -czvf ~{name}.tar.gz ~{name}
 
     >>>
 
@@ -235,18 +288,21 @@ task Compress {
 
 }
 
-
 task CompressGusmap {
-    input:
+    input{
       String name 
       Array[File] RDatas
       Array[File] maps_report
       Array[File] times
-
+    }
+    
     command <<<
 
-      tar -czvf ~{name}.tar.gz ~{sep=" " RDatas} ~{sep=" " maps_report} \
-                ~{sep=" " times} 
+      mkdir ~{name}
+      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
+                ~{sep=" " times} ~{name}
+
+      tar -czvf ~{name}.tar.gz ~{name}
 
     >>>
 

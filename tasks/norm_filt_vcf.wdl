@@ -46,7 +46,7 @@ task BiallelicNormalization {
   Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 2)
 
   command <<<
-    bcftools norm ~{vcf_file} -m-any --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
+    bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
 
     bgzip vcf_norm.vcf
     tabix -p vcf vcf_norm.vcf.gz

@@ -97,7 +97,7 @@ task MergeBams{
 
     runtime {
         job_name: "MergeBams"
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         node:"--nodes=1"
         mem:"--mem=10G"
         tasks:"--ntasks=1"

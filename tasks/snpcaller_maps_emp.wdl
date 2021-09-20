@@ -19,35 +19,24 @@ workflow SNPCallerMaps{
      Int max_cores
     }
 
-  if(multiallelics == 'TRUE') {
-      call utils.RunWhatsHap{
-          input:
-              vcf_file = vcf_file,
-              merged_bam = merged_bam,
-              reference = reference
-      }
-  }
-
-  File updated_vcf = select_first([RunWhatsHap.phased_vcf, vcf_file])
-
-  call utilsR.SetProbs{
+  call utilsR.SetProbsDefault{
     input:
-      vcf_file = updated_vcf,
+      vcf_file = vcf_file,
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
-      addDefault = TRUE
+      multiallelics = multiallelics
   }
 
-  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + default]
-  Array[File] objects                           = [SetProbs.probs_obj_out, SetProbs.globalerror_onemap_obj, SetProbs.default_onemap_obj]
+  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]
+  Array[File] objects                           = [SetProbsDefault.probs_onemap_obj, SetProbsDefault.globalerror_onemap_obj, SetProbsDefault.default_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
        call utilsR.CheckDepths {
            input:
               onemap_obj = item.right,
-              vcfR_obj = SetProbs.vcfR_obj,
+              vcfR_obj = SetProbsDefault.vcfR_obj,
               parent1 = parent1,
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
@@ -75,12 +64,12 @@ workflow SNPCallerMaps{
           }
   }
 
-  call Compress {
+  call utils.Compress {
       input:
-        RDatas = MapsReportEmp.maps_RData
-        maps_report = MapsReportEmp.maps_report
-        times = MapsReportEmp.times
-        filters_report = FiltersReportEmp.filters_report
+        RDatas = MapsReportEmp.maps_RData,
+        maps_report = MapsReportEmp.maps_report,
+        times = MapsReportEmp.times,
+        filters_report = FiltersReportEmp.filters_report,
         errors_report = CheckDepths.errors_report,
         name = "snpcaller_maps"
    }
@@ -88,16 +77,9 @@ workflow SNPCallerMaps{
    output {
       File tar_gz_report = Compress.tar_gz_report
    }
-
-  output{
-    File RDatas = MapsReportEmp.maps_RData
-    File maps_report = MapsReportEmp.maps_report
-    File times = MapsReportEmp.times
-    File filters_report = FiltersReportEmp.filters_report
-    File errors_report = CheckDepths.errors_report
-  }
 }
 
+# Deprecated
 task SNPCallerProbs{
   input{
     File vcf_file
@@ -126,17 +108,17 @@ task SNPCallerProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+      # if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par=par,
+                               vcf.par"GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs=probs)
+      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=probs)
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
 
     RSCRIPT

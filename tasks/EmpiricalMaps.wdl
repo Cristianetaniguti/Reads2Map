@@ -1,14 +1,13 @@
 version 1.0
 
-import "structs/maps_empS.wdl"
+import "../structs/maps_empS.wdl"
 
-import "tasks/default_maps_emp.wdl" as default
-import "tasks/snpcaller_maps_emp.wdl" as snpcaller
-import "tasks/gusmap_maps_emp.wdl" as gusmap
-import "tasks/utils.wdl" as utils
-import "tasks/utilsR.wdl" as utilsR
+import "./snpcaller_maps_emp.wdl" as snpcaller
+import "./gusmap_maps_emp.wdl" as gusmap
+import "./utils.wdl" as utils
+import "./utilsR.wdl" as utilsR
 
-import "tasks/genotyping.wdl" as genotyping
+import "./genotyping.wdl" as genotyping
 
 struct PopulationAnalysis {
     String method
@@ -57,48 +56,57 @@ workflow Maps {
 
         scatter (origin in ["vcf", "bam"]) {
 
-            call OneMapMaps as updogMaps {
-                vcf_file = vcfs[origin],
-                SNPCall_program = analysis.method,
-                GenotypeCall_program = "updog",
-                CountsFrom = origin,
-                cross = dataset.cross,
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2,
-                chromosome = dataset.chromosome,
-                multiallelics = dataset.multiallelics,
-                max_cores = max_cores
+            call genotyping.onemapMaps as updogMaps {
+                input:
+                    vcf_file = vcfs[origin],
+                    SNPCall_program = analysis.method,
+                    GenotypeCall_program = "updog",
+                    CountsFrom = origin,
+                    cross = dataset.cross,
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome,
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores,
+                    reference = reference,
+                    merged_bam = merged_bam
             }
 
-            call OneMapMaps as supermassaMaps {
-                vcf_file = vcfs[origin],
-                SNPCall_program = analysis.method,
-                GenotypeCall_program = "supermassa",
-                CountsFrom = origin,
-                cross = dataset.cross,
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2,
-                chromosome = dataset.chromosome,
-                multiallelics = dataset.multiallelics,
-                max_cores = max_cores
+            call genotyping.onemapMaps as supermassaMaps {
+                input:
+                    vcf_file = vcfs[origin],
+                    SNPCall_program = analysis.method,
+                    GenotypeCall_program = "supermassa",
+                    CountsFrom = origin,
+                    cross = dataset.cross,
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome,
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores,
+                    reference = reference,
+                    merged_bam = merged_bam
             }
 
-            call OneMapMaps as polyradMaps {
-                vcf_file = vcfs[origin],
-                SNPCall_program = analysis.method,
-                GenotypeCall_program = "polyrad",
-                CountsFrom = origin,
-                cross = dataset.cross,
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2,
-                chromosome = dataset.chromosome,
-                multiallelics = dataset.multiallelics,
-                max_cores = max_cores
+            call genotyping.onemapMaps as polyradMaps {
+                input:
+                    vcf_file = vcfs[origin],
+                    SNPCall_program = analysis.method,
+                    GenotypeCall_program = "polyrad",
+                    CountsFrom = origin,
+                    cross = dataset.cross,
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome,
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores,
+                    reference = reference,
+                    merged_bam = merged_bam
             }
         }
 
        # Build maps with GUSMap
-       call gusmap.GusmapMaps {
+       call gusmap.gusmapMaps {
             input:
               vcf_file = analysis.vcf,
               new_vcf_file = analysis.bam,
@@ -120,19 +128,20 @@ workflow Maps {
                 parent2 = dataset.parent2,
                 chromosome = dataset.chromosome,
                 multiallelics = dataset.multiallelics,
-                max_cores = max_cores
+                max_cores = max_cores,
+                reference = reference,
+                merged_bam = merged_bam
         }
     }
 
     # Compress files
     call JointReports {
         input:
-            default = flatten(DefaultMaps.files),
-            SNPCaller = SNPCallerMaps.files,
-            Updog = flatten(flatten(UpdogMaps.files)),
-            Polyrad = flatten(flatten(PolyradMaps.files)),
-            Supermassa_files = flatten(flatten(SupermassaMaps.files)),
-            Gusmap = flatten(GusmapMaps.files),
+            SNPCaller = SNPCallerMaps.tar_gz_report,
+            updog = flatten(updogMaps.tar_gz_report),
+            polyrad = flatten(polyradMaps.tar_gz_report),
+            supermassa = flatten(supermassaMaps.tar_gz_report),
+            gusmap = gusmapMaps.tar_gz_report,
             max_cores = max_cores
     }
 
@@ -143,12 +152,11 @@ workflow Maps {
 
 task JointReports{
   input{
-    Array[File] default_RDatas
-    Array[File] SNPCaller_RDatas
-    Array[File] Updog_RDatas
-    Array[File] Polyrad_RDatas
-    Array[File] Supermassa_RDatas
-    Array[File] Gusmap_RDatas
+    Array[File] SNPCaller
+    Array[File] updog
+    Array[File] polyrad
+    Array[File] supermassa
+    Array[File] gusmap
     Int max_cores
   }
 
@@ -171,90 +179,85 @@ task JointReports{
 
         default    <- str_split(default, ";", simplify = T)
         SNPCaller  <- str_split(snpcaller, ";", simplify = T)
-        Updog      <- str_split(updog, ";", simplify = T)
-        Polyrad    <- str_split(polyrad, ";", simplify = T)
-        Supermassa <- str_split(supermassa, ";", simplify = T)
+        updog      <- str_split(updog, ";", simplify = T)
+        polyrad    <- str_split(polyrad, ";", simplify = T)
+        supermassa <- str_split(supermassa, ";", simplify = T)
 
         if(is.null(gusmap)){
-          files <- c(default, SNPCaller, Updog, Polyrad, Supermassa)
+          files <- c(default, SNPCaller, updog, polyrad, supermassa)
         } else {
-          Gusmap <- str_split(gusmap, ";", simplify = T)
-          files <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
+          gusmap <- str_split(gusmap, ";", simplify = T)
+          files <- c(default, SNPCaller, updog, polyrad, supermassa, gusmap)
         }
 
         joint <- vroom(files, num_threads = ~{max_cores})
         return(joint)
       }
     
-      maps_report <- joint_reports(default = "~{sep=";" default_maps_report}", 
-                                  snpcaller = "~{sep=";" SNPCaller_maps_report}", 
-                                  updog = "~{sep=";" Updog_maps_report}", 
-                                  polyrad = "~{sep=";" Polyrad_maps_report}", 
-                                  supermassa = "~{sep=";" Supermassa_maps_report}",
-                                  gusmap = "~{sep=";" Gusmap_maps_report}")
+      maps_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
+                                  updog = "~{sep=";" updog}", 
+                                  polyrad = "~{sep=";" polyrad}", 
+                                  supermassa = "~{sep=";" supermassa}",
+                                  gusmap = "~{sep=";" gusmap}")
 
-      filters_report <- joint_reports(default = "~{sep=";" default_filters_report}", 
-                            snpcaller = "~{sep=";" SNPCaller_filters_report}", 
-                            updog = "~{sep=";" Updog_filters_report}", 
-                            polyrad = "~{sep=";" Polyrad_filters_report}", 
-                            supermassa = "~{sep=";" Supermassa_filters_report}")
+    #   filters_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
+    #                         updog = "~{sep=";" updog}", 
+    #                         polyrad = "~{sep=";" polyrad}", 
+    #                         supermassa = "~{sep=";" supermassa}")
 
-      errors_report <- joint_reports(default = "~{sep=";" default_errors_report}", 
-                                     snpcaller = "~{sep=";" SNPCaller_errors_report}", 
-                                     updog = "~{sep=";" Updog_errors_report}", 
-                                     polyrad = "~{sep=";" Polyrad_errors_report}", 
-                                     supermassa = "~{sep=";" Supermassa_errors_report}")
+    #   errors_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
+    #                                  updog = "~{sep=";" updog}", 
+    #                                  polyrad = "~{sep=";" polyrad}", 
+    #                                  supermassa = "~{sep=";" supermassa}")
 
  
-       times_report <- joint_reports(default = "~{sep=";" default_times_report}", 
-                                   snpcaller = "~{sep=";" SNPCaller_times_report}", 
-                                   updog = "~{sep=";" Updog_times_report}", 
-                                   polyrad = "~{sep=";" Polyrad_times_report}", 
-                                   supermassa = "~{sep=";" Supermassa_times_report}",
-                                   gusmap = "~{sep=";" Gusmap_times_report}")
+    #    times_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
+    #                                updog = "~{sep=";" updog}", 
+    #                                polyrad = "~{sep=";" polyrad}", 
+    #                                supermassa = "~{sep=";" supermassa}",
+    #                                gusmap = "~{sep=";" gusmap}")
 
-     # RDatas need to be load
-      default    <- str_split("~{sep=";" default_RDatas}", ";", simplify = T)
-      SNPCaller  <- str_split("~{sep=";" SNPCaller_RDatas}", ";", simplify = T)
-      Updog      <- str_split("~{sep=";" Updog_RDatas}", ";", simplify = T)
-      Polyrad    <- str_split("~{sep=";" Polyrad_RDatas}", ";", simplify = T)
-      Supermassa <- str_split("~{sep=";" Supermassa_RDatas}", ";", simplify = T)
-      Gusmap <- str_split("~{sep=";" Gusmap_RDatas}", ";", simplify = T)
+    #  # RDatas need to be load
+    #   SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
+    #   updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
+    #   polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
+    #   supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
+    #   gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
 
-      RDatas_names <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
+    #   RDatas_names <- c(default, SNPCaller, updog, polyrad, supermassa, gusmap)
 
-      all_RDatas <- list()
-      for(i in 1:length(RDatas_names)){
-         map_temp <- load(RDatas_names[i])
-         all_RDatas[[i]] <- get(map_temp)
-      }
+    #   all <- list()
+    #   for(i in 1:length(RDatas_names)){
+    #      map_temp <- load(RDatas_names[i])
+    #      all_RDatas[[i]] <- get(map_temp)
+    #   }
 
-      names(all_RDatas) <- sapply(RDatas_names, basename)
-      gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
-      RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
+    #   names(all_RDatas) <- sapply(RDatas_names, basename)
+    #   gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
+    #   RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
 
-      # Converting OneMap sequencig objects to list. LargeList do not accept other class
-      # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
+    #   # Converting onemap sequencig objects to list. LargeList do not accept other class
+    #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
 
-      for(i in 1:length(RDatas)){
-        class(RDatas[[i]]) <- "list"
-      }
+    #   for(i in 1:length(RDatas)){
+    #     class(RDatas[[i]]) <- "list"
+    #   }
 
-      saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
+    #   saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
 
-      new_names <- names(all_RDatas)
-      vroom_write(as.data.frame(new_names), "names.tsv.gz")
-      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+    #   new_names <- names(all_RDatas)
+    #   vroom_write(as.data.frame(new_names), "names.tsv.gz")
+    #   save(gusmap_RDatas, file = "gusmap_RDatas.RData")
 
-      # Outputs
-      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(times_report, "data4_times.tsv.gz", num_threads = ~{max_cores})
+    #   # Outputs
+    #   vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
+    #   vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = ~{max_cores})
+    #   vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = ~{max_cores})
+    #   vroom_write(times_report, "data4_times.tsv.gz", num_threads = ~{max_cores})
       
-      system("mkdir EmpiricalReads_results")
-      system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
-      system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
+    #   system("mkdir EmpiricalReads_results")
+    #   system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
+    #   system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
 
      RSCRIPT
 
