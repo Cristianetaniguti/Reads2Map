@@ -11,8 +11,8 @@
     "multiallelics": "TRUE"
   },
   "Maps.gatk_vcf_bam_counts": "/home/cris/Reads2Map/cromwell-executions/SNPCalling/d5145eaa-41da-4941-8c40-76af55a1e2bc/call-GatkGenotyping/GatkGenotyping/db9aac90-e72a-4bb7-9798-de8507e04231/call-ReplaceAD/cacheCopy/execution/gatk_bam_vcf.vcf.gz",
-  "Maps.max_cores": 2,
-  "Maps.filters": "--chr NC_037285.1 --max-missing 0.6 --maf 0.05",
+  "Maps.max_cores": 4,
+  "Maps.filters": "--chr NC_037285.1 --max-missing 0.6",
   "Maps.gatk_vcf": "/home/cris/Reads2Map/cromwell-executions/SNPCalling/d5145eaa-41da-4941-8c40-76af55a1e2bc/call-GatkGenotyping/GatkGenotyping/db9aac90-e72a-4bb7-9798-de8507e04231/call-Normalization/Normalization/1ca19b00-6347-4f0f-b793-1c9381c08686/call-BiallelicNormalization/cacheCopy/execution/vcf_norm.vcf.gz",
   "Maps.freebayes_vcf_bam_counts": "/home/cris/Reads2Map/cromwell-executions/SNPCalling/d5145eaa-41da-4941-8c40-76af55a1e2bc/call-FreebayesGenotyping/FreebayesGenotyping/75137699-aade-458a-8c68-5d17d42eaf85/call-ReplaceAD/cacheCopy/execution/freebayes_bam_vcf.vcf.gz"
 }

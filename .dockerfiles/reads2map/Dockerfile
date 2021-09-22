@@ -3,21 +3,20 @@ FROM ubuntu:18.04
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update \
-   && apt-get install -y libcurl4-gnutls-dev \ 
+   && apt-get install -y libcurl4-gnutls-dev \
    libssl-dev \
    libftgl2=2.1.3~rc5-4+nmu1.2 \
    libglu1-mesa-dev=9.0.0-2.1build1 \
    libfreetype6-dev=2.8.1-2ubuntu2.1  \
    gcc-8-base=8.4.0-1ubuntu1~18.04 \
    libgfortran5=8.4.0-1ubuntu1~18.04 \
-   python-pip=9.0.1-2.3~ubuntu1.18.04.4 \
+   python-pip \
    python-tk=2.7.17-1~18.04 \
-   libxml2-dev=2.9.4+dfsg1-6.1ubuntu1.3 \
+   libxml2-dev \
    libnlopt-dev=2.4.2+dfsg-4 \
    devscripts=2.17.12ubuntu1.1 \
    software-properties-common=0.96.24.32.14 \
    libgit2-dev=0.26.0+dfsg.1-1.1ubuntu0.2 \
-   samtools \
    && pip install matplotlib==2.0.2 numpy
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 \
@@ -48,24 +47,24 @@ RUN Rscript -e 'remotes::install_version("vroom",upgrade="never", version = "1.4
 
 RUN Rscript -e 'BiocManager::install("pcaMethods")'
 RUN Rscript -e 'BiocManager::install("VariantAnnotation", ask=F)'
-
 RUN Rscript -e 'remotes::install_github("lvclark/polyRAD", ref = "e22ea55372413fe01eb06bb7448f3789a16c8451")'
 RUN Rscript -e 'remotes::install_version("gsalib",upgrade="never", version = "2.1")'
-
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSbase", ref = "92119b9c57faa7abeede8236d24a4a8e85fb3df7")'
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSMap", ref = "4d7d4057049819d045750d760a45976c8f30dac6")'
-RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap", ref="update_checks")'
-
 RUN Rscript -e 'remotes::install_github("dcgerard/updog", ref = "eaa231c869e8d2e4c1fd11dc28e53e6270c9d5c0")'
 
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap" )'
 
 # Still in private repo
-COPY ./onemapUTILS_0.2.0.tar.gz /opt/
+COPY ./onemapUTILS_0.3.1.tar.gz /opt/
 COPY ./simuscopR_0.0.0.9000.tar.gz /opt/
-          
+
 RUN R -e "install.packages('/opt/simuscopR_0.0.0.9000.tar.gz', type = 'source', repos=NULL)"
-RUN R -e "install.packages('/opt/onemapUTILS_0.2.0.tar.gz', type = 'source', repos=NULL)"
+RUN R -e "install.packages('/opt/onemapUTILS_0.3.1.tar.gz', type = 'source', repos=NULL)"
 
 COPY ./functions_simu.R /opt/scripts/
 
 COPY ./functions_empirical.R /opt/scripts
+
+COPY ./VCF2SM.py /opt/scripts
+

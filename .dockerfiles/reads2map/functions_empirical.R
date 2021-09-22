@@ -23,9 +23,11 @@ create_map_report <- function(input.seq, CountsFrom, SNPCall, GenoCall, max_core
     map_out <- map_avoid_unlinked(input.seq, 
                                   size = batch_size, 
                                   phase_cores = max_cores, 
-                                  overlap = 30)
+                                  overlap = 30,
+                                  parallelization.type = "FORK",
+                                  max.gap = 5)
   } else {
-    map_out <- map_avoid_unlinked(input.seq)
+    map_out <- map_avoid_unlinked(input.seq, max.gap = 5)
   }
   
   sizes_df <- data.frame(CountsFrom, SNPCall, GenoCall, "mks" = colnames(map_out$data.name$geno)[map_out$seq.num],
