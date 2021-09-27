@@ -9,8 +9,8 @@ import "../structs/reference_struct.wdl"
 task RunBwaAlignment {
 
   input {
-    String sampleName
-    Array[File] reads1
+    Array[String] sampleName
+    Array[File] reads
     Array[String] libraries
     Reference references
     Int max_cores
@@ -19,75 +19,90 @@ task RunBwaAlignment {
 
   command <<<
     mkdir tmp
-    export PATH=$PATH:/bin
-    export PATH=$PATH:/picard.jar
-
-    reads_list=( ~{sep=" " reads1} )
+    
+    reads_list=( ~{sep=" " reads} )
     lib_list=( ~{sep=" " libraries} )
+    sampleName_list=( ~{sep=" " sampleName})
     BAMS=()
     for index in ${!reads_list[*]}; do
       echo "${reads_list[$index]} is in ${lib_list[$index]}"
-      bwa_header="@RG\tID:~{sampleName}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:~{sampleName}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
-          java -jar /picard.jar SortSam \
+      bwa_header="@RG\tID:${sampleName_list[$index]}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:${sampleName_list[$index]}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
+          java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
-            O="~{sampleName}.${lib_list[$index]}.sorted.bam" \
+            O="${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam" \
             TMP_DIR=./tmp \
             SORT_ORDER=coordinate \
             CREATE_INDEX=true;
-      mv "~{sampleName}.${lib_list[$index]}.sorted.bai" "~{sampleName}.${lib_list[$index]}.sorted.bam.bai";
-      BAMS+=("I=~{sampleName}.${lib_list[$index]}.sorted.bam")
+      mv "${sampleName_list[$index]}.${lib_list[$index]}.sorted.bai" "${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam.bai";
+      BAMS+=("I=${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam")
     done
 
-    if [ "${#BAMS[@]}" -gt 1 ]; then
-      java -jar /picard.jar MergeSamFiles ${BAMS[@]} \
-        O=~{sampleName}.sorted_temp.bam \
-        CREATE_INDEX=true \
-        TMP_DIR=./tmp
-    else
-      mv ~{sampleName}*.bam ~{sampleName}.sorted_temp.bam
-      mv ~{sampleName}*.bai ~{sampleName}.sorted_temp.bai
-    fi
+    sampleName_unique=($(echo "${sampleName_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-    if [ "~{rm_dupli}" = "TRUE" ]; then
-      java -jar /picard.jar MarkDuplicates \
-          I="~{sampleName}.sorted_temp.bam" \
-          O="~{sampleName}.sorted.bam" \
-          CLEAR_DT="false" \
-          METRICS_FILE= "~{sampleName}_dup_metrics.txt" \
-          REMOVE_SEQUENCING_DUPLICATES=true \
-          CREATE_INDEX=true    
-    else
-      java -jar /picard.jar MarkDuplicates \
-          I="~{sampleName}.sorted_temp.bam" \
-          O="~{sampleName}.sorted_temp2.bam" \
-          CLEAR_DT="false" \
-          METRICS_FILE= "~{sampleName}_dup_metrics.txt"
+    # Check if there are replicated samples
+    for index in ${!sampleName_unique[*]}; do
+      NFILES=($(echo ${sampleName_unique[$index]}.*.bam))
+      echo ${NFILES[*]}
+      echo ${#NFILES[@]}
+      REP=()
+      if [ "${#NFILES[@]}" -gt 1 ]; then                
+        for file in ${!NFILES[*]}; do
+          REP+=("I=${NFILES[$file]}")
+        done
+        echo ${REP[*]}
 
-      mv "~{sampleName}.sorted_temp.bam" "~{sampleName}.sorted.bam"
-      mv "~{sampleName}.sorted_temp.bai" "~{sampleName}.sorted.bai"    
-    fi
+        java -jar /usr/gitc/picard.jar MergeSamFiles ${REP[*]} \
+          O=${sampleName_unique[$index]}.sorted_temp.bam \
+          CREATE_INDEX=true \
+          TMP_DIR=./tmp
+      else
+        mv ${sampleName_unique[$index]}.*.bam ${sampleName_unique[$index]}.sorted_temp.bam
+        mv ${sampleName_unique[$index]}.*.bai ${sampleName_unique[$index]}.sorted_temp.bai
+      fi
 
+      if [ "~{rm_dupli}" = "TRUE" ]; then
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
+            I="${sampleName_unique[$index]}.sorted_temp.bam" \
+            O="${sampleName_unique[$index]}.sorted.bam" \
+            CLEAR_DT="false" \
+            METRICS_FILE= "${sampleName_unique[$index]}_dup_metrics.txt" \
+            REMOVE_SEQUENCING_DUPLICATES=true \
+            CREATE_INDEX=true    
+      else
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
+            I="${sampleName_unique[$index]}.sorted_temp.bam" \
+            O="${sampleName_unique[$index]}.sorted_temp2.bam" \
+            CLEAR_DT="false" \
+            METRICS_FILE= "${sampleName_unique[$index]}_dup_metrics.txt"
+
+        mv "${sampleName_unique[$index]}.sorted_temp.bam" "${sampleName_unique[$index]}.sorted.merged.bam"
+        mv "${sampleName_unique[$index]}.sorted_temp.bai" "${sampleName_unique[$index]}.sorted.merged.bai"    
+      fi
+    done
   >>>
 
   runtime {
-    docker: "kfdrc/bwa-picard:latest-dev"
-    memory: "1 GB"
-    cpu:4
-    preemptible: 3
-    disks: "local-disk " + 10 + " HDD"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    # memory: "1 GB"
+    # cpu:4
+    # preemptible: 3
+    # disks: "local-disk " + 10 + " HDD"
+    job_name: "RunBwaAlignment"
+    node:"--nodes=1"
+    mem:"--mem=32GB"
+    tasks:"--ntasks-per-node=11"
+    time:"00:40:00"
   }
 
   output {
-    Alignment algn = {"bam": "~{sampleName}.sorted.bam", "bai": "~{sampleName}.sorted.bai", "sample": "~{sampleName}"}
-    File bam = "~{sampleName}.sorted.bam"
-    File bai = "~{sampleName}.sorted.bai"
-    File dup_metrics = "~{sampleName}_dup_metrics.txt"
+    Array[File] bam = glob("*.sorted.merged.bam")
+    Array[File] bai = glob("*.sorted.merged.bai")
+    Array[File] dup_metrics = glob("*_dup_metrics.txt")
   }
 }
 
 
-# reads1 receive only one fastq
 task RunBwaAlignmentSimu {
 
   input {
@@ -99,17 +114,14 @@ task RunBwaAlignmentSimu {
 
   command <<<
     mkdir tmp
-    export PATH=$PATH:/bin
-    export PATH=$PATH:/picard.jar
-
     for file in ~{sep= " " reads}; do
 
       sample=`basename -s .1.fq $file`
 
       bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
 
-      bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
-          java -jar /picard.jar SortSam \
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
+          java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
             O="${sample}.sorted_temp.bam" \
             TMP_DIR=./tmp \
@@ -117,7 +129,7 @@ task RunBwaAlignmentSimu {
             CREATE_INDEX=true
 
       if [ "~{rm_dupli}" = "TRUE" ]; then
-        java -jar /picard.jar MarkDuplicates \
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sample}.sorted_temp.bam" \
             O="${sample}.sorted.bam" \
             CLEAR_DT="false" \
@@ -126,7 +138,7 @@ task RunBwaAlignmentSimu {
             CREATE_INDEX=true
 
       else
-        java -jar /picard.jar MarkDuplicates \
+        java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sample}.sorted_temp.bam" \
             O="${sample}.sorted_temp2.bam" \
             CLEAR_DT="false" \
@@ -146,11 +158,16 @@ task RunBwaAlignmentSimu {
   >>>
 
   runtime {
-    docker: "kfdrc/bwa-picard:latest-dev"
-    memory: "1 GB"
-    cpu:4
-    preemptible: 3
-    disks: "local-disk " + 10 + " HDD"
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    # memory: "1 GB"
+    # cpu:4
+    # preemptible: 3
+    # disks: "local-disk " + 10 + " HDD"
+    job_name: "RunBwaAlignmentSimu"
+    node:"--nodes=1"
+    mem:"--mem=1GB"
+    tasks:"--ntasks-per-node=11"
+    time:"00:20:00"
   }
 
   output {
@@ -160,42 +177,32 @@ task RunBwaAlignmentSimu {
   }
 }
 
-
-# Add info to alignment header
-task AddAlignmentHeader {
+task CreateChunksFastq {
   input {
-    String sampleName
-    File bam_file
-    File bam_idx
+    Array[String] sampleFile
+    Int chunk_size
   }
 
   command <<<
-    mkdir tmp
-    java -jar /gatk/picard.jar AddOrReplaceReadGroups \
-      I=~{bam_file} \
-      O=~{sampleName}_rg.bam \
-      RGLB=lib-~{sampleName} \
-      RGPL=illumina \
-      RGID=FLOWCELL1.LANE1.~{sampleName} \
-      RGSM=~{sampleName} \
-      RGPU=FLOWCELL1.LANE1.~{sampleName} \
-      CREATE_INDEX=true \
-      TMP_DIR=tmp
+    set -e
+    for i in ~{sep=" " sampleFile}; do echo $i >> lof_sample.txt; done
 
-    mv ~{sampleName}_rg.bai ~{sampleName}_rg.bam.bai
-
+    split -l ~{chunk_size} lof_sample.txt sample.
   >>>
 
   runtime {
-    docker: "taniguti/gatk-picard"
-    time:"01:00:00"
-    mem:"10GB"
-    cpu:1
+    docker: "ubuntu:20.04"
+    # memory: "2 GB"
+    # preemptible: 3
+    # cpu: 1
+    job_name: "CreateChunksFastq"
+    node:"--nodes=1"
+    mem:"--mem=1G"
+    cpu:"--ntasks=1"
+    time:"00:05:00"
   }
 
   output {
-    Alignment algn = {"bam": "${sampleName}_rg.bam", "bai": "${sampleName}_rg.bam.bai", "sample": "${sampleName}"}
-    File bam = "~{sampleName}_rg.bam"
-    File bai = "~{sampleName}_rg.bam.bai"
+    Array[File] sample_chunks = glob("sample.*")
   }
 }

@@ -2,7 +2,7 @@ version 1.0
 
 import "../structs/snpcalling_empS.wdl"
 import "../structs/reference_struct.wdl"
-import "./split_filt_vcf.wdl" as norm_filt
+import "./norm_filt_vcf.wdl" as norm_filt
 import "./utils.wdl" as utils
 
 workflow HardFiltering {
@@ -66,19 +66,19 @@ task VariantsToTable {
         bgzip -c  ~{simu_vcf} > ~{simu_vcf}.gz
         tabix -p vcf ~{simu_vcf}.gz
         
-        /gatk/gatk SelectVariants \
+        /usr/gitc/gatk4/./gatk SelectVariants \
             -R ~{reference} \
             -V ~{vcf_file} \
             --discordance ~{simu_vcf}.gz \
             -O FalsePositives.vcf.gz
             
-        /gatk/gatk SelectVariants \
+        /usr/gitc/gatk4/./gatk SelectVariants \
             -R ~{reference} \
             -V ~{vcf_file} \
             --concordance ~{simu_vcf}.gz \
             -O TruePositives.vcf.gz
 
-        gatk VariantsToTable \
+        /usr/gitc/gatk4/./gatk VariantsToTable \
             -V ~{vcf_file} \
             -F CHROM -F POS \
             -F QD \
@@ -89,8 +89,7 @@ task VariantsToTable {
             -F ReadPosRankSum \
             -O Total.table
 
-
-        gatk VariantsToTable \
+        /usr/gitc/gatk4/./gatk VariantsToTable \
             -V FalsePositives.vcf.gz \
             -F CHROM -F POS \
             -F QD \
@@ -101,7 +100,7 @@ task VariantsToTable {
             -F ReadPosRankSum \
             -O FalsePositives.table
         
-        gatk VariantsToTable \
+        /usr/gitc/gatk4/./gatk VariantsToTable \
             -V TruePositives.vcf.gz \
             -F CHROM -F POS \
             -F QD \
@@ -115,10 +114,15 @@ task VariantsToTable {
     >>>
 
     runtime {
-        docker: "taniguti/gatk-picard"
-        memory: "1 GB"
-        cpu: 1
-        disks: "local-disk " + disk_size + " HDD"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        # memory: "1 GB"
+        # cpu: 1
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "VariantsToTable"
+        node:"--nodes=1"
+        mem:"--mem=1G"
+        cpu:"--ntasks=1"
+        time:"00:30:00"
     }
 
     output {
@@ -218,10 +222,15 @@ task QualPlots {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map"
-        memory: "1 GB"
-        cpu: 1
-        disks: "local-disk " + disk_size + " HDD"
+        docker: "cristaniguti/reads2map:0.0.1"
+        # memory: "1 GB"
+        # cpu: 1
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "QualPlots"
+        node:"--nodes=1"
+        mem:"--mem=1G"
+        tasks:"--ntasks=1"
+        time:"00:30:00"
     }
 
     output {
@@ -241,7 +250,7 @@ task VariantFiltration {
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
 
     command <<<
-        /gatk/gatk VariantFiltration \
+        /usr/gitc/gatk4/./gatk VariantFiltration \
             -V ~{vcf_file} \
             -filter "QD < 2.0" --filter-name "QD2" \
             -filter "QUAL < 30.0" --filter-name "QUAL30" \
@@ -252,7 +261,7 @@ task VariantFiltration {
             -filter "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" \
             -O gatk_filters.vcf.gz
 
-        /gatk/gatk SelectVariants \
+        /usr/gitc/gatk4/./gatk SelectVariants \
             -R ~{reference} \
             -V gatk_filters.vcf.gz \
             --exclude-filtered \
@@ -261,10 +270,15 @@ task VariantFiltration {
     >>>
 
     runtime {
-        docker: "taniguti/gatk-picard"
-        memory: "1 GB"
-        cpu: 1
-        disks: "local-disk " + disk_size + " HDD"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        # memory: "1 GB"
+        # cpu: 1
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "VariantFiltration"
+        node:"--nodes=1"
+        mem:"--mem=1G"
+        tasks:"--ntasks=1"
+        time:"00:30:00"
     }
 
     output {

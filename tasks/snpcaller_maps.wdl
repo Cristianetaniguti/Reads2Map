@@ -112,11 +112,11 @@ task SNPCallerProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+      # if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par=par,
+                               vcf.par="GQ",
                                parent1="P1",
                                parent2="P2",
                                f1 = f1,
@@ -129,7 +129,7 @@ task SNPCallerProbs{
 
   >>>
   runtime {
-    docker: "cristaniguti/reads2map"
+    docker: "cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory: "3 GB"
     cpu: 1

@@ -1,6 +1,0 @@
-{
-    "final_workflow_outputs_dir": "/home/cristiane/github/onemap_workflows/outputs/out",
-    "use_relative_output_paths": true,
-    "final_workflow_log_dir": "/home/cristiane/github/onemap_workflows/outputs/wf_logs",
-    "final_call_logs_dir": "/home/cristiane/github/onemap_workflows/outputs/all_logs"
-}

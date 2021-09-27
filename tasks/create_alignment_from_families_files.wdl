@@ -2,89 +2,109 @@ version 1.0
 
 import "alignment.wdl" as alg
 
-
-
-struct Sample {
-    String name
-    Array[File] reads
-    Array[String] libraries
-}
-
-
-struct Data {
-    String experiment_name
-    Array[String] names
-    Array[Sample] samples
-}
-
 workflow CreateAlignmentFromFamilies {
     input {
         File families_info
         Reference references
         Int max_cores
         String rm_dupli
+        Int chunk_size
     }
 
-    call SepareIndividuals {
+    call SepareChunks {
         input:
-            families_info=families_info
+            families_info=families_info,
+            chunk_size = chunk_size
     }
 
-    scatter (sample in SepareIndividuals.dataset.samples) {
+    scatter (chunk in SepareChunks.chunks) {
+
+        Array[Array[String]] sample_file = read_tsv(chunk)
+
         call alg.RunBwaAlignment {
             input:
-                sampleName  = sample.name,
-                reads1      = sample.reads,
-                libraries   = sample.libraries,
+                sampleName  = sample_file[1],
+                reads       = sample_file[0],
+                libraries   = sample_file[2],
                 references  = references,
                 max_cores   = max_cores,
                 rm_dupli    = rm_dupli
         }
     }
 
+    # Store for WhatsHap 
+    call MergeBams {
+        input:
+            bam_files = flatten(RunBwaAlignment.bam)
+    }
+
     output {
-        Array[Alignment] alignments = RunBwaAlignment.algn
-        Array[File] bam = RunBwaAlignment.bam
-        Array[File] bai = RunBwaAlignment.bai
-        Array[String] names = SepareIndividuals.dataset.names
-        Array[File] dup_metrics = RunBwaAlignment.dup_metrics
+        Array[File] bam = flatten(RunBwaAlignment.bam)
+        Array[File] bai = flatten(RunBwaAlignment.bai)
+        Array[Array[File]] dup_metrics = RunBwaAlignment.dup_metrics
+        File merged_bam = MergeBams.merged_bam
     }
 }
 
-
-task SepareIndividuals {
+task SepareChunks {
     input {
         File families_info
+        Int chunk_size
     }
 
     command <<<
-        python <<CODE
-        import json
-        sets = {}
-        libs = {}
+        R --vanilla --no-save <<RSCRIPT
+            df <- read.table("~{families_info}")
+            split_df <- split.data.frame(df, df[,2])
 
-        with open("~{families_info}") as f:
-            for l in f:
-                file_path, sample_name, library = l.strip().split()
-                sets.setdefault(sample_name, []).append(file_path)
-                libs.setdefault(sample_name, []).append(library)
+            n_chunk <- as.integer(length(split_df)/~{chunk_size})
+            chunk_temp <- rep(1:n_chunk, each=~{chunk_size})
+            chunk <- c(chunk_temp, rep(n_chunk+1, length(split_df) - length(chunk_temp)))
+            chunk_json <- split(split_df, chunk)
 
-        names = [i for i in sets]
-        samples = [{"name": sample, "reads": sets[sample], "libraries": libs[sample] } for sample in names]
-        experiment_name = "Teste"
-        print(json.dumps({"experiment_name": experiment_name, "samples":samples, "names": names}))
-        CODE
+            for(i in 1:length(chunk_json)){
+                df <- do.call(rbind, unlist(chunk_json[i], recursive = F))
+                df <- t(df)
+                write.table(df, file = paste0("chunk_",i, ".txt"), quote = F, col.names = F, row.names = F, sep="\t")
+            }
+
+        RSCRIPT
 
     >>>
 
     runtime {
-        docker: "python:3.7"
-	mem:"--nodes=1"
-	cpu:1
-	time:"24:00:00"
+        job_name: "SepareChunksIndividuals"
+        docker: "cristaniguti/reads2map:0.0.1"
+        node:"--nodes=1"
+        mem:"--mem=1G"
+        tasks:"--ntasks=1"
+        time:"00:05:00"
     }
 
     output {
-        Data dataset = read_json(stdout())
+        Array[File] chunks = glob("chunk*")
+    }
+}
+
+task MergeBams{
+    input {
+        Array[File] bam_files
+    }
+
+    command <<<
+        samtools merge merged.bam ~{sep=" " bam_files}
+    >>>
+
+    runtime {
+        job_name: "MergeBams"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        node:"--nodes=1"
+        mem:"--mem=10G"
+        tasks:"--ntasks=1"
+        time:"01:00:00"
+    }
+
+    output {
+        File merged_bam = "merged.bam"
     }
 }

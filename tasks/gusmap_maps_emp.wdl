@@ -1,7 +1,8 @@
 version 1.0
 
+import "./utils.wdl" as utils
 
-workflow GusmapMaps {
+workflow gusmapMaps {
   input {
     File vcf_file
     File new_vcf_file
@@ -29,10 +30,16 @@ workflow GusmapMaps {
         }
     }
 
+    call utils.CompressGusmap{
+      input:
+        name = "gusmap_map",
+        RDatas = GusmapReport.maps_RData,
+        maps_report = GusmapReport.maps_report,
+        times = GusmapReport.times
+    }
+
    output{
-      Array[File] RDatas = GusmapReport.maps_RData
-      Array[File] maps_report = GusmapReport.maps_report
-      Array[File] times = GusmapReport.times
+     File tar_gz_report = CompressGusmap.tar_gz_report
    }
 }
 
@@ -69,8 +76,8 @@ task GusmapReport{
                     GenoCall =  "~{GenotypeCall_program}",
                     time = times_temp[3])
 
-      vroom::vroom_write(info[[2]], "map_report.tsv.gz", num_threads = ~{max_cores})
-      vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(info[[2]], "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(times, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz", num_threads = ~{max_cores})
       map_out <- info[[1]]
       save(map_out, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
 
@@ -79,15 +86,15 @@ task GusmapReport{
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     preemptible: 3
     memory:"8 GB"
     cpu:4
   }
 
   output{
-    File maps_report = "map_report.tsv.gz"
+    File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
-    File times = "times_report.tsv.gz"
+    File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz"
   }
 }

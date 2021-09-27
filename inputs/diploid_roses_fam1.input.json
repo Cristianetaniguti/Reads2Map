@@ -1,0 +1,18 @@
+{
+  "SNPCalling.samples_info": {
+    "samples_info": "/scratch/user/chtaniguti/fam1_rose_samples_info.txt"
+  },
+  "SNPCalling.max_cores": "10",
+  "SNPCalling.references": {
+    "ref_fasta": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta",
+    "ref_dict": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.dict",
+    "ref_ann": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta.ann",
+    "ref_sa": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta.sa",
+    "ref_amb": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta.amb",
+    "ref_bwt": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta.bwt",
+    "ref_fasta_index": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta.fai",
+    "ref_pac": "/scratch/user/chtaniguti/genomes/Rosa_used_before_Hibrand/OBDH_1.0_formated.fasta.pac"
+  },
+  "SNPCalling.rm_dupli": "no",
+  "SNPCalling.chunk_size": "15"
+}

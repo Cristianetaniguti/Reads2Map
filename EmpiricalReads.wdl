@@ -3,8 +3,8 @@ version 1.0
 import "structs/snpcalling_empS.wdl"
 import "structs/maps_empS.wdl"
 
-import "tasks/snpcalling_emp.wdl" as snpcalling
-import "tasks/maps_emp.wdl" as maps
+import "tasks/EmpiricalSNPCalling.wdl" as snpcalling
+import "tasks/EmpiricalMaps.wdl" as maps
 
 workflow EmpiricalReads {
 

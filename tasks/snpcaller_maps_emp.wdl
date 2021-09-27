@@ -1,11 +1,13 @@
 version 1.0
 
 import "./utilsR.wdl" as utilsR
+import "./utils.wdl" as utils
 
 workflow SNPCallerMaps{
   input {
-     File onemap_obj
      File vcf_file
+     File? merged_bam
+     File? reference
      String cross
      String SNPCall_program
      String GenotypeCall_program
@@ -13,69 +15,71 @@ workflow SNPCallerMaps{
      String parent1
      String parent2
      String chromosome
-     File? multi_obj
      String multiallelics
      Int max_cores
     }
 
-  call SNPCallerProbs{
+  call utilsR.SetProbsDefault{
     input:
       vcf_file = vcf_file,
-      onemap_obj = onemap_obj,
       cross = cross,
       parent1 = parent1,
-      parent2 = parent2
-  }
-
-  call utilsR.CheckDepths{
-    input:
-      onemap_obj = SNPCallerProbs.probs_onemap_obj,
-      vcfR_obj = SNPCallerProbs.vcfR_obj,
-      parent1 = parent1,
       parent2 = parent2,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom,
-      max_cores = max_cores
+      multiallelics = multiallelics
   }
 
-  if (multiallelics == "TRUE") {
-     call utilsR.AddMultiallelics{
-         input:
-           onemap_obj_multi = multi_obj,
-           onemap_obj_bi = SNPCallerProbs.probs_onemap_obj
-      }
-  }
+  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]
+  Array[File] objects                           = [SetProbsDefault.probs_onemap_obj, SetProbsDefault.globalerror_onemap_obj, SetProbsDefault.default_onemap_obj]
+  Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
+
+  scatter (item in methods_and_objects) {
+       call utilsR.CheckDepths {
+           input:
+              onemap_obj = item.right,
+              vcfR_obj = SetProbsDefault.vcfR_obj,
+              parent1 = parent1,
+              parent2 = parent2,
+              SNPCall_program = SNPCall_program,
+              GenotypeCall_program = item.left,
+              CountsFrom = CountsFrom,
+              max_cores = max_cores
+       }
         
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, SNPCallerProbs.probs_onemap_obj])
+       call utilsR.FiltersReportEmp {
+            input:
+              onemap_obj = item.right,
+              SNPCall_program = SNPCall_program,
+              GenotypeCall_program = item.left,
+              CountsFrom = CountsFrom,
+              chromosome = chromosome
+        }
 
-  call utilsR.FiltersReportEmp{
-    input:
-      onemap_obj = select_onemap_obj,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = "SNPCaller",
-      CountsFrom = "vcf",
-      chromosome = chromosome
+        call utilsR.MapsReportEmp {
+          input:
+            sequence_obj = FiltersReportEmp.onemap_obj_filtered,
+            SNPCall_program = SNPCall_program,
+            GenotypeCall_program = item.left,
+            CountsFrom = CountsFrom,
+            max_cores = max_cores
+          }
   }
 
-  call utilsR.MapsReportEmp{
-    input:
-      sequence_obj = FiltersReportEmp.onemap_obj_filtered,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = "SNPCaller",
-      CountsFrom = CountsFrom,
-      max_cores = max_cores
-  }
+  call utils.Compress {
+      input:
+        RDatas = MapsReportEmp.maps_RData,
+        maps_report = MapsReportEmp.maps_report,
+        times = MapsReportEmp.times,
+        filters_report = FiltersReportEmp.filters_report,
+        errors_report = CheckDepths.errors_report,
+        name = "snpcaller_maps"
+   }
 
-  output{
-    File RDatas = MapsReportEmp.maps_RData
-    File maps_report = MapsReportEmp.maps_report
-    File times = MapsReportEmp.times
-    File filters_report = FiltersReportEmp.filters_report
-    File errors_report = CheckDepths.errors_report
-  }
+   output {
+      File tar_gz_report = Compress.tar_gz_report
+   }
 }
 
+# Deprecated
 task SNPCallerProbs{
   input{
     File vcf_file
@@ -104,24 +108,24 @@ task SNPCallerProbs{
       onemap_obj <- load("~{onemap_obj}")
       onemap_obj <- get(onemap_obj)
 
-      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+      # if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap_obj,
-                               vcf.par=par,
+                               vcf.par"GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_probs=probs)
+      probs_onemap_obj <- create_probs(onemap.obj = onemap_obj, genotypes_errors=probs)
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
 
     RSCRIPT
 
   >>>
   runtime{
-    docker:"cristaniguti/reads2map"
+    docker:"cristaniguti/reads2map:0.0.1"
     time:"10:00:00"
     mem:"30GB"
     cpu:1

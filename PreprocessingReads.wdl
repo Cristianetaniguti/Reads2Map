@@ -55,7 +55,12 @@ task ProcessRadTags {
     >>>
 
     runtime {
-      docker:"taniguti/stacks"
+      docker:"cristaniguti/stacks:0.0.1"
+      job_name: "ProcessRadTags" 
+      node:"--nodes=1"
+      mem:"--mem=30G"
+      tasks:"--ntasks=1"
+      time:"24:00:00"
     }
 
     output {
@@ -77,6 +82,11 @@ task RemoveAdapt {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    job_name: "RemoveAdapt" 
+    node:"--nodes=1"
+    mem:"--mem=30G"
+    tasks:"--ntasks=1"
+    time:"24:00:00"
   }
 
   output {
@@ -97,6 +107,11 @@ task TarFiles {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    job_name: "TarFiles" 
+    node:"--nodes=1"
+    mem:"--mem=30G"
+    tasks:"--ntasks=1"
+    time:"24:00:00"
   }
 
   output {

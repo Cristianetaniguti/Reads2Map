@@ -17,6 +17,5 @@ task/cromwell-workflow-logs/
 tasks.zip
 figures_gabaritos
 *tar.gz
-**/data/
 **/__pycache__/**
 import_paths.txt
