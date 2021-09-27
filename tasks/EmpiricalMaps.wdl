@@ -169,95 +169,81 @@ task JointReports{
       library(vroom)
       library(largeList)
 
-      # function
-      joint_reports <- function(default, 
-                                snpcaller, 
-                                updog, 
-                                polyrad, 
-                                supermassa,
-                                gusmap = NULL){
-
-        default    <- str_split(default, ";", simplify = T)
-        SNPCaller  <- str_split(snpcaller, ";", simplify = T)
-        updog      <- str_split(updog, ";", simplify = T)
-        polyrad    <- str_split(polyrad, ";", simplify = T)
-        supermassa <- str_split(supermassa, ";", simplify = T)
-
-        if(is.null(gusmap)){
-          files <- c(default, SNPCaller, updog, polyrad, supermassa)
-        } else {
-          gusmap <- str_split(gusmap, ";", simplify = T)
-          files <- c(default, SNPCaller, updog, polyrad, supermassa, gusmap)
-        }
-
-        joint <- vroom(files, num_threads = ~{max_cores})
-        return(joint)
-      }
-    
-      maps_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
-                                  updog = "~{sep=";" updog}", 
-                                  polyrad = "~{sep=";" polyrad}", 
-                                  supermassa = "~{sep=";" supermassa}",
-                                  gusmap = "~{sep=";" gusmap}")
-
-    #   filters_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
-    #                         updog = "~{sep=";" updog}", 
-    #                         polyrad = "~{sep=";" polyrad}", 
-    #                         supermassa = "~{sep=";" supermassa}")
-
-    #   errors_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
-    #                                  updog = "~{sep=";" updog}", 
-    #                                  polyrad = "~{sep=";" polyrad}", 
-    #                                  supermassa = "~{sep=";" supermassa}")
-
- 
-    #    times_report <- joint_reports(snpcaller = "~{sep=";" SNPCaller}", 
-    #                                updog = "~{sep=";" updog}", 
-    #                                polyrad = "~{sep=";" polyrad}", 
-    #                                supermassa = "~{sep=";" supermassa}",
-    #                                gusmap = "~{sep=";" gusmap}")
-
-    #  # RDatas need to be load
-    #   SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
-    #   updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
-    #   polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
-    #   supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
-    #   gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
-
-    #   RDatas_names <- c(default, SNPCaller, updog, polyrad, supermassa, gusmap)
-
-    #   all <- list()
-    #   for(i in 1:length(RDatas_names)){
-    #      map_temp <- load(RDatas_names[i])
-    #      all_RDatas[[i]] <- get(map_temp)
-    #   }
-
-    #   names(all_RDatas) <- sapply(RDatas_names, basename)
-    #   gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
-    #   RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
-
-    #   # Converting onemap sequencig objects to list. LargeList do not accept other class
-    #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
-
-    #   for(i in 1:length(RDatas)){
-    #     class(RDatas[[i]]) <- "list"
-    #   }
-
-    #   saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
-
-    #   new_names <- names(all_RDatas)
-    #   vroom_write(as.data.frame(new_names), "names.tsv.gz")
-    #   save(gusmap_RDatas, file = "gusmap_RDatas.RData")
-
-    #   # Outputs
-    #   vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
-    #   vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = ~{max_cores})
-    #   vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = ~{max_cores})
-    #   vroom_write(times_report, "data4_times.tsv.gz", num_threads = ~{max_cores})
+      SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
+      updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
+      polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
+      supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
+      gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
       
-    #   system("mkdir EmpiricalReads_results")
-    #   system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
-    #   system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
+      files <- list(SNPCaller, updog, polyrad, supermassa, gusmap)
+      
+      path_dir <- tempdir()
+      system(paste0("mkdir ", paste0(path_dir, c("/maps", "/filters", "/errors", "/times", "/RDatas"), collapse = " ")))
+      for(i in 1:length(files)){
+        for(j in 1:length(files[[i]])){
+          untar(files[[i]][[j]], exdir = path_dir)
+          list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
+          system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
+          system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
+          system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
+          if(!grepl("gusmap", list_files[1])){
+            system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
+          }
+        }
+      }
+      
+      files <- system(paste0("ls ", path_dir, "/maps/"), intern = T)
+      files <- paste0(path_dir, "/maps/", files)
+      maps <- vroom(files, num_threads = ~{max_cores})
+      
+      files <- system(paste0("ls ", path_dir, "/filters/"), intern = T)
+      files <- paste0(path_dir, "/filters/", files)
+      filters <- vroom(files, num_threads = ~{max_cores})
+      
+      files <- system(paste0("ls ", path_dir, "/errors/"), intern = T)
+      files <- paste0(path_dir, "/errors/", files)
+      errors <- vroom(files, num_threads = ~{max_cores})
+      
+      files <- system(paste0("ls ", path_dir, "/times/"), intern = T)
+      files <- paste0(path_dir, "/times/", files)
+      times <- vroom(files, num_threads = ~{max_cores})
+      
+      files <- system(paste0("ls ", path_dir, "/RDatas/"), intern = T)
+      files <- paste0(path_dir, "/RDatas/", files)
+      
+      all_RDatas <- list()
+      for(i in 1:length(files)){
+        map_temp <- load(files[i])
+        all_RDatas[[i]] <- get(map_temp)
+      }
+      
+      names(all_RDatas) <- basename(files)
+      gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
+      RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
+      
+      #   # Converting onemap sequencig objects to list. LargeList do not accept other class
+      #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
+      
+      for(i in 1:length(RDatas)){
+        class(RDatas[[i]]) <- "list"
+      }
+      
+      saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
+      
+      new_names <- names(all_RDatas)
+      vroom_write(as.data.frame(new_names), "names.tsv.gz")
+      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+      
+      # Outputs
+      vroom_write(errors, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(maps, "data2_maps.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(filters, "data3_filters.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(times, "data4_times.tsv.gz", num_threads = ~{max_cores})
+      
+      system("mkdir EmpiricalReads_results")
+      system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
+      system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
 
      RSCRIPT
 

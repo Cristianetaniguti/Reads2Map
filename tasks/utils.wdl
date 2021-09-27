@@ -128,8 +128,15 @@ task JointMarkers{
   }
 
   command <<<
+    bgzip ~{biallelic_vcf}
+    tabix -p vcf ~{biallelic_vcf}.gz
+    tabix -p vcf ~{multiallelic_vcf}
 
-    bcftools merge ~{biallelic_vcf} ~{multiallelic_vcf} --output merged.vcf.gz
+    bcftools query -l ~{biallelic_vcf}.gz | sort > samples.txt
+    bcftools view -S samples.txt ~{biallelic_vcf}.gz > biallelic_sort.vcf.gz
+    bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf.gz
+
+    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz --output merged.vcf.gz
   >>>
 
   runtime {
@@ -271,7 +278,7 @@ task Compress {
     >>>
 
   runtime{
-    docker:"cristaniguti/ubuntu:20.04"
+    docker:"ubuntu:20.04"
     # memory: "2 GB"
     # cpu:1
     # preemptible: 3
@@ -307,7 +314,7 @@ task CompressGusmap {
     >>>
 
   runtime{
-    docker:"cristaniguti/ubuntu:20.04"
+    docker:"ubuntu:20.04"
     # memory: "2 GB"
     # cpu:1
     # preemptible: 3
