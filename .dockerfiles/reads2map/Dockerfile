@@ -66,5 +66,3 @@ COPY ./functions_simu.R /opt/scripts/
 
 COPY ./functions_empirical.R /opt/scripts
 
-COPY ./VCF2SM.py /opt/scripts
-
