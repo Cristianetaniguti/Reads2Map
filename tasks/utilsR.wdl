@@ -757,7 +757,6 @@ task ReGenotyping{
                                               f1 = f1,
                                               out_vcf = out_vcf,
                                               crosstype= cross,
-                                              recovering=TRUE,
                                               global_error = NULL,
                                               use_genotypes_errors = FALSE,
                                               use_genotypes_probs = TRUE,
