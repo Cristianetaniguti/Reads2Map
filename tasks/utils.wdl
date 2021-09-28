@@ -73,7 +73,7 @@ task SplitMarkers {
 task JointMarkers{
   input{
     File biallelic_vcf
-    File multiallelic_vcf
+    File? multiallelic_vcf
   }
 
   command <<<

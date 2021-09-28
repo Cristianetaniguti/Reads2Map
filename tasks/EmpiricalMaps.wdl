@@ -56,9 +56,14 @@ workflow Maps {
 
         scatter (origin in ["vcf", "bam"]) {
 
+            call utils.SplitMarkers as splitgeno{
+                 input:
+                    vcf_file = vcfs[origin]
+            }
+
             call genotyping.onemapMaps as updogMaps {
                 input:
-                    vcf_file = vcfs[origin],
+                    vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "updog",
                     CountsFrom = origin,
@@ -67,6 +72,7 @@ workflow Maps {
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
+                    multiallelics_file = splitgeno.multiallelics,
                     max_cores = max_cores,
                     reference = reference,
                     merged_bam = merged_bam
@@ -74,7 +80,7 @@ workflow Maps {
 
             call genotyping.onemapMaps as supermassaMaps {
                 input:
-                    vcf_file = vcfs[origin],
+                    vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "supermassa",
                     CountsFrom = origin,
@@ -83,6 +89,7 @@ workflow Maps {
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
+                    multiallelics_file = splitgeno.multiallelics,
                     max_cores = max_cores,
                     reference = reference,
                     merged_bam = merged_bam
@@ -90,7 +97,7 @@ workflow Maps {
 
             call genotyping.onemapMaps as polyradMaps {
                 input:
-                    vcf_file = vcfs[origin],
+                    vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "polyrad",
                     CountsFrom = origin,
@@ -99,17 +106,28 @@ workflow Maps {
                     parent2 = dataset.parent2,
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
+                    multiallelics_file = splitgeno.multiallelics,
                     max_cores = max_cores,
                     reference = reference,
                     merged_bam = merged_bam
             }
         }
 
+       call utils.SplitMarkers as splitvcf{
+            input:
+              vcf_file = analysis.vcf
+       }
+
+       call utils.SplitMarkers as splitbam{
+            input:
+              vcf_file = analysis.bam
+       }
+
        # Build maps with GUSMap
        call gusmap.gusmapMaps {
             input:
-              vcf_file = analysis.vcf,
-              new_vcf_file = analysis.bam,
+              vcf_file = splitvcf.biallelics,
+              new_vcf_file = splitbam.biallelics,
               SNPCall_program = analysis.method,
               GenotypeCall_program = "gusmap",
               parent1 = dataset.parent1,

@@ -18,16 +18,12 @@ workflow onemapMaps {
     String chromosome
     Int max_cores
     String multiallelics
-  }
-
-  call utils.SplitMarkers{
-      input:
-          vcf_file = vcf_file
+    File? multiallelics_file
   }
   
   call utilsR.ReGenotyping {
       input:
-          vcf_file = SplitMarkers.biallelics,
+          vcf_file = vcf_file,
           GenotypeCall_program = GenotypeCall_program,
           cross = cross,
           parent1 = parent1,
@@ -39,7 +35,7 @@ workflow onemapMaps {
     call utils.JointMarkers{
       input:
         biallelic_vcf = ReGenotyping.regeno_vcf,
-        multiallelic_vcf = SplitMarkers.multiallelics
+        multiallelic_vcf = multiallelics_file
     }
   }
 
