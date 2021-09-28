@@ -2,67 +2,6 @@ version 1.0
 
 import "../structs/alignment_struct.wdl"
 
-task VcftoolsMerge {
-
-  input {
-    String prefix
-    Array[File] vcfs
-    Array[File] tbis
-  }
-
-  command <<<
-    echo "~{sep=' ' tbis}"
-    vcf-merge ~{sep=" "  vcfs} > ~{prefix}.variants.vcf
-    bgzip ~{prefix}.variants.vcf
-    tabix -p vcf ~{prefix}.variants.vcf.gz
-
-  >>>
-  runtime {
-    docker: "cristaniguti/split_markers:0.0.1"
-    memory:"4 GB"
-    cpu:1
-    preemptible: 3
-  }
-
-  output {
-    File vcf = "~{prefix}.variants.vcf.gz"
-    File tbi = "~{prefix}.variants.vcf.gz.tbi"
-  }
-}
-
-task VcftoolsApplyFilters {
-
-  input {
-    File vcf_in
-    Float max_missing
-    Int min_alleles
-    Int max_alleles
-    Float? maf
-    String program
-    Int? min_meanDP
-    String? chromosome
-  }
-
-  command <<<
-    vcftools --gzvcf ~{vcf_in} --max-missing ~{max_missing} --min-alleles ~{min_alleles} --max-alleles ~{max_alleles} ~{"--maf " +  maf} ~{"--min-meanDP " +  min_meanDP} ~{"--chr " +  chromosome} --recode --out ~{program}
-
-    bgzip ~{program}.recode.vcf
-    tabix -p vcf ~{program}.recode.vcf.gz
-
-  >>>
-  runtime {
-    docker: "cristaniguti/split_markers:0.0.1"
-    memory:"5 GB"
-    cpu:1
-    preemptible: 3
-  }
-
-  output {
-    File vcf = "~{program}.recode.vcf.gz"
-    File tbi = "~{program}.recode.vcf.gz.tbi"
-  }
-}
-
 task ApplyRandomFilters {
   input{
     File gatk_vcf
@@ -85,9 +24,14 @@ task ApplyRandomFilters {
 
   runtime {
     docker:"cristaniguti/split_markers:0.0.1"
-    memory: "2 GB"
-    cpu:1
-    preemptible: 3
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "ApplyRandomFilters"
+    node:"--nodes=1"
+    mem:"--mem=5GB"
+    tasks:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
@@ -110,9 +54,14 @@ task SplitMarkers {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
-    memory: "2 GB"
-    cpu:1
-    preemptible: 3
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "SplitMarkers"
+    node:"--nodes=1"
+    mem:"--mem=5GB"
+    tasks:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
@@ -141,9 +90,14 @@ task JointMarkers{
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
-    memory: "2 GB"
-    cpu:1
-    preemptible: 3
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "JointMarkers"
+    node:"--nodes=1"
+    mem:"--mem=5GB"
+    tasks:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
@@ -217,7 +171,7 @@ task Compress {
     # memory: "2 GB"
     # cpu:1
     # preemptible: 3
-    job_name: "WhatsHap"
+    job_name: "Compress"
     node:"--nodes=1"
     mem:"--mem=10GB"
     tasks:"--ntasks=1"
@@ -253,7 +207,7 @@ task CompressGusmap {
     # memory: "2 GB"
     # cpu:1
     # preemptible: 3
-    job_name: "WhatsHap"
+    job_name: "CompressGusmap"
     node:"--nodes=1"
     mem:"--mem=10GB"
     tasks:"--ntasks=1"

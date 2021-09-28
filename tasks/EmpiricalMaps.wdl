@@ -251,9 +251,14 @@ task JointReports{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    time:"10:00:00"
-    mem:"80GB"
-    cpu:1
+    # time:"10:00:00"
+    # mem:"80GB"
+    # cpu:1
+    job_name: "JointReports"
+    node:"--nodes=1"
+    mem:"--mem=10G"
+    cpu:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output{

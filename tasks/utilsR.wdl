@@ -449,9 +449,9 @@ task MapsReportEmp{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    preemptible: 3
-    memory:"8 GB"
-    cpu:4
+    # preemptible: 3
+    # memory:"8 GB"
+    # cpu:4
     job_name: "MapsEmp"
     node:"--nodes=1"
     mem:"--mem=30G"
