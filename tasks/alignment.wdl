@@ -1,7 +1,7 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
-import "../structs/reference_struct.wdl"
+import "../structs/struct_alignment.wdl"
+import "../structs/struct_reference.wdl"
 
 # This task considers that is it possible to receive more than one fastq file by sample
 # It keeps the different libraries in the header and merges the bam files

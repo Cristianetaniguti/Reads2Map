@@ -1,7 +1,6 @@
 version 1.0
 
-import "../structs/snpcalling_empS.wdl"
-import "../structs/reference_struct.wdl"
+import "../structs/struct_reference.wdl"
 import "./norm_filt_vcf.wdl" as norm_filt
 import "./utils.wdl" as utils
 

@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/alignment_struct.wdl"
+import "../structs/struct_alignment.wdl"
 
 task ApplyRandomFilters {
   input{
@@ -82,10 +82,12 @@ task JointMarkers{
     tabix -p vcf ~{multiallelic_vcf}
 
     bcftools query -l ~{biallelic_vcf}.gz | sort > samples.txt
-    bcftools view -S samples.txt ~{biallelic_vcf}.gz > biallelic_sort.vcf.gz
-    bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf.gz
+    bcftools view -S samples.txt ~{biallelic_vcf}.gz > biallelic_sort.vcf
+    bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf
 
-    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz --output merged.vcf.gz
+    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output merged.vcf
+
+    bgzip merged.vcf
   >>>
 
   runtime {
@@ -127,10 +129,11 @@ task ReplaceAD {
     bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o bam_vcf.vcf
 
     bcftools query -l multiallelics.vcf.gz | sort > samples.txt
-    bcftools view -S samples.txt bam_vcf.vcf > biallelic_sort.vcf.gz
-    bcftools view -S samples.txt  multiallelics.vcf.gz > multiallelic_sort.vcf.gz
+    bcftools view -S samples.txt bam_vcf.vcf > biallelic_sort.vcf
+    bcftools view -S samples.txt  multiallelics.vcf.gz > multiallelic_sort.vcf
 
-    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -Oz --output ~{program}_bam_vcf.vcf.gz
+    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf -Oz --output ~{program}_bam_vcf.vcf
+    bgzip ~{program}_bam_vcf.vcf
   >>>
 
   runtime {

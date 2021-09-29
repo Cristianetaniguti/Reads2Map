@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/preprocessingS.wdl"
+import "structs/struct_preprocessing.wdl"
 
 workflow PreprocessingReads{
     input {

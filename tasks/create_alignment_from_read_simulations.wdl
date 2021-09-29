@@ -1,7 +1,7 @@
 version 1.0
 
-import "../structs/reads_simuS.wdl"
-import "../structs/alignment_struct.wdl"
+import "../structs/struct_reads_simu.wdl"
+import "../structs/struct_alignment.wdl"
 import "./alignment.wdl" as alg
 
 workflow CreateAlignmentFromSimulation {

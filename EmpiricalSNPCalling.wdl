@@ -1,7 +1,6 @@
 version 1.0
 
-import "structs/snpcalling_empS.wdl"
-import "structs/reference_struct.wdl"
+import "structs/struct_reference.wdl"
 
 import "tasks/create_alignment_from_families_files.wdl" as fam
 import "tasks/gatk_genotyping.wdl" as gatk
@@ -11,7 +10,7 @@ import "tasks/freebayes_genotyping.wdl" as freebayes
 workflow SNPCalling {
 
   input {
-    Samples_info samples_info
+    File samples_info
     Reference references
     Int max_cores
     Int chunk_size
@@ -20,7 +19,7 @@ workflow SNPCalling {
 
   call fam.CreateAlignmentFromFamilies {
     input:
-      families_info=samples_info.samples_info,
+      families_info=samples_info,
       references=references,
       max_cores = max_cores,
       rm_dupli = rm_dupli,

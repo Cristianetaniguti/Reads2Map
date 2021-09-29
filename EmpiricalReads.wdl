@@ -1,7 +1,6 @@
 version 1.0
 
-import "structs/snpcalling_empS.wdl"
-import "structs/maps_empS.wdl"
+import "structs/struct_maps-empirical.wdl"
 
 import "tasks/EmpiricalSNPCalling.wdl" as snpcalling
 import "tasks/EmpiricalMaps.wdl" as maps
@@ -9,7 +8,7 @@ import "tasks/EmpiricalMaps.wdl" as maps
 workflow EmpiricalReads {
 
     input {
-        Samples_info samples_info
+        File samples_info
         Reference references
         Dataset dataset
         SplitVCF splitvcf

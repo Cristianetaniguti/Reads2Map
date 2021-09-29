@@ -1,25 +1,20 @@
 version 1.0
 
-import "../structs/snpcalling_empS.wdl"
-import "../structs/reference_struct.wdl"
+import "../structs/struct_reference.wdl"
 import "./norm_filt_vcf.wdl" as norm_filt
 import "./utils.wdl" as utils
 
-workflow HardFiltering {
+workflow HardFilteringEmp {
     input {
         Reference references
         File vcf_file
         File vcf_tbi
-        File? simu_vcf
-        Int? seed
-        Int? depth
     }
 
     call VariantsToTable {
         input:
             vcf_file = vcf_file,
             vcf_tbi = vcf_tbi,
-            simu_vcf = simu_vcf,
             reference = references.ref_fasta,
             reference_dict = references.ref_dict,
             reference_idx = references.ref_fasta_index
@@ -27,11 +22,7 @@ workflow HardFiltering {
 
     call QualPlots {
         input:
-            FalsePositives = VariantsToTable.FalsePositives,
-            TruePositives  = VariantsToTable.TruePositives,
-            Total          = VariantsToTable.Total,
-            seed           = seed,
-            depth          = depth
+            Total          = VariantsToTable.Total
     }
     
     call VariantFiltration {
@@ -53,30 +44,14 @@ task VariantsToTable {
     input {
         File vcf_file
         File vcf_tbi
-        File? simu_vcf
         File reference
         File reference_dict
         File reference_idx
     }
 
-    Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + size(simu_vcf, "GB") + 2)
+    Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + 2)
 
     command <<<
-        tabix -p vcf ~{vcf_file}
-        bgzip -c  ~{simu_vcf} > ~{simu_vcf}.gz
-        tabix -p vcf ~{simu_vcf}.gz
-        
-        /usr/gitc/gatk4/./gatk SelectVariants \
-            -R ~{reference} \
-            -V ~{vcf_file} \
-            --discordance ~{simu_vcf}.gz \
-            -O FalsePositives.vcf.gz
-            
-        /usr/gitc/gatk4/./gatk SelectVariants \
-            -R ~{reference} \
-            -V ~{vcf_file} \
-            --concordance ~{simu_vcf}.gz \
-            -O TruePositives.vcf.gz
 
         /usr/gitc/gatk4/./gatk VariantsToTable \
             -V ~{vcf_file} \
@@ -89,28 +64,6 @@ task VariantsToTable {
             -F ReadPosRankSum \
             -O Total.table
 
-        /usr/gitc/gatk4/./gatk VariantsToTable \
-            -V FalsePositives.vcf.gz \
-            -F CHROM -F POS \
-            -F QD \
-            -F FS \
-            -F SOR \
-            -F MQ \
-            -F MQRankSum \
-            -F ReadPosRankSum \
-            -O FalsePositives.table
-        
-        /usr/gitc/gatk4/./gatk VariantsToTable \
-            -V TruePositives.vcf.gz \
-            -F CHROM -F POS \
-            -F QD \
-            -F FS \
-            -F SOR \
-            -F MQ \
-            -F MQRankSum \
-            -F ReadPosRankSum \
-            -O TruePositives.table
-
     >>>
 
     runtime {
@@ -120,34 +73,27 @@ task VariantsToTable {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "VariantsToTable"
         node:"--nodes=1"
-        mem:"--mem=1G"
-        cpu:"--ntasks=1"
-        time:"00:30:00"
+        mem:"--mem=10G"
+        tasks:"--ntasks=1"
+        time:"00:50:00"
     }
 
     output {
-        File FalsePositives = "FalsePositives.table"
-        File TruePositives = "TruePositives.table"
         File Total = "Total.table"
     }
 
 }
 
+
 task QualPlots {
     input {
-        File FalsePositives
-        File TruePositives
         File Total
-        Int? seed
-        Int? depth
     }
 
-    Int disk_size = ceil(size(FalsePositives, "GB") + size(TruePositives, "GB") + size(Total, "GB") + 1)
+    Int disk_size = ceil(size(Total, "GB") + 1)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
-            system("cp ~{FalsePositives} .")
-            system("cp ~{TruePositives} .")
             system("cp ~{Total} .")
 
             library(ggplot2)
@@ -157,14 +103,7 @@ task QualPlots {
             tot <- read.table("Total.table", header = T)
             tot <- cbind(set = "Total", tot)
 
-            fp <- read.table("FalsePositives.table", header = T)
-            fp <- cbind(set = "False positive", fp)
-
-            tp <- read.table("TruePositives.table", header = T)
-            tp <- cbind(set = "True positive", tp)
-
-            df <- rbind(tot, fp, tp)
-            df <- pivot_longer(df, cols = c(4:9))
+            df <- pivot_longer(tot, cols = c(4:9))
 
             p <- df %>% filter(name == "QD") %>%   
                     ggplot(aes(x=value, fill=set)) +
@@ -213,9 +152,9 @@ task QualPlots {
 
             ggsave(p, filename = "ReadPosRankSum.png")
         
-            system("mkdir ~{seed}_~{depth}_QualPlots")
-            system("mv *png ~{seed}_~{depth}_QualPlots")
-            system("tar -czvf ~{seed}_~{depth}_QualPlots.tar.gz ~{seed}_~{depth}_QualPlots")
+            system("mkdir QualPlots")
+            system("mv *png QualPlots")
+            system("tar -czvf QualPlots.tar.gz QualPlots")
 
         RSCRIPT
         
@@ -228,16 +167,17 @@ task QualPlots {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "QualPlots"
         node:"--nodes=1"
-        mem:"--mem=1G"
+        mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:30:00"
+        time:"00:20:00"
     }
 
     output {
-        File Plots = "~{seed}_~{depth}_QualPlots.tar.gz"
+        File Plots = "QualPlots.tar.gz"
     }
 
 }
+
 
 task VariantFiltration {
     input {
@@ -276,9 +216,9 @@ task VariantFiltration {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "VariantFiltration"
         node:"--nodes=1"
-        mem:"--mem=1G"
+        mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:30:00"
+        time:"00:10:00"
     }
 
     output {

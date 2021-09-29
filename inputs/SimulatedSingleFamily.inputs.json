@@ -14,7 +14,7 @@
     "pcr_cycles": "5",
     "library_type": "ddRAD",
     "depth_parents":"160",
-    "chromosome": "Chr10",
+    "chromosome": "NC_037285.1",
     "rm_dupli": "FALSE",
     "insert_size":"350",
     "vcf_parent1": "PT_F",

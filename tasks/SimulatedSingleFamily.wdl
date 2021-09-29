@@ -6,8 +6,8 @@ import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
-import "./snpcaller_maps.wdl" as snpcaller
-import "./gusmap_maps.wdl" as gusmap
+import "./snpcaller_maps-simulated.wdl" as snpcaller
+import "./gusmap_maps-simulated.wdl" as gusmap
 import "./genotyping-simulated.wdl" as genotyping
 
 
