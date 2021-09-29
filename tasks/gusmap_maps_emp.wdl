@@ -58,7 +58,7 @@ task GusmapReport{
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
       library(GUSMap)
-      source("/opt/scripts/functions_empirical.R")
+      library(onemapUTILS)
 
       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
           vcf.temp <- paste0("~{SNPCall_program}",".vcf")
@@ -68,7 +68,7 @@ task GusmapReport{
           vcf_file <- "~{vcf_file}"
        }
 
-      times_temp <- system.time(info <- create_gusmap_report(vcf_file,"~{SNPCall_program}", "~{CountsFrom}",
+      times_temp <- system.time(info <- create_gusmap_report_emp(vcf_file,"~{SNPCall_program}", "~{CountsFrom}",
                            "~{GenotypeCall_program}", "~{parent1}", "~{parent2}"))
 
       times <- data.frame(SNPCall = "~{SNPCall_program}", 

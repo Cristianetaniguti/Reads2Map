@@ -105,6 +105,7 @@ task JointMarkers{
   }
 }
 
+# Only replace for biallelic markers
 task ReplaceAD {
   input {
     File ref_fasta
@@ -118,13 +119,18 @@ task ReplaceAD {
 
   command <<<
 
-    bcftools view -G -v snps ~{vcf} -Oz -o sites.vcf.gz
+    bcftools view --min-alleles 3 ~{vcf} -Oz -o multiallelics.vcf.gz
+    bcftools view -G --max-alleles 2 -v snps ~{vcf} -Oz -o sites.vcf.gz
     bcftools index --tbi -f sites.vcf.gz
     bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
     bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
-    bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o ~{program}_bam_vcf.vcf
+    bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o bam_vcf.vcf
 
-    bgzip ~{program}_bam_vcf.vcf
+    bcftools query -l multiallelics.vcf.gz | sort > samples.txt
+    bcftools view -S samples.txt bam_vcf.vcf > biallelic_sort.vcf.gz
+    bcftools view -S samples.txt  multiallelics.vcf.gz > multiallelic_sort.vcf.gz
+
+    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -Oz --output ~{program}_bam_vcf.vcf.gz
   >>>
 
   runtime {

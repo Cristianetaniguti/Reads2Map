@@ -1,11 +1,11 @@
 version 1.0
 
-import "../structs/snpcalling_empS.wdl"
-import "../structs/reference_struct.wdl"
+import "structs/snpcalling_empS.wdl"
+import "structs/reference_struct.wdl"
 
-import "../tasks/create_alignment_from_families_files.wdl" as fam
-import "../tasks/gatk_genotyping.wdl" as gatk
-import "../tasks/freebayes_genotyping.wdl" as freebayes
+import "tasks/create_alignment_from_families_files.wdl" as fam
+import "tasks/gatk_genotyping.wdl" as gatk
+import "tasks/freebayes_genotyping.wdl" as freebayes
 
 
 workflow SNPCalling {

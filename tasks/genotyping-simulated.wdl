@@ -1,14 +1,13 @@
 version 1.0
 
 import "./utilsR.wdl" as utilsR
+import "./utils.wdl" as utils
 
-
-workflow SnpBasedGenotypingSimulatedMaps {
+workflow onemapMaps {
 
   input {
     File simu_onemap_obj
     File simu_vcfR
-    File onemap_obj
     File vcf_file
     File ref_alt_alleles
     File simulated_phases
@@ -16,46 +15,52 @@ workflow SnpBasedGenotypingSimulatedMaps {
     String genotyping_program
     String CountsFrom
     String cross
-    File? multi_obj
     Int max_cores
     Int seed
     Int depth
     String multiallelics
+    File? multiallelics_file
   }
 
-  call OnemapProbsSimulated {
+
+  call utilsR.ReGenotyping {
+      input:
+          vcf_file = vcf_file,
+          GenotypeCall_program = genotyping_program,
+          cross = cross,
+          parent1 = "P1",
+          parent2 = "P2",
+          max_cores = max_cores
+  }
+
+  if (multiallelics == "TRUE") {
+    call utils.JointMarkers{
+      input:
+        biallelic_vcf = ReGenotyping.regeno_vcf,
+        multiallelic_vcf = multiallelics_file
+    }
+   }
+
+  File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
+
+  call utilsR.SetProbs{
     input:
-      method=genotyping_program,
-      vcf_file = vcf_file,
-      onemap_obj = onemap_obj,
+      vcf_file = updated_vcf,
       cross = cross,
-      max_cores = max_cores
-  }
-
-  call utilsR.GlobalError{
-    input:
-      onemap_obj = OnemapProbsSimulated.onemap_obj_out
+      parent1 = "P1",
+      parent2 = "P2",
+      multiallelics = multiallelics
   }
 
   Array[String] methods                         = [genotyping_program, genotyping_program + "0.05"]
-  Array[File] objects                           = [OnemapProbsSimulated.onemap_obj_out, GlobalError.error_onemap_obj]
+  Array[File] objects                           = [SetProbs.probs_onemap_obj, SetProbs.globalerror_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
 
-      if (multiallelics == "TRUE") {
-           call utilsR.AddMultiallelics{
-             input:
-               onemap_obj_multi = multi_obj,
-               onemap_obj_bi = item.right
-           }
-       }
-
-       File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, item.right])
-
        call utilsR.FiltersReport {
             input:
-              onemap_obj = select_onemap_obj,
+              onemap_obj = item.right,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
@@ -79,13 +84,13 @@ workflow SnpBasedGenotypingSimulatedMaps {
 
         call utilsR.ErrorsReport{
             input:
-              onemap_obj = select_onemap_obj,
+              onemap_obj = item.right,
               simu_onemap_obj = simu_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
               simu_vcfR = simu_vcfR,
-              vcfR_obj = OnemapProbsSimulated.vcfR_obj,
+              vcfR_obj = SetProbs.vcfR_obj,
               seed = seed,
               depth = depth,
               max_cores = max_cores
@@ -93,104 +98,20 @@ workflow SnpBasedGenotypingSimulatedMaps {
 
    }
 
+   call utils.Compress {
+      input:
+        RDatas = MapsReport.maps_RData,
+        maps_report = MapsReport.maps_RData,
+        times =  MapsReport.times,
+        filters_report = FiltersReport.filters_report,
+        errors_report = ErrorsReport.errors_report,
+        name = "regeno_maps"
+   }
+
    output {
-      Array[File] RDatas = MapsReport.maps_RData
-      Array[File] maps_report = MapsReport.maps_report
-      Array[File] times = MapsReport.times
-      Array[File] filters_report = FiltersReport.filters_report
-      Array[File] errors_report = ErrorsReport.errors_report
+      File tar_gz_report = Compress.tar_gz_report
    }
 }
 
 
-# Remove, use utils
-task OnemapProbsSimulated {
-  input {
-    File vcf_file
-    File onemap_obj
-    String method
-    String cross
-    Int max_cores
-  }
 
-  command <<<
-     R --vanilla --no-save <<RSCRIPT
-       library(onemap)
-       library(vcfR)
-       library(onemapUTILS)
-       method <- "~{method}"
-       vcf <- read.vcfR("~{vcf_file}")
-       save(vcf, file="vcfR_obj.RData")
-
-       cross <- "~{cross}"
-
-       if(cross == "F1"){
-          cross <- "outcross"
-          f1 = NULL
-       } else if (cross == "F2"){
-          cross <- "f2 intercross"
-          f1 = "F1"
-       }
-
-       onemap_obj_temp <- load("~{onemap_obj}")
-       onemap_obj <- get(onemap_obj_temp)
-
-       if (method == "updog") {
-            out_onemap_obj <- updog_genotype(vcfR.object=vcf,
-                                            onemap.object=onemap_obj,
-                                            vcf.par="AD",
-                                            parent1="P1",
-                                            parent2="P2",
-                                            f1 = f1,
-                                            recovering=TRUE,
-                                            mean_phred=20,
-                                            cores=~{max_cores},
-                                            depths=NULL,
-                                            global_error = NULL,
-                                            use_genotypes_errors = FALSE,
-                                            use_genotypes_probs = TRUE)
-       } else if (method == "supermassa") {
-            out_onemap_obj <- supermassa_genotype(vcfR.object=vcf,
-                                            onemap.object=onemap_obj,
-                                            vcf.par="AD",
-                                            parent1="P1",
-                                            parent2="P2",
-                                            f1 = f1,
-                                            recovering=TRUE,
-                                            mean_phred=20,
-                                            cores=~{max_cores},
-                                            depths=NULL,
-                                            global_error = NULL,
-                                            use_genotypes_errors = FALSE,
-                                            use_genotypes_probs = TRUE)
-
-       } else if (method == "polyrad") {
-            out_onemap_obj <- polyRAD_genotype(vcf="~{vcf_file}",
-                                                onemap.obj=onemap_obj,
-                                                parent1="P1",
-                                                parent2="P2",
-                                                f1 = f1,
-                                                crosstype= cross,
-                                                global_error = NULL,
-                                                use_genotypes_errors = FALSE,
-                                                use_genotypes_probs = TRUE)
-
-       }
-
-       save(out_onemap_obj, file="onemap_obj.RData")
-     RSCRIPT
-
-  >>>
-
-  runtime{
-    docker:"cristaniguti/reads2map:0.0.1"
-    preemptible: 3
-    memory: "8 GB"
-    cpu: 4
-  }
-
-  output {
-    File onemap_obj_out = "onemap_obj.RData"
-    File vcfR_obj = "vcfR_obj.RData"
-  }
-}

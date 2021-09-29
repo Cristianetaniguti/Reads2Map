@@ -1,7 +1,8 @@
 version 1.0
 
+import "./utils.wdl" as utils
 
-workflow GusmapMaps {
+workflow gusmapMaps {
   input {
     File simu_onemap_obj
     File vcf_file
@@ -32,13 +33,19 @@ workflow GusmapMaps {
           seed = seed,
           depth = depth,
           max_cores = max_cores
-        }
-    }
+     }
+  }
 
-   output {
-      Array[File] RDatas = GusmapReport.maps_RData
-      Array[File] maps_report = GusmapReport.maps_report
-      Array[File] times = GusmapReport.times
+  call utils.CompressGusmap{
+     input:
+       name = "gusmap_map",
+       RDatas = GusmapReport.maps_RData,
+       maps_report = GusmapReport.maps_report,
+       times = GusmapReport.times
+  }
+
+   output{
+     File tar_gz_report = CompressGusmap.tar_gz_report
    }
 }
 
@@ -60,7 +67,7 @@ task GusmapReport {
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
       library(GUSMap)
-      source("/opt/scripts/functions_simu.R")
+      library(onemapUTILS)
 
       simu_onemap_obj <- load("~{simu_onemap_obj}")
       simu_onemap_obj <- get(simu_onemap_obj)
@@ -76,7 +83,7 @@ task GusmapReport {
       ref_alt_alleles <- read.table("~{ref_alt_alleles}")
       simulated_phases <- read.table("~{simulated_phases}")
 
-      times_fake <- system.time(info_fake <- create_gusmap_report(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
+      times_fake <- system.time(info_fake <- create_gusmap_report_simu(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
                                                      "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases,
                                                      ~{seed}, ~{depth}))
 
@@ -91,7 +98,7 @@ task GusmapReport {
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
   
       } else {
-        times_temp <- system.time(info_correct <- create_gusmap_report(vcf_file, gab= simu_onemap_obj, "gatk",
+        times_temp <- system.time(info_correct <- create_gusmap_report_simu(vcf_file, gab= simu_onemap_obj, "gatk",
                                                       "gusmap", FALSE, "vcf", ref_alt_alleles,simulated_phases,
                                                      ~{seed}, ~{depth}))
         

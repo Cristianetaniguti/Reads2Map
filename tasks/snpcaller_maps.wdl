@@ -1,12 +1,12 @@
 version 1.0
 
 import "./utilsR.wdl" as utilsR
+import "./utils.wdl" as utils
 
 workflow SNPCallerMaps{
   input {
      File simu_onemap_obj
      File simu_vcfR
-     File onemap_obj
      File vcf_file
      File ref_alt_alleles
      File simulated_phases
@@ -14,78 +14,82 @@ workflow SNPCallerMaps{
      String SNPCall_program
      String GenotypeCall_program
      String CountsFrom
-     File? multi_obj
      Int seed
      Int depth
      Int max_cores
      String multiallelics
+     File? multiallelics_file
     }
 
-
-  call SNPCallerProbs {
+  call utilsR.SetProbsDefault {
     input:
       vcf_file = vcf_file,
-      onemap_obj = onemap_obj,
-      cross = cross
+      cross = cross,
+      parent1 = "P1",
+      parent2 = "P2",
+      multiallelics = multiallelics
   }
 
-  if (multiallelics == "TRUE") {
-      call utilsR.AddMultiallelics{
-          input:
-            onemap_obj_multi = multi_obj,
-            onemap_obj_bi = SNPCallerProbs.probs_onemap_obj
+  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]
+  Array[File] objects                           = [SetProbsDefault.probs_onemap_obj, SetProbsDefault.globalerror_onemap_obj, SetProbsDefault.default_onemap_obj]
+  Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
+
+  scatter (item in methods_and_objects) {
+      call utilsR.FiltersReport{
+        input:
+          onemap_obj = item.right,
+          SNPCall_program = SNPCall_program,
+          GenotypeCall_program = item.left,
+          CountsFrom = "vcf",
+          seed = seed,
+          depth = depth
+      }
+
+      call utilsR.MapsReport{
+        input:
+          onemap_obj = FiltersReport.onemap_obj_filtered,
+          ref_alt_alleles = ref_alt_alleles,
+          simu_onemap_obj = simu_onemap_obj,
+          SNPCall_program = SNPCall_program,
+          GenotypeCall_program = item.left,
+          CountsFrom = CountsFrom,
+          simulated_phases = simulated_phases,
+          seed = seed,
+          depth = depth,
+          max_cores = max_cores
+      }
+
+      call utilsR.ErrorsReport{
+        input:
+          onemap_obj = item.right,
+          simu_onemap_obj = simu_onemap_obj,
+          SNPCall_program = SNPCall_program,
+          GenotypeCall_program = item.left,
+          CountsFrom = CountsFrom,
+          simu_vcfR = simu_vcfR,
+          vcfR_obj = SetProbsDefault.vcfR_obj,
+          seed = seed,
+          depth = depth,
+          max_cores = max_cores
       }
   }
 
-  File select_onemap_obj = select_first([AddMultiallelics.onemap_obj_both, SNPCallerProbs.probs_onemap_obj])
+  call utils.Compress {
+      input:
+        RDatas = MapsReport.maps_RData,
+        maps_report = MapsReport.maps_report,
+        times = MapsReport.times,
+        filters_report = FiltersReport.filters_report,
+        errors_report = ErrorsReport.errors_report,
+        name = "snpcaller_maps"
+   }
 
-  call utilsR.FiltersReport{
-    input:
-      onemap_obj = select_onemap_obj,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = "vcf",
-      seed = seed,
-      depth = depth
-  }
-
-  call utilsR.MapsReport{
-    input:
-      onemap_obj = FiltersReport.onemap_obj_filtered,
-      ref_alt_alleles = ref_alt_alleles,
-      simu_onemap_obj = simu_onemap_obj,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom,
-      simulated_phases = simulated_phases,
-      seed = seed,
-      depth = depth,
-      max_cores = max_cores
-  }
-
-  call utilsR.ErrorsReport{
-    input:
-      onemap_obj = select_onemap_obj,
-      simu_onemap_obj = simu_onemap_obj,
-      SNPCall_program = SNPCall_program,
-      GenotypeCall_program = GenotypeCall_program,
-      CountsFrom = CountsFrom,
-      simu_vcfR = simu_vcfR,
-      vcfR_obj = SNPCallerProbs.vcfR_obj,
-      seed = seed,
-      depth = depth,
-      max_cores = max_cores
-  }
-
-  output {
-    File RDatas = MapsReport.maps_RData
-    File maps_report = MapsReport.maps_report
-    File times = MapsReport.times
-    File filters_report = FiltersReport.filters_report
-    File errors_report = ErrorsReport.errors_report
-  }
+   output {
+      File tar_gz_report = Compress.tar_gz_report
+   }
 }
 
+# Deprecated ?
 task SNPCallerProbs{
   input {
     File vcf_file

@@ -6,7 +6,6 @@ import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
-import "./default_maps.wdl" as default
 import "./snpcaller_maps.wdl" as snpcaller
 import "./gusmap_maps.wdl" as gusmap
 import "./genotyping-simulated.wdl" as genotyping
@@ -27,6 +26,7 @@ workflow SimulatedSingleFamily {
     Sequencing sequencing
     String? filters
     Int max_cores
+    Int chunk_size
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -43,11 +43,10 @@ workflow SimulatedSingleFamily {
       bais=CreateAlignmentFromSimulation.bai,
       references=references,
       program="gatk",
-      parent1 = "P1",
-      parent2 = "P2",
       vcf_simu = CreateAlignmentFromSimulation.true_vcf,
       seed    = family.seed,
-      depth   = sequencing.depth
+      depth   = sequencing.depth,
+      chunk_size = chunk_size
   }
 
   call freebayes.FreebayesGenotyping {
@@ -56,8 +55,6 @@ workflow SimulatedSingleFamily {
       bais=CreateAlignmentFromSimulation.bai,
       references=references,
       program="freebayes",
-      parent1 = "P1",
-      parent2 = "P2",
       max_cores = max_cores,
       vcf_simu = CreateAlignmentFromSimulation.true_vcf
   }
@@ -74,194 +71,145 @@ workflow SimulatedSingleFamily {
   if (defined(filters)) {
       call utils.ApplyRandomFilters {
           input:
-              gatk_vcf = GatkGenotyping.vcf_biallelics,
-              freebayes_vcf = FreebayesGenotyping.vcf_biallelics,
-              gatk_vcf_bam_counts = GatkGenotyping.vcf_biallelics_bamcounts,
-              freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_biallelics_bamcounts,
+              gatk_vcf = GatkGenotyping.vcf_norm,
+              freebayes_vcf = FreebayesGenotyping.vcf_norm,
+              gatk_vcf_bam_counts = GatkGenotyping.vcf_norm_bamcounts,
+              freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_norm_bamcounts,
               filters = filters,
               chromosome = sequencing.chromosome
       }
   }
 
-    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_biallelics])
-    File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_biallelics_bamcounts])
-    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_biallelics])
-    File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_biallelics_bamcounts])
-
-    PopulationAnalysis gatk_processing = {"multi": GatkGenotyping.vcf_multiallelics, "method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"multi": FreebayesGenotyping.vcf_multiallelics, "method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+  File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_norm])
+  File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_norm_bamcounts])
+  File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_norm])
+  File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_norm_bamcounts])
+  
+  PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
+  PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
   scatter (analysis in [gatk_processing, freebayes_processing]){
-
-    call utilsR.vcf2onemap {
-      input:
-        vcf_file = analysis.vcf,
-        cross = family.cross,
-        SNPCall_program = analysis.method,
-        parent1 = "P1",
-        parent2 = "P2"
-    }
-
-    call utilsR.MultiVcf2onemap{
-      input:
-          multi = analysis.multi,
-          cross = family.cross,
-          SNPCall_program = analysis.method,
-          parent1 = "P1",
-          parent2 = "P2",
-          seed    = family.seed,
-          depth   = sequencing.depth,
-          multiallelics = sequencing.multiallelics
-    }
-
-    call default.DefaultMaps {
-      input:
-        onemap_obj = vcf2onemap.onemap_obj,
-        simu_onemap_obj = truth_vcf.onemap_obj,
-        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
-        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
-        SNPCall_program = analysis.method,
-        CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj,
-        simu_vcfR = truth_vcf.vcfR_obj,
-        vcfR_obj = vcf2onemap.vcfR_obj,
-        seed = family.seed,
-        depth = sequencing.depth,
-        max_cores = max_cores,
-        multiallelics = sequencing.multiallelics
-    }
-
-    call snpcaller.SNPCallerMaps{
-      input:
-        simu_onemap_obj = truth_vcf.onemap_obj,
-        onemap_obj = vcf2onemap.onemap_obj,
-        vcf_file = analysis.vcf,
-        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
-        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
-        cross = family.cross,
-        SNPCall_program = analysis.method,
-        GenotypeCall_program = "SNPCaller",
-        CountsFrom = "vcf",
-        multi_obj = MultiVcf2onemap.onemap_obj,
-        simu_vcfR = truth_vcf.vcfR_obj,
-        seed = family.seed,
-        depth = sequencing.depth,
-        max_cores = max_cores,
-        multiallelics = sequencing.multiallelics
-    }
 
     Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
 
     scatter (origin in ["vcf", "bam"]){
-        call genotyping.SnpBasedGenotypingSimulatedMaps as UpdogMaps {
+
+        call utils.SplitMarkers as splitgeno{
+             input:
+                vcf_file = vcfs[origin]
+        }
+
+        call genotyping.onemapMaps as updogMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcfs[origin],
+            vcf_file = splitgeno.biallelics,
             genotyping_program = "updog",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
-            multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth,
-            multiallelics = sequencing.multiallelics
+            multiallelics = sequencing.multiallelics,
+            multiallelics_file = splitgeno.multiallelics
         }
 
-        call genotyping.SnpBasedGenotypingSimulatedMaps as SupermassaMaps {
+        call genotyping.onemapMaps as supermassaMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcfs[origin],
+            vcf_file = splitgeno.biallelics,
             genotyping_program = "supermassa",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
-            multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth,
-            multiallelics = sequencing.multiallelics
+            multiallelics = sequencing.multiallelics,
+            multiallelics_file = splitgeno.multiallelics
         }
 
-        call genotyping.SnpBasedGenotypingSimulatedMaps as PolyradMaps {
+        call genotyping.onemapMaps as polyradMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            onemap_obj = vcf2onemap.onemap_obj,
-            vcf_file = vcfs[origin],
+            vcf_file = splitgeno.biallelics,
             genotyping_program = "polyrad",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
             SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
-            multi_obj = MultiVcf2onemap.onemap_obj,
             max_cores = max_cores,
             simu_vcfR = truth_vcf.vcfR_obj,
             seed = family.seed,
             depth = sequencing.depth,
-            multiallelics = sequencing.multiallelics
+            multiallelics = sequencing.multiallelics,
+            multiallelics_file = splitgeno.multiallelics
         }
-      }
+    }
 
-      call gusmap.GusmapMaps {
-        input:
-          simu_onemap_obj = truth_vcf.onemap_obj,
-          vcf_file = analysis.vcf,
-          new_vcf_file = analysis.bam,
-          SNPCall_program = analysis.method,
-          GenotypeCall_program = "gusmap",
-          ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
-          simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
-          seed = family.seed,
-          depth = sequencing.depth,
-          max_cores = max_cores
-      }
+    call utils.SplitMarkers as splitvcf{
+         input:
+           vcf_file = analysis.vcf
+    }
+
+    call utils.SplitMarkers as splitbam{
+         input:
+           vcf_file = analysis.bam
+    }
+
+    call gusmap.gusmapMaps {
+      input:
+        simu_onemap_obj = truth_vcf.onemap_obj,
+        vcf_file = splitvcf.biallelics,
+        new_vcf_file = splitbam.biallelics,
+        SNPCall_program = analysis.method,
+        GenotypeCall_program = "gusmap",
+        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
+        seed = family.seed,
+        depth = sequencing.depth,
+        max_cores = max_cores
+    }
+
+    call snpcaller.SNPCallerMaps{
+      input:
+        simu_onemap_obj = truth_vcf.onemap_obj,
+        vcf_file = splitvcf.biallelics,
+        ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
+        simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
+        cross = family.cross,
+        SNPCall_program = analysis.method,
+        GenotypeCall_program = "SNPCaller",
+        CountsFrom = "vcf",
+        simu_vcfR = truth_vcf.vcfR_obj,
+        seed = family.seed,
+        depth = sequencing.depth,
+        max_cores = max_cores,
+        multiallelics = sequencing.multiallelics,
+        multiallelics_file = splitvcf.multiallelics
+    }
   }
 
-  call utilsR.JointReports {
+  # Compress files
+  call JointReports {
     input:
-    default_RDatas            = flatten(DefaultMaps.RDatas),
-    default_maps_report       = flatten(DefaultMaps.maps_report),
-    default_filters_report    = flatten(DefaultMaps.filters_report),
-    default_errors_report     = flatten(DefaultMaps.errors_report),
-    default_times_report      = flatten(DefaultMaps.times),
-    SNPCaller_RDatas          = SNPCallerMaps.RDatas,
-    multi_names               = MultiVcf2onemap.multi_names,
-    SNPCaller_maps_report     = SNPCallerMaps.maps_report,
-    SNPCaller_filters_report  = SNPCallerMaps.filters_report,
-    SNPCaller_errors_report   = SNPCallerMaps.errors_report,
-    SNPCaller_times_report    = SNPCallerMaps.times,
-    Updog_RDatas              = flatten(flatten(UpdogMaps.RDatas)),
-    Updog_maps_report         = flatten(flatten(UpdogMaps.maps_report)),
-    Updog_filters_report      = flatten(flatten(UpdogMaps.filters_report)),
-    Updog_errors_report       = flatten(flatten(UpdogMaps.errors_report)),
-    Updog_times_report        = flatten(flatten(UpdogMaps.times)),
-    Polyrad_RDatas            = flatten(flatten(PolyradMaps.RDatas)),
-    Polyrad_maps_report       = flatten(flatten(PolyradMaps.maps_report)),
-    Polyrad_filters_report    = flatten(flatten(PolyradMaps.filters_report)),
-    Polyrad_errors_report     = flatten(flatten(PolyradMaps.errors_report)),
-    Polyrad_times_report      = flatten(flatten(PolyradMaps.times)),
-    Supermassa_RDatas         = flatten(flatten(SupermassaMaps.RDatas)),
-    Supermassa_maps_report    = flatten(flatten(SupermassaMaps.maps_report)),
-    Supermassa_filters_report = flatten(flatten(SupermassaMaps.filters_report)),
-    Supermassa_errors_report  = flatten(flatten(SupermassaMaps.errors_report)),
-    Supermassa_times_report   = flatten(flatten(SupermassaMaps.times)),
-    Gusmap_RDatas             = flatten(GusmapMaps.RDatas),
-    Gusmap_maps_report        = flatten(GusmapMaps.maps_report),
-    Gusmap_times_report       = flatten(GusmapMaps.times),
-    GATK_eval                 = GatkGenotyping.vcfEval,
-    Freebayes_eval            = FreebayesGenotyping.vcfEval,
-    max_cores                 = max_cores,
-    seed                      = family.seed,
-    depth                     = sequencing.depth,
+      SNPCaller                 = SNPCallerMaps.tar_gz_report,
+      updog                     = flatten(updogMaps.tar_gz_report),
+      polyrad                   = flatten(polyradMaps.tar_gz_report),
+      supermassa                = flatten(supermassaMaps.tar_gz_report),
+      gusmap                    = gusmapMaps.tar_gz_report,
+      GATK_eval                 = GatkGenotyping.vcfEval,
+      Freebayes_eval            = FreebayesGenotyping.vcfEval,
+      max_cores                 = max_cores,
+      seed                      = family.seed,
+      depth                     = sequencing.depth
   }
 
   output {
@@ -276,5 +224,174 @@ workflow SimulatedSingleFamily {
     File data10_counts            = JointReports.data10_counts
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
     File Plots                    = GatkGenotyping.Plots
+  }
+}
+
+task JointReports{
+  input {
+    Array[File] SNPCaller                
+    Array[File] updog                     
+    Array[File] polyrad                   
+    Array[File] supermassa         
+    Array[File] gusmap                    
+    File Freebayes_eval
+    File GATK_eval
+    Int max_cores
+    Int seed
+    Int depth
+  }
+
+  command <<<
+     R --vanilla --no-save <<RSCRIPT
+
+      # packages
+      library(tidyr)
+      library(stringr)
+      library(vroom)
+      library(largeList)
+
+      # function
+      joint_reports <- function(default, 
+                                snpcaller, 
+                                updog, 
+                                polyrad, 
+                                supermassa,
+                                gusmap = NULL){
+
+        SNPCaller  <- str_split(SNPCaller, ";", simplify = T)
+        Updog      <- str_split(updog, ";", simplify = T)
+        Polyrad    <- str_split(polyrad, ";", simplify = T)
+        Supermassa <- str_split(supermassa, ";", simplify = T)
+
+        if(is.null(gusmap)){
+          files <- c(default, SNPCaller, Updog, Polyrad, Supermassa)
+        } else {
+          Gusmap <- str_split(gusmap, ";", simplify = T)
+          files <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
+        }
+
+        joint <- vroom(files, num_threads = ~{max_cores})
+        return(joint)
+      }
+
+      #########################################################################################
+      # Table1: GenoCall; mks; ind; SNPCall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
+      # gt.vcf; gt.vcf.ref.alt; gabGT; A; AB; BA; B; errors; seed; depth
+      #########################################################################################
+
+
+      ##################################################################################
+      # Table2: seed; depth; CountsFrom; GenoCall; SNPCall; MK; rf; phases; real.phases;
+      # real.type; real.mks; fake; poscM; poscM.norm; diff
+      ##################################################################################
+
+
+      # Add multiallelics tag
+
+      multi_temp <- str_split(multi_temp, ";", simplify = T)
+
+      multi_names_seed <- list()
+      for(i in 1:length(multi_temp)){
+        multi_temp2 <- load(multi_temp[i])
+        multi_temp3 <- get(multi_temp2)
+        multi_names_seed <- c(multi_names_seed, multi_temp3)
+      }
+
+      snpcall_names <- str_split(names(multi_names_seed), pattern = "_", simplify = T)
+      maps_report <- as.data.frame(maps_report)
+
+      for(i in 1:length(multi_names_seed)){
+        maps_report[,"real.mks"][which(maps_report[,"seed"] == snpcall_names[i,2] & 
+                                    maps_report[,"depth"] == snpcall_names[i,1] &
+                                    maps_report[,"SNPCall"] == snpcall_names[i,3] &  
+                                    maps_report[,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"
+      }
+
+      ################################################################################
+      # Table3: CountsFrom; seed; depth; SNPCall; GenoCall; n_mks; distorted; 
+      # redundant; mis; after
+      ################################################################################
+
+ 
+      #################################################################################
+      # Table4: seed; depth; CountsFrom; SNPCall; GenoCall; fake; times
+      #################################################################################
+
+       #################################################################################
+      # Table5 and 9: VariantEval  
+      #################################################################################
+      library(gsalib)
+      df <- gsa.read.gatkreport("~{Freebayes_eval}")
+      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
+      count1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
+
+      df <- gsa.read.gatkreport("~{GATK_eval}")
+      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
+      count2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
+ 
+      df <- rbind(eval1, eval2)
+      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = ~{max_cores})
+
+      df <- rbind(count1, count2)
+      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = ~{max_cores})
+
+      ##################################################################################
+      # Table6: list of RDatas with name CountsFrom; seed; depth; SNPCall; GenoCall
+      ##################################################################################
+
+ 
+      RDatas_names <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
+
+      all_RDatas <- list()
+      for(i in 1:length(RDatas_names)){
+        map_temp <- load(RDatas_names[i])
+        all_RDatas[[i]] <- get(map_temp)
+      }
+      all_RDatas <- unlist(all_RDatas, recursive = F)
+
+      # Outputs
+      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(times_report, "data4_times.tsv.gz", num_threads = ~{max_cores})
+
+      gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
+      RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
+
+      # Converting OneMap sequencig objects to list. LargeList do not accept other class
+      # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
+
+      for(i in 1:length(RDatas)){
+        class(RDatas[[i]]) <- "list"
+      }
+
+      saveList(RDatas, file = "data6_RDatas.llo", append=FALSE, compress=TRUE)
+
+      # LargeList package limits to 16 letters each character, therefore, the entire names are stored in a separated vector
+      data_names <- as.data.frame(names(all_RDatas))
+      vroom_write(data_names, "names.tsv.gz")
+      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+
+     RSCRIPT
+
+  >>>
+
+  runtime {
+    docker:"cristaniguti/reads2map:0.0.1"
+    preemptible: 3
+    memory: "3 GB"
+    cpu: 4
+  }
+
+  output {
+    File data1_depths_geno_prob = "data1_depths_geno_prob.tsv.gz"
+    File data2_maps = "data2_maps.tsv.gz"
+    File data3_filters = "data3_filters.tsv.gz"
+    File data4_times   = "data4_times.tsv.gz"
+    File data5_SNPCall_efficiency = "data5_SNPCall_efficiency.tsv.gz"
+    File data6_RDatas  = "data6_RDatas.llo"
+    File data7_gusmap  = "gusmap_RDatas.RData"
+    File data8_names   = "names.tsv.gz"
+    File data10_counts  = "data10_CountVariants.tsv.gz"
   }
 }

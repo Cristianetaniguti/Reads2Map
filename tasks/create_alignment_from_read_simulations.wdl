@@ -435,12 +435,14 @@ task ConvertPedigreeSimulationToVcf {
                haplo.ref = "P1_1",
                chr = mks[,1],
                phase = TRUE,
-               reference.alleles = mks[,3]
+               reference.alleles = mks[,3],
                use.as.alleles=TRUE)
 
     vcfR.object <- read.vcfR("temp.vcf")
 
-    change_header(vcfR.object, "~{seed}_~{depth}_simu.vcf")
+    vcf_simu <- data.frame(vcfR.object@fix, vcfR.object@gt, stringsAsFactors = FALSE)
+    
+    add_head(vcf_simu, "~{seed}_~{depth}_simu.vcf")
 
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
     inds_sele <- INDS_temp[-c(which(INDS_temp=="P1"), which(INDS_temp=="P2"))]

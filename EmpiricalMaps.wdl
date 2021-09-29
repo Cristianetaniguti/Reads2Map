@@ -1,13 +1,12 @@
 version 1.0
 
-import "../structs/maps_empS.wdl"
+import "structs/maps_empS.wdl"
 
-import "./snpcaller_maps_emp.wdl" as snpcaller
-import "./gusmap_maps_emp.wdl" as gusmap
-import "./utils.wdl" as utils
-import "./utilsR.wdl" as utilsR
-
-import "./genotyping.wdl" as genotyping
+import "tasks/snpcaller_maps_emp.wdl" as snpcaller
+import "tasks/gusmap_maps_emp.wdl" as gusmap
+import "tasks/utils.wdl" as utils
+import "tasks/utilsR.wdl" as utilsR
+import "tasks/genotyping.wdl" as genotyping
 
 struct PopulationAnalysis {
     String method
