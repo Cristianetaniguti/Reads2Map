@@ -442,6 +442,9 @@ task ConvertPedigreeSimulationToVcf {
 
     vcf_simu <- data.frame(vcfR.object@fix, vcfR.object@gt, stringsAsFactors = FALSE)
     
+    vcf_simu[,6] <- "."
+    vcf_simu[,8] <- "."
+
     add_head(vcf_simu, "~{seed}_~{depth}_simu.vcf")
 
     INDS_temp <- dimnames(vcfR.object@gt)[[2]][-1]
@@ -485,6 +488,7 @@ task RunVcf2diploid {
     String sampleName
     File ref_genome
     File simu_vcf
+    String chromosome
   }
 
   Int disk_size = ceil(size(ref_genome, "GB") + size(simu_vcf, "GB") + 2)
@@ -503,8 +507,8 @@ task RunVcf2diploid {
   }
 
   output {
-    File maternal_genomes = "Chr10_${sampleName}_maternal.fa"
-    File paternal_genomes = "Chr10_${sampleName}_paternal.fa"
+    File maternal_genomes = "~{chromosome}_${sampleName}_maternal.fa"
+    File paternal_genomes = "~{chromosome}_${sampleName}_paternal.fa"
   }
 
 }

@@ -132,8 +132,14 @@ task ReplaceAD {
     bcftools view -S samples.txt bam_vcf.vcf > biallelic_sort.vcf
     bcftools view -S samples.txt  multiallelics.vcf.gz > multiallelic_sort.vcf
 
-    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf -Oz --output ~{program}_bam_vcf.vcf
-    bgzip ~{program}_bam_vcf.vcf
+    bgzip biallelic_sort.vcf
+    tabix -p vcf biallelic_sort.vcf.gz
+
+    bgzip multiallelic_sort.vcf
+    tabix -p vcf multiallelic_sort.vcf.gz
+
+    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -Oz --output ~{program}_bam_vcf.vcf.gz
+    
   >>>
 
   runtime {

@@ -1,16 +1,16 @@
 ## Reads2Map workflows
 
-Reads2Map workflows offers tools to build linkage maps in diploid outcrossing species from sequencing reads. It compares performances of the selected software: GATK, freebayes, updog, polyRAD, supermassa and test their influences in building genetic maps with OneMap and GUSMap. The main workflows are the `SimulatedReads.wdl` and the `EmpiricalReads.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome or WGS data and performs the SNP and genotype calling and genetic map building with selected softwares. `EmpiricalReads.wdl` performs the same analysis, but from empirical read sequences.
+Reads2Map offers WDL workflows to build linkage maps in diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling and genetic map builders software. By now, they consider: GATK, freebayes, updog, polyRAD, superMASSA, OneMap and GUSMap. 
+
+The main workflows are the `SimulatedReads.wdl`, the `EmpiricalSNPCalling.wdl` and the `EmpiricalMaps.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome or WGS data and performs the SNP and genotype calling and genetic map building with selected software. `EmpiricalSNPCalling.wdl` performs the snp calling  and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads.
 
 ## Quickstart
 
 The only software that you will need to download and install to run these workflows are [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/2.6/user-guide/index.html), [Java](https://www.java.com/en/) and  [Cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/).
 
-### Run EmpiricalReads2Map workflow
+### Building maps from empirical reads
 
-The EmpiricalReads2Map workflow requires demultiplexed and cleaned FASTQ files. We made available a suggestion for preprocessing reads in `PreprocessingReads.wdl`.
-
-The EmpiricalReads2Map is splitted in two main workflows: the `EmpiricalSNPCalling.wdl` and the `EmpiricalMaps.wdl`.
+The `EmpiricalSNPcalling` requires demultiplexed and cleaned FASTQ files. We made available a suggestion for preprocessing reads in `PreprocessingReads.wdl`.
 
 * Adapt the path of the inputs in `inputs/EmpiricalSNPCalling.inputs.json`
 
@@ -112,14 +112,6 @@ docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 330
 java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i EmpiricalReads2Map.inputs.json EmpiricalReads2Map.wdl
 ```
 
-## Running large datasets
-
-If you want to test the workflow with the full example data, you can download it running "data/populus/download_SRRs.sh" and specify the file "data/populus/sample_info" in the workflow inpu file. In this case and for running full empirical datasets in general, you will need a computer with higher capacity. 
-
-By default, the workflows are configurated for High-Performance Computing (HPC) services and we provide some configurations files examples in `.configurations` directory.
-
-If you don't have a HPC available, you may want to check cloud services. Thare are several services available, we would suggest to start your search by the [terra.bio](https://terra.bio/resources/analysis-tools/) platform. To adapt the workflows to cloud services it is required to change the `runtime` session of the workflow tasks according with the cloud format.
-
 ### Run SimulatedReads2Map workflow
 
 * Adapt the path of the inputs in `inputs/SimulatedReads2Map.input.json`
@@ -198,6 +190,14 @@ java -jar cromwell.jar run -i SimulatedReads.inputs.json SimulatedReads.wdl
 
 **Warning**: See section [Configurations](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/configurations.html) to choose the better available option for you or create a personalized one checking the [cromwell settings for configurations](https://cromwell.readthedocs.io/en/stable/Configuring/).
 
+## Running large datasets
+
+If you want to test the Empirical workflow with the full example data, you can download it running "data/populus/download_SRRs.sh" and specify the file "data/populus/sample_info" in the workflow input file. In this case and for running full empirical datasets in general, you will need a computer with higher capacity. 
+
+By default, the workflows are configurated for High-Performance Computing (HPC) services and we provide some configurations files examples in `.configurations` directory.
+
+If you don't have a HPC available, you may want to check cloud services. Thare are several services available, we would suggest to start your search by the [terra.bio](https://terra.bio/resources/analysis-tools/) platform. To adapt the workflows to cloud services it is required to change the `runtime` session of the workflow tasks according with the cloud format.
+
 ## Visualize Reads2Map workflows output in Reads2MapApp
 
 You can search for all procedure intermediary files in the `cromwell-executions` directory generated by the workflow. The `log` file will specify the workflow id and path for each executed task. The final output is a compressed file called `EmpiricalReads_results.tar.gz` or `SimulatedReads_results.tar.gz`. These files contains tables for an overview of the entire procedure. They are inputs for the Reads2MapApp, an shiny app that provides a graphical view of the results (as presented below). Check the [Reads2MapApp repository](https://github.com/Cristianetaniguti/Reads2MapApp) for further information.
@@ -217,33 +217,31 @@ You can also have more details about the workflows and how they can be applied:
 
 * [Papers]()
 
-## Third party softwares
+## Third party softwares and images
 
-- [BWA](https://github.com/lh3/bwa): Used to align simulated reads to reference.
-- [cleanFastq](https://github.com/davidvi/cleanFastq): Fix broken fastq files with corrupted reads that crash the aligner.
-- [cutadapt](https://github.com/marcelm/cutadapt): Trim simulated reads.
-- [ddRADseqTools](https://github.com/GGFHF/ddRADseqTools): Set of applications useful to in silico design and testing of double digest RADseq (ddRADseq) experiments.
-- [freebayes](https://github.com/ekg/freebayes): Variant call step.
-- [GATK](https://github.com/broadinstitute/gatk): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs.
-- [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1): Simulates progeny genotypes from parents genotypes for different types of populations
-- [picard](https://github.com/broadinstitute/picard): Process alignment files.
-- [pirs](https://github.com/galaxy001/pirs): To generate simulates paired-end reads from a reference genome.
-- [samtools](https://github.com/samtools/samtools): Process alignment files.
-- [vcf2diploid](https://github.com/abyzovlab/vcf2diploid): Include the variants in a reference genome according with a VCF file.
-- [SimuSCoP](https://github.com/qasimyu/simuscop): Exome and WGS Illumina reads simulations.
-- [RADinitio](http://catchenlab.life.illinois.edu/radinitio/): RADseq Illumina reads simulation.
-- [supermassa]()
-- [bcftools]()
-- [vcftools]()
+- [BWA](https://github.com/lh3/bwa) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Used to align simulated reads to reference;
+- [cutadapt](https://github.com/marcelm/cutadapt) on [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): Trim simulated reads;
+- [ddRADseqTools](https://github.com/GGFHF/ddRADseqTools) on [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): Set of applications useful to in silico design and testing of double digest RADseq (ddRADseq) experiments;
+- [freebayes](https://github.com/ekg/freebayes) on [Cristaniguti/freebayes:0.0.1](): Variant call step;
+- [GATK](https://github.com/broadinstitute/gatk) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs;
+- [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Simulates progeny genotypes from parents genotypes for different types of populations;
+- [picard](https://github.com/broadinstitute/picard) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Process alignment files;
+- [pirs](https://github.com/galaxy001/pirs) on [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): To generate simulates paired-end reads from a reference genome;
+- [samtools](https://github.com/samtools/samtools) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Process alignment files;
+- [SimuSCoP](https://github.com/qasimyu/simuscop) on [cristaniguti/simuscopr:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/simuscopr): Exome and WGS Illumina reads simulations;
+- [RADinitio](http://catchenlab.life.illinois.edu/radinitio/) on [	cristaniguti/radinitio:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/radinitio): RADseq Illumina reads simulation;
+- [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Efficient Exact Maximum a Posteriori Computation for Bayesian SNP Genotyping in Polyploids;
+- [bcftools](https://github.com/samtools/bcftools) on [lifebitai/bcftools:1.10.2](https://hub.docker.com/r/lifebitai/bcftools): utilities for variant calling and manipulating VCFs and BCFs;
+- [vcftools](http://vcftools.sourceforge.net/) on [cristaniguti/split_markers:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/split_markers): program package designed for working with VCF files.
 
 ### R packages
 
-- [OneMap](https://github.com/augusto-garcia/onemap): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses.
-- [onemapUTILS]()
+- [OneMap](https://github.com/augusto-garcia/onemap) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses;
+- [Reads2MapTools]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
 - [GUSMap](https://github.com/tpbilton/GUSMap): Genotyping Uncertainty with Sequencing data and linkage MAPping
-- [updog]()
-- [polyRAD]()
-- [Reads2MapApp]()
-- [ggplot2]()
-- [tidyverse]()
-- [simuscopR]()
+- [updog]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [polyRAD]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [Reads2MapApp]() on [cristaniguti/reads2mapApp:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [ggplot2]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [tidyverse]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [simuscopR]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
