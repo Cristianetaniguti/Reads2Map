@@ -98,7 +98,7 @@ task FiltersReport{
   }
 
   output {
-    File filters_report = "filters_report.tsv.gz"
+    File filters_report = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_~{seed}_~{depth}_filters_report.tsv.gz"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
   }
 }
@@ -202,7 +202,7 @@ task MapsReport{
 
       # Joint maps data.frames
       map_joint <- rbind(info_fake[[2]], info_correct[[2]])
-      vroom::vroom_write(map_joint, "map_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(map_joint, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_map_report.tsv.gz", num_threads = ~{max_cores})
 
       # Joint RDatas
       RDatas_joint <- list()
@@ -210,7 +210,7 @@ task MapsReport{
       RDatas_joint[[2]] <- info_correct[[1]]
       names(RDatas_joint) <- c("map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
                                "map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
-      save(RDatas_joint, file= "map.RData")
+      save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData")
 
       # Joint times data.frames
       times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
@@ -218,7 +218,7 @@ task MapsReport{
                                time = times_temp[3])
 
       times <- rbind(times, times_temp)
-      vroom::vroom_write(times, "times_report.tsv.gz", num_threads = ~{max_cores})
+      vroom::vroom_write(times,"~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_times_report.tsv.gz", num_threads = ~{max_cores})
 
       RSCRIPT
 
@@ -237,9 +237,9 @@ task MapsReport{
   }
 
   output {
-    File maps_report = "map_report.tsv.gz"
-    File maps_RData = "map.RData"
-    File times = "times_report.tsv.gz"
+    File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_map_report.tsv.gz"
+    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData"
+    File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_times_report.tsv.gz"
   }
 }
 
@@ -299,7 +299,7 @@ task ErrorsReport {
         idx <- match(c("A", "AB", "BA", "B"), colnames(dptot))
         dptot <- cbind(dptot, errors = apply(dptot[,idx], 1, function(x) 1 - max(x)))
 
-        vroom::vroom_write(dptot, "errors_report.tsv.gz", num_threads = 4)
+        vroom::vroom_write(dptot, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_errors_report.tsv.gz", num_threads = 4)
 
       RSCRIPT
 
@@ -318,7 +318,7 @@ task ErrorsReport {
   }
 
   output{
-    File errors_report = "errors_report.tsv.gz"
+    File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_errors_report.tsv.gz"
   }
 }
 

@@ -15,7 +15,6 @@ struct PopulationAnalysis {
     String method
     File vcf
     File bam
-    File multi
 }
 
 workflow SimulatedSingleFamily {
@@ -250,29 +249,20 @@ task JointReports{
       library(vroom)
       library(largeList)
 
-      # function
-      joint_reports <- function(default, 
-                                snpcaller, 
-                                updog, 
-                                polyrad, 
-                                supermassa,
-                                gusmap = NULL){
 
-        SNPCaller  <- str_split(SNPCaller, ";", simplify = T)
-        Updog      <- str_split(updog, ";", simplify = T)
-        Polyrad    <- str_split(polyrad, ";", simplify = T)
-        Supermassa <- str_split(supermassa, ";", simplify = T)
+      SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
+      updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
+      polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
+      supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
+      gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
 
-        if(is.null(gusmap)){
-          files <- c(default, SNPCaller, Updog, Polyrad, Supermassa)
-        } else {
-          Gusmap <- str_split(gusmap, ";", simplify = T)
-          files <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
-        }
-
-        joint <- vroom(files, num_threads = ~{max_cores})
-        return(joint)
+      if(is.null(gusmap)){
+        files <- c(default, SNPCaller, Updog, Polyrad, Supermassa)
+      } else {
+        Gusmap <- str_split(gusmap, ";", simplify = T)
+        files <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
       }
+      joint <- vroom(files, num_threads = ~{max_cores})
 
       #########################################################################################
       # Table1: GenoCall; mks; ind; SNPCall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
