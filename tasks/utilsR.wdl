@@ -531,16 +531,10 @@ task ReGenotyping{
                                                   use_genotypes_errors = FALSE,
                                                   use_genotypes_probs = TRUE)
         } else if (method == "polyrad") {
-            out_onemap_obj <- polyRAD_genotype(vcf="~{vcf_file}",
-                                              parent1="~{parent1}",
-                                              parent2="~{parent2}",
-                                              f1 = f1,
-                                              out_vcf = out_vcf,
-                                              crosstype= cross,
-                                              global_error = NULL,
-                                              use_genotypes_errors = FALSE,
-                                              use_genotypes_probs = TRUE,
-                                              vcf.par="AD")
+            out_onemap_obj <- polyRAD_genotype_vcf(vcf="~{vcf_file}",
+                                                   parent1="~{parent1}",
+                                                   parent2="~{parent2}",
+                                                   outfile = out_vcf)
         }
 
         system("gunzip regeno.vcf.gz")
