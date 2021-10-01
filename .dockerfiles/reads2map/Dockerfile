@@ -53,11 +53,11 @@ RUN Rscript -e 'remotes::install_github("tpbilton/GUSbase", ref = "92119b9c57faa
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSMap", ref = "4d7d4057049819d045750d760a45976c8f30dac6")'
 RUN Rscript -e 'remotes::install_github("dcgerard/updog", ref = "eaa231c869e8d2e4c1fd11dc28e53e6270c9d5c0")'
 
-RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap"   )'
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap"    )'
 
 # Still in private repo
-COPY ./onemapUTILS_0.3.3.tar.gz /opt/
 COPY ./simuscopR_0.0.0.9000.tar.gz /opt/
+COPY ./onemapUTILS_0.3.3.tar.gz /opt/
 
 RUN R -e "install.packages('/opt/simuscopR_0.0.0.9000.tar.gz', type = 'source', repos=NULL)"
 RUN R -e "install.packages('/opt/onemapUTILS_0.3.3.tar.gz', type = 'source', repos=NULL)"

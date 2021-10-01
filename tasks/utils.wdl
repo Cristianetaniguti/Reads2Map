@@ -138,7 +138,7 @@ task ReplaceAD {
     bgzip multiallelic_sort.vcf
     tabix -p vcf multiallelic_sort.vcf.gz
 
-    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -Oz --output ~{program}_bam_vcf.vcf.gz
+    bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -a -Oz --output ~{program}_bam_vcf.vcf.gz
     
   >>>
 

@@ -178,7 +178,7 @@ task MapsReport{
       times_fake <-system.time(info_fake <- create_maps_report_simu(input.seq = filtered_onemap,
                                                   tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                                   "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                                  fake= T, "~{CountsFrom}", simulated_phases, 
+                                                  fake= "with-false", "~{CountsFrom}", simulated_phases, 
                                                   ~{seed}, ~{depth}, cores))
 
       times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
@@ -196,7 +196,7 @@ task MapsReport{
         times_temp <-system.time(info_correct <- create_maps_report_simu(input.seq = filtered_onemap,
                                               tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                               "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                              fake= F, "~{CountsFrom}", simulated_phases, 
+                                              fake= "without-false", "~{CountsFrom}", simulated_phases, 
                                               ~{seed}, ~{depth}, cores))
       }
 

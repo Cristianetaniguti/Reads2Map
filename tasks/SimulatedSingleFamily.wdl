@@ -206,6 +206,7 @@ workflow SimulatedSingleFamily {
       gusmap                    = gusmapMaps.tar_gz_report,
       GATK_eval                 = GatkGenotyping.vcfEval,
       Freebayes_eval            = FreebayesGenotyping.vcfEval,
+      multiallelics_file        = splitvcf.multiallelics
       max_cores                 = max_cores,
       seed                      = family.seed,
       depth                     = sequencing.depth
@@ -232,7 +233,8 @@ task JointReports{
     Array[File] updog                     
     Array[File] polyrad                   
     Array[File] supermassa         
-    Array[File] gusmap                    
+    Array[File] gusmap
+    Array[File] multiallelics_file                    
     File Freebayes_eval
     File GATK_eval
     Int max_cores
@@ -256,29 +258,37 @@ task JointReports{
       supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
       gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
 
-      if(is.null(gusmap)){
-        files <- c(default, SNPCaller, Updog, Polyrad, Supermassa)
-      } else {
-        Gusmap <- str_split(gusmap, ";", simplify = T)
-        files <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
+      files <- list(SNPCaller, updog, polyrad, supermassa, gusmap)
+
+      direc <- c("/maps/", "/filters/", "/errors/", "/times/", "/RDatas/")
+
+      path_dir <- tempdir()
+      system(paste0("mkdir ", paste0(path_dir, direc, collapse = " ")))
+      for(i in 1:length(files)){
+        for(j in 1:length(files[[i]])){
+            untar(files[[i]][[j]], exdir = path_dir)
+            list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
+            system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
+            if(!grepl("gusmap", list_files[1])){
+              system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
+              system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
+            }
+        }
       }
-      joint <- vroom(files, num_threads = ~{max_cores})
 
-      #########################################################################################
-      # Table1: GenoCall; mks; ind; SNPCall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
-      # gt.vcf; gt.vcf.ref.alt; gabGT; A; AB; BA; B; errors; seed; depth
-      #########################################################################################
-
-
-      ##################################################################################
-      # Table2: seed; depth; CountsFrom; GenoCall; SNPCall; MK; rf; phases; real.phases;
-      # real.type; real.mks; fake; poscM; poscM.norm; diff
-      ##################################################################################
-
+      direc_tsv <- direc[-5]
+      tsvs <- list()
+      for(i in 1:length(direc_tsv)){
+        files <- system(paste0("ls ", path_dir, direc_tsv[i]), intern = T)
+        files <- paste0(path_dir, direc_tsv[i], files)
+        tsvs[[i]] <- vroom(files, num_threads = 4)
+      }
 
       # Add multiallelics tag
 
-      multi_temp <- str_split(multi_temp, ";", simplify = T)
+      vcf_multi <- str_split("~{sep = ";" multiallelics_file}", ";", simplify = T)
 
       multi_names_seed <- list()
       for(i in 1:length(multi_temp)){
@@ -292,44 +302,26 @@ task JointReports{
 
       for(i in 1:length(multi_names_seed)){
         maps_report[,"real.mks"][which(maps_report[,"seed"] == snpcall_names[i,2] & 
-                                    maps_report[,"depth"] == snpcall_names[i,1] &
-                                    maps_report[,"SNPCall"] == snpcall_names[i,3] &  
-                                    maps_report[,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"
+                                          maps_report[,"depth"] == snpcall_names[i,1] &
+                                          maps_report[,"SNPCall"] == snpcall_names[i,3] &  
+                                          maps_report[,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"
       }
 
-      ################################################################################
-      # Table3: CountsFrom; seed; depth; SNPCall; GenoCall; n_mks; distorted; 
-      # redundant; mis; after
-      ################################################################################
-
- 
-      #################################################################################
-      # Table4: seed; depth; CountsFrom; SNPCall; GenoCall; fake; times
-      #################################################################################
-
-       #################################################################################
-      # Table5 and 9: VariantEval  
-      #################################################################################
       library(gsalib)
-      df <- gsa.read.gatkreport("~{Freebayes_eval}")
-      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
-      count1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
+      df <- gsa.read.gatkreport("/home/rstudio/Reads2Map/cromwell-executions/SimulatedSingleFamily/3524079c-bcc3-44c2-8cfe-8ee109618817/call-JointReports/inputs/-1261295907/vcfEval.txt")
+      eval1 <- cbind(SNPCall = "Freebayes", seed = 500, depth = 20, df[["CompOverlap"]])
+      count1 <- cbind(SNPCall = "Freebayes", seed = 500, depth = 20, df[["CountVariants"]])
 
-      df <- gsa.read.gatkreport("~{GATK_eval}")
-      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
-      count2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
- 
+      df <- gsa.read.gatkreport("/home/rstudio/Reads2Map/cromwell-executions/SimulatedSingleFamily/3524079c-bcc3-44c2-8cfe-8ee109618817/call-JointReports/inputs/687666474/vcfEval.txt")
+      eval2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CompOverlap"]])
+      count2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CountVariants"]])
+
       df <- rbind(eval1, eval2)
-      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = 3)
 
       df <- rbind(count1, count2)
-      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = 3)
 
-      ##################################################################################
-      # Table6: list of RDatas with name CountsFrom; seed; depth; SNPCall; GenoCall
-      ##################################################################################
-
- 
       RDatas_names <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
 
       all_RDatas <- list()
@@ -340,10 +332,10 @@ task JointReports{
       all_RDatas <- unlist(all_RDatas, recursive = F)
 
       # Outputs
-      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(times_report, "data4_times.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = 3)
+      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = 3)
+      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = 3)
+      vroom_write(times_report, "data4_times.tsv.gz", num_threads = 3)
 
       gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
       RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
@@ -361,6 +353,17 @@ task JointReports{
       data_names <- as.data.frame(names(all_RDatas))
       vroom_write(data_names, "names.tsv.gz")
       save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+
+      # Tables description
+      # Table1: seed; depth; CountsFrom; GenoCall; SNPCall; MK; rf; phases; real.phases;
+      # real.type; real.mks; fake; poscM; poscM.norm; diff
+      # Table2: GenoCall; mks; ind; SNPCall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
+      # gt.vcf; gt.vcf.ref.alt; gabGT; A; AB; BA; B; errors; seed; depth
+      # Table3: CountsFrom; seed; depth; SNPCall; GenoCall; n_mks; distorted; 
+      # redundant; mis; after
+      # Table4: seed; depth; CountsFrom; SNPCall; GenoCall; fake; times
+      # Table5 and 9: VariantEval  
+      # Table6: list of RDatas with name CountsFrom; seed; depth; SNPCall; GenoCall
 
      RSCRIPT
 

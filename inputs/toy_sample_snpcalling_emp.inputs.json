@@ -1,17 +1,15 @@
 {
-  "SNPCalling.samples_info": {
-    "samples_info": "/home/cris/Reads2Map/data/toy_empirical/samples_info_pop_sub"
-  },
+  "SNPCalling.samples_info": "/home/cristiane/github/Reads2Map/data/toy_empirical/samples_info_pop_sub",
   "SNPCalling.max_cores": "3",
   "SNPCalling.references": {
-    "ref_fasta": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa",
-    "ref_dict": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.dict",
-    "ref_ann": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa.ann",
-    "ref_sa": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa.sa",
-    "ref_amb": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa.amb",
-    "ref_bwt": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa.bwt",
-    "ref_fasta_index": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa.fai",
-    "ref_pac": "/home/cris/Reads2Map/data/toy_genome/Chr1.2.2M.fa.pac"
+    "ref_fasta": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa",
+    "ref_dict": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.dict",
+    "ref_ann": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa.ann",
+    "ref_sa": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa.sa",
+    "ref_amb": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa.amb",
+    "ref_bwt": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa.bwt",
+    "ref_fasta_index": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa.fai",
+    "ref_pac": "/home/cristiane/github/Reads2Map/data/toy_genome/Chr10.11.2M.fa.pac"
   },
   "SNPCalling.rm_dupli": "no",
   "SNPCalling.chunk_size": "3"

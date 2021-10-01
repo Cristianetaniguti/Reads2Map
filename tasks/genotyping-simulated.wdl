@@ -101,7 +101,7 @@ workflow onemapMaps {
    call utils.Compress {
       input:
         RDatas = MapsReport.maps_RData,
-        maps_report = MapsReport.maps_RData,
+        maps_report = MapsReport.maps_report,
         times =  MapsReport.times,
         filters_report = FiltersReport.filters_report,
         errors_report = ErrorsReport.errors_report,
