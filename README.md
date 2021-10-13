@@ -1,12 +1,14 @@
 ## Reads2Map workflows
 
-Reads2Map presents WDL workflows to build linkage maps for diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling and genetic map builders software. By now, they consider: GATK, freebayes, updog, polyRAD, superMASSA, OneMap and GUSMap. 
+Reads2Map presents WDL workflows to build linkage maps for diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling, and genetic map builders software. By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes), [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [superMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906), [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) are included.
 
-The main workflows are the `SimulatedReads.wdl`, the `EmpiricalSNPCalling.wdl` and the `EmpiricalMaps.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome or WGS data and performs the SNP and genotype calling and genetic map building with selected software. `EmpiricalSNPCalling.wdl` performs the snp calling  and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads.
+The main workflows are the `SimulatedReads.wdl`, the `EmpiricalSNPCalling.wdl`, and the `EmpiricalMaps.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building. `EmpiricalSNPCalling.wdl` performs the SNP calling and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads.
 
 ## Quickstart
 
-The only software that you will need to download and install to run these workflows are [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/2.6/user-guide/index.html), [Java](https://www.java.com/en/) and  [Cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/).
+### Requisites
+
+The only software that you will need to download and install to run these workflows are [Java](https://www.java.com/en/),  [Cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/), and [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/2.6/user-guide/index.html).
 
 ### Building maps from empirical reads
 
@@ -14,13 +16,15 @@ The `EmpiricalSNPcalling` requires demultiplexed and cleaned FASTQ files. We mad
 
 * Adapt the path of the inputs in `inputs/EmpiricalSNPCalling.inputs.json`
 
-*samples_info*: tsv file with first column with path to fastq file, second column with sample names and third column with sample names and lane specifications;
+**samples_info**: tsv file with the first column with the path to FASTQ files, a second column with sample names, and the third column with sample names and lane specifications;
 
-*rm_dupli*: if workflow should or not remove the duplicated sequences from the aligment file before the SNP calling analysis;
-*chunk_size*: how many samples to be evaluated by GATK in a single same node;
-*max_cores*: maximum number of cores to be used by aligment and freebayes tasks;
+**rm_dupli**: if workflow should or not remove the duplicated sequences from the alignment file before the SNP calling analysis;
 
-*empirical.references*
+**chunk_size**: how many samples to be evaluated by GATK in a single same node;
+
+**max_cores**: maximum number of cores to be used by alignment and Freebayes tasks;
+
+**empirical.references**
 - ref_fasta: chromosome sequence in fasta format (only one chromosome at a time);
 - ref_fasta_index: index made by samtools faidx;
 - ref_dict: index made by picard dict;
@@ -34,11 +38,15 @@ You can use docker images to create these indexes, see in [`Run SimulatedReads2M
 
 * Adapt the path of the inputs in `inputs/EmpiricalMaps.inputs.json`
 
-*freebayes_vcf*: vcf file containing markers from freebayes snp calling;
-*gatk_vcf*: vcf file containing markers from gatk snp calling;
-*freebayes_vcf_bam_counts*: vcf file containing markers from freebayes snp calling with AD field replaced by BAM files read counts;
-*gatk_vcf_bam_counts*: vcf file containing markers from gatk snp calling with AD field replaced by BAM files read counts;
-*dataset*
+**freebayes_vcf**: vcf file containing markers from freebayes snp calling;
+
+**gatk_vcf**: vcf file containing markers from gatk snp calling;
+
+**freebayes_vcf_bam_counts**: vcf file containing markers from freebayes snp calling with AD field replaced by BAM files read counts;
+
+**gatk_vcf_bam_counts**: vcf file containing markers from gatk snp calling with AD field replaced by BAM files read counts;
+
+**dataset**
 - parent1: parent 1 ID;
 - parent2: parent 2 ID;
 - name: experiment ID;
@@ -48,17 +56,17 @@ You can use docker images to create these indexes, see in [`Run SimulatedReads2M
 
 #### Test dataset for empirical analysis
 
-You can download black cottonwood genome assembly (FASTA) and [RADseq reads from the BioProject	PRJNA395596](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA395596) for testing.
+You can download black cottonwood genome assembly (FASTA) and [RADseq reads from the BioProject PRJNA395596](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA395596) for testing.
 
 ```
-# Download a subset of RADseq data from populus study using the docker image "cyverseuk/fastq-dump:latest" 
+# Download a subset of RADseq data from *Populus tremula* study using the docker image "cyverseuk/fastq-dump:latest" 
 
 for i in SRR6249808 SRR6249795 SRR6249788 SRR6249787 SRR6249786 SRR6249785; do
     echo docker run -v $(pwd):/opt/ --rm --entrypoint /usr/bin/fastq-dump -w /opt/ cyverseuk/fastq-dump:latest -X 300000 --gzip $i
 done
 
-# Here there are enought data to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 4 progeny individuals. The original study have eight replicates for each parent and 122 progenies.
-# Access all samples in the BioProject	PRJNA395596
+# Here there are enough data to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 4 progeny individuals. The original study has eight replicates for each parent and 122 progenies.
+# Access all samples in the BioProject  PRJNA395596
 ```
 
 samples_info_sub
@@ -72,7 +80,7 @@ data/populus_sub/SRR6249795.sub.fastq   PT_F    PT_F.Lib1_E09_TGAACAT
 data/populus_sub/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG
 ```
 
-**Warning**: This analysis demand high computer capacity to run. You will be able to run the example dataset in a computer with 4G of RAM memory, but we suggest to set personalized configurations according to your system. Check some example of configurations in `.configurations` directory. Here is an example of how use them:
+**Warning**: This analysis demand high computer capacity to run. You will be able to run the example dataset on a computer with 4G of RAM, but we suggest setting personalized configurations according to your system. Check some examples of configurations in `.configurations` directory. Here is an example of how to use them:
 
 BATCH file named `slurm_main.sh`:
 
@@ -87,7 +95,7 @@ BATCH file named `slurm_main.sh`:
 #SBATCH -o /home/user/Reads2Map.log
 #SBATCH -e /home/user/Reads2Map.err
 
-# Maybe it will be required to import java and singularity modules here. Check the especifications of the HPC.
+# Maybe it will be required to import java and singularity modules here. Check the specifications of the HPC.
 #module load singularity
 #module load java
 
@@ -103,7 +111,7 @@ Run:
 sbatch slurm_main.sh
 ```
 
-Or, for store the metadata and cache in a mysql database (see also [cromwell-cli](https://github.com/lmtani/cromwell-cli) to easy access to metadata):
+Or, for store the metadata and cache in a MySQL database (see also [cromwell-cli](https://github.com/lmtani/cromwell-cli) to easy access to metadata):
 
 ```
 # Open mySQL cointainer
@@ -116,39 +124,43 @@ java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar ru
 
 * Adapt the path of the inputs in `inputs/SimulatedReads2Map.input.json`
 
-*number_of_families* : an integer defining the number of families with `popsize` individuals to be simulated;
-*global_seed*: This seed is used to generate the families seeds;
-*max_cores*: Maximum number of computer cores to be used;
-*filters*: filters in to be applied by VCFtools in the VCF file after SNP calling;
-*chunk_size*: how many samples to be evaluated by GATK in a single same node
+**number_of_families** : an integer defining the number of families with `popsize` individuals to be simulated;
 
-*family*: 
+**global_seed**: This seed is used to generate the families seeds;
+
+**max_cores**: Maximum number of computer cores to be used;
+
+**filters**: filters in to be applied by VCFtools in the VCF file after SNP calling;
+
+**chunk_size**: how many samples are to be evaluated by GATK in a single same node
+
+**family**: 
 - seed: seed to reproduce the analysis after - warning: some steps are still random, as the reads simulation;
-- popsize: number of individuals at the progenie population;
-- ploidy: the ploidy of the specie, by now only diploid (2) species are supported;
-- cross: cross type. By now, only "F1" option is available;
-- doses: if you do not have an VCF file with variants to be simulated, you can define here the percentage of markers with doses 0, 1 and 2 (when cross is F1);
-- cmBymb: if you do not have a reference linkage map, you can simulate using a general recombination rate according with other genetic maps of the specie
+- popsize: number of individuals at the progeny population;
+- ploidy: the ploidy of the species, by now only diploid (2) species are supported;
+- cross: cross-type. By now, only "F1" option is available;
+- doses: if you do not have a VCF file with variants to be simulated, you can define here the percentage of markers with doses 0, 1, and 2 (when the cross is F1);
+- cmBymb: if you do not have a reference linkage map, you can simulate using a general recombination rate according to other genetic maps of the specie
 
-*sequencing*:
-- library_type: the options RADseq, WGS and Exome are available.
+**sequencing**:
+- library_type: the options RADseq, WGS, and Exome are available.
 - multiallelics: Define with "TRUE" or "FALSE", if the analysis should try to include multiallelic markers in the linkage maps.
 - emp_vcf: reference VCF file with the variants to be simulated.
 - emp_bam: reference BAM file. It will be used to define the reads profile in WGS and Exome simulation.
-- ref_map: reference linkage map, it is a text file with two columns, one named "cM" with values for centimorgan position of markers and other named "bp" with the respective base pair position of each marker. The markers in your reference map do not need to be the same of the VCF file. Using splines, this map is used to train a model to define the position in certimorgan of the simulated variants in the genome.  
-- enzyme1: If RADseq, enzyme used the reduce genome representation.
-- enzyme2: If RADseq, second enzyme used the reduce genome representation.
+- ref_map: reference linkage map, it is a text file with two columns, one named "cM" with values for centimorgan position of markers and the other named "bp" with the respective base pair position of each marker. The markers in your reference map do not need to be the same as the VCF file. Using splines, this map is used to train a model to define the position in centimorgan of the simulated variants in the genome.  
+- enzyme1: If RADseq, the enzyme used to reduce the genome representation.
+- enzyme2: If RADseq, the second enzyme used to reduce the genome representation.
 - vcf_parent1: parent 1 ID in the reference VCF.
 - vcf_parent2: parent 2 ID in the reference VCF.
-- chromosome: chromossome ID to be simulated.
-- pcr_cycles: If RADseq, the number of PCR cicles used in the library preparation (default: 9).
+- chromosome: chromosome ID to be simulated.
+- pcr_cycles: If RADseq, the number of PCR cycles used in the library preparation (default: 9).
 - insert_size: If RADseq, define the insert size in bp (default: 350).
 - read_length: If RADseq, define the read length in bp (default: 150).
 - depth: sequencing depth (default: 20).
 - insert_size_dev: If RADseq, define the insert size standard deviation in bp (default: 35).
 
-*references*
-- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time, and no N are allowed)
+**references**
+- ref_fasta: chromosome sequence in FASTA format (only one chromosome at a time, and no N are allowed)
 - ref_fasta_index: index made by samtools faidx
 - ref_dict: index made by picard dict
 - ref_sa: index made by bwa index
@@ -159,7 +171,7 @@ java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar ru
 
 #### Building genome index files
 
-You can use the docker images to built the indexes files for the reference genome. See an example for `Chr1.2M.fa` file presented in the `data/toy_genome/` directory of this repository: 
+You can use the docker images to build the indexes files for the reference genome. See an example for `Chr1.2M.fa` file presented in the `data/toy_genome/` directory of this repository: 
 
 ```
 docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z samtools faidx /data/toy_genome/Chr1.2M.fa
@@ -179,7 +191,7 @@ The `Chr1.2.2M.fa` contains a subset of [*Populus trichocarpa*](https://phytozom
 
 #### Test dataset for simulations
 
-As example, in the directory `data/toy_simulations` you will find input files required to simulate reads and maps based on a subset of *Populus trichocarpa* chromosome 10. These files are: 1) `ref.variants.noindel.recode.vcf` a reference VCF file only with SNPs (indels are not supported by now); 2) and a reference linkage map `ref.map.csv`. The path to the files must be defined in `inputs/SimulatedReads.inputs.json`.
+For example, in the directory `data/toy_simulations` you will find input files required to simulate reads and maps based on a subset of *Populus trichocarpa* chromosome 10. These files are: 1) `ref.variants.noindel.recode.vcf` a reference VCF file only with SNPs (indels are not supported by now); 2) and a reference linkage map `ref.map.csv`. The path to the files must be defined in `inputs/SimulatedReads.inputs.json`.
 
 Run the workflow:
 
@@ -196,11 +208,11 @@ If you want to test the Empirical workflow with the full example data, you can d
 
 By default, the workflows are configurated for High-Performance Computing (HPC) services and we provide some configurations files examples in `.configurations` directory.
 
-If you don't have a HPC available, you may want to check cloud services. Thare are several services available, we would suggest to start your search by the [terra.bio](https://terra.bio/resources/analysis-tools/) platform. To adapt the workflows to cloud services it is required to change the `runtime` session of the workflow tasks according with the cloud format.
+If you don't have an HPC available, you may want to check cloud services. There are several services available, we would suggest starting your search by the [terra.bio](https://terra.bio/resources/analysis-tools/) platform. To adapt the workflows to cloud services it is required to change the `runtime` session of the workflow tasks according to the cloud format.
 
 ## Visualize Reads2Map workflows output in Reads2MapApp
 
-You can search for all procedure intermediary files in the `cromwell-executions` directory generated by the workflow. The `log` file will specify the workflow id and path for each executed task. The final output is a compressed file called `EmpiricalReads_results.tar.gz` or `SimulatedReads_results.tar.gz`. These files contains tables for an overview of the entire procedure. They are inputs for the Reads2MapApp, an shiny app that provides a graphical view of the results (as presented below). Check the [Reads2MapApp repository](https://github.com/Cristianetaniguti/Reads2MapApp) for further information.
+You can search for all procedure intermediary files in the `cromwell-executions` directory generated by the workflow. The `log` file will specify the workflow id and path for each executed task. The final output is a compressed file called `EmpiricalReads_results.tar.gz` or `SimulatedReads_results.tar.gz`. These files contain tables for an overview of the entire procedure. They are inputs for the Reads2MapApp, a shiny app that provides a graphical view of the results (as presented below). Check the [Reads2MapApp repository](https://github.com/Cristianetaniguti/Reads2MapApp) for further information.
 
 <img width="637" alt="entry" src="https://user-images.githubusercontent.com/7572527/134988930-65e14700-cd13-4b5a-aea8-d27a10402988.PNG">
 
@@ -217,7 +229,7 @@ You can also have more details about the workflows and how they can be applied:
 
 * [Papers]()
 
-## Third party softwares and images
+## Third-party software and images
 
 - [BWA](https://github.com/lh3/bwa) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Used to align simulated reads to reference;
 - [cutadapt](https://github.com/marcelm/cutadapt) on [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): Trim simulated reads;
