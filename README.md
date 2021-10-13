@@ -1,6 +1,6 @@
 ## Reads2Map workflows
 
-Reads2Map offers WDL workflows to build linkage maps in diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling and genetic map builders software. By now, they consider: GATK, freebayes, updog, polyRAD, superMASSA, OneMap and GUSMap. 
+Reads2Map presents WDL workflows to build linkage maps for diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling and genetic map builders software. By now, they consider: GATK, freebayes, updog, polyRAD, superMASSA, OneMap and GUSMap. 
 
 The main workflows are the `SimulatedReads.wdl`, the `EmpiricalSNPCalling.wdl` and the `EmpiricalMaps.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome or WGS data and performs the SNP and genotype calling and genetic map building with selected software. `EmpiricalSNPCalling.wdl` performs the snp calling  and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads.
 
@@ -222,7 +222,7 @@ You can also have more details about the workflows and how they can be applied:
 - [BWA](https://github.com/lh3/bwa) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Used to align simulated reads to reference;
 - [cutadapt](https://github.com/marcelm/cutadapt) on [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): Trim simulated reads;
 - [ddRADseqTools](https://github.com/GGFHF/ddRADseqTools) on [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): Set of applications useful to in silico design and testing of double digest RADseq (ddRADseq) experiments;
-- [freebayes](https://github.com/ekg/freebayes) on [Cristaniguti/freebayes:0.0.1](): Variant call step;
+- [Freebayes](https://github.com/ekg/freebayes) on [Cristaniguti/freebayes:0.0.1](): Variant call step;
 - [GATK](https://github.com/broadinstitute/gatk) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs;
 - [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Simulates progeny genotypes from parents genotypes for different types of populations;
 - [picard](https://github.com/broadinstitute/picard) on [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Process alignment files;
@@ -237,11 +237,10 @@ You can also have more details about the workflows and how they can be applied:
 ### R packages
 
 - [OneMap](https://github.com/augusto-garcia/onemap) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Is a software for constructing genetic maps in experimental crosses: full-sib, RILs, F2 and backcrosses;
-- [Reads2MapTools]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
 - [GUSMap](https://github.com/tpbilton/GUSMap): Genotyping Uncertainty with Sequencing data and linkage MAPping
-- [updog]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
-- [polyRAD]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
-- [Reads2MapApp]() on [cristaniguti/reads2mapApp:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
-- [ggplot2]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
-- [tidyverse]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
-- [simuscopR]() on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [updog](https://github.com/dcgerard/updog) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [polyRAD](https://github.com/lvclark/polyRAD) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp) on [cristaniguti/reads2mapApp:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [tidyverse](https://www.tidyverse.org/) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):
+- [simuscopR](https://github.com/Cristianetaniguti/simuscopR) on [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map):

@@ -1,9 +1,0 @@
-{
-  "PreprocessingReads.spec": {
-    "adapter": "AGATCGGAAGAG",
-    "raw_dict": "/home/cristiane/data/populus/raw.tar.gz",
-    "enzyme": "hindIII",
-    "enzyme2": "nlaIII",
-    "barcode": "/home/cristiane/data/populus/barcode_file"
-  }
-}

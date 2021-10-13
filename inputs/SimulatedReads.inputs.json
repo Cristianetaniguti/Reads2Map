@@ -1,39 +1,39 @@
 {
-  "SimulatedReads.number_of_families": 5,
+  "SimulatedReads.filters": "--maf 0.05",
+  "SimulatedReads.number_of_families": "1",
   "SimulatedReads.family": {
-    "seed": 5050,
-    "popsize": 200,
-    "ploidy": 2,
+    "seed": "5001",
+    "popsize": "200",
+    "ploidy": "2",
     "cross": "F1"
   },
   "SimulatedReads.references": {
-    "ref_fasta": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa",
-    "ref_dict": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.dict",
-    "ref_ann": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.ann",
-    "ref_sa": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.sa",
-    "ref_amb": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.amb",
-    "ref_bwt": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.bwt",
-    "ref_fasta_index": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.fai",
-    "ref_pac": "/home/cristiane/data/populus/inputs_short37cM/Chr10.populus.subset.fa.pac"
-},
-  "SimulatedReads.global_seed": 2103, 
-  "SimulatedReads.sequencing": {
-    "emp_vcf": "/home/cristiane/data/populus/inputs_short37cM/gatk_noindels_maxmissing0.75_maf0.05.recode_subset.vcf",
-    "enzyme1": "HinDIII",
-    "enzyme2": "NlaIII",
-    "library_type": "ddRAD",
-    "chromosome": "Chr10",
-    "pcr_cycles": "5",
-    "read_length": "150",
-    "insert_size":"350",
-    "depth": "20",
-    "depth_parents":"160",
-    "ref_map": "/home/cristiane/data/populus/inputs_short37cM/ref.map.chr10.taniguti_subset.csv",
-    "multiallelics": "FALSE",
-    "vcf_parent1": "PT_F",
-    "vcf_parent2": "PT_M",
-    "rm_dupli": "FALSE"
+    "ref_fasta": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa",
+    "ref_dict": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.dict",
+    "ref_ann": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa.ann",
+    "ref_sa": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa.sa",
+    "ref_amb": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa.amb",
+    "ref_bwt": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa.bwt",
+    "ref_fasta_index": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa.fai",
+    "ref_pac": "/home/cris/Reads2Map/data/toy_genome/Chr10.2M.fa.pac"
   },
-  "SimulatedReads.max_cores": "4",
-  "SimulatedReads.filters": "--maf 0.05 --max-missing 0.75"
+  "SimulatedReads.global_seed": "8080",
+  "SimulatedReads.sequencing": {
+    "vcf_parent2": "PT_F",
+    "emp_vcf": "/home/cris/Reads2Map/data/toy_simulations/ref.variants.vcf",
+    "enzyme1": "HinDIII",
+    "pcr_cycles": "5",
+    "vcf_parent1": "PT_M",
+    "library_type": "ddRAD",
+    "depth_parents": "160",
+    "chromosome": "Chr10",
+    "rm_dupli": "FALSE",
+    "depth": "20",
+    "ref_map": "/home/cris/Reads2Map/data/toy_simulations/ref.map.csv",
+    "enzyme2": "NlaIII",
+    "multiallelics": "TRUE"
+  },
+  "SimulatedReads.SimulatedSingleFamily.chunk_size": "3",
+  "SimulatedReads.max_cores": "3"
 }
+

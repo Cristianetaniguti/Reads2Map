@@ -206,7 +206,7 @@ workflow SimulatedSingleFamily {
       gusmap                    = gusmapMaps.tar_gz_report,
       GATK_eval                 = GatkGenotyping.vcfEval,
       Freebayes_eval            = FreebayesGenotyping.vcfEval,
-      multiallelics_file        = splitvcf.multiallelics
+      multiallelics_file        = splitvcf.multiallelics,
       max_cores                 = max_cores,
       seed                      = family.seed,
       depth                     = sequencing.depth
@@ -250,7 +250,7 @@ task JointReports{
       library(stringr)
       library(vroom)
       library(largeList)
-
+      library(vcfR)
 
       SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
       updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
@@ -287,32 +287,26 @@ task JointReports{
       }
 
       # Add multiallelics tag
-
       vcf_multi <- str_split("~{sep = ";" multiallelics_file}", ";", simplify = T)
 
-      multi_names_seed <- list()
-      for(i in 1:length(multi_temp)){
-        multi_temp2 <- load(multi_temp[i])
-        multi_temp3 <- get(multi_temp2)
-        multi_names_seed <- c(multi_names_seed, multi_temp3)
-      }
+      vcfs <- lapply(as.list(vcf_multi), read.vcfR)
+      multi_names_seed <- lapply(vcfs, function(x) paste0(x@fix[,1], "_", x@fix[,2]))
 
-      snpcall_names <- str_split(names(multi_names_seed), pattern = "_", simplify = T)
-      maps_report <- as.data.frame(maps_report)
+      snpcall_names <- rep(NA, length(vcfs))
+      snpcall_names[which(sapply(vcfs, function(x) any(grep("gatk",x@meta))))] <- "gatk"
+      snpcall_names[which(sapply(vcfs, function(x) any(grep("freebayes",x@meta))))] <- "freebayes"
 
-      for(i in 1:length(multi_names_seed)){
-        maps_report[,"real.mks"][which(maps_report[,"seed"] == snpcall_names[i,2] & 
-                                          maps_report[,"depth"] == snpcall_names[i,1] &
-                                          maps_report[,"SNPCall"] == snpcall_names[i,3] &  
-                                          maps_report[,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"
+      for(i in 1:length(snpcall_names)){
+        tsvs[[1]][,"real.mks"][which(tsvs[[1]][,"SNPCall"] == snpcall_names[i] &  
+                                      tsvs[[1]][,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"
       }
 
       library(gsalib)
-      df <- gsa.read.gatkreport("/home/rstudio/Reads2Map/cromwell-executions/SimulatedSingleFamily/3524079c-bcc3-44c2-8cfe-8ee109618817/call-JointReports/inputs/-1261295907/vcfEval.txt")
+      df <- gsa.read.gatkreport("~{Freebayes_eval}")
       eval1 <- cbind(SNPCall = "Freebayes", seed = 500, depth = 20, df[["CompOverlap"]])
       count1 <- cbind(SNPCall = "Freebayes", seed = 500, depth = 20, df[["CountVariants"]])
 
-      df <- gsa.read.gatkreport("/home/rstudio/Reads2Map/cromwell-executions/SimulatedSingleFamily/3524079c-bcc3-44c2-8cfe-8ee109618817/call-JointReports/inputs/687666474/vcfEval.txt")
+      df <- gsa.read.gatkreport("~{GATK_eval}")
       eval2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CompOverlap"]])
       count2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CountVariants"]])
 
@@ -322,51 +316,38 @@ task JointReports{
       df <- rbind(count1, count2)
       vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = 3)
 
-      RDatas_names <- c(default, SNPCaller, Updog, Polyrad, Supermassa, Gusmap)
+      rdatas_files <- paste0(path_dir, "/RDatas/",list.files(paste0(path_dir, "/RDatas/")))
 
       all_RDatas <- list()
-      for(i in 1:length(RDatas_names)){
-        map_temp <- load(RDatas_names[i])
+      for(i in 1:length(rdatas_files)){
+        map_temp <- load(rdatas_files[i])
         all_RDatas[[i]] <- get(map_temp)
       }
       all_RDatas <- unlist(all_RDatas, recursive = F)
 
-      # Outputs
-      vroom_write(errors_report, "data1_depths_geno_prob.tsv.gz", num_threads = 3)
-      vroom_write(maps_report, "data2_maps.tsv.gz", num_threads = 3)
-      vroom_write(filters_report, "data3_filters.tsv.gz", num_threads = 3)
-      vroom_write(times_report, "data4_times.tsv.gz", num_threads = 3)
-
       gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
       RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
 
-      # Converting OneMap sequencig objects to list. LargeList do not accept other class
-      # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
-
+      #   # Converting onemap sequencig objects to list. LargeList do not accept other class
+      #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
+      
       for(i in 1:length(RDatas)){
         class(RDatas[[i]]) <- "list"
       }
-
+      
       saveList(RDatas, file = "data6_RDatas.llo", append=FALSE, compress=TRUE)
-
-      # LargeList package limits to 16 letters each character, therefore, the entire names are stored in a separated vector
-      data_names <- as.data.frame(names(all_RDatas))
-      vroom_write(data_names, "names.tsv.gz")
+      
+      new_names <- names(all_RDatas)
+      vroom_write(as.data.frame(new_names), "names.tsv.gz")
       save(gusmap_RDatas, file = "gusmap_RDatas.RData")
 
-      # Tables description
-      # Table1: seed; depth; CountsFrom; GenoCall; SNPCall; MK; rf; phases; real.phases;
-      # real.type; real.mks; fake; poscM; poscM.norm; diff
-      # Table2: GenoCall; mks; ind; SNPCall; CountsFrom; alt; ref; gt.onemap; gt.onemap.ref.alt; 
-      # gt.vcf; gt.vcf.ref.alt; gabGT; A; AB; BA; B; errors; seed; depth
-      # Table3: CountsFrom; seed; depth; SNPCall; GenoCall; n_mks; distorted; 
-      # redundant; mis; after
-      # Table4: seed; depth; CountsFrom; SNPCall; GenoCall; fake; times
-      # Table5 and 9: VariantEval  
-      # Table6: list of RDatas with name CountsFrom; seed; depth; SNPCall; GenoCall
+      # Outputs
+      vroom_write(tsvs[[3]], "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(tsvs[[1]], "data2_maps.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(tsvs[[2]], "data3_filters.tsv.gz", num_threads = ~{max_cores})
+      vroom_write(tsvs[[4]], "data4_times.tsv.gz", num_threads = ~{max_cores})
 
      RSCRIPT
-
   >>>
 
   runtime {
