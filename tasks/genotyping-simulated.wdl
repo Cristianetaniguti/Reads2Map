@@ -39,7 +39,7 @@ workflow onemapMaps {
         biallelic_vcf = ReGenotyping.regeno_vcf,
         multiallelic_vcf = multiallelics_file
     }
-   }
+  }
 
   File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
 

@@ -16,12 +16,23 @@ workflow SNPCallerMaps{
      String parent2
      String chromosome
      String multiallelics
+     File? multiallelics_file
      Int max_cores
     }
 
+  if (multiallelics == "TRUE") {
+    call utils.JointMarkers{
+      input:
+        biallelic_vcf = vcf_file,
+        multiallelic_vcf = multiallelics_file
+    }
+   }
+
+  File updated_vcf = select_first([JointMarkers.merged_vcf, vcf_file])
+
   call utilsR.SetProbsDefault{
     input:
-      vcf_file = vcf_file,
+      vcf_file = updated_vcf,
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,

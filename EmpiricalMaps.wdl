@@ -136,7 +136,7 @@ workflow Maps {
 
         call snpcaller.SNPCallerMaps {
             input:
-                vcf_file = analysis.vcf,
+                vcf_file = splitvcf.biallelics,
                 cross = dataset.cross,
                 SNPCall_program = analysis.method,
                 GenotypeCall_program = "SNPCaller",
@@ -147,7 +147,8 @@ workflow Maps {
                 multiallelics = dataset.multiallelics,
                 max_cores = max_cores,
                 reference = reference,
-                merged_bam = merged_bam
+                merged_bam = merged_bam,
+                multiallelics_file = splitvcf.multiallelics
         }
     }
 

@@ -84,7 +84,7 @@ task GusmapReport {
       simulated_phases <- read.table("~{simulated_phases}")
 
       times_fake <- system.time(info_fake <- create_gusmap_report_simu(vcf_file, gab= simu_onemap_obj,"~{SNPCall_program}",
-                                                     "~{GenotypeCall_program}", TRUE, "~{CountsFrom}", ref_alt_alleles,simulated_phases,
+                                                     "~{GenotypeCall_program}", fake = "with-false", "~{CountsFrom}", ref_alt_alleles,simulated_phases,
                                                      ~{seed}, ~{depth}))
 
       times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
@@ -99,11 +99,10 @@ task GusmapReport {
   
       } else {
         times_temp <- system.time(info_correct <- create_gusmap_report_simu(vcf_file, gab= simu_onemap_obj, "gatk",
-                                                      "gusmap", FALSE, "vcf", ref_alt_alleles,simulated_phases,
+                                                      "gusmap", fake = "without-false", "vcf", ref_alt_alleles,simulated_phases,
                                                      ~{seed}, ~{depth}))
         
       }
-
 
       # Joint maps data.frames
       map_joint <- rbind(info_fake[[2]], info_correct[[2]])
