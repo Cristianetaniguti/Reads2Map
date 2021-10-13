@@ -67,7 +67,7 @@ task GusmapReport {
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
       library(GUSMap)
-      library(onemapUTILS)
+      library(Reads2MapTools)
 
       simu_onemap_obj <- load("~{simu_onemap_obj}")
       simu_onemap_obj <- get(simu_onemap_obj)

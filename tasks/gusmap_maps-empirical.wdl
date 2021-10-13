@@ -58,7 +58,7 @@ task GusmapReport{
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
       library(GUSMap)
-      library(onemapUTILS)
+      library(Reads2MapTools)
 
       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
           vcf.temp <- paste0("~{SNPCall_program}",".vcf")

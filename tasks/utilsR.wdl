@@ -71,7 +71,7 @@ task FiltersReport{
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
-      library(onemapUTILS)
+      library(Reads2MapTools)
 
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
@@ -115,7 +115,7 @@ task FiltersReportEmp{
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
-      library(onemapUTILS)
+      library(Reads2MapTools)
 
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
@@ -162,7 +162,7 @@ task MapsReport{
   command <<<
       R --vanilla --no-save <<RSCRIPT
       library(onemap)
-      library(onemapUTILS)
+      library(Reads2MapTools)
 
       if(~{max_cores} > 4) cores = 4 else cores = ~{max_cores}
 
@@ -427,7 +427,7 @@ task MapsReportEmp{
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
-      library(onemapUTILS)
+      library(Reads2MapTools)
 
       temp <- load("~{sequence_obj}")
       sequence <- get(temp)
@@ -485,7 +485,7 @@ task ReGenotyping{
   command <<<
      R --vanilla --no-save <<RSCRIPT
        library(onemap)
-       library(onemapUTILS)
+       library(Reads2MapTools)
 
        method <- "~{GenotypeCall_program}"
        cross <- "~{cross}"

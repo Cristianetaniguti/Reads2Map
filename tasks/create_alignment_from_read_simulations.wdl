@@ -200,7 +200,7 @@ task CreatePedigreeSimulatorInputs {
   command <<<
 
       R --vanilla --no-save <<RSCRIPT
-      library(onemapUTILs)
+      library(Reads2MapTools)
       # Needs optimization
       ploidy <- as.integer("~{ploidy}")
       doses <- read.table("~{doses}", sep=",")
@@ -419,7 +419,7 @@ task ConvertPedigreeSimulationToVcf {
     R --vanilla --no-save <<RSCRIPT
 
     library(onemap)
-    library(onemapUTILS)
+    library(Reads2MapTools)
     library(vcfR)
 
     mks <- read.table("~{ref_alt_alleles}", stringsAsFactors = FALSE)
@@ -568,7 +568,7 @@ task Vcf2PedigreeSimulator{
 
     # Warning: The markers in vcf out of the reference map interval will be excluded
 
-    library(onemapUTILS)
+    library(Reads2MapTools)
     library(vcfR)
 
     vcf <- read.vcfR("~{vcf_file}")
