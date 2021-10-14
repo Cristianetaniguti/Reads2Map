@@ -77,17 +77,27 @@ task JointMarkers{
   }
 
   command <<<
-    bgzip ~{biallelic_vcf}
-    tabix -p vcf ~{biallelic_vcf}.gz
+
+    filename=$(basename -- "~{biallelic_vcf}")
+    extension="${filename##*.}"
+
+    if [ $extension != "gz"]
+    then 
+      bgzip ~{biallelic_vcf}
+      tabix -p vcf ~{biallelic_vcf}.gz
+      bcftools query -l ~{biallelic_vcf}.gz | sort > samples.txt
+      bcftools view -S samples.txt ~{biallelic_vcf}.gz > biallelic_sort.vcf
+    else 
+      tabix -p vcf ~{biallelic_vcf}
+      bcftools query -l ~{biallelic_vcf} | sort > samples.txt
+      bcftools view -S samples.txt ~{biallelic_vcf} > biallelic_sort.vcf
+    fi
+    
     tabix -p vcf ~{multiallelic_vcf}
-
-    bcftools query -l ~{biallelic_vcf}.gz | sort > samples.txt
-    bcftools view -S samples.txt ~{biallelic_vcf}.gz > biallelic_sort.vcf
     bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf
-
     bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output merged.vcf
-
     bgzip merged.vcf
+    
   >>>
 
   runtime {
