@@ -84,6 +84,15 @@ workflow SimulatedSingleFamily {
   File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_norm])
   File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_norm_bamcounts])
   
+  call utils.GetMarkersPos {
+    input:
+      true_vcf = CreateAlignmentFromSimulation.true_vcf,
+      filtered_gatk_vcf = filtered_gatk_vcf,
+      filtered_gatk_vcf_bamcounts = filtered_gatk_vcf_bamcounts,
+      filtered_freebayes_vcf = filtered_freebayes_vcf,
+      filtered_freebayes_vcf_bamcounts = filtered_freebayes_vcf_bamcounts
+  }
+
   PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
   PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
 
@@ -224,6 +233,7 @@ workflow SimulatedSingleFamily {
     File data10_counts            = JointReports.data10_counts
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
     File Plots                    = GatkGenotyping.Plots
+    File positions                = GetMarkersPos.positions
   }
 }
 

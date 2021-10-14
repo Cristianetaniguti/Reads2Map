@@ -97,7 +97,7 @@ task JointMarkers{
     bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf
     bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output merged.vcf
     bgzip merged.vcf
-    
+
   >>>
 
   runtime {
@@ -243,4 +243,44 @@ task CompressGusmap {
     File tar_gz_report = "~{name}.tar.gz"
   }
 
+}
+
+
+task GetMarkersPos {
+  input{
+    File true_vcf
+    File filtered_gatk_vcf
+    File filtered_gatk_vcf_bamcounts
+    File filtered_freebayes_vcf
+    File filtered_freebayes_vcf_bamcounts
+  }
+
+  command <<<
+
+    bcftools query -f '%POS\n' ~{true_vcf} > true_vcf.tsv
+    bcftools query -f '%POS\n' ~{filtered_gatk_vcf} > gatk_vcf_pos.tsv
+    bcftools query -f '%POS\n' ~{filtered_gatk_vcf_bamcounts} > gatk_bam_pos.tsv
+    bcftools query -f '%POS\n' ~{filtered_freebayes_vcf} > freebayes_vcf_pos.tsv
+    bcftools query -f '%POS\n' ~{filtered_freebayes_vcf_bamcounts} > freebaye_bam_pos.tsv
+
+    mkdir positions
+    mv *tsv positions
+    tar -czvf positions.tar.gz positions/
+  >>>
+
+  runtime { 
+    docker:"lifebitai/bcftools:1.10.2"
+    # memory: "2 GB"
+    # cpu:1
+    # preemptible: 3
+    job_name: "GetMarkerPos"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    tasks:"--ntasks=1"
+    time:"01:00:00"
+  }
+
+  output {
+    File positions = "positions.tar.gz"
+  }
 }
