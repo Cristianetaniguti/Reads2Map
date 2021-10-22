@@ -62,7 +62,7 @@ task BiallelicNormalization {
     node:"--nodes=1"
     mem:"--mem=10G"
     tasks:"--ntasks=1"
-    time:"00:30:00"
+    time:"01:00:00"
   }
 
   output {

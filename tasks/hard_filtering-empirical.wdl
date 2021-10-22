@@ -75,7 +75,7 @@ task VariantsToTable {
         node:"--nodes=1"
         mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:50:00"
+        time:"01:50:00"
     }
 
     output {
@@ -169,7 +169,7 @@ task QualPlots {
         node:"--nodes=1"
         mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:20:00"
+        time:"01:20:00"
     }
 
     output {
@@ -218,7 +218,7 @@ task VariantFiltration {
         node:"--nodes=1"
         mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:10:00"
+        time:"01:00:00"
     }
 
     output {

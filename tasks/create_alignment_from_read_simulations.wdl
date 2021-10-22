@@ -167,10 +167,15 @@ task GenerateAlternativeGenome {
 
   runtime {
     docker: "cristaniguti/pirs-ddrad-cutadapt:0.0.1"
-    memory: "4 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + 5 + " HDD"
+    # memory: "4 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + 5 + " HDD"
+    job_name: "GenerateAlternativeGenome"
+    node:"--nodes=1"
+    mem:"--mem=4G"
+    cpu:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
@@ -351,10 +356,15 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    memory:"8 GB"
-    cpu: 2
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory:"8 GB"
+    # cpu: 2
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "CreatePedigreeSimulatorInputs"
+    node:"--nodes=1"
+    mem:"--mem=4G"
+    cpu:"--ntasks=1"
+    time:"10:00:00"
   }
 
   output {
@@ -389,10 +399,15 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.1"
-    memory: "3 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "3 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "RunPedigreeSimulator"
+    node:"--nodes=1"
+    mem:"--mem=20G"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output {
@@ -469,10 +484,15 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    memory: "4 GB"
-    cpu:1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "4 GB"
+    # cpu:1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "ConvertPedigreeSimulationToVcf"
+    node:"--nodes=1"
+    mem:"--mem=10G"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output {
@@ -500,10 +520,15 @@ task RunVcf2diploid {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.1"
-    memory: "3 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "3 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "RunVcf2diploid"
+    node:"--nodes=1"
+    mem:"--mem=5G"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output {
@@ -539,10 +564,15 @@ task GenerateSampleNames {
 
   runtime {
     docker: "cristaniguti/miniconda-alpine:0.0.1"
-    memory: "1 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "1 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "GenerateSampleNames"
+    node:"--nodes=1"
+    mem:"--mem=1G"
+    cpu:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
@@ -597,10 +627,15 @@ task Vcf2PedigreeSimulator{
 
   runtime {
       docker: "cristaniguti/reads2map:0.0.1"
-      memory: "4 GB"
-      cpu:1
-      preemptible: 3
-      disks: "local-disk " + disk_size + " HDD"
+      # memory: "4 GB"
+      # cpu:1
+      # preemptible: 3
+      # disks: "local-disk " + disk_size + " HDD"
+      job_name: "Vcf2PedigreeSimulator"
+      node:"--nodes=1"
+      mem:"--mem=5G"
+      cpu:"--ntasks=1"
+      time:"05:00:00"
   }
 
   output{
@@ -648,10 +683,15 @@ task SimuscopProfile{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    memory: "3 GB"
-    cpu: 1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "3 GB"
+    # cpu: 1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "SimuscopProfile"
+    node:"--nodes=1"
+    mem:"--mem=5G"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output{
@@ -714,10 +754,15 @@ task SimuscopSimulation{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    memory: "8 GB"
-    cpu:1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "8 GB"
+    # cpu:1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "SimuscopSimulation"
+    node:"--nodes=1"
+    mem:"--mem=10G"
+    cpu:"--ntasks=1"
+    time:"10:00:00"
    }
 
   output {
@@ -822,10 +867,15 @@ task RADinitioSimulation{
 
   runtime{
     docker: "cristaniguti/radinitio:0.0.1"
-    memory: "3 GB"
-    cpu:1
-    preemptible: 3
-    disks: "local-disk " + disk_size + " HDD"
+    # memory: "3 GB"
+    # cpu:1
+    # preemptible: 3
+    # disks: "local-disk " + disk_size + " HDD"
+    job_name: "RADinitioSimulation"
+    node:"--nodes=1"
+    mem:"--mem=10G"
+    cpu:"--ntasks=1"
+    time:"05:00:00"
   }
 
   output {

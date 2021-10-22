@@ -130,9 +130,14 @@ task GusmapReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    preemptible: 3
-    memory: "4 GB"
-    cpu:1
+    # preemptible: 3
+    # memory: "4 GB"
+    # cpu:1
+    job_name: "GusmapReport"
+    node:"--nodes=1"
+    mem:"--mem=10GB"
+    tasks:"--ntasks=1"
+    time:"24:00:00"
   }
 
   output {

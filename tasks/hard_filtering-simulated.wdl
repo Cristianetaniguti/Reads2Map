@@ -118,9 +118,9 @@ task VariantsToTable {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "VariantsToTable"
         node:"--nodes=1"
-        mem:"--mem=1G"
+        mem:"--mem=10G"
         cpu:"--ntasks=1"
-        time:"00:30:00"
+        time:"01:50:00"
     }
 
     output {
@@ -226,9 +226,9 @@ task QualPlots {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "QualPlots"
         node:"--nodes=1"
-        mem:"--mem=1G"
+        mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:30:00"
+        time:"01:30:00"
     }
 
     output {
@@ -274,9 +274,9 @@ task VariantFiltration {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "VariantFiltration"
         node:"--nodes=1"
-        mem:"--mem=1G"
+        mem:"--mem=10G"
         tasks:"--ntasks=1"
-        time:"00:30:00"
+        time:"01:00:00"
     }
 
     output {
