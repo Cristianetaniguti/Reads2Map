@@ -322,43 +322,6 @@ task ErrorsReport {
   }
 }
 
-# Deprecated?
-task GlobalError {
-  input {
-    File vcf_file
-    File onemap_obj
-  }
-
-  command <<<
-    R --vanilla --no-save <<RSCRIPT
-    library(onemap)
-
-    onemap_obj <- load("~{onemap_obj}")
-    onemap_obj <- get(onemap_obj)
-
-    onemap_obj_globalError <- create_probs(input.obj = onemap_obj, global_error = 0.05)
-    save(onemap_obj_globalError, file = "onemap_obj_globalError.RData")
-
-    RSCRIPT
-
-  >>>
-  runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory: "2 GB"
-    # cpu: 1
-    job_name: "GlobalError"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=1"
-    time:"10:00:00"
-  }
-
-  output {
-    File error_onemap_obj = "onemap_obj_globalError.RData"
-  }
-}
-
 task CheckDepths{
   input{
     File onemap_obj

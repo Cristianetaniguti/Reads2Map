@@ -81,7 +81,7 @@ task JointMarkers{
     filename=$(basename -- "~{biallelic_vcf}")
     extension="${filename##*.}"
 
-    if [ "$extension" = "gz"]
+    if [ "$extension" = "gz" ]
     then 
       tabix -p vcf ~{biallelic_vcf}
       bcftools query -l ~{biallelic_vcf} | sort > samples.txt

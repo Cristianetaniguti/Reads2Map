@@ -98,8 +98,8 @@ task GusmapReport {
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
   
       } else {
-        times_temp <- system.time(info_correct <- create_gusmap_report_simu(vcf_file, gab= simu_onemap_obj, "gatk",
-                                                      "gusmap", fake = "without-false", "vcf", ref_alt_alleles,simulated_phases,
+        times_temp <- system.time(info_correct <- create_gusmap_report_simu(vcf_file, gab= simu_onemap_obj, "~{SNPCall_program}",
+                                                      "~{GenotypeCall_program}", fake = "without-false", "vcf", ref_alt_alleles,simulated_phases,
                                                      ~{seed}, ~{depth}))
         
       }
