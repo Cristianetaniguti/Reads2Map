@@ -293,7 +293,7 @@ task JointReports{
       for(i in 1:length(direc_tsv)){
         files <- system(paste0("ls ", path_dir, direc_tsv[i]), intern = T)
         files <- paste0(path_dir, direc_tsv[i], files)
-        tsvs[[i]] <- vroom(files, num_threads = 4)
+        tsvs[[i]] <- vroom(files, num_threads = ~{max_cores})
       }
 
       # Add multiallelics tag
@@ -321,10 +321,10 @@ task JointReports{
       count2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CountVariants"]])
 
       df <- rbind(eval1, eval2)
-      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = 3)
+      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = ~{max_cores})
 
       df <- rbind(count1, count2)
-      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = 3)
+      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = ~{max_cores})
 
       rdatas_files <- paste0(path_dir, "/RDatas/",list.files(paste0(path_dir, "/RDatas/")))
 
@@ -362,9 +362,14 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.1"
-    preemptible: 3
-    memory: "3 GB"
-    cpu: 4
+    # preemptible: 3
+    # memory: "3 GB"
+    # cpu: 4
+    job_name: "JointReports"
+    node:"--nodes=1"
+    mem:"--mem=15GB"
+    tasks:"--ntasks-per-node=11"
+    time:"01:40:00"
   }
 
   output {

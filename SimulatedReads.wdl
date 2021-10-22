@@ -90,9 +90,14 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker: "python:3.7"
-    preemptible: 3
-    cpu: 1
-    memory: "1 GB"
+    # preemptible: 3
+    # cpu: 1
+    # memory: "1 GB"
+    job_name: "ProduceFamiliesSeeds"
+    node:"--nodes=1"
+    mem:"--mem=1G"
+    cpu:"--ntasks=1"
+    time:"01:00:00"
   }
 
   output {
@@ -192,9 +197,14 @@ task JointTables{
 
   runtime {
       docker:"cristaniguti/reads2map:0.0.1"
-      preemptible: 3
-      cpu: 1
-      memory: "3 GB"
+      # preemptible: 3
+      # cpu: 1
+      # memory: "3 GB"
+      job_name: "JointTables"
+      node:"--nodes=1"
+      mem:"--mem=30G"
+      cpu:"--ntasks=1"
+      time:"10:00:00"
   }
 
   output {
