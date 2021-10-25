@@ -167,7 +167,7 @@ task RunBwaAlignmentSimu {
     node:"--nodes=1"
     mem:"--mem=1GB"
     tasks:"--ntasks-per-node=11"
-    time:"00:20:00"
+    time:"10:00:00"
   }
 
   output {

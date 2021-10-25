@@ -365,7 +365,7 @@ task JointReports{
     # preemptible: 3
     # memory: "3 GB"
     # cpu: 4
-    job_name: "JointReports"
+    job_name:"JointReports"
     node:"--nodes=1"
     mem:"--mem=15GB"
     tasks:"--ntasks-per-node=11"

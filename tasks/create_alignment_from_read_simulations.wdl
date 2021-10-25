@@ -355,7 +355,7 @@ task CreatePedigreeSimulatorInputs {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.1"
     # memory:"8 GB"
     # cpu: 2
     # preemptible: 3
@@ -626,12 +626,12 @@ task Vcf2PedigreeSimulator{
   >>>
 
   runtime {
-      docker: "cristaniguti/reads2map:0.0.1"
+      docker:"cristaniguti/reads2map:0.0.1"
       # memory: "4 GB"
       # cpu:1
       # preemptible: 3
       # disks: "local-disk " + disk_size + " HDD"
-      job_name: "Vcf2PedigreeSimulator"
+      job_name:"Vcf2PedigreeSimulator"
       node:"--nodes=1"
       mem:"--mem=5G"
       cpu:"--ntasks=1"
