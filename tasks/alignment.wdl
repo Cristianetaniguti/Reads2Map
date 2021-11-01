@@ -165,7 +165,7 @@ task RunBwaAlignmentSimu {
     # disks: "local-disk " + 10 + " HDD"
     job_name: "RunBwaAlignmentSimu"
     node:"--nodes=1"
-    mem:"--mem=1GB"
+    mem:"--mem=32GB"
     tasks:"--ntasks-per-node=11"
     time:"10:00:00"
   }

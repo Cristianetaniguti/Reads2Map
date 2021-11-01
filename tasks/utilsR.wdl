@@ -472,7 +472,6 @@ task ReGenotyping{
                                             f1 = f1,
                                             crosstype= cross,
                                             recovering=TRUE,
-                                            mean_phred=20,
                                             cores="~{max_cores}",
                                             depths=NULL,
                                             global_error = NULL,
@@ -487,7 +486,6 @@ task ReGenotyping{
                                                   crosstype= cross,
                                                   f1 = f1,
                                                   recovering=TRUE,
-                                                  mean_phred=20,
                                                   cores="~{max_cores}",
                                                   depths=NULL,
                                                   global_error = NULL,
@@ -556,11 +554,11 @@ task SetProbs{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
-      #if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
-                               vcf.par="GQ",
+                               vcf.par=par,
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
@@ -629,11 +627,11 @@ task SetProbsDefault{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
-      # if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
+      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
-                               vcf.par="GQ",
+                               vcf.par=par,
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
