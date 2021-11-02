@@ -564,7 +564,7 @@ task SetProbs{
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_probs=probs)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
@@ -637,7 +637,7 @@ task SetProbsDefault{
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_probs=probs)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
