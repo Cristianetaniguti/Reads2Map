@@ -554,17 +554,15 @@ task SetProbs{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
-      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
-
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
-                               vcf.par=par,
+                               vcf.par= "GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_probs=probs)
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
@@ -627,17 +625,15 @@ task SetProbsDefault{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
-      if(any(grepl("freeBayes", vcf@meta))) par <- "GL" else par <- "PL"
-
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
-                               vcf.par=par,
+                               vcf.par= "GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_probs=probs)
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
