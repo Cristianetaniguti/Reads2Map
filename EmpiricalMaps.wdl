@@ -277,6 +277,7 @@ task JointReports{
     mem:"--mem=10G"
     cpu:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output{

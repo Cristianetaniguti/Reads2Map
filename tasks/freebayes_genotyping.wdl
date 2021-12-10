@@ -87,6 +87,7 @@ task RunFreebayes {
     mem:"--mem=50G"
     tasks:"--ntasks-per-node=10"
     time:"72:00:00"
+    maxRetries: 3
   }
 
   output {

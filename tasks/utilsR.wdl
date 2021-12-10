@@ -50,6 +50,7 @@ task vcf2onemap{
       mem:"--mem=10G"
       cpu:"--ntasks=1"
       time:"10:00:00"
+      maxRetries: 5
     }
 
     output{
@@ -95,6 +96,7 @@ task FiltersReport{
     mem:"--mem=7G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -137,6 +139,7 @@ task FiltersReportEmp{
     mem:"--mem=7G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -234,6 +237,7 @@ task MapsReport{
     mem:"--mem=20G"
     cpu:"--ntasks=4"
     time:"48:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -315,6 +319,7 @@ task ErrorsReport {
     mem:"--mem=5G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output{
@@ -370,6 +375,7 @@ task CheckDepths{
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"10:00:00"
+    maxRetries: 5
   }
 
   output{
@@ -424,6 +430,7 @@ task MapsReportEmp{
     mem:"--mem=30G"
     cpu:"--ntasks=4"
     time:"48:00:00"
+    maxRetries: 5
   }
 
   output{
@@ -513,6 +520,7 @@ task ReGenotyping{
     mem:"--mem=30G"
     tasks:"--ntasks-per-node=15"
     time:"10:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -581,6 +589,7 @@ task SetProbs{
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"10:00:00"
+    maxRetries: 5
   }
 
   output{
@@ -654,6 +663,7 @@ task SetProbsDefault{
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"10:00:00"
+    maxRetries: 5
   }
 
   output{

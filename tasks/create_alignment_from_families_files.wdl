@@ -79,6 +79,7 @@ task SepareChunks {
         mem:"--mem=1G"
         tasks:"--ntasks=1"
         time:"00:05:00"
+        maxRetries: 3
     }
 
     output {
@@ -102,6 +103,7 @@ task MergeBams{
         mem:"--mem=10G"
         tasks:"--ntasks=1"
         time:"01:00:00"
+        maxRetries: 3
     }
 
     output {

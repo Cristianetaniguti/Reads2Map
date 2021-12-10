@@ -370,6 +370,7 @@ task JointReports{
     mem:"--mem=15GB"
     tasks:"--ntasks-per-node=11"
     time:"01:40:00"
+    maxRetries: 5
   }
 
   output {

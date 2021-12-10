@@ -32,6 +32,7 @@ task ApplyRandomFilters {
     mem:"--mem=5GB"
     tasks:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -62,6 +63,7 @@ task SplitMarkers {
     mem:"--mem=5GB"
     tasks:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -110,6 +112,7 @@ task JointMarkers{
     mem:"--mem=5GB"
     tasks:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -162,6 +165,7 @@ task ReplaceAD {
     mem:"--mem=50GB"
     tasks:"--ntasks=1"
     time:"24:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -201,6 +205,7 @@ task Compress {
     mem:"--mem=10GB"
     tasks:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -237,6 +242,7 @@ task CompressGusmap {
     mem:"--mem=10GB"
     tasks:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -278,6 +284,7 @@ task GetMarkersPos {
     mem:"--mem=10GB"
     tasks:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {

@@ -98,6 +98,7 @@ task ProduceFamiliesSeeds {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -205,6 +206,7 @@ task JointTables{
       mem:"--mem=30G"
       cpu:"--ntasks=1"
       time:"10:00:00"
+      maxRetries: 5
   }
 
   output {

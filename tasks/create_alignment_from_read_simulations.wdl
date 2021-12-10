@@ -176,6 +176,7 @@ task GenerateAlternativeGenome {
     mem:"--mem=4G"
     cpu:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -365,6 +366,7 @@ task CreatePedigreeSimulatorInputs {
     mem:"--mem=4G"
     cpu:"--ntasks=1"
     time:"10:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -408,6 +410,7 @@ task RunPedigreeSimulator {
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -493,6 +496,7 @@ task ConvertPedigreeSimulationToVcf {
     mem:"--mem=10G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -529,6 +533,7 @@ task RunVcf2diploid {
     mem:"--mem=5G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -573,6 +578,7 @@ task GenerateSampleNames {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"01:00:00"
+    maxRetries: 5
   }
 
   output {
@@ -636,6 +642,7 @@ task Vcf2PedigreeSimulator{
       mem:"--mem=5G"
       cpu:"--ntasks=1"
       time:"05:00:00"
+      maxRetries: 5
   }
 
   output{
@@ -692,6 +699,7 @@ task SimuscopProfile{
     mem:"--mem=5G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output{
@@ -763,6 +771,7 @@ task SimuscopSimulation{
     mem:"--mem=10G"
     cpu:"--ntasks=1"
     time:"10:00:00"
+    maxRetries: 5
    }
 
   output {
@@ -876,6 +885,7 @@ task RADinitioSimulation{
     mem:"--mem=10G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+    maxRetries: 5
   }
 
   output {

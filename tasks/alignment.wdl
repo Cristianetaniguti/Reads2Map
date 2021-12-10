@@ -93,6 +93,7 @@ task RunBwaAlignment {
     mem:"--mem=32GB"
     tasks:"--ntasks-per-node=11"
     time:"00:40:00"
+    maxRetries: 3
   }
 
   output {
@@ -168,6 +169,7 @@ task RunBwaAlignmentSimu {
     mem:"--mem=32GB"
     tasks:"--ntasks-per-node=11"
     time:"10:00:00"
+    maxRetries: 3
   }
 
   output {
@@ -200,6 +202,7 @@ task CreateChunksFastq {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"00:05:00"
+    maxRetries: 3
   }
 
   output {
