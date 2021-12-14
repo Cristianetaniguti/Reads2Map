@@ -17,6 +17,7 @@ workflow GatkGenotyping {
     Int? seed
     Int? depth
     Int chunk_size
+    Int ploidy
   }
 
   call CreateChunks {
@@ -35,7 +36,8 @@ workflow GatkGenotyping {
         bams_index = read_lines(chunk.right),
         reference_fasta = references.ref_fasta,
         reference_fai = references.ref_fasta_index,
-        reference_dict = references.ref_dict
+        reference_dict = references.ref_dict,
+        ploidy = ploidy
     }
   }
 
@@ -177,6 +179,7 @@ task HaplotypeCaller {
     File reference_fai
     Array[File] bams
     Array[File] bams_index
+    Int ploidy
   }
 
   Int disk_size = ceil(size(reference_fasta, "GB") + size(bams, "GB") * 2)
@@ -194,6 +197,7 @@ task HaplotypeCaller {
       /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" HaplotypeCaller \
         -ERC GVCF \
         -R ~{reference_fasta} \
+        -ploidy ~{ploidy} \
         -I "$bam" \
         -O "vcfs/${out_name}.g.vcf.gz" \
         --max-reads-per-alignment-start 0 

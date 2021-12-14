@@ -4,16 +4,16 @@ import "structs/struct_reference.wdl"
 
 import "tasks/create_alignment_from_families_files.wdl" as fam
 import "tasks/gatk_genotyping.wdl" as gatk
-import "tasks/freebayes_genotyping.wdl" as freebayes
 
 
-workflow SNPCalling {
+workflow SNPCalling_gatk {
 
   input {
     File samples_info
     Reference references
     Int max_cores
     Int chunk_size
+    Int ploidy
     String rm_dupli
   }
 
@@ -32,17 +32,8 @@ workflow SNPCalling {
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
       chunk_size = chunk_size,
-      ploidy = 2,
+      ploidy = ploidy,
       program="gatk"
-  }
-
-  call freebayes.FreebayesGenotyping {
-    input:
-      bams=CreateAlignmentFromFamilies.bam,
-      bais=CreateAlignmentFromFamilies.bai,
-      references=references,
-      program="freebayes",
-      max_cores = max_cores
   }
 
   output {
@@ -50,9 +41,6 @@ workflow SNPCalling {
     File gatk_vcf_bam_count = GatkGenotyping.vcf_norm_bamcounts
     File gatk_vcfEval = GatkGenotyping.vcfEval
     File Plots = GatkGenotyping.Plots
-    File freebayes_vcf = FreebayesGenotyping.vcf_norm
-    File freebayes_vcf_bam_count = FreebayesGenotyping.vcf_norm_bamcounts
-    File freebayes_vcfEval = FreebayesGenotyping.vcfEval
     File merged_bam = CreateAlignmentFromFamilies.merged_bam
   }
 }
