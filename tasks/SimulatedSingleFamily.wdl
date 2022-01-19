@@ -92,7 +92,9 @@ workflow SimulatedSingleFamily {
       filtered_gatk_vcf = filtered_gatk_vcf,
       filtered_gatk_vcf_bamcounts = filtered_gatk_vcf_bamcounts,
       filtered_freebayes_vcf = filtered_freebayes_vcf,
-      filtered_freebayes_vcf_bamcounts = filtered_freebayes_vcf_bamcounts
+      filtered_freebayes_vcf_bamcounts = filtered_freebayes_vcf_bamcounts,
+      depth = sequencing.depth,
+      seed = family.seed
   }
 
   PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}

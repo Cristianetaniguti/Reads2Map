@@ -192,7 +192,7 @@ task JointTables{
     system("mkdir SimulatedReads_results_depth~{depth}")
     system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
             data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPCall_efficiency.tsv.gz data10_counts.tsv.gz \
-            simu_haplo.tsv.gz  names.tsv.gz ~{sep=" " plots} ~{sep=" " positions} SimulatedReads_results_depth~{depth}") # issue here, the plots and positions are overlapping files
+            simu_haplo.tsv.gz  names.tsv.gz ~{sep=" " plots} ~{sep=" " positions} SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")
 
     RSCRIPT
