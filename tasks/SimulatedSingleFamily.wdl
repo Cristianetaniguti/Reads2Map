@@ -317,12 +317,12 @@ task JointReports{
 
       library(gsalib)
       df <- gsa.read.gatkreport("~{Freebayes_eval}")
-      eval1 <- cbind(SNPCall = "Freebayes", seed = 500, depth = 20, df[["CompOverlap"]])
-      count1 <- cbind(SNPCall = "Freebayes", seed = 500, depth = 20, df[["CountVariants"]])
+      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
+      count1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
 
       df <- gsa.read.gatkreport("~{GATK_eval}")
-      eval2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CompOverlap"]])
-      count2 <- cbind(SNPCall = "GATK", seed = 500, depth = 20, df[["CountVariants"]])
+      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
+      count2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
 
       df <- rbind(eval1, eval2)
       vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = ~{max_cores})
