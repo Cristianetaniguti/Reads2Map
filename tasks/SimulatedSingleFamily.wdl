@@ -26,6 +26,7 @@ workflow SimulatedSingleFamily {
     String? filters
     Int max_cores
     Int chunk_size
+    Int ploidy
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -45,7 +46,8 @@ workflow SimulatedSingleFamily {
       vcf_simu = CreateAlignmentFromSimulation.true_vcf,
       seed    = family.seed,
       depth   = sequencing.depth,
-      chunk_size = chunk_size
+      chunk_size = chunk_size,
+      ploidy = ploidy
   }
 
   call freebayes.FreebayesGenotyping {

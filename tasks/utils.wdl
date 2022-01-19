@@ -259,19 +259,21 @@ task GetMarkersPos {
     File filtered_gatk_vcf_bamcounts
     File filtered_freebayes_vcf
     File filtered_freebayes_vcf_bamcounts
+    Int depth
+    Int seed
   }
 
   command <<<
 
-    bcftools query -f '%POS\n' ~{true_vcf} > true_vcf.tsv
-    bcftools query -f '%POS\n' ~{filtered_gatk_vcf} > gatk_vcf_pos.tsv
-    bcftools query -f '%POS\n' ~{filtered_gatk_vcf_bamcounts} > gatk_bam_pos.tsv
-    bcftools query -f '%POS\n' ~{filtered_freebayes_vcf} > freebayes_vcf_pos.tsv
-    bcftools query -f '%POS\n' ~{filtered_freebayes_vcf_bamcounts} > freebaye_bam_pos.tsv
+    bcftools query -f '%POS\n' ~{true_vcf} > ~{depth}_~{seed}_true_vcf.tsv
+    bcftools query -f '%POS\n' ~{filtered_gatk_vcf} > ~{depth}_~{seed}_gatk_vcf_pos.tsv
+    bcftools query -f '%POS\n' ~{filtered_gatk_vcf_bamcounts} > ~{depth}_~{seed}_gatk_bam_pos.tsv
+    bcftools query -f '%POS\n' ~{filtered_freebayes_vcf} > ~{depth}_~{seed}_freebayes_vcf_pos.tsv
+    bcftools query -f '%POS\n' ~{filtered_freebayes_vcf_bamcounts} > ~{depth}_~{seed}_freebaye_bam_pos.tsv
 
-    mkdir positions
-    mv *tsv positions
-    tar -czvf positions.tar.gz positions/
+    mkdir ~{depth}_~{seed}_positions
+    mv *tsv ~{depth}_~{seed}_positions
+    tar -czvf ~{depth}_~{seed}_positions.tar.gz ~{depth}_~{seed}_positions/
   >>>
 
   runtime { 
@@ -288,6 +290,6 @@ task GetMarkersPos {
   }
 
   output {
-    File positions = "positions.tar.gz"
+    File positions = "~{depth}_~{seed}_positions.tar.gz"
   }
 }

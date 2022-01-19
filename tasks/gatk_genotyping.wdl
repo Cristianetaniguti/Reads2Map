@@ -203,6 +203,9 @@ task HaplotypeCaller {
         --max-reads-per-alignment-start 0 &
 
     done
+
+    wait
+    
   >>>
 
   runtime {
