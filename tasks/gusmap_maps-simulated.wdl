@@ -138,7 +138,6 @@ task GusmapReport {
     mem:"--mem=10GB"
     tasks:"--ntasks=1"
     time:"24:00:00"
-    maxRetries: 5
   }
 
   output {

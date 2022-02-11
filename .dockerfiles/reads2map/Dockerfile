@@ -15,7 +15,7 @@ RUN apt update \
    libxml2-dev \
    libnlopt-dev=2.4.2+dfsg-4 \
    devscripts=2.17.12ubuntu1.1 \
-   software-properties-common=0.96.24.32.14 \
+   software-properties-common=0.96.24.32.18 \
    libgit2-dev=0.26.0+dfsg.1-1.1ubuntu0.2 \
    && pip install matplotlib==2.0.2 numpy
 

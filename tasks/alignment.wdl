@@ -93,7 +93,6 @@ task RunBwaAlignment {
     mem:"--mem=32GB"
     tasks:"--ntasks-per-node=11"
     time:"05:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -107,7 +106,8 @@ task RunBwaAlignment {
 task RunBwaAlignmentSimu {
 
   input {
-    Array[File] reads
+    File reads
+    Array[File] fastqs
     Reference references
     Int max_cores
     String rm_dupli
@@ -115,13 +115,17 @@ task RunBwaAlignmentSimu {
 
   command <<<
     mkdir tmp
-    for file in ~{sep= " " reads}; do
+
+    ln -s ~{sep = " " fastqs} .
+
+    for file in $(cat ~{reads}); do
 
       sample=`basename -s .1.fq $file`
+      file_name=`basename $file`
 
       bwa_header="@RG\tID:${sample}.1\tLB:lib-1\tPL:illumina\tSM:${sample}\tPU:FLOWCELL1.LANE1.1"
 
-      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $file | \
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "$file_name" | \
           java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
             O="${sample}.sorted_temp.bam" \
@@ -169,7 +173,6 @@ task RunBwaAlignmentSimu {
     mem:"--mem=32GB"
     tasks:"--ntasks-per-node=11"
     time:"10:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -202,7 +205,6 @@ task CreateChunksFastq {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"00:05:00"
-    maxRetries: 5
   }
 
   output {

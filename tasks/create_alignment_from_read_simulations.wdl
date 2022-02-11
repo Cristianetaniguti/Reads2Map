@@ -10,6 +10,7 @@ workflow CreateAlignmentFromSimulation {
         Family family
         Sequencing sequencing
         Int max_cores
+        Int chunk_size
     }
 
   # User can provide specific variants in VCF file
@@ -132,17 +133,27 @@ workflow CreateAlignmentFromSimulation {
 
   Array[File] fastq = select_first([RADinitioSimulation.fastq_rad, SimuscopSimulation.fastq_seq])
 
-  call alg.RunBwaAlignmentSimu {
+  call SepareChunks {
     input:
-      reads     = fastq,
-      references = references,
-      max_cores = max_cores,
-      rm_dupli = sequencing.rm_dupli
+      fastqs = fastq,
+      chunk_size = chunk_size
+  }
+
+  scatter (chunk in SepareChunks.chunks){
+
+    call alg.RunBwaAlignmentSimu {
+      input:
+        reads      = chunk,
+        fastqs     = fastq,
+        references = references,
+        max_cores  = max_cores,
+        rm_dupli   = sequencing.rm_dupli
+    }
   }
 
   output {
-      Array[File] bam = RunBwaAlignmentSimu.bam
-      Array[File] bai = RunBwaAlignmentSimu.bai
+      Array[File] bam = flatten(RunBwaAlignmentSimu.bam)
+      Array[File] bai = flatten(RunBwaAlignmentSimu.bai)
       File ref_alt_alleles = ref_alt_alleles_sele
       Array[String] names = GenerateSampleNames.names
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
@@ -176,7 +187,6 @@ task GenerateAlternativeGenome {
     mem:"--mem=4G"
     cpu:"--ntasks=1"
     time:"01:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -366,7 +376,6 @@ task CreatePedigreeSimulatorInputs {
     mem:"--mem=4G"
     cpu:"--ntasks=1"
     time:"10:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -410,7 +419,6 @@ task RunPedigreeSimulator {
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"05:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -454,7 +462,11 @@ task ConvertPedigreeSimulationToVcf {
                chr = mks[,1],
                phase = TRUE,
                reference.alleles = mks[,3],
-               use.as.alleles=TRUE)
+               use.as.alleles=TRUE,
+               segregation.distortion.mean = 10^(-5),
+               segregation.distortion.sd = 10^(-6),
+               segregation.distortion.freq = 0.30,
+               segregation.distortion.seed = ~{seed})
 
     vcfR.object <- read.vcfR("temp.vcf")
 
@@ -496,7 +508,6 @@ task ConvertPedigreeSimulationToVcf {
     mem:"--mem=10G"
     cpu:"--ntasks=1"
     time:"05:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -533,7 +544,6 @@ task RunVcf2diploid {
     mem:"--mem=5G"
     cpu:"--ntasks=1"
     time:"05:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -578,7 +588,6 @@ task GenerateSampleNames {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"01:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -642,7 +651,6 @@ task Vcf2PedigreeSimulator{
       mem:"--mem=5G"
       cpu:"--ntasks=1"
       time:"05:00:00"
-      maxRetries: 5
   }
 
   output{
@@ -891,4 +899,46 @@ task RADinitioSimulation{
   output {
     Array[File] fastq_rad = glob("*.fq")
   }
+}
+
+
+task SepareChunks {
+    input {
+        Array[File] fastqs
+        Int chunk_size
+    }
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+
+            files <- c("~{sep="," fastqs}")
+            files <- unlist(strsplit(files, split = ","))
+
+            n_chunk <- floor(length(files)/~{chunk_size})
+
+            chunk_temp <- rep(1:n_chunk, each = ~{chunk_size})
+            chunk <- c(chunk_temp, rep(n_chunk+1, length(files) - length(chunk_temp)))
+
+            chunk_sep <- split(files, chunk)
+
+            for(i in 1:length(chunk_sep)){
+              write.table(chunk_sep[[i]], file = paste0("chunk_",i, ".txt"), quote = F, col.names = F, row.names = F, sep="\t")
+            }
+
+        RSCRIPT
+
+    >>>
+
+    runtime {
+        job_name: "SepareChunksIndividuals"
+        docker: "cristaniguti/reads2map:0.0.1"
+        node:"--nodes=1"
+        mem:"--mem=1G"
+        tasks:"--ntasks=1"
+        time:"00:05:00"
+    }
+
+    output {
+        Array[File] chunks = glob("chunk*")
+    }
 }

@@ -121,7 +121,6 @@ task VariantsToTable {
         mem:"--mem=10G"
         cpu:"--ntasks=1"
         time:"01:50:00"
-        maxRetries: 5
     }
 
     output {
@@ -230,7 +229,6 @@ task QualPlots {
         mem:"--mem=10G"
         tasks:"--ntasks=1"
         time:"01:30:00"
-        maxRetries: 5
     }
 
     output {
@@ -279,7 +277,6 @@ task VariantFiltration {
         mem:"--mem=10G"
         tasks:"--ntasks=1"
         time:"01:00:00"
-        maxRetries: 5
     }
 
     output {

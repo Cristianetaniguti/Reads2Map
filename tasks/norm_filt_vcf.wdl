@@ -63,7 +63,6 @@ task BiallelicNormalization {
     mem:"--mem=10G"
     tasks:"--ntasks=1"
     time:"01:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -99,7 +98,6 @@ task VariantEval {
     mem:"--mem=10G"
     tasks:"--ntasks=1"
     time:"01:00:00"
-    maxRetries: 5
   }
 
   output {

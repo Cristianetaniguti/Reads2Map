@@ -60,10 +60,10 @@ task SepareChunks {
             n_chunk <- as.integer(length(split_df)/~{chunk_size})
             chunk_temp <- rep(1:n_chunk, each=~{chunk_size})
             chunk <- c(chunk_temp, rep(n_chunk+1, length(split_df) - length(chunk_temp)))
-            chunk_json <- split(split_df, chunk)
+            chunk_sep <- split(split_df, chunk)
 
-            for(i in 1:length(chunk_json)){
-                df <- do.call(rbind, unlist(chunk_json[i], recursive = F))
+            for(i in 1:length(chunk_sep)){
+                df <- do.call(rbind, unlist(chunk_sep[i], recursive = F))
                 df <- t(df)
                 write.table(df, file = paste0("chunk_",i, ".txt"), quote = F, col.names = F, row.names = F, sep="\t")
             }
@@ -79,7 +79,6 @@ task SepareChunks {
         mem:"--mem=1G"
         tasks:"--ntasks=1"
         time:"00:05:00"
-        maxRetries: 3
     }
 
     output {
@@ -103,7 +102,6 @@ task MergeBams{
         mem:"--mem=10G"
         tasks:"--ntasks=1"
         time:"01:00:00"
-        maxRetries: 3
     }
 
     output {

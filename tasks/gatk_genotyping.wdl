@@ -159,7 +159,6 @@ task CreateChunks {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"00:05:00"
-    maxRetries: 5
   }
 
   output {
@@ -219,7 +218,6 @@ task HaplotypeCaller {
     mem:"--mem=110G" # each sample require 4 cores and 10 GB, here is considering 10 samples/node, 10 extra GB
     tasks:"--ntasks-per-node=42" # 2 extra cores
     time:"24:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -270,7 +268,6 @@ task ImportGVCFs  {
     mem:"--mem=20G"
     tasks:"--ntasks-per-node=5"
     time:"24:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -314,7 +311,6 @@ task GenotypeGVCFs   {
     mem:"--mem=20G"
     tasks:"--ntasks=1"
     time:"24:00:00"
-    maxRetries: 5
   }
 
   output {
@@ -352,7 +348,6 @@ task MergeVCFs {
     mem:"--mem=20G"
     tasks:"--ntasks=1"
     time:"10:00:00"
-    maxRetries: 5
   } 
 
   output {

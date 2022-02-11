@@ -34,7 +34,8 @@ workflow SimulatedSingleFamily {
       sequencing = sequencing,
       references=references,
       family=family,
-      max_cores = max_cores
+      max_cores = max_cores,
+      chunk_size = chunk_size
   }
 
   call gatk.GatkGenotyping {
@@ -374,7 +375,6 @@ task JointReports{
     mem:"--mem=15GB"
     tasks:"--ntasks-per-node=11"
     time:"01:40:00"
-    maxRetries: 5
   }
 
   output {

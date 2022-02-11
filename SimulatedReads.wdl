@@ -12,7 +12,6 @@ workflow SimulatedReads {
     Int global_seed
     Int max_cores
     String? filters
-    Int ploidy
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -47,7 +46,7 @@ workflow SimulatedReads {
         sequencing = sequencing,
         max_cores = max_cores,
         filters = filters,
-        ploidy = ploidy
+        ploidy =  family.ploidy
     }
   }
 
