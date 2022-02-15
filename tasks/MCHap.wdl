@@ -10,6 +10,7 @@ workflow MCHap{
     Int n_nodes
     Int max_cores
     File bam_list
+    File bais_list
     Int ploidy
   }
 
@@ -20,11 +21,13 @@ workflow MCHap{
   }
 
   Array[File] bams = read_lines(bam_list)
+  Array[File] bais = read_lines(bais_list)
 
   scatter (bed_chunk in SepareChunksBed.chunks){
     call OneMCHap {
         input:
         bams = bams,
+        bais = bais,
         bed = bed_chunk,
         vcf_file = vcf_file,
         vcf_tbi = vcf_tbi,
@@ -86,6 +89,7 @@ task SepareChunksBed {
 task OneMCHap {
     input{
         Array[File] bams
+        Array[File] bais
         File bed
         File vcf_file
         File vcf_tbi
@@ -96,8 +100,12 @@ task OneMCHap {
     }
 
     command <<<
+
+        ln -s ~{sep=" " bams}
+        ln -s ~{sep=" " bais}
+
         mchap assemble \
-            --bam ~{sep=" " bams} \
+            --bam *.bam \
             --targets ~{bed} \
             --variants ~{vcf_file} \
             --reference ~{reference} \
