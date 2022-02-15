@@ -90,7 +90,7 @@ database {
   profile = "slick.jdbc.MySQLProfile$"
   db {
     driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://$FIRST_NODE/127.0.0.1/cromwell?rewriteBatchedStatements=true&useSSL=false"
+    url = "jdbc:mysql://$FIRST_NODE@127.0.0.1:/cromwell?rewriteBatchedStatements=true&useSSL=false"
     user = "root"
     password = "1234"
     connectionTimeout = 5000
