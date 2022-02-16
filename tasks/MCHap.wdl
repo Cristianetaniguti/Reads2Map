@@ -101,16 +101,26 @@ task OneMCHap {
 
     command <<<
 
-        ln -s ~{sep=" " bams}
-        ln -s ~{sep=" " bais}
+        export TMPDIR=/tmp
+
+        mv ~{sep=" " bams} .
+        mv ~{sep=" " bais} .
+        mv ~{vcf_file} .
+        mv ~{vcf_tbi} .
+        mv ~{reference} .
+        mv ~{reference_idx} .
+
+        referenceName=$(basename ~{reference})
+        vcfName=$(basename ~{vcf_file})
 
         mchap assemble \
             --bam *.bam \
             --targets ~{bed} \
-            --variants ~{vcf_file} \
-            --reference ~{reference} \
+            --variants $vcfName \
+            --reference $referenceName \
             --ploidy ~{ploidy} \
             --cores ~{max_cores} | bgzip > haplotypes.vcf.gz
+            
     >>>
 
     runtime {
