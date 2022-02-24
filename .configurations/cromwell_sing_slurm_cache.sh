@@ -86,18 +86,18 @@ backend {
   }
 }
 
-database {
-  profile = "slick.jdbc.MySQLProfile$"
-  db {
-    driver = "com.mysql.cj.jdbc.Driver"
-    url = "jdbc:mysql://$FIRST_NODE@127.0.0.1:/cromwell?rewriteBatchedStatements=true&useSSL=false"
-    user = "root"
-    password = "1234"
-    connectionTimeout = 5000
-  }
-}
+# database {
+#   profile = "slick.jdbc.MySQLProfile$"
+#   db {
+#     driver = "com.mysql.cj.jdbc.Driver"
+#     url = "jdbc:mysql://127.0.0.1:3307/cromwell?rewriteBatchedStatements=true&useSSL=false"
+#     user = "root"
+#     password = "1234"
+#     connectionTimeout = 5000
+#   }
+# }
 
-call-caching {
-  enabled = true
-  invalidate-bad-cache-results = true
-}
+# call-caching {
+#   enabled = true
+#   invalidate-bad-cache-results = true
+# }

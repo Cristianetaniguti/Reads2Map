@@ -5,32 +5,38 @@ workflow MCHap{
     File reference
     File reference_idx
     File vcf_file
-    File vcf_tbi
-    File bed_file
     Int n_nodes
     Int max_cores
-    File bam_list
-    File bais_list
+    Array[File] bams # if file change to bam_list
+    Array[File] bais # if file change to bais_list
+    File merged_bams
     Int ploidy
+  }
+
+  call BamToBed {
+      input:
+        merged_bams = merged_bams
   }
 
   call SepareChunksBed {
     input:
-     bed_file = bed_file,
+     bed_file = BamToBed.merged_bed,
      n_nodes = n_nodes
   }
 
-  Array[File] bams = read_lines(bam_list)
-  Array[File] bais = read_lines(bais_list)
+  # If running outside of Reads2Map workflow
+  #Array[File] bams = read_lines(bam_list)
+  #Array[File] bais = read_lines(bais_list)
+
+  Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
 
   scatter (bed_chunk in SepareChunksBed.chunks){
     call OneMCHap {
         input:
-        bams = bams,
-        bais = bais,
+        bams = map_bams["bam"],
+        bais = map_bams["bai"],
         bed = bed_chunk,
         vcf_file = vcf_file,
-        vcf_tbi = vcf_tbi,
         reference = reference,
         reference_idx = reference_idx,
         ploidy = ploidy,
@@ -47,6 +53,31 @@ workflow MCHap{
     File haplo_vcf_merged = mergeVCFs.merged_vcf
   }
 }
+
+task BamToBed {
+    input {
+        File merged_bams
+    }
+
+    command <<<
+        bamToBed -i ~{merged_bams} > file.bed
+        bedtools merge -i file.bed > merged.bed
+    >>>
+
+    runtime {
+        job_name: "BamToBed"
+        docker: "biocontainers/bedtools:v2.27.1dfsg-4-deb_cv1"
+        node:"--nodes=1"
+        mem:"--mem=10G"
+        tasks:"--ntasks=1"
+        time:"05:00:00"
+    }
+
+    output {
+        File merged_bed = "merged.bed"
+    }
+}
+
 
 task SepareChunksBed {
     input {
@@ -92,7 +123,6 @@ task OneMCHap {
         Array[File] bais
         File bed
         File vcf_file
-        File vcf_tbi
         File reference
         File reference_idx
         Int ploidy
@@ -103,20 +133,19 @@ task OneMCHap {
 
         export TMPDIR=/tmp
 
-        mv ~{sep=" " bams} .
-        mv ~{sep=" " bais} .
-        mv ~{vcf_file} .
-        mv ~{vcf_tbi} .
-        mv ~{reference} .
-        mv ~{reference_idx} .
+        ln -s ~{reference} .
+        ln -s ~{reference_idx} .
+        ls -s ~{sep=" " bams} .
+        ls -s ~{sep=" " bais} .
 
         referenceName=$(basename ~{reference})
-        vcfName=$(basename ~{vcf_file})
+
+        tabix -p vcf ~{vcf_file}
 
         mchap assemble \
             --bam *.bam \
             --targets ~{bed} \
-            --variants $vcfName \
+            --variants ~{vcf_file} \
             --reference $referenceName \
             --ploidy ~{ploidy} \
             --cores ~{max_cores} | bgzip > haplotypes.vcf.gz
@@ -149,7 +178,7 @@ task mergeVCFs {
     command <<<
 
         bcftools concat ~{sep=" " haplo_vcf} --output merged.vcf.gz
-        bcftools sort merged.vcf.gz --output merged.sorted.vcf.gz
+        bcftools sort merged.vcf.gz --output-file merged.sorted.vcf.gz
 
     >>>
 

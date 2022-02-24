@@ -1,6 +1,7 @@
 version 1.0
 
 import "alignment.wdl" as alg
+import "./utils.wdl" as utils
 
 workflow CreateAlignmentFromFamilies {
     input {
@@ -32,8 +33,8 @@ workflow CreateAlignmentFromFamilies {
         }
     }
 
-    # Store for WhatsHap 
-    call MergeBams {
+    # Store for MCHap 
+    call utils.MergeBams {
         input:
             bam_files = flatten(RunBwaAlignment.bam)
     }
@@ -86,25 +87,3 @@ task SepareChunks {
     }
 }
 
-task MergeBams{
-    input {
-        Array[File] bam_files
-    }
-
-    command <<<
-        samtools merge merged.bam ~{sep=" " bam_files}
-    >>>
-
-    runtime {
-        job_name: "MergeBams"
-        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        tasks:"--ntasks=1"
-        time:"01:00:00"
-    }
-
-    output {
-        File merged_bam = "merged.bam"
-    }
-}

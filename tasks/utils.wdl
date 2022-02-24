@@ -149,6 +149,7 @@ task ReplaceAD {
     tabix -p vcf multiallelic_sort.vcf.gz
 
     bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -a -Oz --output ~{program}_bam_vcf.vcf.gz
+    tabix -p vcf ~{program}_bam_vcf.vcf.gz
     
   >>>
 
@@ -166,6 +167,7 @@ task ReplaceAD {
 
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
+    File bam_vcf_tbi = "~{program}_bam_vcf.vcf.gz.tbi"
   }
 }
 
@@ -285,4 +287,27 @@ task GetMarkersPos {
   output {
     File positions = "~{depth}_~{seed}_positions.tar.gz"
   }
+}
+
+task MergeBams{
+    input {
+        Array[File] bam_files
+    }
+
+    command <<<
+        samtools merge merged.bam ~{sep=" " bam_files}
+    >>>
+
+    runtime {
+        job_name: "MergeBams"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        node:"--nodes=1"
+        mem:"--mem=10G"
+        tasks:"--ntasks=1"
+        time:"01:00:00"
+    }
+
+    output {
+        File merged_bam = "merged.bam"
+    }
 }

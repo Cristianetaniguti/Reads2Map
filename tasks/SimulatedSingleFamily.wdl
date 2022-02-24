@@ -2,7 +2,7 @@ version 1.0
 
 
 import "./create_alignment_from_read_simulations.wdl" as simulation
-import "./gatk_genotyping.wdl" as gatk
+import "./gatk_genotyping.wdl" as gatk 
 import "./freebayes_genotyping.wdl" as freebayes
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
@@ -27,6 +27,7 @@ workflow SimulatedSingleFamily {
     Int max_cores
     Int chunk_size
     Int ploidy
+    String gatk_mchap
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -40,25 +41,28 @@ workflow SimulatedSingleFamily {
 
   call gatk.GatkGenotyping {
     input:
-      bams=CreateAlignmentFromSimulation.bam,
-      bais=CreateAlignmentFromSimulation.bai,
-      references=references,
-      program="gatk",
-      vcf_simu = CreateAlignmentFromSimulation.true_vcf,
-      seed    = family.seed,
-      depth   = sequencing.depth,
+      bams       = CreateAlignmentFromSimulation.bam,
+      bais       = CreateAlignmentFromSimulation.bai,
+      references = references,
+      program    = "gatk",
+      vcf_simu   = CreateAlignmentFromSimulation.true_vcf,
+      seed       = family.seed,
+      depth      = sequencing.depth,
       chunk_size = chunk_size,
-      ploidy = ploidy
+      ploidy     = ploidy,
+      mchap      = gatk_mchap,
+      max_cores  = max_cores,
+      merged_bams = CreateAlignmentFromSimulation.merged_bam
   }
 
   call freebayes.FreebayesGenotyping {
     input:
-      bams=CreateAlignmentFromSimulation.bam,
-      bais=CreateAlignmentFromSimulation.bai,
-      references=references,
-      program="freebayes",
-      max_cores = max_cores,
-      vcf_simu = CreateAlignmentFromSimulation.true_vcf
+      bams       = CreateAlignmentFromSimulation.bam,
+      bais       = CreateAlignmentFromSimulation.bai,
+      references = references,
+      program    = "freebayes",
+      max_cores  = max_cores,
+      vcf_simu   = CreateAlignmentFromSimulation.true_vcf
   }
 
   call utilsR.vcf2onemap as truth_vcf {

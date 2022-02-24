@@ -1,8 +1,8 @@
 version 1.0
 
 import "../structs/struct_reads_simu.wdl"
-import "../structs/struct_alignment.wdl"
 import "./alignment.wdl" as alg
+import "./utils.wdl" as utils
 
 workflow CreateAlignmentFromSimulation {
     input {
@@ -147,9 +147,15 @@ workflow CreateAlignmentFromSimulation {
         fastqs     = fastq,
         references = references,
         max_cores  = max_cores,
-        rm_dupli   = sequencing.rm_dupli
+        rm_dupli   = sequencing.rm_dupli 
     }
   }
+
+    # Store for MCHap 
+    call utils.MergeBams {
+        input:
+            bam_files = flatten(RunBwaAlignmentSimu.bam)
+    }
 
   output {
       Array[File] bam = flatten(RunBwaAlignmentSimu.bam)
@@ -159,6 +165,7 @@ workflow CreateAlignmentFromSimulation {
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
       File simu_haplo = ConvertPedigreeSimulationToVcf.simu_haplo
       File simulated_phases = simulated_phases_sele
+      File merged_bam = MergeBams.merged_bam
   }
 
 }
