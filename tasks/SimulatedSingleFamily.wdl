@@ -71,7 +71,6 @@ workflow SimulatedSingleFamily {
     input:
       vcf_file = CreateAlignmentFromSimulation.true_vcf,
       cross = family.cross,
-      SNPCall_program = "simu",
       parent1 = "P1",
       parent2 = "P2"
   }
