@@ -22,6 +22,8 @@ workflow GatkGenotyping {
     String mchap
     Int max_cores
     File merged_bams
+    String P1
+    String P2
   }
 
   call CreateChunks {
@@ -142,7 +144,9 @@ workflow GatkGenotyping {
           bams = map_bams["bam"],
           bais = map_bams["bai"],
           ploidy = ploidy,
-          merged_bams = merged_bams
+          merged_bams = merged_bams,
+          P1 = P1,
+          P2 = P2
       }
    }
 
@@ -151,8 +155,10 @@ workflow GatkGenotyping {
  }
 
   output {
-    File vcf_norm = select_first([vcf_norm_mchap, Normalization.vcf_norm])
-    File vcf_norm_bamcounts = select_first([vcf_bam_mchap, ReplaceAD.bam_vcf])
+    File? vcf_multi = vcf_norm_mchap
+    File? vcf_multi_bamcounts = vcf_bam_mchap
+    File vcf_norm = Normalization.vcf_norm
+    File vcf_norm_bamcounts = ReplaceAD.bam_vcf
     File vcfEval = Normalization.vcfEval
     File Plots = QualPlots
   }

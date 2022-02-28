@@ -52,7 +52,9 @@ workflow SimulatedSingleFamily {
       ploidy     = ploidy,
       mchap      = gatk_mchap,
       max_cores  = max_cores,
-      merged_bams = CreateAlignmentFromSimulation.merged_bam
+      merged_bams = CreateAlignmentFromSimulation.merged_bam,
+      P1 = "P1",
+      P2 = "P2"
   }
 
   call freebayes.FreebayesGenotyping {
@@ -210,7 +212,9 @@ workflow SimulatedSingleFamily {
         depth = sequencing.depth,
         max_cores = max_cores,
         multiallelics = sequencing.multiallelics,
-        multiallelics_file = splitvcf.multiallelics
+        multiallelics_file = splitvcf.multiallelics,
+        multiallelics_mchap = GatkGenotyping.vcf_multi,
+        mchap = gatk_mchap
     }
   }
 
@@ -221,7 +225,7 @@ workflow SimulatedSingleFamily {
       updog                     = flatten(updogMaps.tar_gz_report),
       polyrad                   = flatten(polyradMaps.tar_gz_report),
       supermassa                = flatten(supermassaMaps.tar_gz_report),
-      gusmap                    = gusmapMaps.tar_gz_report,
+      gusmap_files              = gusmapMaps.tar_gz_report,
       GATK_eval                 = GatkGenotyping.vcfEval,
       Freebayes_eval            = FreebayesGenotyping.vcfEval,
       multiallelics_file        = splitvcf.multiallelics,
@@ -252,7 +256,7 @@ task JointReports{
     Array[File] updog                     
     Array[File] polyrad                   
     Array[File] supermassa         
-    Array[File] gusmap
+    Array[File] gusmap_files
     Array[File] multiallelics_file                    
     File Freebayes_eval
     File GATK_eval
@@ -275,7 +279,7 @@ task JointReports{
       updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
       polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
       supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
-      gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
+      gusmap <- str_split("~{sep=";" gusmap_files}", ";", simplify = T)
 
       files <- list(SNPCaller, updog, polyrad, supermassa, gusmap)
 

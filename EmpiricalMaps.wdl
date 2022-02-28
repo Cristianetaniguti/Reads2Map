@@ -18,6 +18,8 @@ workflow Maps {
 
     input {
         Dataset dataset
+        File? gatk_vcf_multi
+        String gatk_mchap
         File gatk_vcf
         File freebayes_vcf
         File gatk_vcf_bam_counts
@@ -148,7 +150,9 @@ workflow Maps {
                 max_cores = max_cores,
                 reference = reference,
                 merged_bam = merged_bam,
-                multiallelics_file = splitvcf.multiallelics
+                multiallelics_file = splitvcf.multiallelics,
+                multiallelics_mchap = GatkGenotyping.vcf_multi,
+                mchap = gatk_mchap
         }
     }
 

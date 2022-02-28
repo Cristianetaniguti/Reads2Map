@@ -15,6 +15,9 @@ workflow SNPCalling {
     Int max_cores
     Int chunk_size
     String rm_dupli
+    String P1
+    String P2
+    String gatk_mchap
   }
 
   call fam.CreateAlignmentFromFamilies {
@@ -26,14 +29,19 @@ workflow SNPCalling {
       chunk_size = chunk_size
   }
 
-  call gatk.GatkGenotyping {
+  call gatk.GatkGenotyping { 
     input:
       bams=CreateAlignmentFromFamilies.bam,
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
       chunk_size = chunk_size,
       ploidy = 2,
-      program="gatk"
+      program="gatk",
+      max_cores = max_cores,
+      merged_bams = CreateAlignmentFromFamilies.merged_bam,
+      P1 = P1,
+      P2 = P2,
+      mchap = gatk_mchap
   }
 
   call freebayes.FreebayesGenotyping {
@@ -46,6 +54,8 @@ workflow SNPCalling {
   }
 
   output {
+    File? gatk_vcf = GatkGenotyping.vcf_multi 
+    File? gatk_vcf_bam_count = GatkGenotyping.vcf_multi_bamcounts
     File gatk_vcf = GatkGenotyping.vcf_norm
     File gatk_vcf_bam_count = GatkGenotyping.vcf_norm_bamcounts
     File gatk_vcfEval = GatkGenotyping.vcfEval

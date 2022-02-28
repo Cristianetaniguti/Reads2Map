@@ -15,6 +15,8 @@ workflow SNPCalling_gatk {
     Int chunk_size
     Int ploidy
     String rm_dupli
+    String P1
+    String P2
   }
 
   call fam.CreateAlignmentFromFamilies {
@@ -33,7 +35,9 @@ workflow SNPCalling_gatk {
       references=references,
       chunk_size = chunk_size,
       ploidy = ploidy,
-      program="gatk"
+      program="gatk",
+      P1 = P1,
+      P2 = P2
   }
 
   output {

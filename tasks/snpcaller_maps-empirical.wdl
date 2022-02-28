@@ -6,8 +6,6 @@ import "./utils.wdl" as utils
 workflow SNPCallerMaps{
   input {
      File vcf_file
-     File? merged_bam
-     File? reference
      String cross
      String SNPCall_program
      String GenotypeCall_program
@@ -17,7 +15,10 @@ workflow SNPCallerMaps{
      String chromosome
      String multiallelics
      File? multiallelics_file
+     File? multiallelics_mchap
+     String mchap
      Int max_cores
+
     }
 
   if (multiallelics == "TRUE") {
@@ -36,7 +37,9 @@ workflow SNPCallerMaps{
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
-      multiallelics = multiallelics
+      multiallelics = multiallelics,
+      multiallelics_mchap = multiallelics_mchap,
+      mchap = mchap
   }
 
   Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]

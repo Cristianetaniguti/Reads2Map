@@ -11,6 +11,8 @@ workflow MCHap{
     Array[File] bais # if file change to bais_list
     File merged_bams
     Int ploidy
+    String P1
+    String P2
   }
 
   call BamToBed {
@@ -49,8 +51,15 @@ workflow MCHap{
         haplo_vcf = OneMCHap.haplo_vcf
   }
 
+  call FilterMulti {
+      input:
+        multi_vcf = mergeVCFs.merged_vcf,
+        P1 = P1,
+        P2 = P2
+  }
+
   output {
-    File haplo_vcf_merged = mergeVCFs.merged_vcf
+    File haplo_vcf_merged = FilterMulti.multi_vcf_filt
   }
 }
 
@@ -135,8 +144,8 @@ task OneMCHap {
 
         ln -s ~{reference} .
         ln -s ~{reference_idx} .
-        ls -s ~{sep=" " bams} .
-        ls -s ~{sep=" " bais} .
+        ln -s ~{sep=" " bams} .
+        ln -s ~{sep=" " bais} .
 
         referenceName=$(basename ~{reference})
 
@@ -196,5 +205,39 @@ task mergeVCFs {
 
     output {
         File merged_vcf = "merged.sorted.vcf.gz"
+    }
+}
+
+task FilterMulti {
+    input {
+        File multi_vcf
+        String P1
+        String P2
+    }
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+
+            library(Reads2MapTools)
+            filter_multi_vcf("~{multi_vcf}", "~{P1}", "~{P2}", 
+                             vcf.out = "multi_vcf_filt.vcf.gz")
+
+        RSCRIPT
+    >>>
+
+    runtime {
+        docker:"cristaniguti/reads2map:0.0.1"
+        # memory: "2 GB"
+        # cpu:1
+        # preemptible: 3
+        job_name: "FilterMulti"
+        node:"--nodes=1"
+        mem:"--mem=15GB"
+        tasks:"--ntasks=1"
+        time:"01:00:00"
+    }
+
+    output {
+        File multi_vcf_filt = "multi_vcf_filt.vcf.gz"
     }
 }

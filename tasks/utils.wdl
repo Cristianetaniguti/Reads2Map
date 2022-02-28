@@ -13,12 +13,14 @@ task ApplyRandomFilters {
   }
 
   command <<<
-    vcftools --gzvcf ~{gatk_vcf} ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_filt.vcf
+    # Required update to deal with polyploids
+    zcat  ~{gatk_vcf} | sed 's/^##fileformat=VCFv4.3/##fileformat=VCFv4.2/' > out1.vcf
+    zcat ~{gatk_vcf_bam_counts} | sed 's/^##fileformat=VCFv4.3/##fileformat=VCFv4.2/'  > out2.vcf
+
+    vcftools --gzvcf out1.vcf  ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_filt.vcf
+    vcftools --gzvcf out2.vcf ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
 
     vcftools --gzvcf ~{freebayes_vcf} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_filt.vcf
-
-    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
-
     vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
 

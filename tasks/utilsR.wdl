@@ -4,7 +4,6 @@ task vcf2onemap{
    input {
      File vcf_file
      String cross
-     String SNPCall_program
      String parent1
      String parent2
    }
@@ -247,14 +246,12 @@ task ErrorsReport {
   input {
     File onemap_obj
     File vcfR_obj
-    File simu_onemap_obj
     File simu_vcfR
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
     Int seed
     Int depth
-    Int max_cores
   }
 
   command <<<
@@ -594,6 +591,8 @@ task SetProbs{
 task SetProbsDefault{
   input{
     File vcf_file
+    File? multiallelics_mchap
+    String mchap
     String cross
     String parent1
     String parent2
@@ -614,7 +613,7 @@ task SetProbsDefault{
         f1 = "F1"
       }
 
-      vcf <- read.vcfR("~{vcf_file}")
+      if("~{mchap}") vcf <- read.vcfR("~{multiallelics_mchap}") else  vcf <- read.vcfR("~{vcf_file}")
       save(vcf, file = "vcfR.RData")
       
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
