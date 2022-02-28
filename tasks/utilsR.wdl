@@ -593,6 +593,7 @@ task SetProbsDefault{
     File vcf_file
     File? multiallelics_mchap
     String mchap
+    String SNPCall_program
     String cross
     String parent1
     String parent2
@@ -613,7 +614,7 @@ task SetProbsDefault{
         f1 = "F1"
       }
 
-      if("~{mchap}") vcf <- read.vcfR("~{multiallelics_mchap}") else  vcf <- read.vcfR("~{vcf_file}")
+      if("~{mchap}" & "~{SNPCall_program}" == "gatk") vcf <- read.vcfR("~{multiallelics_mchap}") else  vcf <- read.vcfR("~{vcf_file}")
       save(vcf, file = "vcfR.RData")
       
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE

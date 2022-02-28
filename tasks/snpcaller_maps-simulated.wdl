@@ -39,6 +39,7 @@ workflow SNPCallerMaps{
       cross = cross,
       parent1 = "P1",
       parent2 = "P2",
+      SNPCall_program = SNPCall_program,
       multiallelics = multiallelics,
       multiallelics_mchap = multiallelics_mchap,
       mchap = mchap
