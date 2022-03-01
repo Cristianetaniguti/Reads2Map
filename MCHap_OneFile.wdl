@@ -132,7 +132,7 @@ task OneMCHap {
             --base-error-rate 0.0025 \
             --ignore-base-phred-scores \
             --mcmc-burn 1000 \
-            --mcmc-steps \
+            --mcmc-steps 2000 \
             --haplotype-posterior-threshold 0.9 \
             --cores ~{max_cores} | bgzip > assemble.vcf.gz
             
