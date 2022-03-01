@@ -54,8 +54,8 @@ workflow SNPCalling {
   }
 
   output {
-    File? gatk_vcf = GatkGenotyping.vcf_multi 
-    File? gatk_vcf_bam_count = GatkGenotyping.vcf_multi_bamcounts
+    File? gatk_multi_vcf = GatkGenotyping.vcf_multi 
+    File? gatk_vcf_bam_multi = GatkGenotyping.vcf_multi_bamcounts
     File gatk_vcf = GatkGenotyping.vcf_norm
     File gatk_vcf_bam_count = GatkGenotyping.vcf_norm_bamcounts
     File gatk_vcfEval = GatkGenotyping.vcfEval

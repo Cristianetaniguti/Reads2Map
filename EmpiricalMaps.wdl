@@ -148,10 +148,8 @@ workflow Maps {
                 chromosome = dataset.chromosome,
                 multiallelics = dataset.multiallelics,
                 max_cores = max_cores,
-                reference = reference,
-                merged_bam = merged_bam,
                 multiallelics_file = splitvcf.multiallelics,
-                multiallelics_mchap = GatkGenotyping.vcf_multi,
+                multiallelics_mchap = gatk_vcf_multi,
                 mchap = gatk_mchap
         }
     }
