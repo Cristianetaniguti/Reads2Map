@@ -446,8 +446,6 @@ task ConvertPedigreeSimulationToVcf {
     File ref_alt_alleles
   }
 
-  Int disk_size = ceil(size(genotypes_dat, "GB") + size(map_file, "GB") + 5 )
-
   command <<<
     R --vanilla --no-save <<RSCRIPT
 
@@ -469,11 +467,7 @@ task ConvertPedigreeSimulationToVcf {
                chr = mks[,1],
                phase = TRUE,
                reference.alleles = mks[,3],
-               use.as.alleles=TRUE,
-               segregation.distortion.mean = 10^(-5),
-               segregation.distortion.sd = 10^(-6),
-               segregation.distortion.freq = 0.30,
-               segregation.distortion.seed = ~{seed})
+               use.as.alleles=TRUE)
 
     vcfR.object <- read.vcfR("temp.vcf")
 

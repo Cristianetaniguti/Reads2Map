@@ -7,7 +7,7 @@ RUN apt-get update \
     tabix \
     && python3 -m pip install numba scipy pysam networkx graphviz pytest # requirements.txt
 
-RUN git clone https://github.com/PlantandFoodResearch/MCHap.git \
+RUN git clone https://github.com/PlantandFoodResearch/MCHap.git  \
     && cd MCHap \
     && python3 setup.py sdist \
     && python3 -m pip install dist/mchap-*tar.gz

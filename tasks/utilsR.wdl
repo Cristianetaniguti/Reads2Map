@@ -663,3 +663,38 @@ task SetProbsDefault{
     File vcfR_obj = "vcfR.RData"
   }
 }
+
+task FilterSegregation {
+  input {
+    File vcf_file
+    String parent1
+    String parent2
+  }
+
+  command <<<
+      R --vanilla --no-save <<RSCRIPT
+
+        library(Reads2MapTools)
+        segregation_test_vcf(~{vcf_file}, P1 = ~{parent1}, P2 = ~{parent2},
+                             out.vcf = "filtered.vcf.gz")
+
+      RSCRIPT
+  >>>
+
+    runtime{
+    docker:"cristaniguti/reads2map:0.0.1"
+    # time:"10:00:00"
+    # mem:"30GB"
+    # cpu:1
+    job_name: "FilterSegregation"
+    node:"--nodes=1"
+    mem:"--mem=10G"
+    cpu:"--ntasks=1"
+    time:"10:00:00"
+  }
+
+  output {
+    File vcf_filtered = "filtered.vcf.gz"
+  }
+
+}

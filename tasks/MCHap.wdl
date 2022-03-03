@@ -157,7 +157,25 @@ task OneMCHap {
             --variants ~{vcf_file} \
             --reference $referenceName \
             --ploidy ~{ploidy} \
-            --cores ~{max_cores} | bgzip > haplotypes.vcf.gz
+            --inbreeding 0.01 \
+            --base-error-rate 0.0025 \
+            --ignore-base-phred-scores \
+            --mcmc-burn 1000 \
+            --mcmc-steps 2000 \
+            --haplotype-posterior-threshold 0.9 \
+            --cores ~{max_cores} | bgzip > assemble.vcf.gz
+            
+        mchap call \
+            --haplotypes assemble.vcf.gz \
+            --bam *.bam \
+            --ploidy ~{ploidy} \
+            --inbreeding 0.01 \
+            --base-error-rate 0.0025 \
+            --ignore-base-phred-scores \
+            --mcmc-burn 1000 \
+            --mcmc-steps 2000 \
+            --cores ~{max_cores} \
+            | bgzip > haplotypes.vcf.gz
             
     >>>
 

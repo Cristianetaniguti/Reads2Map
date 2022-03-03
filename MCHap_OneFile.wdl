@@ -30,20 +30,29 @@ workflow MCHap{
   scatter (bed_chunk in SepareChunksBed.chunks){
     call OneMCHap {
         input:
-        bams = map_bams["bam"],
-        bais = map_bams["bai"],
-        bed = bed_chunk,
-        vcf_file = vcf_file,
-        reference = reference,
-        reference_idx = reference_idx,
-        ploidy = ploidy,
-        max_cores = max_cores
+            bams = map_bams["bam"],
+            bais = map_bams["bai"],
+            bed = bed_chunk,
+            vcf_file = vcf_file,
+            reference = reference,
+            reference_idx = reference_idx,
+            ploidy = ploidy,
+            max_cores = max_cores
+    }
+
+    call OneMCHap_recall {
+        input:
+            bams = map_bams["bam"],
+            bais = map_bams["bai"],
+            vcf_file = OneMCHap.assemble_vcf,
+            ploidy = ploidy,
+            max_cores = max_cores  
     }
   }
 
   call mergeVCFs {
       input:
-        haplo_vcf = OneMCHap.haplo_vcf
+        haplo_vcf = OneMCHap_recall.haplo_vcf
   }
 
   call FilterMulti {
@@ -135,17 +144,6 @@ task OneMCHap {
             --mcmc-steps 2000 \
             --haplotype-posterior-threshold 0.9 \
             --cores ~{max_cores} | bgzip > assemble.vcf.gz
-            
-        mchap call
-            --haplotypes assemble.vcf.gz \
-            --bam *.bam \
-            --ploidy ~{ploidy} \
-            --inbreeding 0.01 \
-            --base-error-rate 0.0025 \
-            --ignore-base-phred-scores \
-            --mcmc-burn 1000 \
-            --mcmc-steps 2000 \
-            | bgzip > haplotypes.vcf.gz
 
     >>>
 
@@ -157,8 +155,58 @@ task OneMCHap {
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "MCHap"
         node:"--nodes=1"
-        mem:"--mem=20G" 
-        tasks:"--ntasks-per-node=16"
+        mem:"--mem=50G" 
+        tasks:"--ntasks-per-node=66"
+        time:"24:00:00"
+    }
+
+    output {
+        File assemble_vcf = "assemble.vcf.gz"
+    }
+}
+
+task OneMCHap_recall {
+    input{
+        Array[File] bams
+        Array[File] bais
+        File vcf_file
+        Int ploidy
+        Int max_cores
+    }
+
+    command <<<
+
+        export TMPDIR=/tmp
+
+        ln -s ~{sep=" " bams} .
+        ln -s ~{sep=" " bais} .
+
+        tabix -p vcf ~{vcf_file}
+            
+        mchap call \
+            --haplotypes ~{vcf_file} \
+            --bam *.bam \
+            --ploidy ~{ploidy} \
+            --inbreeding 0.01 \
+            --base-error-rate 0.0025 \
+            --ignore-base-phred-scores \
+            --mcmc-burn 1000 \
+            --mcmc-steps 2000 \
+            --cores ~{max_cores} \
+            | bgzip > haplotypes.vcf.gz
+
+    >>>
+
+    runtime {
+        docker: "cristaniguti/mchap:0.0.1"
+        # memory: "4 GB"
+        # cpu: 1
+        # preemptible: 3
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "MCHap_recall"
+        node:"--nodes=1"
+        mem:"--mem=50G" 
+        tasks:"--ntasks-per-node=46"
         time:"24:00:00"
     }
 
@@ -166,6 +214,7 @@ task OneMCHap {
         File haplo_vcf = "haplotypes.vcf.gz"
     }
 }
+
 
 task mergeVCFs {
     input {
@@ -186,8 +235,8 @@ task mergeVCFs {
         # preemptible: 3
         job_name: "mergeVCFs"
         node:"--nodes=1"
-        mem:"--mem=15GB"
-        tasks:"--ntasks=1"
+        mem:"--mem=50GB"
+        tasks:"--ntasks=2"
         time:"01:00:00"
     }
 
@@ -220,7 +269,7 @@ task FilterMulti {
         # preemptible: 3
         job_name: "FilterMulti"
         node:"--nodes=1"
-        mem:"--mem=15GB"
+        mem:"--mem=50GB"
         tasks:"--ntasks=1"
         time:"01:00:00"
     }

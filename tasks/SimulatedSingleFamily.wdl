@@ -117,10 +117,17 @@ workflow SimulatedSingleFamily {
                 vcf_file = vcfs[origin]
         }
 
+        call utilsR.FilterSegregation {
+             input:
+                vcf_file = splitgeno.biallelics,
+                parent1 = "P1",
+                parent2 = "P2"
+        }
+
         call genotyping.onemapMaps as updogMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            vcf_file = splitgeno.biallelics,
+            vcf_file = FilterSegregation.vcf_filtered,
             genotyping_program = "updog",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
@@ -138,7 +145,7 @@ workflow SimulatedSingleFamily {
         call genotyping.onemapMaps as supermassaMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            vcf_file = splitgeno.biallelics,
+            vcf_file = FilterSegregation.vcf_filtered,
             genotyping_program = "supermassa",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
@@ -156,7 +163,7 @@ workflow SimulatedSingleFamily {
         call genotyping.onemapMaps as polyradMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            vcf_file = splitgeno.biallelics,
+            vcf_file = FilterSegregation.vcf_filtered,
             genotyping_program = "polyrad",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
