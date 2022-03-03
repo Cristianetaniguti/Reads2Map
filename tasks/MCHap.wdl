@@ -44,16 +44,26 @@ workflow MCHap{
         ploidy = ploidy,
         max_cores = max_cores
     }
+
+    call OneMCHap_recall {
+        input:
+            bams = map_bams["bam"],
+            bais = map_bams["bai"],
+            vcf_file = OneMCHap.assemble_vcf,
+            ploidy = ploidy,
+            max_cores = max_cores  
+    }
   }
 
   call mergeVCFs {
       input:
-        haplo_vcf = OneMCHap.haplo_vcf
+        haplo_vcf = OneMCHap_recall.haplo_vcf
   }
 
   call FilterMulti {
       input:
         multi_vcf = mergeVCFs.merged_vcf,
+        ploidy = ploidy,
         P1 = P1,
         P2 = P2
   }
@@ -165,18 +175,6 @@ task OneMCHap {
             --haplotype-posterior-threshold 0.9 \
             --cores ~{max_cores} | bgzip > assemble.vcf.gz
             
-        mchap call \
-            --haplotypes assemble.vcf.gz \
-            --bam *.bam \
-            --ploidy ~{ploidy} \
-            --inbreeding 0.01 \
-            --base-error-rate 0.0025 \
-            --ignore-base-phred-scores \
-            --mcmc-burn 1000 \
-            --mcmc-steps 2000 \
-            --cores ~{max_cores} \
-            | bgzip > haplotypes.vcf.gz
-            
     >>>
 
     runtime {
@@ -186,6 +184,56 @@ task OneMCHap {
         # preemptible: 3
         # disks: "local-disk " + disk_size + " HDD"
         job_name: "MCHap"
+        node:"--nodes=1"
+        mem:"--mem=20G" 
+        tasks:"--ntasks-per-node=16"
+        time:"24:00:00"
+    }
+
+    output {
+        File assemble_vcf = "assemble.vcf.gz"
+    }
+}
+
+task OneMCHap_recall {
+    input{
+        Array[File] bams
+        Array[File] bais
+        File vcf_file
+        Int ploidy
+        Int max_cores
+    }
+
+    command <<<
+
+        export TMPDIR=/tmp
+
+        ln -s ~{sep=" " bams} .
+        ln -s ~{sep=" " bais} .
+
+        tabix -p vcf ~{vcf_file}
+            
+        mchap call \
+            --haplotypes ~{vcf_file} \
+            --bam *.bam \
+            --ploidy ~{ploidy} \
+            --inbreeding 0.01 \
+            --base-error-rate 0.0025 \
+            --ignore-base-phred-scores \
+            --mcmc-burn 1000 \
+            --mcmc-steps 2000 \
+            --cores ~{max_cores} \
+            | bgzip > haplotypes.vcf.gz
+
+    >>>
+
+    runtime {
+        docker: "cristaniguti/mchap:0.0.1"
+        # memory: "4 GB"
+        # cpu: 1
+        # preemptible: 3
+        # disks: "local-disk " + disk_size + " HDD"
+        job_name: "MCHap_recall"
         node:"--nodes=1"
         mem:"--mem=20G" 
         tasks:"--ntasks-per-node=16"
@@ -204,7 +252,18 @@ task mergeVCFs {
 
     command <<<
 
-        bcftools concat ~{sep=" " haplo_vcf} --output merged.vcf.gz
+        ln -s ~{sep=" " haplo_vcf} .
+
+        for file in $(echo haplotypes*); do
+            filename=$(basename -- "$file")
+            name="${filename%.*}"
+            echo $name
+            bcftools sort $file --output-file $name.sorted.vcf
+            bgzip $name.sorted.vcf
+            tabix -p vcf $name.sorted.vcf.gz
+        done
+
+        bcftools concat *sorted.vcf.gz --output merged.vcf.gz
         bcftools sort merged.vcf.gz --output-file merged.sorted.vcf.gz
 
     >>>
@@ -231,6 +290,7 @@ task FilterMulti {
         File multi_vcf
         String P1
         String P2
+        Int ploidy
     }
 
     command <<<
@@ -238,6 +298,7 @@ task FilterMulti {
 
             library(Reads2MapTools)
             filter_multi_vcf("~{multi_vcf}", "~{P1}", "~{P2}", 
+                             ploidy = ~{ploidy},
                              vcf.out = "multi_vcf_filt.vcf.gz")
 
         RSCRIPT
