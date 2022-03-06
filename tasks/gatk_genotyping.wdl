@@ -139,7 +139,7 @@ workflow GatkGenotyping {
           reference = references.ref_fasta,
           reference_idx = references.ref_fasta_index,
           vcf_file = one_vcf, 
-          n_nodes = 5,
+          n_nodes = 10,
           max_cores = max_cores,
           bams = map_bams["bam"],
           bais = map_bams["bai"],
