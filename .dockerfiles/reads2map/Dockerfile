@@ -56,5 +56,5 @@ RUN Rscript -e 'remotes::install_github("dcgerard/updog", ref = "eaa231c869e8d2e
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap")'
 
 # Still privates
-RUN Rscript -e 'remotes::install_github("Cristianetaniguti/simuscopR", auth_toke= "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")'
-RUN Rscript -e 'remotes::install_github("Cristianetaniguti/Reads2MapTools", auth_token = "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"                    )'
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/simuscopR")'
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/Reads2MapTools")'
