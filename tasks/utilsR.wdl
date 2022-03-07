@@ -458,7 +458,7 @@ task ReGenotyping{
           f1 = "F1"
        }
 
-       out_vcf <- "regeno.vcf.gz"
+       out_vcf <- "regeno.vcf"
 
         if (method == "updog") {
             out_onemap_obj <- updog_genotype(vcf="~{vcf_file}",
@@ -489,13 +489,16 @@ task ReGenotyping{
                                                   use_genotypes_errors = FALSE,
                                                   use_genotypes_probs = TRUE)
         } else if (method == "polyrad") {
-            out_onemap_obj <- polyRAD_genotype_vcf(vcf="~{vcf_file}",
+            ex <- strsplit(basename("~{vcf_file}"), split="\\.")[[1]]
+            if(ex[length(ex)] == "gz") {
+              system("gunzip ~{vcf_file}")
+              vcf_in <- paste0(dirname("~{vcf_file}"), "/", paste0(ex[-length(ex)], collapse = "."))
+            } else vcf_in <- "~{vcf_file}"
+            out_onemap_obj <- polyRAD_genotype_vcf(vcf=vcf_in,
                                                    parent1="~{parent1}",
                                                    parent2="~{parent2}",
                                                    outfile = out_vcf)
         }
-
-        system("gunzip regeno.vcf.gz")
 
      RSCRIPT
   >>>
@@ -675,8 +678,8 @@ task FilterSegregation {
       R --vanilla --no-save <<RSCRIPT
 
         library(Reads2MapTools)
-        segregation_test_vcf(~{vcf_file}, P1 = ~{parent1}, P2 = ~{parent2},
-                             out.vcf = "filtered.vcf.gz")
+        segregation_test_vcf("~{vcf_file}", P1 = "~{parent1}", P2 = "~{parent2}",
+                             out.vcf = "filtered.vcf.gz", threshold = 0.05)
 
       RSCRIPT
   >>>
