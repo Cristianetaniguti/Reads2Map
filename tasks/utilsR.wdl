@@ -458,7 +458,7 @@ task ReGenotyping{
           f1 = "F1"
        }
 
-       out_vcf <- "regeno.vcf"
+       out_vcf <- "regeno.vcf.gz"
 
         if (method == "updog") {
             out_onemap_obj <- updog_genotype(vcf="~{vcf_file}",
@@ -489,9 +489,9 @@ task ReGenotyping{
                                                   use_genotypes_errors = FALSE,
                                                   use_genotypes_probs = TRUE)
         } else if (method == "polyrad") {
-            ex <- strsplit(basename("~{vcf_file}"), split="\\.")[[1]]
+            ex <- strsplit(basename("~{vcf_file}"), split="[.]")[[1]]
             if(ex[length(ex)] == "gz") {
-              system("gunzip ~{vcf_file}")
+              system("gunzip -f ~{vcf_file}")
               vcf_in <- paste0(dirname("~{vcf_file}"), "/", paste0(ex[-length(ex)], collapse = "."))
             } else vcf_in <- "~{vcf_file}"
             out_onemap_obj <- polyRAD_genotype_vcf(vcf=vcf_in,
@@ -499,6 +499,9 @@ task ReGenotyping{
                                                    parent2="~{parent2}",
                                                    outfile = out_vcf)
         }
+
+        system("gunzip regeno.vcf.gz")
+
 
      RSCRIPT
   >>>
