@@ -62,16 +62,18 @@ workflow Maps {
                     vcf_file = vcfs[origin]
             }
 
-            call utilsR.FilterSegregation {
-             input:
-                vcf_file = splitgeno.biallelics,
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2
-            }
+            # Suggestion to improve performance of SuperMASSA, polyRAD and updog
+            # call utilsR.FilterSegregation {
+            #  input:
+            #     vcf_file = splitgeno.biallelics,
+            #     parent1 = dataset.parent1,
+            #     parent2 = dataset.parent2
+            # }
 
             call genotyping.onemapMaps as updogMaps {
                 input:
-                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = FilterSegregation.vcf_filtered,
+                    vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "updog",
                     CountsFrom = origin,
@@ -88,7 +90,8 @@ workflow Maps {
 
             call genotyping.onemapMaps as supermassaMaps {
                 input:
-                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = FilterSegregation.vcf_filtered,
+                    vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "supermassa",
                     CountsFrom = origin,
@@ -105,7 +108,8 @@ workflow Maps {
 
             call genotyping.onemapMaps as polyradMaps {
                 input:
-                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = FilterSegregation.vcf_filtered,
+                    vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "polyrad",
                     CountsFrom = origin,
