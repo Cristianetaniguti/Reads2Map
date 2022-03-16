@@ -364,7 +364,8 @@ task CreatePedigreeSimulatorInputs {
 
       simulated_phases <- compare_phases(founder_file)
 
-      create_parfile(~{seed}, 50*~{popsize})
+      #create_parfile(~{seed}, 50*~{popsize})
+      create_parfile(~{seed}, ~{popsize})
 
       create_chromfile(map_file)
 
@@ -468,11 +469,11 @@ task ConvertPedigreeSimulationToVcf {
                phase = TRUE,
                reference.alleles = mks[,3],
                use.as.alleles=TRUE,
-               n_selected_loci = 1, 
-               selection_str_mean = 0.5, 
-               selection_str_var = 0.0001, 
-               pop.size = ~{popsize}, 
-               selected_mks = 30,
+              #  n_selected_loci = 1, 
+              #  selection_str_mean = 0.5, 
+              #  selection_str_var = 0.0001, 
+              #  pop.size = ~{popsize}, 
+              #  selected_mks = 30,
                map.size = ~{mapsize})
 
     vcfR.object <- read.vcfR("temp.vcf")
@@ -628,7 +629,8 @@ task Vcf2PedigreeSimulator{
 
     ## This function generates the mapfile and the ref_alt_alleles file
     mapfile <- create_mapfile(vcf, ref_map)
-    create_parfile(~{seed}, 50*~{popsize})
+    #create_parfile(~{seed}, 50*~{popsize})
+    create_parfile(~{seed}, ~{popsize})
     create_chromfile(mapfile[[1]])
 
     ref_alt_alleles <- mapfile[[2]]
