@@ -153,7 +153,12 @@ task RunBwaAlignmentSimu {
         mv "${sample}.sorted_temp.bai" "${sample}.sorted.bai"
 
       fi
-                  
+
+      # Filter by MapQ
+      # samtools view -bq 10 "${sample}.sorted.bam" > "${sample}.sorted.filtered.bam"
+      # samtools index "${sample}.sorted.filtered.bam"
+      # mv "${sample}.sorted.filtered.bam.bai" "${sample}.sorted.filtered.bai"
+
     done
 
     mkdir dup_metrics

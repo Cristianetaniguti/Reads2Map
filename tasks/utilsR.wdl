@@ -76,7 +76,7 @@ task FiltersReport{
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_simu(temp.obj, "~{SNPCall_program}",
                                                   "~{CountsFrom}", "~{GenotypeCall_program}", 
-                                                   ~{seed}, ~{depth})
+                                                   ~{seed}, ~{depth}, threshold = NULL) # Threshold define the genotype probability filter
 
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
