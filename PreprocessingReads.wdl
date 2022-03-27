@@ -7,11 +7,13 @@ workflow PreprocessingReads{
       Specifications spec
     }
 
+    Array[File] fq_files = read_lines(spec.raw_dict)
+
     call ProcessRadTags {
       input:
         enzyme = spec.enzyme,
         enzyme2 = spec.enzyme2,
-        raw_dict = spec.raw_dict,
+        fq_files = fq_files,
         barcodes = spec.barcodes
     }
 
@@ -39,13 +41,13 @@ task ProcessRadTags {
     input {
       String enzyme
       String? enzyme2
-      File raw_dict
+      Array[File] fq_files
       File? barcodes
     }
 
     command <<<
       mkdir raw process_radtags_results
-      tar -xf ~{raw_dict} -C raw
+      mv ~{sep=" " fq_files} raw
 
       process_radtags -p raw/ -o process_radtags_results/ \
                       ~{"-b " + barcodes} \

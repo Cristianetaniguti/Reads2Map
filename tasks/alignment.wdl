@@ -79,6 +79,12 @@ task RunBwaAlignment {
         mv "${sampleName_unique[$index]}.sorted_temp.bam" "${sampleName_unique[$index]}.sorted.merged.bam"
         mv "${sampleName_unique[$index]}.sorted_temp.bai" "${sampleName_unique[$index]}.sorted.merged.bai"    
       fi
+
+      # Filter by MapQ
+      samtools view -bq 10  "${sampleName_unique[$index]}.sorted.merged.bam" >  "${sampleName_unique[$index]}.sorted.merged.filtered.bam"
+      samtools index "${sampleName_unique[$index]}.sorted.merged.filtered.bam"
+      mv "${sampleName_unique[$index]}.sorted.merged.filtered.bam.bai" "${sampleName_unique[$index]}.sorted.merged.filtered.bai"
+
     done
   >>>
 
@@ -96,8 +102,8 @@ task RunBwaAlignment {
   }
 
   output {
-    Array[File] bam = glob("*.sorted.merged.bam")
-    Array[File] bai = glob("*.sorted.merged.bai")
+    Array[File] bam = glob("*.sorted.merged.filtered.bam")
+    Array[File] bai = glob("*.sorted.merged.filtered.bai")
     Array[File] dup_metrics = glob("*_dup_metrics.txt")
   }
 }

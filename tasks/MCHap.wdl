@@ -9,10 +9,10 @@ workflow MCHap{
     Int max_cores
     Array[File] bams # if file change to bam_list
     Array[File] bais # if file change to bais_list
-    File merged_bams
+    File? merged_bams
     Int ploidy
-    String P1
-    String P2
+    String? P1
+    String? P2
   }
 
   call BamToBed {
@@ -75,7 +75,7 @@ workflow MCHap{
 
 task BamToBed {
     input {
-        File merged_bams
+        File? merged_bams
     }
 
     command <<<
@@ -288,8 +288,8 @@ task mergeVCFs {
 task FilterMulti {
     input {
         File multi_vcf
-        String P1
-        String P2
+        String? P1
+        String? P2
         Int ploidy
     }
 

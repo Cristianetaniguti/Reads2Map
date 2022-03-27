@@ -21,9 +21,9 @@ workflow GatkGenotyping {
     Int ploidy
     String mchap
     Int max_cores
-    File merged_bams
-    String P1
-    String P2
+    File? merged_bams
+    String? P1
+    String? P2
   }
 
   call CreateChunks {
@@ -143,7 +143,7 @@ workflow GatkGenotyping {
           max_cores = max_cores,
           bams = map_bams["bam"],
           bais = map_bams["bai"],
-          ploidy = ploidy,
+          ploidy = ploidy, 
           merged_bams = merged_bams,
           P1 = P1,
           P2 = P2

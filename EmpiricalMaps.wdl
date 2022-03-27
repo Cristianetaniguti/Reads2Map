@@ -11,7 +11,7 @@ import "tasks/genotyping-empirical.wdl" as genotyping
 struct PopulationAnalysis {
     String method
     File vcf
-    File bam
+    File bam 
 }
 
 workflow Maps {
