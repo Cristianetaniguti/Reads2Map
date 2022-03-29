@@ -119,7 +119,8 @@ task FiltersReportEmp{
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_emp(temp.obj, "~{SNPCall_program}",
-                                           "~{CountsFrom}", "~{GenotypeCall_program}", "~{chromosome}")
+                                           "~{CountsFrom}", "~{GenotypeCall_program}", 
+                                           "~{chromosome}", threshold = 0.8)
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
     RSCRIPT
@@ -684,7 +685,7 @@ task FilterSegregation {
 
         library(Reads2MapTools)
         segregation_test_vcf("~{vcf_file}", P1 = "~{parent1}", P2 = "~{parent2}",
-                             out.vcf = "filtered.vcf.gz", threshold = 0.05)
+                             out.vcf = "filtered.vcf.gz", threshold = 0.05, rm_just_noninfo = TRUE)
 
       RSCRIPT
   >>>

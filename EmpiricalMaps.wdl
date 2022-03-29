@@ -26,8 +26,6 @@ workflow Maps {
         File freebayes_vcf_bam_counts
         String? filters
         Int max_cores
-        File merged_bam
-        File reference
     }
 
     if (defined(filters)) {
@@ -63,17 +61,17 @@ workflow Maps {
             }
 
             # Suggestion to improve performance of SuperMASSA, polyRAD and updog
-            # call utilsR.FilterSegregation {
-            #  input:
-            #     vcf_file = splitgeno.biallelics,
-            #     parent1 = dataset.parent1,
-            #     parent2 = dataset.parent2
-            # }
+            call utilsR.FilterSegregation {
+             input:
+                vcf_file = splitgeno.biallelics,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2
+            }
 
             call genotyping.onemapMaps as updogMaps {
                 input:
-                    # vcf_file = FilterSegregation.vcf_filtered,
-                    vcf_file = splitgeno.biallelics,
+                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "updog",
                     CountsFrom = origin,
@@ -83,15 +81,13 @@ workflow Maps {
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
                     multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores,
-                    reference = reference,
-                    merged_bam = merged_bam
+                    max_cores = max_cores
             }
 
             call genotyping.onemapMaps as supermassaMaps {
                 input:
-                    # vcf_file = FilterSegregation.vcf_filtered,
-                    vcf_file = splitgeno.biallelics,
+                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "supermassa",
                     CountsFrom = origin,
@@ -101,15 +97,13 @@ workflow Maps {
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
                     multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores,
-                    reference = reference,
-                    merged_bam = merged_bam
+                    max_cores = max_cores
             }
 
             call genotyping.onemapMaps as polyradMaps {
                 input:
-                    # vcf_file = FilterSegregation.vcf_filtered,
-                    vcf_file = splitgeno.biallelics,
+                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "polyrad",
                     CountsFrom = origin,
@@ -119,9 +113,7 @@ workflow Maps {
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
                     multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores,
-                    reference = reference,
-                    merged_bam = merged_bam
+                    max_cores = max_cores
             }
         }
 

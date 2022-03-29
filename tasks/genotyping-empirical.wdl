@@ -7,8 +7,6 @@ workflow onemapMaps {
 
   input {
     File vcf_file
-    File? merged_bam
-    File? reference
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
