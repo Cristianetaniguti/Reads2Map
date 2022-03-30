@@ -45,7 +45,8 @@ workflow onemapMaps {
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
-      multiallelics = multiallelics
+      multiallelics = multiallelics,
+      SNPCall_program = SNPCall_program
   }
 
   Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05"]

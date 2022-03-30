@@ -120,7 +120,7 @@ task FiltersReportEmp{
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_emp(temp.obj, "~{SNPCall_program}",
                                            "~{CountsFrom}", "~{GenotypeCall_program}", 
-                                           "~{chromosome}", threshold = 0.8)
+                                           "~{chromosome}", threshold = NULL)
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
     RSCRIPT
@@ -531,6 +531,7 @@ task SetProbs{
     String parent1
     String parent2
     String multiallelics
+    String SNPCall_program
   }
 
   command <<<
@@ -558,15 +559,17 @@ task SetProbs{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
+      # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
+
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
-                               vcf.par= "PL",
+                               vcf.par= "GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_probs=probs)
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
@@ -632,17 +635,17 @@ task SetProbsDefault{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
-      if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
+      # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
 
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
-                               vcf.par= par,
+                               vcf.par= "GQ",
                                parent1="~{parent1}",
                                parent2="~{parent2}",
                                f1 = f1,
                                recovering=FALSE)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_probs=probs)
+      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
