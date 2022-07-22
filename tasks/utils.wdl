@@ -137,7 +137,7 @@ task ReplaceAD {
     bcftools view -G --max-alleles 2 -v snps ~{vcf} -Oz -o sites.vcf.gz
     bcftools index --tbi -f sites.vcf.gz
     bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
-    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
+    bcftools mpileup -f ~{ref_fasta} -d 500000 -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp 
     bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o bam_vcf.vcf
 
     bcftools query -l multiallelics.vcf.gz | sort > samples.txt

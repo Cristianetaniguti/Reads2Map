@@ -279,10 +279,9 @@ task JointReports{
     # cpu:1
     job_name: "JointReports"
     node:"--nodes=1"
-    mem:"--mem=10G"
-    cpu:"--ntasks=1"
+    mem:"--mem=20G"
+    cpu:"--ntasks=4"
     time:"01:00:00"
-    maxRetries: 5
   }
 
   output{

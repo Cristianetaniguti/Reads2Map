@@ -570,6 +570,12 @@ task SetProbs{
                                recovering=FALSE)
 
       probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+
+      # If filter by genotype probability
+      # onemap_prob <- filter_prob(probs_onemap_obj, threshold = threshold)
+      # onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+      # globalerror_onemap_obj <- create_probs(input.obj = onemap_mis, global_error = 0.05)
+
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
@@ -646,6 +652,10 @@ task SetProbsDefault{
                                recovering=FALSE)
 
       probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+
+      # onemap_prob <- filter_prob(probs_onemap_obj, threshold = threshold)
+      # onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+      # globalerror_onemap_obj <- create_probs(input.obj = onemap_mis, global_error = 0.05)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
@@ -685,9 +695,15 @@ task FilterSegregation {
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
-
+        
+        library(vcfR)
         library(Reads2MapTools)
-        segregation_test_vcf("~{vcf_file}", P1 = "~{parent1}", P2 = "~{parent2}",
+        obj <- read.vcfR("~{vcf_file}")
+        gt <- extract.gt(obj)
+        dp <- extract.gt(obj, element = "DP")
+        obj@gt[,-1][which(is.na(gt))] <- obj@gt[,-1][which(is.na(dp))][1]
+        write.vcf(obj, file = "missing_counts_fixed.vcf")
+        segregation_test_vcf("missing_counts_fixed.vcf", P1 = "~{parent1}", P2 = "~{parent2}",
                              out.vcf = "filtered.vcf.gz", threshold = 0.05, rm_just_noninfo = TRUE)
 
       RSCRIPT
