@@ -101,6 +101,12 @@ task RunBwaAlignment {
     time:"05:00:00"
   }
 
+  meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Run [BWA](http://bio-bwa.sourceforge.net/) MEM alignment."
+  }
+
   output {
     Array[File] bam = glob("*.sorted.merged.filtered.bam")
     Array[File] bai = glob("*.sorted.merged.filtered.bai")
@@ -186,6 +192,12 @@ task RunBwaAlignmentSimu {
     time:"10:00:00"
   }
 
+  meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Run [BWA](http://bio-bwa.sourceforge.net/) MEM alignment in simulated reads."
+  }
+
   output {
     Array[File] bam = glob("*.sorted.bam")
     Array[File] bai = glob("*.sorted.bai")
@@ -216,6 +228,12 @@ task CreateChunksFastq {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"00:05:00"
+  }
+
+  meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Split the empirical fastq files into chunks to be aligned in parallel in the next task."
   }
 
   output {

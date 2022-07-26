@@ -82,6 +82,12 @@ task SepareChunks {
         time:"00:05:00"
     }
 
+    meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Split the fastq files into chunks to be aligned in parallel in the next task."
+    }
+
     output {
         Array[File] chunks = glob("chunk*")
     }

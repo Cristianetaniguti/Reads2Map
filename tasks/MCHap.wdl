@@ -92,6 +92,12 @@ task BamToBed {
         time:"05:00:00"
     }
 
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Uses [bamToBed](https://bedtools.readthedocs.io/en/latest/content/tools/bamtobed.html) and [bedtools](https://bedtools.readthedocs.io/en/latest/) to create BED file and merge overlapping intervals."
+    }    
+
     output {
         File merged_bed = "merged.bed"
     }
@@ -130,6 +136,12 @@ task SepareChunksBed {
         tasks:"--ntasks=1"
         time:"00:05:00"
     }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Split BED file rows in batches according to defined number of nodes."
+    }  
 
     output {
         Array[File] chunks = glob("chunk*")
@@ -190,6 +202,12 @@ task OneMCHap {
         time:"24:00:00"
     }
 
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Runs [MCHap](https://github.com/PlantandFoodResearch/MCHap) assemble step in a batch of the BED file rows."
+    }  
+
     output {
         File assemble_vcf = "assemble.vcf.gz"
     }
@@ -240,6 +258,12 @@ task OneMCHap_recall {
         time:"24:00:00"
     }
 
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Runs [MCHap](https://github.com/PlantandFoodResearch/MCHap) call step in a batch of the BED file rows."
+    }
+
     output {
         File haplo_vcf = "haplotypes.vcf.gz"
     }
@@ -280,6 +304,12 @@ task mergeVCFs {
         time:"01:00:00"
     }
 
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to sort and merge VCF files."
+    }
+
     output {
         File merged_vcf = "merged.sorted.vcf.gz"
     }
@@ -314,6 +344,12 @@ task FilterMulti {
         mem:"--mem=15GB"
         tasks:"--ntasks=1"
         time:"01:00:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Filters VCF file markers according to segregation expected in a outcrossing F1 population. Adapts the alleles codification. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
     }
 
     output {

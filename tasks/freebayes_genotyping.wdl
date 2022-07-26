@@ -89,6 +89,12 @@ task RunFreebayes {
     time:"72:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Split genomic regions and runs [freebayes](https://github.com/freebayes/freebayes) parallelized."
+  }
+
   output {
     File vcf = "freebayes.vcf"
   }

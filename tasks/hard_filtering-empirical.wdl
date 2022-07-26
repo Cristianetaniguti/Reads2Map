@@ -78,6 +78,12 @@ task VariantsToTable {
         time:"01:50:00"
     }
 
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Generated tables with estimated markers quality parameters. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360036896892-VariantsToTable) tool"
+    }
+
     output {
         File Total = "Total.table"
     }
@@ -172,6 +178,12 @@ task QualPlots {
         time:"01:20:00"
     }
 
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Generated graphics about empirical markers quality parameters and Hard Filtering. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants) tool"
+    }
+
     output {
         File Plots = "QualPlots.tar.gz"
     }
@@ -219,6 +231,12 @@ task VariantFiltration {
         mem:"--mem=10G"
         tasks:"--ntasks=1"
         time:"01:00:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Filters empirical VCF according to GATK Hard Filtering. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants) tool"
     }
 
     output {

@@ -140,6 +140,12 @@ task GusmapReport {
     time:"24:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Estimate genetic distances by GUSMap HMM multi-point approach in a set o simulated markers ordered by genomic position with and without false-positives. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
+  }
+
   output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData"

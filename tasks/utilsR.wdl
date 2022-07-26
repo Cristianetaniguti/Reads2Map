@@ -39,6 +39,7 @@ task vcf2onemap{
         RSCRIPT
 
     >>>
+
     runtime {
       docker:"cristaniguti/reads2map:0.0.1"
       # preemptible: 3
@@ -49,6 +50,12 @@ task vcf2onemap{
       mem:"--mem=10G"
       cpu:"--ntasks=1"
       time:"10:00:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Convert VCF file to onemap object. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
     }
 
     output{
@@ -96,6 +103,12 @@ task FiltersReport{
     time:"05:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Filter simulated markers in onemap object by missing data, segregation distortion and redundant markers. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
+  }
+
   output {
     File filters_report = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_~{seed}_~{depth}_filters_report.tsv.gz"
     File onemap_obj_filtered = "onemap_obj_filtered.RData"
@@ -137,6 +150,12 @@ task FiltersReportEmp{
     mem:"--mem=7G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+  }
+
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Filter empirical markers in onemap object by missing data, segregation distortion and redundant markers. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
   }
 
   output {
@@ -236,6 +255,12 @@ task MapsReport{
     time:"48:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Estimate genetic distances by OneMap HMM multi-point approach in a set o simulated markers ordered by genomic position with and without false-positives. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
+  }
+
   output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData"
@@ -315,6 +340,12 @@ task ErrorsReport {
     time:"05:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Creates data.frame with probabilities used in the OneMap HMM. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
+  }
+
   output{
     File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_errors_report.tsv.gz"
   }
@@ -370,6 +401,12 @@ task CheckDepths{
     time:"10:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Creates data.frame with reads depth information. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
+  }
+
   output{
     File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_errors_report.tsv.gz"
   }
@@ -422,6 +459,12 @@ task MapsReportEmp{
     mem:"--mem=30G"
     cpu:"--ntasks=4"
     time:"48:00:00"
+  }
+
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Estimate genetic distances by OneMap HMM multi-point approach in a set o empirical markers ordered by genomic position. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
   }
 
   output{
@@ -519,6 +562,12 @@ task ReGenotyping{
     time:"10:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Run updog, polyRAD and SuperMASSA genotyping for F1 population. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
+  }
+
   output {
     File regeno_vcf = "regeno.vcf"
   }
@@ -594,6 +643,12 @@ task SetProbs{
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"10:00:00"
+  }
+
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description:"Get GQ or PL values from VCF file and set them as genotype probabilities in OneMap object. Also produce an OneMap object with global error rate of 0.05. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
   }
 
   output{
@@ -678,6 +733,12 @@ task SetProbsDefault{
     time:"10:00:00"
   }
 
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Set OneMap object genotype probabilities to value used in OneMap < 3.0 and to 0.05. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
+  }
+
   output{
     File probs_onemap_obj = "probs_onemap_obj.RData"
     File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
@@ -710,15 +771,21 @@ task FilterSegregation {
   >>>
 
     runtime{
-    docker:"cristaniguti/reads2map:0.0.1"
-    # time:"10:00:00"
-    # mem:"30GB"
-    # cpu:1
-    job_name: "FilterSegregation"
-    node:"--nodes=1"
-    mem:"--mem=10G"
-    cpu:"--ntasks=1"
-    time:"10:00:00"
+        docker:"cristaniguti/reads2map:0.0.1"
+        # time:"10:00:00"
+        # mem:"30GB"
+        # cpu:1
+        job_name: "FilterSegregation"
+        node:"--nodes=1"
+        mem:"--mem=10G"
+        cpu:"--ntasks=1"
+        time:"10:00:00"
+  }
+
+  meta {
+        author: "Cristiane Taniguti"
+        email: "chtaniguti@tamu.edu"
+        description: "Filter VCF file according to markers segregation information and replace DP/AD VCF information by 0 when GT is missing. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
   }
 
   output {

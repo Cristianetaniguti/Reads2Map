@@ -65,6 +65,12 @@ task BiallelicNormalization {
     time:"01:00:00"
   }
 
+  meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to left-align and normalize indels in the VCF file."
+  }
+
   output {
     File vcf_norm = "vcf_norm.vcf.gz"
     File vcf_norm_tbi = "vcf_norm.vcf.gz.tbi"
@@ -98,6 +104,12 @@ task VariantEval {
     mem:"--mem=10G"
     tasks:"--ntasks=1"
     time:"01:00:00"
+  }
+
+  meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Uses [VariantEval](https://gatk.broadinstitute.org/hc/en-us/articles/360040507171-VariantEval-BETA-#:~:text=Overview,of%20s%20per%20sample%3B%20etc.) to generate report comparing variants estimated and simulated."
   }
 
   output {

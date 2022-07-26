@@ -395,6 +395,12 @@ task JointReports{
     time:"01:40:00"
   }
 
+  meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Merge reports resulted from evaluations with different pipelines."
+  } 
+
   output {
     File data1_depths_geno_prob = "data1_depths_geno_prob.tsv.gz"
     File data2_maps = "data2_maps.tsv.gz"

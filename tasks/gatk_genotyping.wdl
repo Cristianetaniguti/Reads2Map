@@ -195,6 +195,12 @@ task CreateChunks {
     time:"00:05:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Split the the samples BAM alignment files in chunks."
+  }
+
   output {
     Array[File] bams_chunks = glob("bams.*")
     Array[File] bais_chunks = glob("bais.*")
@@ -251,6 +257,12 @@ task HaplotypeCaller {
     time:"24:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Runs [HaplotypeCaller](https://gatk.broadinstitute.org/hc/en-us/articles/360037225632-HaplotypeCaller)."
+  }
+
   output {
     Array[File] vcfs = glob("vcfs/*.vcf.gz")
     Array[File] vcfs_index = glob("vcfs/*.vcf.gz.tbi")
@@ -299,6 +311,12 @@ task ImportGVCFs  {
     time:"24:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Runs [GenomicsDBImport](https://gatk.broadinstitute.org/hc/en-us/articles/360036883491-GenomicsDBImport)."
+  }
+
   output {
     File output_workspace = "cohort_db.tar"
   }
@@ -340,6 +358,12 @@ task GenotypeGVCFs   {
     time:"24:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Runs [GenotypeGVCFs](https://gatk.broadinstitute.org/hc/en-us/articles/360037057852-GenotypeGVCFs)."
+  }
+
   output {
     File vcf = "gatk.vcf.gz"
     File vcf_tbi = "gatk.vcf.gz.tbi"
@@ -376,6 +400,12 @@ task MergeVCFs {
     tasks:"--ntasks=1"
     time:"10:00:00"
   } 
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Runs [MergeVcfs](https://gatk.broadinstitute.org/hc/en-us/articles/360037226612-MergeVcfs-Picard-)."
+  }
 
   output {
     File output_vcf = "gatk_joint.vcf.gz"

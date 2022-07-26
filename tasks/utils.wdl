@@ -36,6 +36,12 @@ task ApplyRandomFilters {
     time:"01:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [vcftools](http://vcftools.sourceforge.net/) to filter VCF file by user-defined criterias."
+  }  
+
   output {
     File gatk_vcf_filt = "gatk_vcf_filt.vcf"
     File freebayes_vcf_filt = "freebayes_vcf_filt.vcf"
@@ -65,6 +71,12 @@ task SplitMarkers {
     tasks:"--ntasks=1"
     time:"01:00:00"
   }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to split the VCF in biallelic and multiallelic markers."
+  }  
 
   output {
     File biallelics = "biallelics.vcf.gz"
@@ -113,6 +125,12 @@ task JointMarkers{
     tasks:"--ntasks=1"
     time:"01:00:00"
   }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to joint the VCF files with biallelic and multiallelic markers."
+  }  
 
   output {
     File merged_vcf = "merged.vcf.gz"
@@ -167,6 +185,12 @@ task ReplaceAD {
     time:"24:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to replace Allele Depth VCF field with read depth information from BAM alignment files."
+  }  
+
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
     File bam_vcf_tbi = "~{program}_bam_vcf.vcf.gz.tbi"
@@ -207,6 +231,12 @@ task Compress {
     time:"01:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Move resulted reports to a single directory and compress it."
+  }  
+
   output {
     File tar_gz_report = "~{name}.tar.gz"
   }
@@ -243,10 +273,15 @@ task CompressGusmap {
     time:"01:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Move GUSMap resulted reports to a single directory and compress it."
+  } 
+
   output {
     File tar_gz_report = "~{name}.tar.gz"
   }
-
 }
 
 
@@ -286,6 +321,12 @@ task GetMarkersPos {
     time:"01:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to extract markers position information."
+  } 
+
   output {
     File positions = "~{depth}_~{seed}_positions.tar.gz"
   }
@@ -308,6 +349,12 @@ task MergeBams{
         tasks:"--ntasks=1"
         time:"01:00:00"
     }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Uses [samtools](https://samtools.github.io/) to merge BAM alignment files."
+    } 
 
     output {
         File merged_bam = "merged.bam"

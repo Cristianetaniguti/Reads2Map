@@ -198,6 +198,12 @@ task GenerateAlternativeGenome {
     time:"01:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [pirs](https://github.com/galaxy001/pirs) to create homologous genome with variations when reference VCF is not provided."
+  }
+
   output {
     File alt_fasta = "alt.snp.indel.fa"
     File indels = "alt.indel.lst"
@@ -386,6 +392,12 @@ task CreatePedigreeSimulatorInputs {
     time:"10:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Generates the parents haplotypes when reference VCF is not provided."
+  }
+
   output {
     File mapfile_nomap = "mapfile.txt"
     File founderfile_nomap = "founders.txt"
@@ -425,6 +437,12 @@ task RunPedigreeSimulator {
     mem:"--mem=20G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Runs [PedigreeSim](https://www.wur.nl/en/show/Software-PedigreeSim.htm)."
   }
 
   output {
@@ -518,6 +536,12 @@ task ConvertPedigreeSimulationToVcf {
     time:"05:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Converts PedigreeSim output to VCF file. It have the option to simulate segregation distortion while this convertion is made."
+  }
+
   output {
     File simu_vcf = "~{seed}_~{depth}_simu.vcf"
     File simu_haplo = "~{seed}_~{depth}_haplo_simu.tsv.gz"
@@ -550,6 +574,12 @@ task RunVcf2diploid {
     mem:"--mem=5G"
     cpu:"--ntasks=1"
     time:"05:00:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [vcf2diploid](https://github.com/abyzovlab/vcf2diploid) to include the VCF genotypes into the FASTA file."
   }
 
   output {
@@ -592,6 +622,12 @@ task GenerateSampleNames {
     mem:"--mem=1G"
     cpu:"--ntasks=1"
     time:"01:00:00"
+  }
+
+  meta {
+    author: "Lucas Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Creates the sample names."
   }
 
   output {
@@ -656,6 +692,12 @@ task Vcf2PedigreeSimulator{
       time:"05:00:00"
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses information of a reference VCF to generate [PedigreeSim](https://www.wur.nl/en/show/Software-PedigreeSim.htm) inputs."
+  }
+
   output{
       File mapfile_map = "mapfile.txt"
       File founderfile_map = "founders.txt"
@@ -664,7 +706,6 @@ task Vcf2PedigreeSimulator{
       File ref_alt_alleles_map = "ref_alt_alleles.txt"
       File simulated_phases_map = "simulated_phases.txt"
   }
-
 }
 
 task SimuscopProfile{
@@ -709,6 +750,12 @@ task SimuscopProfile{
     cpu:"--ntasks=1"
     time:"05:00:00"
     maxRetries: 5
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Run [seqToProfile](https://github.com/qasimyu/simuscop) to generate data set profile."
   }
 
   output{
@@ -779,7 +826,13 @@ task SimuscopSimulation{
     cpu:"--ntasks=1"
     time:"10:00:00"
     maxRetries: 5
-   }
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Run [simuReads](https://github.com/qasimyu/simuscop) to simulated exome or WGS sequencing reads."
+  }
 
   output {
     File fastq_seq = "~{sampleName}.fq"
@@ -895,6 +948,12 @@ task RADinitioSimulation{
     maxRetries: 5
   }
 
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Run [RARinitio](https://github.com/qasimyu/simuscop) to simulated RADseq sequencing reads."
+  }
+
   output {
     Array[File] fastq_rad = glob("*.fq")
   }
@@ -902,12 +961,12 @@ task RADinitioSimulation{
 
 
 task SepareChunks {
-    input {
-        Array[File] fastqs
-        Int chunk_size
-    }
+  input {
+      Array[File] fastqs
+      Int chunk_size
+  }
 
-    command <<<
+  command <<<
         R --vanilla --no-save <<RSCRIPT
 
             files <- c("~{sep="," fastqs}")
@@ -926,18 +985,24 @@ task SepareChunks {
 
         RSCRIPT
 
-    >>>
+  >>>
 
-    runtime {
-        job_name: "SepareChunksIndividuals"
-        docker: "cristaniguti/reads2map:0.0.1"
-        node:"--nodes=1"
-        mem:"--mem=1G"
-        tasks:"--ntasks=1"
-        time:"00:05:00"
-    }
+  runtime {
+      job_name: "SepareChunksIndividuals"
+      docker: "cristaniguti/reads2map:0.0.1"
+      node:"--nodes=1"
+      mem:"--mem=1G"
+      tasks:"--ntasks=1"
+      time:"00:05:00"
+  }
 
-    output {
-        Array[File] chunks = glob("chunk*")
-    }
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Split the simulated fastq files into chunks to be aligned in parallel in the next task."
+  }
+
+  output {
+    Array[File] chunks = glob("chunk*")
+  }
 }
