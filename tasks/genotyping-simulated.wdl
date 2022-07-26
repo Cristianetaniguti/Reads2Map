@@ -49,7 +49,8 @@ workflow onemapMaps {
       cross = cross,
       parent1 = "P1",
       parent2 = "P2",
-      multiallelics = multiallelics
+      multiallelics = multiallelics,
+      SNPCall_program = SNPCall_program
   }
 
   Array[String] methods                         = [genotyping_program, genotyping_program + "0.05"]
@@ -85,7 +86,6 @@ workflow onemapMaps {
         call utilsR.ErrorsReport{
             input:
               onemap_obj = item.right,
-              simu_onemap_obj = simu_onemap_obj,
               SNPCall_program = SNPCall_program,
               GenotypeCall_program = item.left,
               CountsFrom = CountsFrom,
@@ -93,7 +93,6 @@ workflow onemapMaps {
               vcfR_obj = SetProbs.vcfR_obj,
               seed = seed,
               depth = depth,
-              max_cores = max_cores
           }
 
    }

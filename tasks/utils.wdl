@@ -13,12 +13,14 @@ task ApplyRandomFilters {
   }
 
   command <<<
-    vcftools --gzvcf ~{gatk_vcf} ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_filt.vcf
+    # Required update to deal with polyploids
+    zcat  ~{gatk_vcf} | sed 's/^##fileformat=VCFv4.3/##fileformat=VCFv4.2/' > out1.vcf
+    zcat ~{gatk_vcf_bam_counts} | sed 's/^##fileformat=VCFv4.3/##fileformat=VCFv4.2/'  > out2.vcf
+
+    vcftools --gzvcf out1.vcf  ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_filt.vcf
+    vcftools --gzvcf out2.vcf ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
 
     vcftools --gzvcf ~{freebayes_vcf} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_filt.vcf
-
-    vcftools --gzvcf ~{gatk_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > gatk_vcf_bam_counts_filt.vcf
-
     vcftools --gzvcf ~{freebayes_vcf_bam_counts} ~{filters} ~{"--chr " + chromosome} --recode --stdout > freebayes_vcf_bam_counts_filt.vcf
   >>>
 
@@ -135,7 +137,7 @@ task ReplaceAD {
     bcftools view -G --max-alleles 2 -v snps ~{vcf} -Oz -o sites.vcf.gz
     bcftools index --tbi -f sites.vcf.gz
     bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
-    bcftools mpileup -f ~{ref_fasta} -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
+    bcftools mpileup -f ~{ref_fasta} -d 500000 -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp 
     bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o bam_vcf.vcf
 
     bcftools query -l multiallelics.vcf.gz | sort > samples.txt
@@ -149,6 +151,7 @@ task ReplaceAD {
     tabix -p vcf multiallelic_sort.vcf.gz
 
     bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -a -Oz --output ~{program}_bam_vcf.vcf.gz
+    tabix -p vcf ~{program}_bam_vcf.vcf.gz
     
   >>>
 
@@ -166,6 +169,7 @@ task ReplaceAD {
 
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
+    File bam_vcf_tbi = "~{program}_bam_vcf.vcf.gz.tbi"
   }
 }
 
@@ -285,4 +289,27 @@ task GetMarkersPos {
   output {
     File positions = "~{depth}_~{seed}_positions.tar.gz"
   }
+}
+
+task MergeBams{
+    input {
+        Array[File] bam_files
+    }
+
+    command <<<
+        samtools merge merged.bam ~{sep=" " bam_files}
+    >>>
+
+    runtime {
+        job_name: "MergeBams"
+        docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        node:"--nodes=1"
+        mem:"--mem=10G"
+        tasks:"--ntasks=1"
+        time:"01:00:00"
+    }
+
+    output {
+        File merged_bam = "merged.bam"
+    }
 }

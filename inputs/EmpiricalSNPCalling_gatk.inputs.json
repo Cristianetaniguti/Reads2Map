@@ -1,0 +1,25 @@
+{
+  "SNPCalling_gatk.rm_dupli": "String",
+  "SNPCalling_gatk.chunk_size": "Int",
+  "SNPCalling_gatk.mchap": "String",
+  "SNPCalling_gatk.merged_bams": "File? (optional)",
+  "SNPCalling_gatk.P1": "String? (optional)",
+  "SNPCalling_gatk.references": {
+    "ref_fasta": "File",
+    "ref_dict": "File",
+    "ref_ann": "File",
+    "ref_sa": "File",
+    "ref_amb": "File",
+    "ref_bwt": "File",
+    "ref_fasta_index": "File",
+    "ref_pac": "File"
+  },
+  "SNPCalling_gatk.GatkGenotyping.vcf_simu": "File? (optional)",
+  "SNPCalling_gatk.max_cores": "Int",
+  "SNPCalling_gatk.GatkGenotyping.seed": "Int? (optional)",
+  "SNPCalling_gatk.P2": "String? (optional)",
+  "SNPCalling_gatk.ploidy": "Int",
+  "SNPCalling_gatk.GatkGenotyping.depth": "Int? (optional)",
+  "SNPCalling_gatk.samples_info": "File"
+}
+

@@ -19,6 +19,8 @@ workflow SNPCallerMaps{
      Int max_cores
      String multiallelics
      File? multiallelics_file
+     File? multiallelics_mchap
+     String mchap
     }
 
   if (multiallelics == "TRUE") {
@@ -37,7 +39,10 @@ workflow SNPCallerMaps{
       cross = cross,
       parent1 = "P1",
       parent2 = "P2",
-      multiallelics = multiallelics
+      SNPCall_program = SNPCall_program,
+      multiallelics = multiallelics,
+      multiallelics_mchap = multiallelics_mchap,
+      mchap = mchap
   }
 
   Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]
@@ -72,15 +77,13 @@ workflow SNPCallerMaps{
       call utilsR.ErrorsReport{
         input:
           onemap_obj = item.right,
-          simu_onemap_obj = simu_onemap_obj,
           SNPCall_program = SNPCall_program,
           GenotypeCall_program = item.left,
           CountsFrom = CountsFrom,
           simu_vcfR = simu_vcfR,
           vcfR_obj = SetProbsDefault.vcfR_obj,
           seed = seed,
-          depth = depth,
-          max_cores = max_cores
+          depth = depth
       }
   }
 

@@ -35,7 +35,7 @@ workflow SimulatedReads {
       "doses": family.doses,
       "ploidy": family.ploidy,
       "cross": family.cross,
-      "multiallelics": sequencing.multiallelics
+      "multiallelics": sequencing.multiallelics,
     }
 
     # Calling reads_simu for each seed

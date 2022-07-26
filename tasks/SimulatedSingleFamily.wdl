@@ -2,7 +2,7 @@ version 1.0
 
 
 import "./create_alignment_from_read_simulations.wdl" as simulation
-import "./gatk_genotyping.wdl" as gatk
+import "./gatk_genotyping.wdl" as gatk 
 import "./freebayes_genotyping.wdl" as freebayes
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
@@ -27,6 +27,7 @@ workflow SimulatedSingleFamily {
     Int max_cores
     Int chunk_size
     Int ploidy
+    String gatk_mchap
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -40,32 +41,36 @@ workflow SimulatedSingleFamily {
 
   call gatk.GatkGenotyping {
     input:
-      bams=CreateAlignmentFromSimulation.bam,
-      bais=CreateAlignmentFromSimulation.bai,
-      references=references,
-      program="gatk",
-      vcf_simu = CreateAlignmentFromSimulation.true_vcf,
-      seed    = family.seed,
-      depth   = sequencing.depth,
+      bams       = CreateAlignmentFromSimulation.bam,
+      bais       = CreateAlignmentFromSimulation.bai,
+      references = references,
+      program    = "gatk",
+      vcf_simu   = CreateAlignmentFromSimulation.true_vcf,
+      seed       = family.seed,
+      depth      = sequencing.depth,
       chunk_size = chunk_size,
-      ploidy = ploidy
+      ploidy     = ploidy,
+      mchap      = gatk_mchap,
+      max_cores  = max_cores,
+      merged_bams = CreateAlignmentFromSimulation.merged_bam,
+      P1 = "P1",
+      P2 = "P2"
   }
 
   call freebayes.FreebayesGenotyping {
     input:
-      bams=CreateAlignmentFromSimulation.bam,
-      bais=CreateAlignmentFromSimulation.bai,
-      references=references,
-      program="freebayes",
-      max_cores = max_cores,
-      vcf_simu = CreateAlignmentFromSimulation.true_vcf
+      bams       = CreateAlignmentFromSimulation.bam,
+      bais       = CreateAlignmentFromSimulation.bai,
+      references = references,
+      program    = "freebayes",
+      max_cores  = max_cores,
+      vcf_simu   = CreateAlignmentFromSimulation.true_vcf
   }
 
   call utilsR.vcf2onemap as truth_vcf {
     input:
       vcf_file = CreateAlignmentFromSimulation.true_vcf,
       cross = family.cross,
-      SNPCall_program = "simu",
       parent1 = "P1",
       parent2 = "P2"
   }
@@ -112,9 +117,18 @@ workflow SimulatedSingleFamily {
                 vcf_file = vcfs[origin]
         }
 
+        # Suggestion for better SuperMASSA, updog and polyRAD performance 
+        # call utilsR.FilterSegregation { 
+        #      input:
+        #         vcf_file = splitgeno.biallelics,
+        #         parent1 = "P1",
+        #         parent2 = "P2"
+        # }
+
         call genotyping.onemapMaps as updogMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
+            #vcf_file = FilterSegregation.vcf_filtered,
             vcf_file = splitgeno.biallelics,
             genotyping_program = "updog",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -133,6 +147,7 @@ workflow SimulatedSingleFamily {
         call genotyping.onemapMaps as supermassaMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
+            #vcf_file = FilterSegregation.vcf_filtered,
             vcf_file = splitgeno.biallelics,
             genotyping_program = "supermassa",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -151,6 +166,7 @@ workflow SimulatedSingleFamily {
         call genotyping.onemapMaps as polyradMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
+            #vcf_file = FilterSegregation.vcf_filtered,
             vcf_file = splitgeno.biallelics,
             genotyping_program = "polyrad",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -206,7 +222,9 @@ workflow SimulatedSingleFamily {
         depth = sequencing.depth,
         max_cores = max_cores,
         multiallelics = sequencing.multiallelics,
-        multiallelics_file = splitvcf.multiallelics
+        multiallelics_file = splitvcf.multiallelics,
+        multiallelics_mchap = GatkGenotyping.vcf_multi,
+        mchap = gatk_mchap
     }
   }
 
@@ -217,7 +235,7 @@ workflow SimulatedSingleFamily {
       updog                     = flatten(updogMaps.tar_gz_report),
       polyrad                   = flatten(polyradMaps.tar_gz_report),
       supermassa                = flatten(supermassaMaps.tar_gz_report),
-      gusmap                    = gusmapMaps.tar_gz_report,
+      gusmap_files              = gusmapMaps.tar_gz_report,
       GATK_eval                 = GatkGenotyping.vcfEval,
       Freebayes_eval            = FreebayesGenotyping.vcfEval,
       multiallelics_file        = splitvcf.multiallelics,
@@ -248,7 +266,7 @@ task JointReports{
     Array[File] updog                     
     Array[File] polyrad                   
     Array[File] supermassa         
-    Array[File] gusmap
+    Array[File] gusmap_files
     Array[File] multiallelics_file                    
     File Freebayes_eval
     File GATK_eval
@@ -271,7 +289,7 @@ task JointReports{
       updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
       polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
       supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
-      gusmap <- str_split("~{sep=";" gusmap}", ";", simplify = T)
+      gusmap <- str_split("~{sep=";" gusmap_files}", ";", simplify = T)
 
       files <- list(SNPCaller, updog, polyrad, supermassa, gusmap)
 

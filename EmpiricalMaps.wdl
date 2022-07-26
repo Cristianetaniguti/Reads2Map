@@ -11,21 +11,21 @@ import "tasks/genotyping-empirical.wdl" as genotyping
 struct PopulationAnalysis {
     String method
     File vcf
-    File bam
+    File bam 
 }
 
 workflow Maps {
 
     input {
         Dataset dataset
+        File? gatk_vcf_multi
+        String gatk_mchap
         File gatk_vcf
         File freebayes_vcf
         File gatk_vcf_bam_counts
         File freebayes_vcf_bam_counts
         String? filters
         Int max_cores
-        File merged_bam
-        File reference
     }
 
     if (defined(filters)) {
@@ -60,9 +60,18 @@ workflow Maps {
                     vcf_file = vcfs[origin]
             }
 
+            # Suggestion to improve performance of SuperMASSA, polyRAD and updog
+            call utilsR.FilterSegregation {
+             input:
+                vcf_file = splitgeno.biallelics,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2
+            }
+
             call genotyping.onemapMaps as updogMaps {
                 input:
-                    vcf_file = splitgeno.biallelics,
+                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "updog",
                     CountsFrom = origin,
@@ -72,14 +81,13 @@ workflow Maps {
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
                     multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores,
-                    reference = reference,
-                    merged_bam = merged_bam
+                    max_cores = max_cores
             }
 
             call genotyping.onemapMaps as supermassaMaps {
                 input:
-                    vcf_file = splitgeno.biallelics,
+                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "supermassa",
                     CountsFrom = origin,
@@ -89,14 +97,13 @@ workflow Maps {
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
                     multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores,
-                    reference = reference,
-                    merged_bam = merged_bam
+                    max_cores = max_cores
             }
 
             call genotyping.onemapMaps as polyradMaps {
                 input:
-                    vcf_file = splitgeno.biallelics,
+                    vcf_file = FilterSegregation.vcf_filtered,
+                    # vcf_file = splitgeno.biallelics,
                     SNPCall_program = analysis.method,
                     GenotypeCall_program = "polyrad",
                     CountsFrom = origin,
@@ -106,9 +113,7 @@ workflow Maps {
                     chromosome = dataset.chromosome,
                     multiallelics = dataset.multiallelics,
                     multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores,
-                    reference = reference,
-                    merged_bam = merged_bam
+                    max_cores = max_cores
             }
         }
 
@@ -146,9 +151,9 @@ workflow Maps {
                 chromosome = dataset.chromosome,
                 multiallelics = dataset.multiallelics,
                 max_cores = max_cores,
-                reference = reference,
-                merged_bam = merged_bam,
-                multiallelics_file = splitvcf.multiallelics
+                multiallelics_file = splitvcf.multiallelics,
+                multiallelics_mchap = gatk_vcf_multi,
+                mchap = gatk_mchap
         }
     }
 
@@ -274,10 +279,9 @@ task JointReports{
     # cpu:1
     job_name: "JointReports"
     node:"--nodes=1"
-    mem:"--mem=10G"
-    cpu:"--ntasks=1"
+    mem:"--mem=20G"
+    cpu:"--ntasks=4"
     time:"01:00:00"
-    maxRetries: 5
   }
 
   output{

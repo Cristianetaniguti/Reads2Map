@@ -1,8 +1,8 @@
 version 1.0
 
 import "../structs/struct_reads_simu.wdl"
-import "../structs/struct_alignment.wdl"
 import "./alignment.wdl" as alg
+import "./utils.wdl" as utils
 
 workflow CreateAlignmentFromSimulation {
     input {
@@ -73,7 +73,9 @@ workflow CreateAlignmentFromSimulation {
       genotypes_dat   = RunPedigreeSimulator.genotypes_dat,
       map_file        = mapfile_sele,
       chrom_file      = chromfile_sele,
-      ref_alt_alleles = ref_alt_alleles_sele
+      ref_alt_alleles = ref_alt_alleles_sele,
+      popsize         = family.popsize,
+      mapsize         = sequencing.mapsize
   }
 
   call GenerateSampleNames {
@@ -147,9 +149,15 @@ workflow CreateAlignmentFromSimulation {
         fastqs     = fastq,
         references = references,
         max_cores  = max_cores,
-        rm_dupli   = sequencing.rm_dupli
+        rm_dupli   = sequencing.rm_dupli 
     }
   }
+
+    # Store for MCHap 
+    call utils.MergeBams {
+        input:
+            bam_files = flatten(RunBwaAlignmentSimu.bam)
+    }
 
   output {
       Array[File] bam = flatten(RunBwaAlignmentSimu.bam)
@@ -159,6 +167,7 @@ workflow CreateAlignmentFromSimulation {
       File true_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
       File simu_haplo = ConvertPedigreeSimulationToVcf.simu_haplo
       File simulated_phases = simulated_phases_sele
+      File merged_bam = MergeBams.merged_bam
   }
 
 }
@@ -210,8 +219,6 @@ task CreatePedigreeSimulatorInputs {
     File? doses
     String cross
   }
-
-  Int disk_size = ceil(size(ref, "GB") + size(snps, "GB") + size(indels, "GB") + 5)
 
   command <<<
 
@@ -357,6 +364,7 @@ task CreatePedigreeSimulatorInputs {
 
       simulated_phases <- compare_phases(founder_file)
 
+      #create_parfile(~{seed}, 50*~{popsize})
       create_parfile(~{seed}, ~{popsize})
 
       create_chromfile(map_file)
@@ -397,8 +405,6 @@ task RunPedigreeSimulator {
     File parfile
   }
 
-  Int disk_size = ceil(size(mapfile, "GB") + size(founderfile, "GB") + 5)
-
   command <<<
     set -e
     sed -i 's+chromosome.txt+~{chromfile}+g' ~{parfile}
@@ -437,9 +443,9 @@ task ConvertPedigreeSimulationToVcf {
     File map_file
     File chrom_file
     File ref_alt_alleles
+    Int popsize
+    Int mapsize
   }
-
-  Int disk_size = ceil(size(genotypes_dat, "GB") + size(map_file, "GB") + 5 )
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -463,10 +469,12 @@ task ConvertPedigreeSimulationToVcf {
                phase = TRUE,
                reference.alleles = mks[,3],
                use.as.alleles=TRUE,
-               segregation.distortion.mean = 10^(-5),
-               segregation.distortion.sd = 10^(-6),
-               segregation.distortion.freq = 0.30,
-               segregation.distortion.seed = ~{seed})
+              #  n_selected_loci = 1, 
+              #  selection_str_mean = 0.5, 
+              #  selection_str_var = 0.0001, 
+              #  pop.size = ~{popsize}, 
+              #  selected_mks = 30,
+               map.size = ~{mapsize})
 
     vcfR.object <- read.vcfR("temp.vcf")
 
@@ -526,8 +534,6 @@ task RunVcf2diploid {
     String chromosome
   }
 
-  Int disk_size = ceil(size(ref_genome, "GB") + size(simu_vcf, "GB") + 2)
-
   command <<<
     java -jar /usr/jars/vcf2diploid.jar -id ~{sampleName} -chr ~{ref_genome} -vcf ~{simu_vcf}
 
@@ -560,8 +566,6 @@ task GenerateSampleNames {
   input {
     File simulated_vcf
   }
-
-  Int disk_size = ceil(size(simulated_vcf, "GB") + 2)
 
   command <<<
     export PATH=$PATH:/opt/conda/bin
@@ -606,8 +610,6 @@ task Vcf2PedigreeSimulator{
     String vcf_parent2
   }
 
-  Int disk_size = ceil(size(vcf_file, "GB") +  5)
-
   command <<<
     R --vanilla --no-save <<RSCRIPT
 
@@ -627,6 +629,7 @@ task Vcf2PedigreeSimulator{
 
     ## This function generates the mapfile and the ref_alt_alleles file
     mapfile <- create_mapfile(vcf, ref_map)
+    #create_parfile(~{seed}, 50*~{popsize})
     create_parfile(~{seed}, ~{popsize})
     create_chromfile(mapfile[[1]])
 
@@ -671,8 +674,6 @@ task SimuscopProfile{
     File   vcf
     Reference  references
   }
-
-  Int disk_size = ceil(size(vcf, "GB") + size(references.ref_fasta, "GB") + 5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -726,8 +727,6 @@ task SimuscopSimulation{
     String chrom
     File profile
   }
-
-  Int disk_size = ceil(size(vcf, "GB") + size(references.ref_fasta, "GB") + 5)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT

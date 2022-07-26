@@ -1,9 +1,10 @@
 {
   "SimulatedReads.filters": "--maf 0.05",
   "SimulatedReads.number_of_families": "1",
+  "SimulatedReads.SimulatedSingleFamily.gatk_mchap": "TRUE",
   "SimulatedReads.family": {
     "seed": "5001",
-    "popsize": "200",
+    "popsize": "20",
     "ploidy": "2",
     "cross": "F1"
   },
@@ -33,7 +34,7 @@
     "enzyme2": "NlaIII",
     "multiallelics": "TRUE"
   },
-  "SimulatedReads.SimulatedSingleFamily.chunk_size": "3",
+  "SimulatedReads.SimulatedSingleFamily.chunk_size": "1",
   "SimulatedReads.max_cores": "3"
 }
 

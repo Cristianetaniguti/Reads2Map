@@ -3,6 +3,7 @@ version 1.0
 import "../structs/struct_reference.wdl"
 import "norm_filt_vcf.wdl" as norm_filt
 import "utils.wdl" as utils
+import "MCHap.wdl" as MCHapWf
 import "hard_filtering-simulated.wdl" as hard_filt
 import "hard_filtering-empirical.wdl" as hard_filt_emp
 
@@ -18,6 +19,11 @@ workflow GatkGenotyping {
     Int? depth
     Int chunk_size
     Int ploidy
+    String mchap
+    Int max_cores
+    File? merged_bams
+    String? P1
+    String? P2
   }
 
   call CreateChunks {
@@ -122,7 +128,35 @@ workflow GatkGenotyping {
       program = program
   }
 
+ # MCHap: micro-haplotyping
+ if(mchap == "TRUE") {
+   
+   Array[File] counts_source = [Normalization.vcf_norm, ReplaceAD.bam_vcf]
+
+   scatter (one_vcf in counts_source){
+      call MCHapWf.MCHap{
+        input:
+          reference = references.ref_fasta,
+          reference_idx = references.ref_fasta_index,
+          vcf_file = one_vcf, 
+          n_nodes = 10,
+          max_cores = max_cores,
+          bams = map_bams["bam"],
+          bais = map_bams["bai"],
+          ploidy = ploidy, 
+          merged_bams = merged_bams,
+          P1 = P1,
+          P2 = P2
+      }
+   }
+
+   File vcf_norm_mchap = MCHap.haplo_vcf_merged[0]
+   File vcf_bam_mchap = MCHap.haplo_vcf_merged[1]
+ }
+
   output {
+    File? vcf_multi = vcf_norm_mchap
+    File? vcf_multi_bamcounts = vcf_bam_mchap
     File vcf_norm = Normalization.vcf_norm
     File vcf_norm_bamcounts = ReplaceAD.bam_vcf
     File vcfEval = Normalization.vcfEval
@@ -181,8 +215,6 @@ task HaplotypeCaller {
     Int ploidy
   }
 
-  Int disk_size = ceil(size(reference_fasta, "GB") + size(bams, "GB") * 2)
-
   command <<<
     set -euo pipefail
 
@@ -200,7 +232,6 @@ task HaplotypeCaller {
         -I "$bam" \
         -O "vcfs/${out_name}.g.vcf.gz" \
         --max-reads-per-alignment-start 0 &
-
     done
 
     wait
@@ -235,8 +266,6 @@ task ImportGVCFs  {
     File reference_dict
     String interval
   }
-
-  Int disk_size = ceil(size(vcfs, "GB") + size(reference_fasta, "GB") + 5) * 2
 
   command <<<
     set -euo pipefail
@@ -283,8 +312,6 @@ task GenotypeGVCFs   {
     File reference_dict
     String interval
   }
-
-  Int disk_size = ceil(size(reference_fasta, "GB") + 5) * 2
 
   command <<<
     set -euo pipefail
@@ -333,8 +360,8 @@ task MergeVCFs {
 
     /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" \
       MergeVcfs \
-      -I ~{sep=' -I' input_vcfs} \
-      -O gatk_joint.vcf.gz
+        -I ~{sep=' -I' input_vcfs} \
+        -O gatk_joint.vcf.gz
   >>>
 
   runtime {

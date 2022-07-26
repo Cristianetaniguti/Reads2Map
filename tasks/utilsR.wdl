@@ -4,7 +4,6 @@ task vcf2onemap{
    input {
      File vcf_file
      String cross
-     String SNPCall_program
      String parent1
      String parent2
    }
@@ -77,7 +76,7 @@ task FiltersReport{
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_simu(temp.obj, "~{SNPCall_program}",
                                                   "~{CountsFrom}", "~{GenotypeCall_program}", 
-                                                   ~{seed}, ~{depth})
+                                                   ~{seed}, ~{depth}, threshold = NULL) # Threshold define the genotype probability filter
 
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
@@ -120,7 +119,8 @@ task FiltersReportEmp{
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_emp(temp.obj, "~{SNPCall_program}",
-                                           "~{CountsFrom}", "~{GenotypeCall_program}", "~{chromosome}")
+                                           "~{CountsFrom}", "~{GenotypeCall_program}", 
+                                           "~{chromosome}", threshold = NULL)
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
     RSCRIPT
@@ -247,14 +247,12 @@ task ErrorsReport {
   input {
     File onemap_obj
     File vcfR_obj
-    File simu_onemap_obj
     File simu_vcfR
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
     Int seed
     Int depth
-    Int max_cores
   }
 
   command <<<
@@ -492,13 +490,19 @@ task ReGenotyping{
                                                   use_genotypes_errors = FALSE,
                                                   use_genotypes_probs = TRUE)
         } else if (method == "polyrad") {
-            out_onemap_obj <- polyRAD_genotype_vcf(vcf="~{vcf_file}",
+            ex <- strsplit(basename("~{vcf_file}"), split="[.]")[[1]]
+            if(ex[length(ex)] == "gz") {
+              system("gunzip -f ~{vcf_file}")
+              vcf_in <- paste0(dirname("~{vcf_file}"), "/", paste0(ex[-length(ex)], collapse = "."))
+            } else vcf_in <- "~{vcf_file}"
+            out_onemap_obj <- polyRAD_genotype_vcf(vcf=vcf_in,
                                                    parent1="~{parent1}",
                                                    parent2="~{parent2}",
                                                    outfile = out_vcf)
         }
 
         system("gunzip regeno.vcf.gz")
+
 
      RSCRIPT
   >>>
@@ -527,6 +531,7 @@ task SetProbs{
     String parent1
     String parent2
     String multiallelics
+    String SNPCall_program
   }
 
   command <<<
@@ -554,6 +559,8 @@ task SetProbs{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
+      # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
+
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
                                vcf.par= "GQ",
@@ -563,6 +570,12 @@ task SetProbs{
                                recovering=FALSE)
 
       probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+
+      # If filter by genotype probability
+      # onemap_prob <- filter_prob(probs_onemap_obj, threshold = threshold)
+      # onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+      # globalerror_onemap_obj <- create_probs(input.obj = onemap_mis, global_error = 0.05)
+
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       save(probs_onemap_obj, file="probs_onemap_obj.RData")
@@ -594,6 +607,9 @@ task SetProbs{
 task SetProbsDefault{
   input{
     File vcf_file
+    File? multiallelics_mchap
+    String mchap
+    String SNPCall_program
     String cross
     String parent1
     String parent2
@@ -614,7 +630,7 @@ task SetProbsDefault{
         f1 = "F1"
       }
 
-      vcf <- read.vcfR("~{vcf_file}")
+      if(as.logical("~{mchap}") & "~{SNPCall_program}" == "gatk") vcf <- read.vcfR("~{multiallelics_mchap}") else  vcf <- read.vcfR("~{vcf_file}")
       save(vcf, file = "vcfR.RData")
       
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
@@ -625,6 +641,8 @@ task SetProbsDefault{
                                      parent2="~{parent2}",
                                      f1 = f1, only_biallelic = only_biallelic)
 
+      # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
+
       probs <- extract_depth(vcfR.object=vcf,
                                onemap.object=onemap.obj,
                                vcf.par= "GQ",
@@ -634,6 +652,10 @@ task SetProbsDefault{
                                recovering=FALSE)
 
       probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+
+      # onemap_prob <- filter_prob(probs_onemap_obj, threshold = threshold)
+      # onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+      # globalerror_onemap_obj <- create_probs(input.obj = onemap_mis, global_error = 0.05)
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
@@ -662,4 +684,45 @@ task SetProbsDefault{
     File default_onemap_obj = "default_onemap_obj.RData"
     File vcfR_obj = "vcfR.RData"
   }
+}
+
+task FilterSegregation {
+  input {
+    File vcf_file
+    String parent1
+    String parent2
+  }
+
+  command <<<
+      R --vanilla --no-save <<RSCRIPT
+        
+        library(vcfR)
+        library(Reads2MapTools)
+        obj <- read.vcfR("~{vcf_file}")
+        gt <- extract.gt(obj)
+        dp <- extract.gt(obj, element = "DP")
+        obj@gt[,-1][which(is.na(gt))] <- obj@gt[,-1][which(is.na(dp))][1]
+        write.vcf(obj, file = "missing_counts_fixed.vcf")
+        segregation_test_vcf("missing_counts_fixed.vcf", P1 = "~{parent1}", P2 = "~{parent2}",
+                             out.vcf = "filtered.vcf.gz", threshold = 0.05, rm_just_noninfo = TRUE)
+
+      RSCRIPT
+  >>>
+
+    runtime{
+    docker:"cristaniguti/reads2map:0.0.1"
+    # time:"10:00:00"
+    # mem:"30GB"
+    # cpu:1
+    job_name: "FilterSegregation"
+    node:"--nodes=1"
+    mem:"--mem=10G"
+    cpu:"--ntasks=1"
+    time:"10:00:00"
+  }
+
+  output {
+    File vcf_filtered = "filtered.vcf.gz"
+  }
+
 }

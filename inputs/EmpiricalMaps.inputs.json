@@ -1,19 +1,19 @@
 {
-  "Maps.freebayes_vcf": "/home/cris/Reads2Map/data/toy_empirical/EmpiricalMaps/freebayes/freebayes_bam_vcf.vcf.gz",
-  "Maps.reference": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa",
-  "Maps.merged_bam": "/home/cris/Reads2Map/data/toy_empirical/EmpiricalMaps/merged.bam",
+  "Maps.freebayes_vcf": "File",
   "Maps.dataset": {
-    "parent2": "PT_M",
-    "name": "populus_sub",
-    "parent1": "PT_F",
-    "chromosome": "Chr10",
-    "cross": "F1",
-    "multiallelics": "TRUE"
+    "parent2": "String",
+    "name": "String",
+    "parent1": "String",
+    "chromosome": "String",
+    "cross": "String",
+    "multiallelics": "String"
   },
-  "Maps.gatk_vcf_bam_counts": "/home/cris/Reads2Map/data/toy_empirical/EmpiricalMaps/gatk/gatk_bam_vcf.vcf.gz",
-  "Maps.max_cores": "3",
-  "Maps.filters": "--maf 0.05",
-  "Maps.gatk_vcf": "/home/cris/Reads2Map/data/toy_empirical/EmpiricalMaps/gatk/vcf_norm.vcf.gz",
-  "Maps.freebayes_vcf_bam_counts": "/home/cris/Reads2Map/data/toy_empirical/EmpiricalMaps/freebayes/vcf_norm.vcf.gz"
+  "Maps.gatk_vcf_bam_counts": "File",
+  "Maps.max_cores": "Int",
+  "Maps.gatk_vcf_multi": "File? (optional)",
+  "Maps.gatk_mchap": "String",
+  "Maps.filters": "String? (optional)",
+  "Maps.gatk_vcf": "File",
+  "Maps.freebayes_vcf_bam_counts": "File"
 }
 
