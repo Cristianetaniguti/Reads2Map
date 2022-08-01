@@ -2,7 +2,7 @@ version 1.0
 
 import "./utils.wdl" as utils
 
-workflow gusmapMaps {
+workflow gusmapMapsEmp {
   input {
     File vcf_file
     File new_vcf_file

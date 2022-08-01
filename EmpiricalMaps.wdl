@@ -68,7 +68,7 @@ workflow Maps {
                 parent2 = dataset.parent2
             }
 
-            call genotyping.onemapMaps as updogMaps {
+            call genotyping.onemapMapsEmp as updogMaps {
                 input:
                     vcf_file = FilterSegregation.vcf_filtered,
                     # vcf_file = splitgeno.biallelics,
@@ -84,7 +84,7 @@ workflow Maps {
                     max_cores = max_cores
             }
 
-            call genotyping.onemapMaps as supermassaMaps {
+            call genotyping.onemapMapsEmp as supermassaMaps {
                 input:
                     vcf_file = FilterSegregation.vcf_filtered,
                     # vcf_file = splitgeno.biallelics,
@@ -100,7 +100,7 @@ workflow Maps {
                     max_cores = max_cores
             }
 
-            call genotyping.onemapMaps as polyradMaps {
+            call genotyping.onemapMapsEmp as polyradMaps {
                 input:
                     vcf_file = FilterSegregation.vcf_filtered,
                     # vcf_file = splitgeno.biallelics,
@@ -128,7 +128,7 @@ workflow Maps {
        }
 
        # Build maps with GUSMap
-       call gusmap.gusmapMaps {
+       call gusmap.gusmapMapsEmp {
             input:
               vcf_file = splitvcf.biallelics,
               new_vcf_file = splitbam.biallelics,
@@ -139,7 +139,7 @@ workflow Maps {
               max_cores = max_cores
         }
 
-        call snpcaller.SNPCallerMaps {
+        call snpcaller.SNPCallerMapsEmp {
             input:
                 vcf_file = splitvcf.biallelics,
                 cross = dataset.cross,
@@ -160,11 +160,11 @@ workflow Maps {
     # Compress files
     call JointReports {
         input:
-            SNPCaller = SNPCallerMaps.tar_gz_report,
+            SNPCaller = SNPCallerMapsEmp.tar_gz_report,
             updog = flatten(updogMaps.tar_gz_report),
             polyrad = flatten(polyradMaps.tar_gz_report),
             supermassa = flatten(supermassaMaps.tar_gz_report),
-            gusmap = gusmapMaps.tar_gz_report,
+            gusmap = gusmapMapsEmp.tar_gz_report,
             max_cores = max_cores
     }
 

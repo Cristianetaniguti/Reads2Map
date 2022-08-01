@@ -1,0 +1,102 @@
+version: 1.2
+workflows:
+  - subclass: WDL
+    primaryDescriptorPath: /EmpiricalMaps.wdl
+    name: EmpiricalMaps
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /EmpiricalSNPCalling.wdl
+    name: EmpiricalSNPCalling
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /PreprocessingReads.wdl
+    name: PreprocessingReads
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /SimulatedReads.wdl
+    name: SimulatedReads
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /EmpiricalSNPCalling_gatk.wdl
+    name: EmpiricalSNPCalling_gatk
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/MCHap.wdl
+    name: MCHap
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/SimulatedSingleFamily.wdl
+    name: SimulatedSingleFamily 
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/CreateAlignmentFromFamilies.wdl
+    name: CreateAlignmentFromFamilies 
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/CreateAlignmentFromSimulation.wdl
+    name: CreateAlignmentFromSimulation  
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/FreebayesGenotyping.wdl
+    name: FreebayesGenotyping  
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/GatkGenotyping.wdl
+    name: GatkGenotyping  
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/gusmap_maps-empirical.wdl
+    name: gusmapMapsEmp
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/gusmap_maps-simulated.wdl
+    name: gusmapMaps
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/genotyping-empirical.wdl
+    name: onemapMapsEmp
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/genotyping-simulated.wdl
+    name: onemapMaps 
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/hard_filtering-empirical.wdl
+    name: HardFilteringEmp
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/hard_filtering-simulated.wdl
+    name: HardFiltering
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/norm_filt_vcf.wdl
+    name: Normalization
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/snpcaller_maps-empirical.wdl
+    name: SNPCallerMapsEmp
+    authors:
+      - orcid: 0000-0002-2021-6883
+  - subclass: WDL
+    primaryDescriptorPath: /tasks/snpcaller_maps-simulated.wdl
+    name: SNPCallerMaps
+    authors:
+      - orcid: 0000-0002-2021-6883

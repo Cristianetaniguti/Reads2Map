@@ -3,7 +3,7 @@ version 1.0
 import "./utilsR.wdl" as utilsR
 import "./utils.wdl" as utils
 
-workflow onemapMaps {
+workflow onemapMapsEmp {
 
   input {
     File vcf_file
