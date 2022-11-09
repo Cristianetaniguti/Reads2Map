@@ -671,6 +671,9 @@ task SetProbsDefault{
     String multiallelics
   }
 
+  Int disk_size = ceil(size(vcf_file, "GiB") * 2)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
@@ -723,13 +726,13 @@ task SetProbsDefault{
   >>>
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    # time:"10:00:00"
-    # mem:"30GB"
-    # cpu:1
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "SetProbsDefault"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=1"
+    mem:"20G"
     time:"10:00:00"
   }
 
@@ -762,8 +765,10 @@ task FilterSegregation {
         obj <- read.vcfR("~{vcf_file}")
         gt <- extract.gt(obj)
         dp <- extract.gt(obj, element = "DP")
+        # Replace AD and DP by 0 when GT is missing
         obj@gt[,-1][which(is.na(gt))] <- obj@gt[,-1][which(is.na(dp))][1]
         write.vcf(obj, file = "missing_counts_fixed.vcf")
+        # Remove non-informatives
         segregation_test_vcf("missing_counts_fixed.vcf", P1 = "~{parent1}", P2 = "~{parent2}",
                              out.vcf = "filtered.vcf.gz", threshold = 0.05, rm_just_noninfo = TRUE)
 

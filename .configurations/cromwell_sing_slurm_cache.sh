@@ -71,9 +71,9 @@ backend {
               -o ${cwd}/execution/stdout \
               -e ${cwd}/execution/stderr \
               --time ${time} \
-              ${tasks} \
-              ${node} \
-              ${mem} \
+              --ntasks=${cpu} \
+              --node=1
+              --mem=${mem} \
               --export=NONE \
               ${cwd}/script_${job_name}.sh
         """
@@ -86,18 +86,22 @@ backend {
   }
 }
 
-# database {
-#   profile = "slick.jdbc.MySQLProfile$"
-#   db {
-#     driver = "com.mysql.cj.jdbc.Driver"
-#     url = "jdbc:mysql://127.0.0.1:3307/cromwell?rewriteBatchedStatements=true&useSSL=false"
-#     user = "root"
-#     password = "1234"
-#     connectionTimeout = 5000
-#   }
-# }
+database {
+  profile = "slick.jdbc.MySQLProfile$"
+  db {
+    driver = "com.mysql.cj.jdbc.Driver"
+    url = "jdbc:mysql://127.0.0.1:3307/cromwell?rewriteBatchedStatements=true&useSSL=false"
+    user = "root"
+    password = "1234"
+    connectionTimeout = 50000
+  }
+}
 
-# call-caching {
-#   enabled = true
-#   invalidate-bad-cache-results = true
-# }
+call-caching {
+  enabled = true
+  invalidate-bad-cache-results = true
+}
+
+docker {
+    perform-registry-lookup-if-digest-is-provided = false
+}
