@@ -56,7 +56,6 @@ workflow CreateAlignmentFromSimulation {
   File ref_alt_alleles_sele = select_first([Vcf2PedigreeSimulator.ref_alt_alleles_map, CreatePedigreeSimulatorInputs.ref_alt_alleles_nomap])
   File simulated_phases_sele = select_first([Vcf2PedigreeSimulator.simulated_phases_map, CreatePedigreeSimulatorInputs.simulated_phases_nomap])
 
-
   call RunPedigreeSimulator {
     input:
       mapfile     = mapfile_sele,
@@ -65,7 +64,6 @@ workflow CreateAlignmentFromSimulation {
       parfile     = parfile_sele
   }
 
-  #
   call ConvertPedigreeSimulationToVcf {
     input:
       seed            = family.seed,
@@ -108,7 +106,6 @@ workflow CreateAlignmentFromSimulation {
       }
     }
   }
-
 
     # Two option of RADseq
     # The samples need to be simulated together, otherwise they will be all heterozygous
@@ -172,7 +169,6 @@ workflow CreateAlignmentFromSimulation {
 
 }
 
-
 # Creates homologous genome with some variation
 # specified with -s and -d
 task GenerateAlternativeGenome {
@@ -181,20 +177,21 @@ task GenerateAlternativeGenome {
     File ref_genome
   }
 
+  Int disk_size = ceil(size(ref_genome, "GiB") * 2) 
+
   command <<<
     /pirs/src/pirs/pirs diploid ~{ref_genome} -s 0.0133 -d 0.0022 -v 0 -o alt --random-seed ~{seed}
   >>>
 
   runtime {
     docker: "cristaniguti/pirs-ddrad-cutadapt:0.0.1"
-    # memory: "4 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + 5 + " HDD"
+    cpu:1
+    # Cloud
+    memory:"3000 MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "GenerateAlternativeGenome"
-    node:"--nodes=1"
-    mem:"--mem=4G"
-    cpu:"--ntasks=1"
+    mem:"3000M"
     time:"01:00:00"
   }
 
@@ -225,6 +222,9 @@ task CreatePedigreeSimulatorInputs {
     File? doses
     String cross
   }
+
+  Int disk_size = ceil(size(snps, "GiB") * 2 + size(indels, "GiB") * 2 + size(ref, "GiB") + size(doses, "GiB") * 2) 
+  Int memory_size = 4000
 
   command <<<
 
@@ -381,15 +381,14 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.1"
-    # memory:"8 GB"
-    # cpu: 2
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "CreatePedigreeSimulatorInputs"
-    node:"--nodes=1"
-    mem:"--mem=4G"
-    cpu:"--ntasks=1"
-    time:"10:00:00"
+    mem:"~{memory_size}M"
+    time:"05:00:00"
   }
 
   meta {
@@ -417,6 +416,9 @@ task RunPedigreeSimulator {
     File parfile
   }
 
+  Int disk_size = ceil(size(mapfile, "GiB") * 2 + size(founderfile, "GiB") + size(chromfile, "GiB") * 2 + size(parfile, "GiB") * 2) 
+  Int memory_size = 3000
+
   command <<<
     set -e
     sed -i 's+chromosome.txt+~{chromfile}+g' ~{parfile}
@@ -428,14 +430,13 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.1"
-    # memory: "3 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "RunPedigreeSimulator"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -464,6 +465,9 @@ task ConvertPedigreeSimulationToVcf {
     Int popsize
     Int mapsize
   }
+
+  Int disk_size = ceil(size(genotypes_dat, "GiB") * 2 + size(map_file, "GiB") + size(ref_alt_alleles, "GiB") + size(chrom_file, "GiB")) 
+  Int memory_size = 8000  
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -525,14 +529,13 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # memory: "4 GB"
-    # cpu:1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "ConvertPedigreeSimulationToVcf"
-    node:"--nodes=1"
-    mem:"--mem=10G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -558,6 +561,9 @@ task RunVcf2diploid {
     String chromosome
   }
 
+  Int disk_size = ceil(size(ref_genome, "GiB") * 2 + size(simu_vcf, "GiB")) 
+  Int memory_size = 5000  
+
   command <<<
     java -jar /usr/jars/vcf2diploid.jar -id ~{sampleName} -chr ~{ref_genome} -vcf ~{simu_vcf}
 
@@ -565,14 +571,13 @@ task RunVcf2diploid {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.1"
-    # memory: "3 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "RunVcf2diploid"
-    node:"--nodes=1"
-    mem:"--mem=5G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -597,6 +602,9 @@ task GenerateSampleNames {
     File simulated_vcf
   }
 
+  Int disk_size = ceil(size(simulated_vcf, "GiB") * 2) 
+  Int memory_size = 1000 
+
   command <<<
     export PATH=$PATH:/opt/conda/bin
 
@@ -613,15 +621,14 @@ task GenerateSampleNames {
 
   runtime {
     docker: "cristaniguti/miniconda-alpine:0.0.1"
-    # memory: "1 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "GenerateSampleNames"
-    node:"--nodes=1"
-    mem:"--mem=1G"
-    cpu:"--ntasks=1"
-    time:"01:00:00"
+    mem:"~{memory_size}M"
+    time:"05:00:00"
   }
 
   meta {
@@ -645,6 +652,9 @@ task Vcf2PedigreeSimulator{
     String vcf_parent1
     String vcf_parent2
   }
+
+  Int disk_size = ceil(size(vcf_file, "GiB") * 2 + size(ref_map, "GiB") + 5) 
+  Int memory_size = 5000
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -681,14 +691,13 @@ task Vcf2PedigreeSimulator{
 
   runtime {
       docker:"cristaniguti/reads2map:0.0.1"
-      # memory: "4 GB"
-      # cpu:1
-      # preemptible: 3
-      # disks: "local-disk " + disk_size + " HDD"
-      job_name:"Vcf2PedigreeSimulator"
-      node:"--nodes=1"
-      mem:"--mem=5G"
-      cpu:"--ntasks=1"
+      cpu:1
+      # Cloud
+      memory:"~{memory_size} MiB"
+      disks:"local-disk " + disk_size + " HDD"
+      # Slurm
+      job_name: "Vcf2PedigreeSimulator"
+      mem:"~{memory_size}M"
       time:"05:00:00"
   }
 
@@ -716,6 +725,9 @@ task SimuscopProfile{
     Reference  references
   }
 
+  Int disk_size = ceil(size(vcf, "GiB") * 2 + size(emp_bam, "GiB")) 
+  Int memory_size = 5000
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
 
@@ -740,16 +752,14 @@ task SimuscopProfile{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # memory: "3 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "SimuscopProfile"
-    node:"--nodes=1"
-    mem:"--mem=5G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
-    maxRetries: 5
   }
 
   meta {
@@ -774,6 +784,9 @@ task SimuscopSimulation{
     String chrom
     File profile
   }
+
+  Int disk_size = ceil(size(emp_bam, "GiB") + size(vcf, "GiB") + size(references.ref_fasta, "GiB") * depth) 
+  Int memory_size = 10000
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -816,16 +829,14 @@ task SimuscopSimulation{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # memory: "8 GB"
-    # cpu:1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "SimuscopSimulation"
-    node:"--nodes=1"
-    mem:"--mem=10G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"10:00:00"
-    maxRetries: 5
   }
 
   meta {
@@ -860,6 +871,7 @@ task RADinitioSimulation{
 
   # Difficult to guess how much disk we'll need here.
   Int disk_size = ceil(size(simu_vcf, "GB") + size(radinitio_vcf, "GB") + size(references.ref_fasta, "GB") + 5)
+  Int memory_size = 10000  
 
   command <<<
 
@@ -936,16 +948,16 @@ task RADinitioSimulation{
 
   runtime{
     docker: "cristaniguti/radinitio:0.0.1"
-    # memory: "3 GB"
-    # cpu:1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
-    job_name: "RADinitioSimulation"
-    node:"--nodes=1"
-    mem:"--mem=10G"
-    cpu:"--ntasks=1"
-    time:"05:00:00"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
     maxRetries: 5
+    preemptible: 3
+    # Slurm
+    job_name: "RADinitioSimulation"
+    mem:"~{memory_size}M"
+    time:"05:00:00"
   }
 
   meta {
@@ -965,6 +977,9 @@ task SepareChunks {
       Array[File] fastqs
       Int chunk_size
   }
+
+  Int disk_size = ceil(size(fastqs, "GiB") * 2) 
+  Int memory_size = 1000
 
   command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -988,12 +1003,15 @@ task SepareChunks {
   >>>
 
   runtime {
-      job_name: "SepareChunksIndividuals"
       docker: "cristaniguti/reads2map:0.0.1"
-      node:"--nodes=1"
-      mem:"--mem=1G"
-      tasks:"--ntasks=1"
-      time:"00:05:00"
+      cpu:1
+      # Cloud
+      memory:"~{memory_size} MiB"
+      disks:"local-disk " + disk_size + " HDD"
+      # Slurm
+      job_name: "SepareChunksIndividuals"
+      mem:"~{memory_size}M"
+      time:"00:10:00"
   }
 
   meta {

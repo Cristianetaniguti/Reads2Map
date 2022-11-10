@@ -63,6 +63,9 @@ task GusmapReport {
     Int max_cores
   }
 
+  Int disk_size = ceil(size(vcf_file, "GiB") * 1.5 + size(simu_onemap_obj, "GiB") + size(ref_alt_alleles, "GiB") + size(simulated_phases, "GiB") + 3)
+  Int memory_size = ceil(size(vcf_file, "MiB"))
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
@@ -130,13 +133,13 @@ task GusmapReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory: "4 GB"
-    # cpu:1
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "GusmapReport"
-    node:"--nodes=1"
-    mem:"--mem=10GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"24:00:00"
   }
 

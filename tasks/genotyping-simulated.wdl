@@ -93,6 +93,7 @@ workflow onemapMaps {
               vcfR_obj = SetProbs.vcfR_obj,
               seed = seed,
               depth = depth,
+              max_cores = max_cores
           }
 
    }

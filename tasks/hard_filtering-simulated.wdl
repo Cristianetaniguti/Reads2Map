@@ -58,7 +58,8 @@ task VariantsToTable {
         File reference_idx
     }
 
-    Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + size(simu_vcf, "GB") + 2)
+     Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + size(simu_vcf, "GB") + 2)
+     Int memory_size = 8000
 
     command <<<
         /usr/gitc/./bgzip -c  ~{simu_vcf} > ~{simu_vcf}.gz
@@ -108,19 +109,18 @@ task VariantsToTable {
             -F MQRankSum \
             -F ReadPosRankSum \
             -O TruePositives.table
-
     >>>
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-        # memory: "1 GB"
-        # cpu: 1
-        # disks: "local-disk " + disk_size + " HDD"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
         job_name: "VariantsToTable"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        cpu:"--ntasks=1"
-        time:"01:50:00"
+        mem:"~{memory_size}M"
+        time:"01:40:00"
     }
 
     meta {
@@ -147,6 +147,7 @@ task QualPlots {
     }
 
     Int disk_size = ceil(size(FalsePositives, "GB") + size(TruePositives, "GB") + size(Total, "GB") + 1)
+    Int memory_size = ceil(size(Total, "MiB") * 1.25)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -227,14 +228,14 @@ task QualPlots {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.1"
-        # memory: "1 GB"
-        # cpu: 1
-        # disks: "local-disk " + disk_size + " HDD"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
         job_name: "QualPlots"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        tasks:"--ntasks=1"
-        time:"01:30:00"
+        mem:"~{memory_size}M"
+        time:"01:40:00"
     }
 
     meta {
@@ -257,7 +258,9 @@ task VariantFiltration {
         File reference_idx
         File reference_dict
     }
+
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
+    Int memory_size = 5000
 
     command <<<
         /usr/gitc/gatk4/./gatk VariantFiltration \
@@ -281,13 +284,13 @@ task VariantFiltration {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-        # memory: "1 GB"
-        # cpu: 1
-        # disks: "local-disk " + disk_size + " HDD"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
         job_name: "VariantFiltration"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        tasks:"--ntasks=1"
+        mem:"~{memory_size}M"
         time:"01:00:00"
     }
 

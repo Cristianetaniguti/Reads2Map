@@ -17,6 +17,9 @@ task RunBwaAlignment {
     String rm_dupli
   }
 
+  Int disk_size = ceil(size(reads, "GiB") * 2 + size(references.ref_fasta, "GiB") + 20) 
+  Int memory_size = 14000  
+
   command <<<
     mkdir tmp
     
@@ -90,14 +93,14 @@ task RunBwaAlignment {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    # memory: "1 GB"
-    # cpu:4
-    # preemptible: 3
-    # disks: "local-disk " + 10 + " HDD"
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    preemptible: 3
+    # Slurm
     job_name: "RunBwaAlignment"
-    node:"--nodes=1"
-    mem:"--mem=32GB"
-    tasks:"--ntasks-per-node=11"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -124,6 +127,9 @@ task RunBwaAlignmentSimu {
     Int max_cores
     String rm_dupli
   }
+
+  Int disk_size = ceil(size(reads, "GiB") + size(fastqs, "GiB") * 2 + size(references.ref_fasta, "GiB")) 
+  Int memory_size = 14000 
 
   command <<<
     mkdir tmp
@@ -181,14 +187,14 @@ task RunBwaAlignmentSimu {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    # memory: "1 GB"
-    # cpu:4
-    # preemptible: 3
-    # disks: "local-disk " + 10 + " HDD"
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    preemptible: 3
+    # Slurm
     job_name: "RunBwaAlignmentSimu"
-    node:"--nodes=1"
-    mem:"--mem=32GB"
-    tasks:"--ntasks-per-node=11"
+    mem:"~{memory_size}M"
     time:"10:00:00"
   }
 
@@ -211,6 +217,9 @@ task CreateChunksFastq {
     Int chunk_size
   }
 
+  Int disk_size = ceil(size(sampleFile, "GiB") * 2) 
+  Int memory_size = 1000    
+  
   command <<<
     set -e
     for i in ~{sep=" " sampleFile}; do echo $i >> lof_sample.txt; done
@@ -220,13 +229,13 @@ task CreateChunksFastq {
 
   runtime {
     docker: "ubuntu:20.04"
-    # memory: "2 GB"
-    # preemptible: 3
-    # cpu: 1
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "CreateChunksFastq"
-    node:"--nodes=1"
-    mem:"--mem=1G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"00:05:00"
   }
 

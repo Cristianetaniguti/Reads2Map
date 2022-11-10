@@ -83,7 +83,8 @@ workflow SNPCallerMaps{
           simu_vcfR = simu_vcfR,
           vcfR_obj = SetProbsDefault.vcfR_obj,
           seed = seed,
-          depth = depth
+          depth = depth,
+          max_cores = max_cores
       }
   }
 

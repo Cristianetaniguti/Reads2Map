@@ -118,22 +118,22 @@ workflow SimulatedSingleFamily {
         }
 
         # Suggestion for better SuperMASSA, updog and polyRAD performance 
-        # call utilsR.FilterSegregation { 
-        #      input:
-        #         vcf_file = splitgeno.biallelics,
-        #         parent1 = "P1",
-        #         parent2 = "P2"
-        # }
+        call utilsR.FilterSegregation { 
+             input:
+                vcf_file = splitgeno.biallelics,
+                parent1 = "P1",
+                parent2 = "P2"
+        }
 
         call genotyping.onemapMaps as updogMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            #vcf_file = FilterSegregation.vcf_filtered,
-            vcf_file = splitgeno.biallelics,
+            vcf_file = FilterSegregation.vcf_filtered,
+            #vcf_file = splitgeno.biallelics,
             genotyping_program = "updog",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
-            SNPCall_program = analysis.method,
+            SNPCall_program = analysis.method, 
             CountsFrom = origin,
             cross = family.cross,
             max_cores = max_cores,
@@ -147,8 +147,8 @@ workflow SimulatedSingleFamily {
         call genotyping.onemapMaps as supermassaMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            #vcf_file = FilterSegregation.vcf_filtered,
-            vcf_file = splitgeno.biallelics,
+            vcf_file = FilterSegregation.vcf_filtered,
+            #vcf_file = splitgeno.biallelics,
             genotyping_program = "supermassa",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
@@ -166,8 +166,8 @@ workflow SimulatedSingleFamily {
         call genotyping.onemapMaps as polyradMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            #vcf_file = FilterSegregation.vcf_filtered,
-            vcf_file = splitgeno.biallelics,
+            vcf_file = FilterSegregation.vcf_filtered,
+            #vcf_file = splitgeno.biallelics,
             genotyping_program = "polyrad",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
@@ -274,6 +274,9 @@ task JointReports{
     Int seed
     Int depth
   }
+
+  Int disk_size = ceil(size(SNPCaller, "GiB") * 1.5 + size(updog, "GiB") * 1.5 + size(polyrad, "GiB") * 1.5 + size(supermassa, "GiB") * 1.5 + size(gusmap_files, "GiB") * 1.5 + size(multiallelics_file, "GiB") * 1.5)
+  Int memory_size = 5000
 
   command <<<
      R --vanilla --no-save <<RSCRIPT
@@ -385,13 +388,13 @@ task JointReports{
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory: "3 GB"
-    # cpu: 4
-    job_name:"JointReports"
-    node:"--nodes=1"
-    mem:"--mem=15GB"
-    tasks:"--ntasks-per-node=11"
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "JointReports"
+    mem:"~{memory_size}M"
     time:"01:40:00"
   }
 

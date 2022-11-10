@@ -78,17 +78,23 @@ task BamToBed {
         File? merged_bams
     }
 
+    Int disk_size = ceil(size(merged_bams, "GiB") * 1.5)
+    Int memory_size = 7000
+    
     command <<<
         bamToBed -i ~{merged_bams} > file.bed
         bedtools merge -i file.bed > merged.bed
     >>>
 
     runtime {
-        job_name: "BamToBed"
         docker: "biocontainers/bedtools:v2.27.1dfsg-4-deb_cv1"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        tasks:"--ntasks=1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "BamToBed"
+        mem:"~{memory_size}M"
         time:"05:00:00"
     }
 
@@ -103,12 +109,14 @@ task BamToBed {
     }
 }
 
-
 task SepareChunksBed {
     input {
         File bed_file
         Int n_nodes
     }
+
+    Int disk_size = ceil(size(bed_file, "GiB") * 1.5)
+    Int memory_size = 1000
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -129,11 +137,14 @@ task SepareChunksBed {
     >>>
 
     runtime {
-        job_name: "SepareChunksBed"
         docker: "cristaniguti/reads2map:0.0.1"
-        node:"--nodes=1"
-        mem:"--mem=1G"
-        tasks:"--ntasks=1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "SepareChunksBed"
+        mem:"~{memory_size}M"
         time:"00:05:00"
     }
 
@@ -159,6 +170,9 @@ task OneMCHap {
         Int ploidy
         Int max_cores
     }
+
+    Int disk_size = ceil(size(bams, "GiB") * 1.5 + size(bed, "GiB") * 1.5 + size(vcf_file, "GiB") * 1.5 + size(reference, "GiB"))
+    Int memory_size = 5000
 
     command <<<
 
@@ -191,14 +205,13 @@ task OneMCHap {
 
     runtime {
         docker: "cristaniguti/mchap:0.0.1"
-        # memory: "4 GB"
-        # cpu: 1
-        # preemptible: 3
-        # disks: "local-disk " + disk_size + " HDD"
+        cpu: max_cores
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
         job_name: "MCHap"
-        node:"--nodes=1"
-        mem:"--mem=20G" 
-        tasks:"--ntasks-per-node=16"
+        mem:"~{memory_size}M"
         time:"24:00:00"
     }
 
@@ -222,6 +235,9 @@ task OneMCHap_recall {
         Int max_cores
     }
 
+    Int disk_size = ceil(size(bams, "GiB") * 1.25 + size(vcf_file, "GiB") * 1.5)
+    Int memory_size = 10000
+    
     command <<<
 
         export TMPDIR=/tmp
@@ -247,14 +263,13 @@ task OneMCHap_recall {
 
     runtime {
         docker: "cristaniguti/mchap:0.0.1"
-        # memory: "4 GB"
-        # cpu: 1
-        # preemptible: 3
-        # disks: "local-disk " + disk_size + " HDD"
-        job_name: "MCHap_recall"
-        node:"--nodes=1"
-        mem:"--mem=20G" 
-        tasks:"--ntasks-per-node=16"
+        cpu: max_cores
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "OneMCHap_recall"
+        mem:"~{memory_size}M"
         time:"24:00:00"
     }
 
@@ -273,6 +288,9 @@ task mergeVCFs {
     input {
         Array[File] haplo_vcf
     }
+
+    Int disk_size = ceil(size(haplo_vcf, "GiB") * 1.5)
+    Int memory_size = 5000
 
     command <<<
 
@@ -294,13 +312,13 @@ task mergeVCFs {
 
     runtime {
         docker:"lifebitai/bcftools:1.10.2"
-        # memory: "2 GB"
-        # cpu:1
-        # preemptible: 3
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
         job_name: "mergeVCFs"
-        node:"--nodes=1"
-        mem:"--mem=15GB"
-        tasks:"--ntasks=1"
+        mem:"~{memory_size}M"
         time:"01:00:00"
     }
 
@@ -323,6 +341,9 @@ task FilterMulti {
         Int ploidy
     }
 
+    Int disk_size = ceil(size(multi_vcf, "GiB") * 1.5)
+    Int memory_size = 10000
+
     command <<<
         R --vanilla --no-save <<RSCRIPT
 
@@ -336,13 +357,13 @@ task FilterMulti {
 
     runtime {
         docker:"cristaniguti/reads2map:0.0.1"
-        # memory: "2 GB"
-        # cpu:1
-        # preemptible: 3
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
         job_name: "FilterMulti"
-        node:"--nodes=1"
-        mem:"--mem=15GB"
-        tasks:"--ntasks=1"
+        mem:"~{memory_size}M"
         time:"01:00:00"
     }
 

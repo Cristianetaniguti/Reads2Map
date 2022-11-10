@@ -64,7 +64,8 @@ task RunFreebayes {
     Int max_cores
   }
 
-  Int disk_size = ceil(size(reference, "GB") + size(bam, "GB") * 2)
+  Int disk_size = ceil(size(reference, "GiB") + size(bam, "GiB") +  50)
+  Int memory_size = ceil(size(bam, "MiB") * 1.25)
 
   command <<<
    # needed for some singularity versions
@@ -78,15 +79,14 @@ task RunFreebayes {
 
   runtime {
     docker: "cristaniguti/freebayes:0.0.1"
-    # memory: "4 GB"
-    # preemptible: 3
-    # cpu: 4
-    # disks: "local-disk " + disk_size + " HDD"
-    job_name: "RunFreebayes" 
-    node:"--nodes=1"
-    mem:"--mem=50G"
-    tasks:"--ntasks-per-node=10"
-    time:"72:00:00"
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "RunFreebayes"
+    mem:"~{memory_size}M"
+    time:"48:00:00"
   }
 
   meta {

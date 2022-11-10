@@ -7,6 +7,9 @@ task vcf2onemap{
      String parent1
      String parent2
    }
+   
+   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
+   Int memory_size = ceil(size(vcf_file, "MiB") * 2)
 
    command <<<
 
@@ -42,14 +45,14 @@ task vcf2onemap{
 
     runtime {
       docker:"cristaniguti/reads2map:0.0.1"
-      # preemptible: 3
-      # memory: "2 GB"
-      # cpu:1
+      cpu:1
+      # Cloud
+      memory:"~{memory_size} MiB"
+      disks:"local-disk " + disk_size + " HDD"
+      # Slurm
       job_name: "vcf2onemap"
-      node:"--nodes=1"
-      mem:"--mem=10G"
-      cpu:"--ntasks=1"
-      time:"10:00:00"
+      mem:"~{memory_size}M"
+      time:"10:00:00"   
     }
 
     meta {
@@ -74,6 +77,9 @@ task FiltersReport{
     Int depth
   }
 
+  Int disk_size = ceil(size(onemap_obj, "GiB") * 2) 
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 2)
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
@@ -93,13 +99,13 @@ task FiltersReport{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory:"3 GB"
-    # cpu:1
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "Filters"
-    node:"--nodes=1"
-    mem:"--mem=7G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -124,6 +130,9 @@ task FiltersReportEmp{
     String chromosome
   }
 
+  Int disk_size = ceil(size(onemap_obj, "GiB") * 2) 
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 2)
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
@@ -142,13 +151,13 @@ task FiltersReportEmp{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory:"4 GB"
-    # cpu:1
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "Filters"
-    node:"--nodes=1"
-    mem:"--mem=7G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -177,6 +186,9 @@ task MapsReport{
    Int depth
    Int max_cores
   }
+
+  Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(ref_alt_alleles, "GiB") + (size(simu_onemap_obj, "GiB") * 2) + size(simulated_phases, "GiB"))
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 8)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -245,13 +257,13 @@ task MapsReport{
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory: "4 GB"
-    # cpu: 4
+    cpu:4
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "MapsReport"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=4"
+    mem:"~{memory_size}M"
     time:"48:00:00"
   }
 
@@ -276,9 +288,13 @@ task ErrorsReport {
     String SNPCall_program
     String GenotypeCall_program
     String CountsFrom
+    Int max_cores
     Int seed
     Int depth
   }
+
+  Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(vcfR_obj, "GiB") + (size(simu_vcfR, "GiB") * 2))
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 4)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -322,7 +338,7 @@ task ErrorsReport {
         idx <- match(c("A", "AB", "BA", "B"), colnames(dptot))
         dptot <- cbind(dptot, errors = apply(dptot[,idx], 1, function(x) 1 - max(x)))
 
-        vroom::vroom_write(dptot, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_errors_report.tsv.gz", num_threads = 4)
+        vroom::vroom_write(dptot, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_errors_report.tsv.gz", num_threads = ~{max_cores})
 
       RSCRIPT
 
@@ -330,13 +346,13 @@ task ErrorsReport {
 
   runtime{
     docker: "cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory: "2 GB"
-    # cpu:4
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "ErrorsReport"
-    node:"--nodes=1"
-    mem:"--mem=5G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"05:00:00"
   }
 
@@ -365,6 +381,9 @@ task CheckDepths{
     Int max_cores
   }
 
+  Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(vcfR_obj, "GiB"))
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 4)
+
   command <<<
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
@@ -391,13 +410,13 @@ task CheckDepths{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory:"3 GB"
-    # cpu:4
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "CheckDepths"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"10:00:00"
   }
 
@@ -421,6 +440,9 @@ task MapsReportEmp{
    String CountsFrom
    Int max_cores
   }
+
+  Int disk_size = ceil((size(sequence_obj, "GiB") * 2))
+  Int memory_size = ceil(size(sequence_obj, "MiB") * 8)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -451,13 +473,13 @@ task MapsReportEmp{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    # preemptible: 3
-    # memory:"8 GB"
-    # cpu:4
+    cpu:max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "MapsEmp"
-    node:"--nodes=1"
-    mem:"--mem=30G"
-    cpu:"--ntasks=4"
+    mem:"~{memory_size}M"
     time:"48:00:00"
   }
 
@@ -485,6 +507,9 @@ task ReGenotyping{
     String parent2
     Int max_cores
   }
+
+  Int disk_size = ceil((size(vcf_file, "GiB") * 4))
+  Int memory_size = ceil(size(vcf_file, "MiB") * 8)
 
   command <<<
      R --vanilla --no-save <<RSCRIPT
@@ -552,13 +577,13 @@ task ReGenotyping{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    # time:"20:00:00"
-    # mem:"50GB"
-    # cpu:20
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "ReGenotyping"
-    node:"--nodes=1"
-    mem:"--mem=30G"
-    tasks:"--ntasks-per-node=15"
+    mem:"~{memory_size}M"
     time:"10:00:00"
   }
 
@@ -582,6 +607,9 @@ task SetProbs{
     String multiallelics
     String SNPCall_program
   }
+
+  Int disk_size = ceil(size(vcf_file, "GiB") * 3)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 3)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -635,13 +663,13 @@ task SetProbs{
   >>>
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    # time:"10:00:00"
-    # mem:"30GB"
-    # cpu:1
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "SetProbs"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"10:00:00"
   }
 
@@ -671,8 +699,8 @@ task SetProbsDefault{
     String multiallelics
   }
 
-  Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+  Int disk_size = ceil(size(vcf_file, "GiB") * 3)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 3)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -732,7 +760,7 @@ task SetProbsDefault{
     disks:"local-disk " + disk_size + " HDD"
     # Slurm
     job_name: "SetProbsDefault"
-    mem:"20G"
+    mem:"~{memory_size}M"
     time:"10:00:00"
   }
 
@@ -757,6 +785,9 @@ task FilterSegregation {
     String parent2
   }
 
+  Int disk_size = ceil(size(vcf_file, "GiB") * 2)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+
   command <<<
       R --vanilla --no-save <<RSCRIPT
         
@@ -775,16 +806,16 @@ task FilterSegregation {
       RSCRIPT
   >>>
 
-    runtime{
-        docker:"cristaniguti/reads2map:0.0.1"
-        # time:"10:00:00"
-        # mem:"30GB"
-        # cpu:1
-        job_name: "FilterSegregation"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        cpu:"--ntasks=1"
-        time:"10:00:00"
+  runtime{
+      docker:"cristaniguti/reads2map:0.0.1"
+      cpu:1
+      # Cloud
+      memory:"~{memory_size} MiB"
+      disks:"local-disk " + disk_size + " HDD"
+      # Slurm
+      job_name: "FilterSegregation"
+      mem:"~{memory_size}M"
+      time:"10:00:00"
   }
 
   meta {

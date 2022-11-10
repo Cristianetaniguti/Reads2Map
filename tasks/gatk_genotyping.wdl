@@ -43,7 +43,8 @@ workflow GatkGenotyping {
         reference_fasta = references.ref_fasta,
         reference_fai = references.ref_fasta_index,
         reference_dict = references.ref_dict,
-        ploidy = ploidy
+        ploidy = ploidy,
+        chunk_size = chunk_size
     }
   }
 
@@ -172,6 +173,8 @@ task CreateChunks {
     Int chunk_size
   }
 
+  Int disk_size = ceil(size(reference_fasta, "GiB") + 2)
+
   command <<<
     set -e
     for i in ~{sep=" " bams}; do echo $i >> lof_bams.txt; done
@@ -185,13 +188,13 @@ task CreateChunks {
 
   runtime {
     docker: "ubuntu:20.04"
-    # memory: "2 GB"
-    # preemptible: 3
-    # cpu: 1
+    cpu: 1
+    # Cloud
+    memory:"1000 MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "CreateChunks"
-    node:"--nodes=1"
-    mem:"--mem=1G"
-    cpu:"--ntasks=1"
+    mem:"1G"
     time:"00:05:00"
   }
 
@@ -219,7 +222,12 @@ task HaplotypeCaller {
     Array[File] bams
     Array[File] bams_index
     Int ploidy
+    Int chunk_size
   }
+
+  Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
+  Int memory_size = ceil(10000 * chunk_size)
+  Int max_cores = ceil(chunk_size * 4 + 2)
 
   command <<<
     set -euo pipefail
@@ -231,7 +239,7 @@ task HaplotypeCaller {
     ## gvcf for each sample
     for bam in *.bam; do
       out_name=$(basename -s ".bam" "$bam")
-      /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" HaplotypeCaller \
+      /usr/gitc/gatk4/./gatk --java-options "-Xms8000m -Xmx9000m" HaplotypeCaller \
         -ERC GVCF \
         -R ~{reference_fasta} \
         -ploidy ~{ploidy} \
@@ -246,14 +254,13 @@ task HaplotypeCaller {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    # memory: "4 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "HaplotypeCaller"
-    node:"--nodes=1"
-    mem:"--mem=110G" # each sample require 4 cores and 10 GB, here is considering 10 samples/node, 10 extra GB
-    tasks:"--ntasks-per-node=42" # 2 extra cores
+    mem:"~{memory_size}M"
     time:"24:00:00"
   }
 
@@ -279,6 +286,8 @@ task ImportGVCFs  {
     String interval
   }
 
+  Int disk_size = ceil(size(vcfs, "GiB") * 1.5 + size(reference_fasta, "GiB") * 1.5)
+
   command <<<
     set -euo pipefail
     grep ">" ~{reference_fasta} | sed 's/^.//' > interval.list
@@ -286,7 +295,7 @@ task ImportGVCFs  {
     for i in ~{sep=" " vcfs}; do ln -s $i gvcfs/; done
     for i in ~{sep=" " vcfs_index}; do ln -s $i gvcfs/; done
 
-    /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" GenomicsDBImport \
+    /usr/gitc/gatk4/./gatk --java-options "-Xms8000m -Xmx25000m" GenomicsDBImport \
       --batch-size 50 \
       --reader-threads 5 \
       --genomicsdb-workspace-path cohort_db \
@@ -300,14 +309,13 @@ task ImportGVCFs  {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    # memory: "4 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu: 4
+    # Cloud
+    memory:"26000 MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "ImportGVCFs"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    tasks:"--ntasks-per-node=5"
+    mem:"26000M"
     time:"24:00:00"
   }
 
@@ -331,12 +339,14 @@ task GenotypeGVCFs   {
     String interval
   }
 
+  Int disk_size = ceil(size(reference_fasta, "GiB") * 1.5 + size(workspace_tar, "GiB") * 1.5)
+
   command <<<
     set -euo pipefail
 
     tar -xf ~{workspace_tar}
 
-    /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" GenotypeGVCFs \
+    /usr/gitc/gatk4/./gatk --java-options "-Xms8000m -Xmx25000m" GenotypeGVCFs \
       -R ~{reference_fasta} \
       -V gendb://cohort_db \
       -L ~{interval} \
@@ -347,14 +357,13 @@ task GenotypeGVCFs   {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    # memory: "4 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu: 2
+    # Cloud
+    memory:"26000 MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "GenotypeGVCFs"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    tasks:"--ntasks=1"
+    mem:"26000M"
     time:"24:00:00"
   }
 
@@ -380,9 +389,11 @@ task MergeVCFs {
     File ref_dict
   }
 
+  Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
+
   command <<<
 
-    /usr/gitc/gatk4/./gatk --java-options "-Xmx10G -Xms2G" \
+    /usr/gitc/gatk4/./gatk --java-options "-Xms2000m -Xmx2500m" \
       MergeVcfs \
         -I ~{sep=' -I' input_vcfs} \
         -O gatk_joint.vcf.gz
@@ -390,14 +401,13 @@ task MergeVCFs {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    # memory: "4 GB"
-    # cpu: 1
-    # preemptible: 3
-    # disks: "local-disk " + disk_size + " HDD"
+    cpu: 1
+    # Cloud
+    memory:"3000 MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "MergeVCFs"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    tasks:"--ntasks=1"
+    mem:"3000M"
     time:"10:00:00"
   } 
 

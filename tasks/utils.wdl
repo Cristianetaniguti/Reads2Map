@@ -12,6 +12,9 @@ task ApplyRandomFilters {
     String? chromosome
   }
 
+  Int disk_size = ceil(size(gatk_vcf, "GiB") * 2 + size(freebayes_vcf, "GiB") * 2 + size(gatk_vcf_bam_counts, "GiB") * 2 + size(freebayes_vcf_bam_counts, "GiB") * 2)
+  Int memory_size = ceil(size(freebayes_vcf_bam_counts, "MiB") * 2)
+
   command <<<
     # Required update to deal with polyploids
     zcat  ~{gatk_vcf} | sed 's/^##fileformat=VCFv4.3/##fileformat=VCFv4.2/' > out1.vcf
@@ -26,13 +29,13 @@ task ApplyRandomFilters {
 
   runtime {
     docker:"cristaniguti/split_markers:0.0.1"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "ApplyRandomFilters"
-    node:"--nodes=1"
-    mem:"--mem=5GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -55,6 +58,9 @@ task SplitMarkers {
     File vcf_file
   }
 
+  Int disk_size = ceil(size(vcf_file, "GiB") * 2)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+  
   command <<<
     bcftools view --max-alleles 2 --min-alleles 2 --output-type z --output-file biallelics.vcf.gz  ~{vcf_file}
     bcftools view --min-alleles 3 --types mnps --output-type z --output-file multiallelics.vcf.gz  ~{vcf_file}
@@ -62,13 +68,13 @@ task SplitMarkers {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "SplitMarkers"
-    node:"--nodes=1"
-    mem:"--mem=5GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -89,6 +95,9 @@ task JointMarkers{
     File biallelic_vcf
     File? multiallelic_vcf
   }
+
+   Int disk_size = ceil(size(biallelic_vcf, "GiB") * 2 + size(multiallelic_vcf, "GiB") * 2)
+  Int memory_size = ceil(size(biallelic_vcf, "MiB") * 2)
 
   command <<<
 
@@ -116,13 +125,13 @@ task JointMarkers{
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "JointMarkers"
-    node:"--nodes=1"
-    mem:"--mem=5GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -148,6 +157,9 @@ task ReplaceAD {
     File tbi
     String program
   }
+
+  Int disk_size = ceil(size(ref_fasta, "GiB") + size(bams, "GiB") * 1.5 + size(vcf, "GiB") * 1.5)
+  Int memory_size = ceil(size(vcf, "MiB") * 8)
 
   command <<<
 
@@ -175,13 +187,13 @@ task ReplaceAD {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "ReplaceAD"
-    node:"--nodes=1"
-    mem:"--mem=50GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"24:00:00"
   }
 
@@ -207,6 +219,9 @@ task Compress {
       Array[File] errors_report
     }
 
+    Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB") + size(filters_report, "GiB") + size(errors_report, "GiB"))
+    Int memory_size = 1000
+
     command <<<
 
       mkdir ~{name}
@@ -221,13 +236,13 @@ task Compress {
 
   runtime{
     docker:"ubuntu:20.04"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "Compress"
-    node:"--nodes=1"
-    mem:"--mem=10GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -250,7 +265,10 @@ task CompressGusmap {
       Array[File] maps_report
       Array[File] times
     }
-    
+
+    Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB"))
+    Int memory_size = 1000 
+
     command <<<
 
       mkdir ~{name}
@@ -263,13 +281,13 @@ task CompressGusmap {
 
   runtime{
     docker:"ubuntu:20.04"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "CompressGusmap"
-    node:"--nodes=1"
-    mem:"--mem=10GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -296,6 +314,9 @@ task GetMarkersPos {
     Int seed
   }
 
+  Int disk_size = ceil(size(true_vcf, "GiB") * 1.5 + size(filtered_gatk_vcf, "GiB") * 1.5 + size(filtered_gatk_vcf_bamcounts, "GiB") + size(filtered_freebayes_vcf, "GiB") + size(filtered_freebayes_vcf_bamcounts, "GiB"))
+  Int memory_size = 5000
+
   command <<<
 
     bcftools query -f '%POS\n' ~{true_vcf} > ~{depth}_~{seed}_true_vcf.tsv
@@ -311,13 +332,13 @@ task GetMarkersPos {
 
   runtime { 
     docker:"lifebitai/bcftools:1.10.2"
-    # memory: "2 GB"
-    # cpu:1
-    # preemptible: 3
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "GetMarkerPos"
-    node:"--nodes=1"
-    mem:"--mem=10GB"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -337,17 +358,23 @@ task MergeBams{
         Array[File] bam_files
     }
 
+    Int disk_size = ceil(size(bam_files, "GiB") * 2)
+    Int memory_size = 5000
+    
     command <<<
         samtools merge merged.bam ~{sep=" " bam_files}
     >>>
 
     runtime {
-        job_name: "MergeBams"
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-        node:"--nodes=1"
-        mem:"--mem=10G"
-        tasks:"--ntasks=1"
-        time:"01:00:00"
+        cpu:1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "MergeBams"
+        mem:"~{memory_size}M"
+        time:"10:00:00"     
     }
 
     meta {

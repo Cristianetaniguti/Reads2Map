@@ -53,6 +53,9 @@ task SepareChunks {
         Int chunk_size
     }
 
+    Int disk_size = ceil(size(families_info, "GiB") * 2) 
+    Int memory_size = 1000
+
     command <<<
         R --vanilla --no-save <<RSCRIPT
             df <- read.table("~{families_info}")
@@ -74,12 +77,15 @@ task SepareChunks {
     >>>
 
     runtime {
-        job_name: "SepareChunksIndividuals"
         docker: "cristaniguti/reads2map:0.0.1"
-        node:"--nodes=1"
-        mem:"--mem=1G"
-        tasks:"--ntasks=1"
-        time:"00:05:00"
+        cpu:1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "SepareChunksIndividuals"
+        mem:"~{memory_size}M"
+        time:"00:10:00"
     }
 
     meta {

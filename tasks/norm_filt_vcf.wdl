@@ -43,7 +43,8 @@ task BiallelicNormalization {
     File reference_idx
   }
 
-  Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 2)
+  Int disk_size = ceil(size(vcf_file, "GiB") + size(reference, "GiB") + 2)
+  Int memory_size = 7000
 
   command <<<
     bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
@@ -54,14 +55,13 @@ task BiallelicNormalization {
 
   runtime {
     docker: "lifebitai/bcftools:1.10.2"
-    #memory: "1 GB"
-    #preemptible: 3
-    #cpu: 1
-    #disks: "local-disk " + disk_size + " HDD"
+    cpu: 1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "BiallelicNormalization"
-    node:"--nodes=1"
-    mem:"--mem=10G"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
@@ -87,7 +87,8 @@ task VariantEval {
     File reference_dict
   }
 
-  Int disk_size = ceil(size(vcf_norm, "GB") + size(reference, "GB") + size(vcf_simu, "GB") + 2)
+  Int disk_size = ceil(size(vcf_norm, "GiB") + size(reference, "GiB") + size(vcf_simu, "GiB") + 2)
+  Int memory_size = 7000
 
   command <<<
     java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt
@@ -95,14 +96,13 @@ task VariantEval {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
-    #memory: "1 GB"
-    #preemptible: 3
-    #cpu: 1
-    #disks: "local-disk " + disk_size + " HDD"
+    cpu: 1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "VariantEval"
-    node:"--nodes=1"
-    mem:"--mem=10G"
-    tasks:"--ntasks=1"
+    mem:"~{memory_size}M"
     time:"01:00:00"
   }
 
