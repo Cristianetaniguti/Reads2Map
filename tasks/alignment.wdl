@@ -2,9 +2,9 @@ version 1.0
 
 import "../structs/struct_reference.wdl"
 
-# This task considers that is it possible to receive more than one fastq file by sample
+# This task considers that it is possible to receive more than one fastq file per sample
 # It keeps the different libraries in the header and merges the bam files
-# The array reads1 have only the fastq from same sample
+# The array reads1 have only the fastq from same sample  # TODO: explain better what is 'reads1'
 task RunBwaAlignment {
 
   input {
