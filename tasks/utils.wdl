@@ -1,6 +1,5 @@
 version 1.0
 
-import "../structs/struct_alignment.wdl"
 
 task ApplyRandomFilters {
   input{

@@ -1,8 +1,7 @@
 version 1.0
 
 import "../structs/struct_reference.wdl"
-import "./norm_filt_vcf.wdl" as norm_filt
-import "./utils.wdl" as utils
+
 
 workflow HardFiltering {
     input {
