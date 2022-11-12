@@ -2,13 +2,14 @@ version 1.0
 
 
 import "./create_alignment_from_read_simulations.wdl" as simulation
-import "./gatk_genotyping.wdl" as gatk 
+import "./gatk_genotyping.wdl" as gatk
 import "./freebayes_genotyping.wdl" as freebayes
 import "./utils.wdl" as utils
 import "./utilsR.wdl" as utilsR
 import "./snpcaller_maps-simulated.wdl" as snpcaller
 import "./gusmap_maps-simulated.wdl" as gusmap
 import "./genotyping-simulated.wdl" as genotyping
+import "custom/r_libs.wdl"
 
 
 struct PopulationAnalysis {
@@ -91,7 +92,7 @@ workflow SimulatedSingleFamily {
   File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_norm_bamcounts])
   File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_norm])
   File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_norm_bamcounts])
-  
+
   call utils.GetMarkersPos {
     input:
       true_vcf = CreateAlignmentFromSimulation.true_vcf,
@@ -117,8 +118,8 @@ workflow SimulatedSingleFamily {
                 vcf_file = vcfs[origin]
         }
 
-        # Suggestion for better SuperMASSA, updog and polyRAD performance 
-        call utilsR.FilterSegregation { 
+        # Suggestion for better SuperMASSA, updog and polyRAD performance
+        call utilsR.FilterSegregation {
              input:
                 vcf_file = splitgeno.biallelics,
                 parent1 = "P1",
@@ -133,7 +134,7 @@ workflow SimulatedSingleFamily {
             genotyping_program = "updog",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
             simulated_phases = CreateAlignmentFromSimulation.simulated_phases,
-            SNPCall_program = analysis.method, 
+            SNPCall_program = analysis.method,
             CountsFrom = origin,
             cross = family.cross,
             max_cores = max_cores,
@@ -229,7 +230,7 @@ workflow SimulatedSingleFamily {
   }
 
   # Compress files
-  call JointReports {
+  call r_libs.JointReports {
     input:
       SNPCaller                 = SNPCallerMaps.tar_gz_report,
       updog                     = flatten(updogMaps.tar_gz_report),
@@ -257,162 +258,5 @@ workflow SimulatedSingleFamily {
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
     File Plots                    = GatkGenotyping.Plots
     File positions                = GetMarkersPos.positions
-  }
-}
-
-task JointReports{
-  input {
-    Array[File] SNPCaller                
-    Array[File] updog                     
-    Array[File] polyrad                   
-    Array[File] supermassa         
-    Array[File] gusmap_files
-    Array[File] multiallelics_file                    
-    File Freebayes_eval
-    File GATK_eval
-    Int max_cores
-    Int seed
-    Int depth
-  }
-
-  Int disk_size = ceil(size(SNPCaller, "GiB") * 1.5 + size(updog, "GiB") * 1.5 + size(polyrad, "GiB") * 1.5 + size(supermassa, "GiB") * 1.5 + size(gusmap_files, "GiB") * 1.5 + size(multiallelics_file, "GiB") * 1.5)
-  Int memory_size = 5000
-
-  command <<<
-     R --vanilla --no-save <<RSCRIPT
-
-      # packages
-      library(tidyr)
-      library(stringr)
-      library(vroom)
-      library(largeList)
-      library(vcfR)
-
-      SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
-      updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
-      polyrad    <- str_split("~{sep=";" polyrad}", ";", simplify = T)
-      supermassa <- str_split("~{sep=";" supermassa}", ";", simplify = T)
-      gusmap <- str_split("~{sep=";" gusmap_files}", ";", simplify = T)
-
-      files <- list(SNPCaller, updog, polyrad, supermassa, gusmap)
-
-      direc <- c("/maps/", "/filters/", "/errors/", "/times/", "/RDatas/")
-
-      path_dir <- tempdir()
-      system(paste0("mkdir ", paste0(path_dir, direc, collapse = " ")))
-      for(i in 1:length(files)){
-        for(j in 1:length(files[[i]])){
-            untar(files[[i]][[j]], exdir = path_dir)
-            list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
-            system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
-            system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
-            system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
-            if(!grepl("gusmap", list_files[1])){
-              system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
-              system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
-            }
-        }
-      }
-
-      direc_tsv <- direc[-5]
-      tsvs <- list()
-      for(i in 1:length(direc_tsv)){
-        files <- system(paste0("ls ", path_dir, direc_tsv[i]), intern = T)
-        files <- paste0(path_dir, direc_tsv[i], files)
-        tsvs[[i]] <- vroom(files, num_threads = ~{max_cores})
-      }
-
-      # Add multiallelics tag
-      vcf_multi <- str_split("~{sep = ";" multiallelics_file}", ";", simplify = T)
-
-      vcfs <- lapply(as.list(vcf_multi), read.vcfR)
-      multi_names_seed <- lapply(vcfs, function(x) paste0(x@fix[,1], "_", x@fix[,2]))
-
-      snpcall_names <- rep(NA, length(vcfs))
-      snpcall_names[which(sapply(vcfs, function(x) any(grep("gatk",x@meta))))] <- "gatk"
-      snpcall_names[which(sapply(vcfs, function(x) any(grep("freebayes",x@meta))))] <- "freebayes"
-
-      for(i in 1:length(snpcall_names)){
-        tsvs[[1]][,"real.mks"][which(tsvs[[1]][,"SNPCall"] == snpcall_names[i] &  
-                                      tsvs[[1]][,"mk.name"] %in% multi_names_seed[[i]])] <- "multiallelic"
-      }
-
-      library(gsalib)
-      df <- gsa.read.gatkreport("~{Freebayes_eval}")
-      eval1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
-      count1 <- cbind(SNPCall = "Freebayes", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
-
-      df <- gsa.read.gatkreport("~{GATK_eval}")
-      eval2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CompOverlap"]])
-      count2 <- cbind(SNPCall = "GATK", seed = ~{seed}, depth = ~{depth}, df[["CountVariants"]])
-
-      df <- rbind(eval1, eval2)
-      vroom_write(df, "data5_SNPCall_efficiency.tsv.gz", num_threads = ~{max_cores})
-
-      df <- rbind(count1, count2)
-      vroom_write(df, "data10_CountVariants.tsv.gz", num_threads = ~{max_cores})
-
-      rdatas_files <- paste0(path_dir, "/RDatas/",list.files(paste0(path_dir, "/RDatas/")))
-
-      all_RDatas <- list()
-      for(i in 1:length(rdatas_files)){
-        map_temp <- load(rdatas_files[i])
-        all_RDatas[[i]] <- get(map_temp)
-      }
-      all_RDatas <- unlist(all_RDatas, recursive = F)
-
-      gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
-      RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
-
-      #   # Converting onemap sequencig objects to list. LargeList do not accept other class
-      #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
-      
-      for(i in 1:length(RDatas)){
-        class(RDatas[[i]]) <- "list"
-      }
-      
-      saveList(RDatas, file = "data6_RDatas.llo", append=FALSE, compress=TRUE)
-      
-      new_names <- names(all_RDatas)
-      vroom_write(as.data.frame(new_names), "names.tsv.gz")
-      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
-
-      # Outputs
-      vroom_write(tsvs[[3]], "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(tsvs[[1]], "data2_maps.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(tsvs[[2]], "data3_filters.tsv.gz", num_threads = ~{max_cores})
-      vroom_write(tsvs[[4]], "data4_times.tsv.gz", num_threads = ~{max_cores})
-
-     RSCRIPT
-  >>>
-
-  runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
-    cpu: max_cores
-    # Cloud
-    memory:"~{memory_size} MiB"
-    disks:"local-disk " + disk_size + " HDD"
-    # Slurm
-    job_name: "JointReports"
-    mem:"~{memory_size}M"
-    time:"01:40:00"
-  }
-
-  meta {
-      author: "Cristiane Taniguti"
-      email: "chtaniguti@tamu.edu"
-      description: "Merge reports resulted from evaluations with different pipelines."
-  } 
-
-  output {
-    File data1_depths_geno_prob = "data1_depths_geno_prob.tsv.gz"
-    File data2_maps = "data2_maps.tsv.gz"
-    File data3_filters = "data3_filters.tsv.gz"
-    File data4_times   = "data4_times.tsv.gz"
-    File data5_SNPCall_efficiency = "data5_SNPCall_efficiency.tsv.gz"
-    File data6_RDatas  = "data6_RDatas.llo"
-    File data7_gusmap  = "gusmap_RDatas.RData"
-    File data8_names   = "names.tsv.gz"
-    File data10_counts  = "data10_CountVariants.tsv.gz"
   }
 }

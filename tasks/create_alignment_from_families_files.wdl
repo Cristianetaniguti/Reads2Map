@@ -2,7 +2,7 @@ version 1.0
 
 import "custom/alignment.wdl" as alg
 import "custom/chunk_lists.wdl"
-import "./utils.wdl" as utils
+import "utils.wdl" as utils
 
 workflow CreateAlignmentFromFamilies {
     input {
@@ -34,7 +34,7 @@ workflow CreateAlignmentFromFamilies {
         }
     }
 
-    # Store for MCHap 
+    # Store for MCHap
     call utils.MergeBams {
         input:
             bam_files = flatten(RunBwaAlignment.bam)
