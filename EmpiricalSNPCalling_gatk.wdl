@@ -2,8 +2,8 @@ version 1.0
 
 import "structs/struct_reference.wdl"
 
-import "tasks/create_alignment_from_families_files.wdl" as fam
-import "tasks/gatk_genotyping.wdl" as gatk
+import "subworkflows/create_alignment_from_families_files.wdl" as fam
+import "subworkflows/gatk_genotyping.wdl" as gatk
 
 
 workflow SNPCalling_gatk {
@@ -16,7 +16,7 @@ workflow SNPCalling_gatk {
     Int ploidy
     String rm_dupli
     String? P1
-    String? P2 
+    String? P2
     String mchap
     File? merged_bams
   }

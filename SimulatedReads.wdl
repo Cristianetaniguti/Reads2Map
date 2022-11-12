@@ -1,6 +1,6 @@
 version 1.0
 
-import "./tasks/SimulatedSingleFamily.wdl" as sub
+import "subworkflows/SimulatedSingleFamily.wdl" as sub
 
 workflow SimulatedReads {
 
@@ -110,19 +110,19 @@ task ProduceFamiliesSeeds {
 
 task JointTables{
   input {
-    Array[File] data1_depths_geno_prob  
-    Array[File] data2_maps              
-    Array[File] data3_filters           
+    Array[File] data1_depths_geno_prob
+    Array[File] data2_maps
+    Array[File] data3_filters
     Array[File] data5_SNPCall_efficiency
-    Array[File] data4_times             
-    Array[File] data6_RDatas            
-    Array[File] data7_gusmap            
-    Array[File] data8_names             
+    Array[File] data4_times
+    Array[File] data6_RDatas
+    Array[File] data7_gusmap
+    Array[File] data8_names
     Array[File] data9_simu_haplo
     Array[File] data10_counts
     Array[File] plots
     Array[File] positions
-    Int depth        
+    Int depth
   }
 
   command <<<

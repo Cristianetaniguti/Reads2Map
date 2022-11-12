@@ -1,15 +1,15 @@
 version 1.0
 
 import "../structs/struct_reads_simu.wdl"
-import "custom/alignment.wdl" as alg
-import "custom/vcf.wdl"
-import "custom/chunk_lists.wdl"
-import "custom/r_libs.wdl"
-import "custom/pedigree_simulator_utils.wdl"
-import "pirs.wdl"
-import "pedigree_simulator.wdl"
-import "utils.wdl" as utils
-import "radinitio.wdl"
+import "../tasks/custom/alignment.wdl" as alg
+import "../tasks/custom/vcf.wdl"
+import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/custom/r_libs.wdl"
+import "../tasks/custom/pedigree_simulator_utils.wdl"
+import "../tasks/pirs.wdl"
+import "../tasks/pedigree_simulator.wdl"
+import "../tasks/utils.wdl" as utils
+import "../tasks/radinitio.wdl"
 
 
 

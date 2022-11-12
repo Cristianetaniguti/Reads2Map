@@ -1,63 +1,57 @@
 version 1.0
 
-import "./utilsR.wdl" as utilsR
-import "./utils.wdl" as utils
+import "../tasks/utilsR.wdl" as utilsR
+import "../tasks/utils.wdl" as utils
 
-workflow onemapMapsEmp {
-
+workflow SNPCallerMapsEmp{
   input {
-    File vcf_file
-    String SNPCall_program
-    String GenotypeCall_program
-    String CountsFrom
-    String cross
-    String parent1
-    String parent2
-    String chromosome
-    Int max_cores
-    String multiallelics
-    File? multiallelics_file
-  }
-  
-  call utilsR.ReGenotyping {
-      input:
-          vcf_file = vcf_file,
-          GenotypeCall_program = GenotypeCall_program,
-          cross = cross,
-          parent1 = parent1,
-          parent2 = parent2,
-          max_cores = max_cores
-  }
+     File vcf_file
+     String cross
+     String SNPCall_program
+     String GenotypeCall_program
+     String CountsFrom
+     String parent1
+     String parent2
+     String chromosome
+     String multiallelics
+     File? multiallelics_file
+     File? multiallelics_mchap
+     String mchap
+     Int max_cores
+
+    }
 
   if (multiallelics == "TRUE") {
     call utils.JointMarkers{
       input:
-        biallelic_vcf = ReGenotyping.regeno_vcf,
+        biallelic_vcf = vcf_file,
         multiallelic_vcf = multiallelics_file
     }
-  }
+   }
 
-  File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
+  File updated_vcf = select_first([JointMarkers.merged_vcf, vcf_file])
 
-  call utilsR.SetProbs{
+  call utilsR.SetProbsDefault{
     input:
       vcf_file = updated_vcf,
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
+      SNPCall_program = SNPCall_program,
       multiallelics = multiallelics,
-      SNPCall_program = SNPCall_program
+      multiallelics_mchap = multiallelics_mchap,
+      mchap = mchap
   }
 
-  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05"]
-  Array[File] objects                           = [SetProbs.probs_onemap_obj, SetProbs.globalerror_onemap_obj]
+  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]
+  Array[File] objects                           = [SetProbsDefault.probs_onemap_obj, SetProbsDefault.globalerror_onemap_obj, SetProbsDefault.default_onemap_obj]
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
        call utilsR.CheckDepths {
            input:
               onemap_obj = item.right,
-              vcfR_obj = SetProbs.vcfR_obj,
+              vcfR_obj = SetProbsDefault.vcfR_obj,
               parent1 = parent1,
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
@@ -65,7 +59,7 @@ workflow onemapMapsEmp {
               CountsFrom = CountsFrom,
               max_cores = max_cores
        }
-        
+
        call utilsR.FiltersReportEmp {
             input:
               onemap_obj = item.right,
@@ -83,16 +77,16 @@ workflow onemapMapsEmp {
             CountsFrom = CountsFrom,
             max_cores = max_cores
           }
-   }
+  }
 
-   call utils.Compress {
+  call utils.Compress {
       input:
         RDatas = MapsReportEmp.maps_RData,
         maps_report = MapsReportEmp.maps_report,
         times = MapsReportEmp.times,
         filters_report = FiltersReportEmp.filters_report,
         errors_report = CheckDepths.errors_report,
-        name = "regeno_maps"
+        name = "snpcaller_maps"
    }
 
    output {

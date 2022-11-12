@@ -42,7 +42,7 @@ task ApplyRandomFilters {
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Uses [vcftools](http://vcftools.sourceforge.net/) to filter VCF file by user-defined criterias."
-  }  
+  }
 
   output {
     File gatk_vcf_filt = "gatk_vcf_filt.vcf"
@@ -59,7 +59,7 @@ task SplitMarkers {
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
   Int memory_size = ceil(size(vcf_file, "MiB") * 2)
-  
+
   command <<<
     bcftools view --max-alleles 2 --min-alleles 2 --output-type z --output-file biallelics.vcf.gz  ~{vcf_file}
     bcftools view --min-alleles 3 --types mnps --output-type z --output-file multiallelics.vcf.gz  ~{vcf_file}
@@ -81,7 +81,7 @@ task SplitMarkers {
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to split the VCF in biallelic and multiallelic markers."
-  }  
+  }
 
   output {
     File biallelics = "biallelics.vcf.gz"
@@ -89,7 +89,7 @@ task SplitMarkers {
   }
 }
 
-task JointMarkers{
+task JointMarkers {
   input{
     File biallelic_vcf
     File? multiallelic_vcf
@@ -104,17 +104,17 @@ task JointMarkers{
     extension="${filename##*.}"
 
     if [ "$extension" = "gz" ]
-    then 
+    then
       tabix -p vcf ~{biallelic_vcf}
       bcftools query -l ~{biallelic_vcf} | sort > samples.txt
       bcftools view -S samples.txt ~{biallelic_vcf} > biallelic_sort.vcf
-    else 
+    else
       bgzip ~{biallelic_vcf}
       tabix -p vcf ~{biallelic_vcf}.gz
       bcftools query -l ~{biallelic_vcf}.gz | sort > samples.txt
       bcftools view -S samples.txt ~{biallelic_vcf}.gz > biallelic_sort.vcf
     fi
-    
+
     tabix -p vcf ~{multiallelic_vcf}
     bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf
     bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output merged.vcf
@@ -138,7 +138,7 @@ task JointMarkers{
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to joint the VCF files with biallelic and multiallelic markers."
-  }  
+  }
 
   output {
     File merged_vcf = "merged.vcf.gz"
@@ -166,7 +166,7 @@ task ReplaceAD {
     bcftools view -G --max-alleles 2 -v snps ~{vcf} -Oz -o sites.vcf.gz
     bcftools index --tbi -f sites.vcf.gz
     bcftools query -f'%CHROM\t%POS\t%REF,%ALT\n' sites.vcf.gz | bgzip -c > sites.tsv.gz
-    bcftools mpileup -f ~{ref_fasta} -d 500000 -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp 
+    bcftools mpileup -f ~{ref_fasta} -d 500000 -I -E -a 'FORMAT/DP,FORMAT/AD' -T sites.vcf.gz ~{sep=" " bams} -Ou > temp
     bcftools call temp -Aim -C alleles -T sites.tsv.gz  -o bam_vcf.vcf
 
     bcftools query -l multiallelics.vcf.gz | sort > samples.txt
@@ -181,7 +181,7 @@ task ReplaceAD {
 
     bcftools concat biallelic_sort.vcf.gz multiallelic_sort.vcf.gz -a -Oz --output ~{program}_bam_vcf.vcf.gz
     tabix -p vcf ~{program}_bam_vcf.vcf.gz
-    
+
   >>>
 
   runtime {
@@ -200,7 +200,7 @@ task ReplaceAD {
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to replace Allele Depth VCF field with read depth information from BAM alignment files."
-  }  
+  }
 
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
@@ -210,7 +210,7 @@ task ReplaceAD {
 
 task Compress {
     input{
-      String name 
+      String name
       Array[File] RDatas
       Array[File] maps_report
       Array[File] times
@@ -233,7 +233,7 @@ task Compress {
 
     >>>
 
-  runtime{
+  runtime {
     docker:"ubuntu:20.04"
     cpu:1
     # Cloud
@@ -249,7 +249,7 @@ task Compress {
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Move resulted reports to a single directory and compress it."
-  }  
+  }
 
   output {
     File tar_gz_report = "~{name}.tar.gz"
@@ -259,14 +259,14 @@ task Compress {
 
 task CompressGusmap {
     input{
-      String name 
+      String name
       Array[File] RDatas
       Array[File] maps_report
       Array[File] times
     }
 
     Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB"))
-    Int memory_size = 1000 
+    Int memory_size = 1000
 
     command <<<
 
@@ -278,7 +278,7 @@ task CompressGusmap {
 
     >>>
 
-  runtime{
+  runtime {
     docker:"ubuntu:20.04"
     cpu:1
     # Cloud
@@ -294,7 +294,7 @@ task CompressGusmap {
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Move GUSMap resulted reports to a single directory and compress it."
-  } 
+  }
 
   output {
     File tar_gz_report = "~{name}.tar.gz"
@@ -329,7 +329,7 @@ task GetMarkersPos {
     tar -czvf ~{depth}_~{seed}_positions.tar.gz ~{depth}_~{seed}_positions/
   >>>
 
-  runtime { 
+  runtime {
     docker:"lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
@@ -345,7 +345,7 @@ task GetMarkersPos {
     author: "Cristiane Taniguti"
     email: "chtaniguti@tamu.edu"
     description: "Uses [bcftools](https://samtools.github.io/bcftools/bcftools.html) to extract markers position information."
-  } 
+  }
 
   output {
     File positions = "~{depth}_~{seed}_positions.tar.gz"
@@ -359,7 +359,7 @@ task MergeBams{
 
     Int disk_size = ceil(size(bam_files, "GiB") * 2)
     Int memory_size = 5000
-    
+
     command <<<
         samtools merge merged.bam ~{sep=" " bam_files}
     >>>
@@ -373,14 +373,14 @@ task MergeBams{
         # Slurm
         job_name: "MergeBams"
         mem:"~{memory_size}M"
-        time:"10:00:00"     
+        time:"10:00:00"
     }
 
     meta {
       author: "Cristiane Taniguti"
       email: "chtaniguti@tamu.edu"
       description: "Uses [samtools](https://samtools.github.io/) to merge BAM alignment files."
-    } 
+    }
 
     output {
         File merged_bam = "merged.bam"

@@ -1,13 +1,14 @@
 version 1.0
 
 import "../structs/struct_reference.wdl"
+import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/gatk.wdl"
+import "../tasks/utils.wdl" as utils
+
 import "norm_filt_vcf.wdl" as norm_filt
-import "utils.wdl" as utils
-import "MCHap.wdl" as MCHapWf
 import "hard_filtering-simulated.wdl" as hard_filt
 import "hard_filtering-empirical.wdl" as hard_filt_emp
-import "custom/chunk_lists.wdl"
-import "gatk.wdl"
+import "MCHap.wdl" as MCHapWf
 
 
 workflow GatkGenotyping {

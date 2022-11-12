@@ -1,15 +1,15 @@
 version 1.0
 
+import "../tasks/utils.wdl" as utils
+import "../tasks/utilsR.wdl" as utilsR
+import "../tasks/custom/r_libs.wdl"
 
-import "./create_alignment_from_read_simulations.wdl" as simulation
-import "./gatk_genotyping.wdl" as gatk
-import "./freebayes_genotyping.wdl" as freebayes
-import "./utils.wdl" as utils
-import "./utilsR.wdl" as utilsR
-import "./snpcaller_maps-simulated.wdl" as snpcaller
-import "./gusmap_maps-simulated.wdl" as gusmap
-import "./genotyping-simulated.wdl" as genotyping
-import "custom/r_libs.wdl"
+import "create_alignment_from_read_simulations.wdl" as simulation
+import "genotyping-simulated.wdl" as genotyping
+import "gusmap_maps-simulated.wdl" as gusmap
+import "snpcaller_maps-simulated.wdl" as snpcaller
+import "freebayes_genotyping.wdl" as freebayes
+import "gatk_genotyping.wdl" as gatk
 
 
 struct PopulationAnalysis {

@@ -1,7 +1,7 @@
 version 1.0
 
-import "./utilsR.wdl" as utilsR
-import "./utils.wdl" as utils
+import "../tasks/utilsR.wdl" as utilsR
+import "../tasks/utils.wdl" as utils
 
 workflow SNPCallerMaps{
   input {
@@ -102,4 +102,3 @@ workflow SNPCallerMaps{
       File tar_gz_report = Compress.tar_gz_report
    }
 }
-

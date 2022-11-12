@@ -1,10 +1,10 @@
 version 1.0
 
-import "custom/bam_to_bed.wdl"
-import "custom/chunk_lists.wdl"
-import "custom/r_libs.wdl"
-import "custom/sort_and_concat_vcfs.wdl"
-import "mchap.wdl"
+import "../tasks/custom/bam_to_bed.wdl"
+import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/custom/r_libs.wdl"
+import "../tasks/custom/sort_and_concat_vcfs.wdl"
+import "../tasks/mchap.wdl"
 
 workflow MCHap {
   input {

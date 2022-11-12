@@ -1,7 +1,7 @@
 version 1.0
 
-import "./utilsR.wdl" as utilsR
-import "./utils.wdl" as utils
+import "../tasks/utilsR.wdl" as utilsR
+import "../tasks/utils.wdl" as utils
 
 workflow onemapMaps {
 
@@ -112,6 +112,3 @@ workflow onemapMaps {
       File tar_gz_report = Compress.tar_gz_report
    }
 }
-
-
-

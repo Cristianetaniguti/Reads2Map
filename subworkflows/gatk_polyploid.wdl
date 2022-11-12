@@ -1,8 +1,8 @@
 version 1.0
 
-import "custom/alignment.wdl"
-import "custom/chunk_lists.wdl"
-import "gatk.wdl"
+import "../tasks/custom/alignment.wdl"
+import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/gatk.wdl"
 
 struct Reference {
   File ref_dict

@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/struct_reference.wdl"
+import "../../structs/struct_reference.wdl"
 
 # This task considers that it is possible to receive more than one fastq file per sample
 # It keeps the different libraries in the header and merges the bam files

@@ -1,8 +1,9 @@
 version 1.0
 
-import "custom/alignment.wdl" as alg
-import "custom/chunk_lists.wdl"
-import "utils.wdl" as utils
+import "../tasks/custom/alignment.wdl" as alg
+import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/utils.wdl" as utils
+
 
 workflow CreateAlignmentFromFamilies {
     input {

@@ -1,7 +1,7 @@
 version 1.0
 
-import "utils.wdl" as utils
-import "custom/r_libs.wdl"
+import "../tasks/utils.wdl" as utils
+import "../tasks/custom/r_libs.wdl"
 
 workflow gusmapMaps {
   input {

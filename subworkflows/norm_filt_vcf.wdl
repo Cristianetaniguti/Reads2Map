@@ -1,7 +1,7 @@
 version 1.0
 
-import "bcftools.wdl"
-import "gatk.wdl"
+import "../tasks/bcftools.wdl"
+import "../tasks/gatk.wdl"
 
 workflow Normalization {
   input {
