@@ -1,6 +1,5 @@
 version 1.0
 
-import "../structs/struct_alignment.wdl"
 import "../structs/struct_reference.wdl"
 
 # This task considers that is it possible to receive more than one fastq file by sample
