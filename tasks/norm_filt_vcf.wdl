@@ -1,10 +1,10 @@
 version 1.0
 
-workflow Normalization{
+workflow Normalization {
   input {
     File vcf_in
     File? vcf_simu
-    String program
+    String program  # TODO: remover
     File reference
     File reference_idx
     File reference_dict
