@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/struct_maps-empirical.wdl"
+import "structs/struct_maps_empirical.wdl"
 
 import "tasks/snpcaller_maps-empirical.wdl" as snpcaller
 import "tasks/gusmap_maps-empirical.wdl" as gusmap
