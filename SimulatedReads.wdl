@@ -1,5 +1,9 @@
 version 1.0
 
+
+import "structs/dna_seq_structs.wdl"
+import "structs/read_simulation_structs.wdl"
+
 import "tasks/custom/pedigree_simulator_utils.wdl"
 import "tasks/custom/reports.wdl"
 
@@ -15,6 +19,9 @@ workflow SimulatedReads {
     Int global_seed
     Int max_cores
     String? filters
+
+    Int chunk_size = 5
+    String gatk_mchap = "TRUE"  # TODO: It could probably be Boolean type
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -28,17 +35,17 @@ workflow SimulatedReads {
   # Here we generate Family objects on the fly, based on the values
   # from the family and the random seed of the previous task.
   scatter (seed in ProduceFamiliesSeeds.seeds) {
-    Family fam =  {
-      "cmBymb": family.cmBymb,
-      "popsize": family.popsize,
-      "enzyme1": sequencing.enzyme1,
-      "enzyme2": sequencing.enzyme2,
-      "seed": seed,
-      "depth": sequencing.depth,
-      "doses": family.doses,
-      "ploidy": family.ploidy,
-      "cross": family.cross,
-      "multiallelics": sequencing.multiallelics,
+    Family fam = object {
+      cmBymb: family.cmBymb,
+      popsize: family.popsize,
+      enzyme1: sequencing.enzyme1,
+      enzyme2: sequencing.enzyme2,
+      seed: seed,
+      depth: sequencing.depth,
+      doses: family.doses,
+      ploidy: family.ploidy,
+      cross: family.cross,
+      multiallelics: sequencing.multiallelics,
     }
 
     # Calling reads_simu for each seed
@@ -49,7 +56,9 @@ workflow SimulatedReads {
         sequencing = sequencing,
         max_cores = max_cores,
         filters = filters,
-        ploidy =  family.ploidy
+        ploidy =  family.ploidy,
+        chunk_size = chunk_size,
+        gatk_mchap=gatk_mchap
     }
   }
 

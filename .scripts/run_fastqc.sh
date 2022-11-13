@@ -25,3 +25,6 @@ done
 
 singularity run --bind /scratch/user/chtaniguti/euc_raw/A_1/A_1_raw/:/scratch/user/chtaniguti/euc_raw/A_1/A_1_raw/ \
  -W /scratch/user/chtaniguti/euc_raw/A_1/A_1_raw/ /scratch/user/chtaniguti/.singularity/ewels_multiqc.sif . --title "A_1"
+
+
+# TODO: will we keep it?
