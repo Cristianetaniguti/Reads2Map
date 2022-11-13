@@ -30,7 +30,6 @@ workflow FreebayesGenotyping {
     input:
       vcf_in = RunFreebayes.vcf,
       vcf_simu = vcf_simu,
-      program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
       reference_dict = references.ref_dict
