@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   wdl-validate:
     docker:
-      - image: broadinstitute/womtool:85
+      - image: broadinstitute/womtool:85-4a6ad8e
     steps:
       - checkout
       - run:
