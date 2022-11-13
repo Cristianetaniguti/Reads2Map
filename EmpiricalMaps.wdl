@@ -1,7 +1,7 @@
 version 1.0
 
-import "structs/struct_maps_empirical.wdl"
-import "structs/population.wdl"
+import "structs/empirical_maps_structs.wdl"
+import "structs/population_structs.wdl"
 
 import "tasks/utils.wdl" as utils
 import "tasks/utilsR.wdl" as utilsR

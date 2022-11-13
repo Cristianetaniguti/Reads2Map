@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/read_simulation.wdl"
+import "../structs/read_simulation_structs.wdl"
 import "../tasks/custom/alignment.wdl" as alg
 import "../tasks/custom/vcf.wdl"
 import "../tasks/custom/chunk_lists.wdl"

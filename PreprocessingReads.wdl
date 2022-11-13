@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/struct_preprocessing.wdl"
+import "structs/preprocessing_reads_structs.wdl"
 
 workflow PreprocessingReads{
     input {
@@ -58,7 +58,7 @@ task ProcessRadTags {
 
     runtime {
       docker:"cristaniguti/stacks:0.0.1"
-      job_name: "ProcessRadTags" 
+      job_name: "ProcessRadTags"
       node:"--nodes=1"
       mem:"--mem=30G"
       tasks:"--ntasks=1"
@@ -84,7 +84,7 @@ task RemoveAdapt {
 
   runtime {
     docker:"kfdrc/cutadapt"
-    job_name: "RemoveAdapt" 
+    job_name: "RemoveAdapt"
     node:"--nodes=1"
     mem:"--mem=30G"
     tasks:"--ntasks=1"
@@ -109,7 +109,7 @@ task TarFiles {
 
   runtime {
     docker:"kfdrc/cutadapt"
-    job_name: "TarFiles" 
+    job_name: "TarFiles"
     node:"--nodes=1"
     mem:"--mem=30G"
     tasks:"--ntasks=1"

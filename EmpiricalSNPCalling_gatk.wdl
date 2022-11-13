@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/struct_reference.wdl"
+import "structs/dna_seq_structs.wdl"
 
 import "subworkflows/create_alignment_from_families_files.wdl" as fam
 import "subworkflows/gatk_genotyping.wdl" as gatk

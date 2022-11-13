@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/struct_reference.wdl"
+import "../structs/dna_seq_structs.wdl"
 import "../tasks/custom/chunk_lists.wdl"
 import "../tasks/gatk.wdl"
 import "../tasks/utils.wdl" as utils
@@ -113,7 +113,6 @@ workflow GatkGenotyping {
     input:
       vcf_in= filt_vcf,
       vcf_simu = vcf_simu,
-      program=program,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
       reference_dict = references.ref_dict

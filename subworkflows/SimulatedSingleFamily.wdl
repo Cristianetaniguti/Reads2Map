@@ -1,6 +1,6 @@
 version 1.0
 
-import "structs/population.wdl"
+import "structs/population_structs.wdl"
 
 import "../tasks/utils.wdl" as utils
 import "../tasks/utilsR.wdl" as utilsR

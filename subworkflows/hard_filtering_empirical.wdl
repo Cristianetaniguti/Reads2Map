@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/struct_reference.wdl"
+import "../structs/dna_seq_structs.wdl"
 import "../tasks/gatk.wdl"
 import "../tasks/custom/r_libs.wdl"
 

@@ -30,7 +30,7 @@ struct Sequencing {
   Int mapsize
 }
 
-struct OptionalFilters {
+struct OptionalFilters {  # TODO: Check if it is used. If not: remove it
   String? Filter1
   String? Filter2
   String? Filter3
