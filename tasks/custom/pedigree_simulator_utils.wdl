@@ -15,7 +15,7 @@ task CreatePedigreeSimulatorInputs {
     String cross
   }
 
-  Int disk_size = ceil(size(snps, "GiB") * 2 + size(indels, "GiB") * 2 + size(ref, "GiB") + size(doses, "GiB") * 2) 
+  Int disk_size = ceil(size(snps, "GiB") * 2 + size(indels, "GiB") * 2 + size(ref, "GiB") + size(doses, "GiB") * 2)
   Int memory_size = 4000
 
   command <<<
@@ -214,8 +214,8 @@ task ConvertPedigreeSimulationToVcf {
     Int mapsize
   }
 
-  Int disk_size = ceil(size(genotypes_dat, "GiB") * 2 + size(map_file, "GiB") + size(ref_alt_alleles, "GiB") + size(chrom_file, "GiB")) 
-  Int memory_size = 8000  
+  Int disk_size = ceil(size(genotypes_dat, "GiB") * 2 + size(map_file, "GiB") + size(ref_alt_alleles, "GiB") + size(chrom_file, "GiB"))
+  Int memory_size = 8000
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -239,17 +239,17 @@ task ConvertPedigreeSimulationToVcf {
                phase = TRUE,
                reference.alleles = mks[,3],
                use.as.alleles=TRUE,
-              #  n_selected_loci = 1, 
-              #  selection_str_mean = 0.5, 
-              #  selection_str_var = 0.0001, 
-              #  pop.size = ~{popsize}, 
+              #  n_selected_loci = 1,
+              #  selection_str_mean = 0.5,
+              #  selection_str_var = 0.0001,
+              #  pop.size = ~{popsize},
               #  selected_mks = 30,
                map.size = ~{mapsize})
 
     vcfR.object <- read.vcfR("temp.vcf")
 
     vcf_simu <- data.frame(vcfR.object@fix, vcfR.object@gt, stringsAsFactors = FALSE)
-    
+
     vcf_simu[,6] <- "."
     vcf_simu[,8] <- "."
 
@@ -311,7 +311,7 @@ task Vcf2PedigreeSimulator{
     String vcf_parent2
   }
 
-  Int disk_size = ceil(size(vcf_file, "GiB") * 2 + size(ref_map, "GiB") + 5) 
+  Int disk_size = ceil(size(vcf_file, "GiB") * 2 + size(ref_map, "GiB") + 5)
   Int memory_size = 5000
 
   command <<<
@@ -372,5 +372,38 @@ task Vcf2PedigreeSimulator{
       File chromfile_map = "chromosome.txt"
       File ref_alt_alleles_map = "ref_alt_alleles.txt"
       File simulated_phases_map = "simulated_phases.txt"
+  }
+}
+
+task ProduceFamiliesSeeds {
+  input {
+    Int number_of_families
+    Int global_seed
+  }
+
+  command <<<
+    python <<CODE
+    import random
+    random.seed(~{global_seed})
+    for x in range(~{number_of_families}):
+        print(random.randint(1,101+x))
+    CODE
+  >>>
+
+  runtime {
+    docker: "python:3.7"
+    # preemptible: 3
+    # cpu: 1
+    # memory: "1 GB"
+    job_name: "ProduceFamiliesSeeds"
+    node:"--nodes=1"
+    mem:"--mem=1G"
+    cpu:"--ntasks=1"
+    time:"01:00:00"
+    maxRetries: 5
+  }
+
+  output {
+    Array[Int] seeds = read_lines(stdout())
   }
 }

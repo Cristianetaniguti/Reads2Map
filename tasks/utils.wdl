@@ -386,3 +386,29 @@ task MergeBams{
         File merged_bam = "merged.bam"
     }
 }
+
+
+task TarFiles {
+  input {
+    Array[File] sequences
+  }
+
+  command <<<
+    mkdir results
+    mv ~{sep=" " sequences} results
+    tar -czvf results.tar.gz results
+  >>>
+
+  runtime {
+    docker:"kfdrc/cutadapt"
+    job_name: "TarFiles"
+    node:"--nodes=1"
+    mem:"--mem=30G"
+    tasks:"--ntasks=1"
+    time:"24:00:00"
+  }
+
+  output {
+    File results = "results.tar.gz"
+  }
+}
