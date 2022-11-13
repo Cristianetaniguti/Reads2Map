@@ -1,19 +1,11 @@
 version 1.0
 
+import "../structs/struct_reference.wdl"
+
 import "../tasks/custom/alignment.wdl"
 import "../tasks/custom/chunk_lists.wdl"
 import "../tasks/gatk.wdl"
 
-struct Reference {
-  File ref_dict
-  File ref_fasta
-  File ref_fasta_index
-  File ref_sa
-  File ref_amb
-  File ref_bwt
-  File ref_ann
-  File ref_pac
-}
 
 workflow GATK_poly {
 

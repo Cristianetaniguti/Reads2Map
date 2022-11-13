@@ -1,5 +1,7 @@
 version 1.0
 
+import "structs/population.wdl"
+
 import "../tasks/utils.wdl" as utils
 import "../tasks/utilsR.wdl" as utilsR
 import "../tasks/custom/r_libs.wdl"
@@ -11,12 +13,6 @@ import "snpcaller_maps_simulated.wdl" as snpcaller
 import "freebayes_genotyping.wdl" as freebayes
 import "gatk_genotyping.wdl" as gatk
 
-
-struct PopulationAnalysis {
-    String method
-    File vcf
-    File bam
-}
 
 workflow SimulatedSingleFamily {
 

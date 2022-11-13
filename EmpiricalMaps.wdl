@@ -1,6 +1,7 @@
 version 1.0
 
 import "structs/struct_maps_empirical.wdl"
+import "structs/population.wdl"
 
 import "tasks/utils.wdl" as utils
 import "tasks/utilsR.wdl" as utilsR
@@ -9,11 +10,7 @@ import "subworkflows/genotyping_empirical.wdl" as genotyping
 import "subworkflows/snpcaller_maps_empirical.wdl" as snpcaller
 import "subworkflows/gusmap_maps_empirical.wdl" as gusmap
 
-struct PopulationAnalysis {
-    String method
-    File vcf
-    File bam
-}
+
 
 workflow Maps {
 
