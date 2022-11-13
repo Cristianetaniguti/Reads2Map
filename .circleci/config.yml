@@ -31,4 +31,4 @@ workflows:
       - wdl-validate
       - run-tasks-tests:
           requires:
-            - download-test-data
+            - wdl-validate
