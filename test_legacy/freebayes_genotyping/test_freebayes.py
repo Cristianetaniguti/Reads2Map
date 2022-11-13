@@ -12,16 +12,22 @@ def test_freebayes(workflow_data, workflow_runner):
             "ref_amb": workflow_data["ref_amb"],
             "ref_bwt": workflow_data["ref_bwt"],
             "ref_fasta_index": workflow_data["ref_fasta_index"],
-            "ref_pac": workflow_data["ref_pac"]
+            "ref_pac": workflow_data["ref_pac"],
         },
         "max_cores": 4,
-        "bams": [workflow_data["F1_01_bam"], workflow_data["F1_02_bam"], workflow_data["P1_bam"], workflow_data["P2_bam"]],
-        "bais": [workflow_data["F1_01_bai"], workflow_data["F1_02_bai"], workflow_data["P1_bai"], workflow_data["P2_bai"]]
+        "bams": [
+            workflow_data["F1_01_bam"],
+            workflow_data["F1_02_bam"],
+            workflow_data["P1_bam"],
+            workflow_data["P2_bam"],
+        ],
+        "bais": [
+            workflow_data["F1_01_bai"],
+            workflow_data["F1_02_bai"],
+            workflow_data["P1_bai"],
+            workflow_data["P2_bai"],
+        ],
     }
 
     expected = {"vcf_biallelics": workflow_data["vcf_bi_freebayes"]}
-    workflow_runner(
-        "tasks/freebayes_genotyping.wdl",
-        inputs,
-        expected
-    )
+    workflow_runner("tasks/freebayes_genotyping.wdl", inputs, expected)

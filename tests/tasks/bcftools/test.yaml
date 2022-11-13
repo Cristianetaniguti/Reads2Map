@@ -1,0 +1,8 @@
+- name: Use bcftools to normalize variant representation in VCF
+  tags:
+    - bcftools
+    - bcftools/biallelic_normalization
+  command: miniwdl run --task BiallelicNormalization -i tests/tasks/bcftools/inputs.json tasks/bcftools.wdl
+  files:
+    - path: _LAST/out/vcf_norm/vcf_norm.vcf.gz
+    - path: _LAST/out/vcf_norm_tbi/vcf_norm.vcf.gz.tbi

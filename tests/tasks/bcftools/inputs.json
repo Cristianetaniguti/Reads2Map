@@ -1,0 +1,5 @@
+{
+    "vcf_file": "tests/data/ecoli/ecoli_first_10k_bases.vcf.gz",
+    "reference": "tests/data/ecoli/ecoli_first_10k_bases.fa",
+    "reference_idx": "tests/data/ecoli/ecoli_first_10k_bases.fa.fai"
+}

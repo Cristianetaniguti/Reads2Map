@@ -1,0 +1,4 @@
+miniwdl
+pandas
+pyarrow
+pytest-workflow

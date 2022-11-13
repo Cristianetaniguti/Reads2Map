@@ -6,7 +6,7 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
             "doses": None,
             "ploidy": 2,
             "popsize": 20,
-            "seed": 22
+            "seed": 22,
         },
         "references": {
             "ref_fasta": workflow_data["ref_fasta"],
@@ -16,9 +16,9 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
             "ref_amb": workflow_data["ref_amb"],
             "ref_bwt": workflow_data["ref_bwt"],
             "ref_fasta_index": workflow_data["ref_fasta_index"],
-            "ref_pac": workflow_data["ref_pac"]
+            "ref_pac": workflow_data["ref_pac"],
         },
-        "sequencing":{
+        "sequencing": {
             "emp_vcf": workflow_data["emp_vcf_no_indels"],
             "enzyme1": "HinDIII",
             "enzyme2": "NlaIII",
@@ -33,9 +33,9 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
             "ref_map": workflow_data["ref_map"],
             "multiallelics": "TRUE",
             "vcf_parent1": "PT_F",
-            "vcf_parent2": "PT_M"
+            "vcf_parent2": "PT_M",
         },
-        "max_cores": 4
+        "max_cores": 4,
     }
 
     expected = {
@@ -45,7 +45,5 @@ def test_read_simulation_workflow(workflow_data, workflow_runner):
         "ref_alt_alleles": workflow_data["ref_alt_alleles"],
     }
     workflow_runner(
-        "tasks/create_alignment_from_read_simulations.wdl",
-        inputs,
-        expected
+        "tasks/create_alignment_from_read_simulations.wdl", inputs, expected
     )
