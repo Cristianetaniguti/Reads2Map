@@ -2,7 +2,7 @@ version 1.0
 
 import "../structs/dna_seq_structs.wdl"
 
-task RADinitioSimulation{
+task RADinitioSimulation {
   input {
     File simu_vcf
     File radinitio_vcf
@@ -97,7 +97,7 @@ task RADinitioSimulation{
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/radinitio:0.0.1"
     cpu:1
     # Cloud

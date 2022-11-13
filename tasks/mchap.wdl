@@ -1,7 +1,7 @@
 version 1.0
 
 task OneMCHap {
-    input{
+    input {
         Array[File] bams
         Array[File] bais
         File bed
@@ -68,7 +68,7 @@ task OneMCHap {
 }
 
 task OneMCHap_recall {
-    input{
+    input {
         Array[File] bams
         Array[File] bais
         File vcf_file

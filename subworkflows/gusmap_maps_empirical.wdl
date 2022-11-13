@@ -19,7 +19,7 @@ workflow gusmapMapsEmp {
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
 
   scatter (vcf in counts_and_vcfs) {
-    call r_libs.GusmapReport{
+    call r_libs.GusmapReport {
         input:
           vcf_file = vcf.right,
           SNPCall_program = SNPCall_program,
@@ -31,7 +31,7 @@ workflow gusmapMapsEmp {
         }
     }
 
-    call utils.CompressGusmap{
+    call utils.CompressGusmap {
       input:
         name = "gusmap_map",
         RDatas = GusmapReport.maps_RData,
@@ -39,7 +39,7 @@ workflow gusmapMapsEmp {
         times = GusmapReport.times
     }
 
-   output{
+   output {
      File tar_gz_report = CompressGusmap.tar_gz_report
    }
 }

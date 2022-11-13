@@ -54,7 +54,7 @@ workflow Maps {
 
         scatter (origin in ["vcf", "bam"]) {
 
-            call utils.SplitMarkers as splitgeno{
+            call utils.SplitMarkers as splitgeno {
                  input:
                     vcf_file = vcfs[origin]
             }
@@ -116,12 +116,12 @@ workflow Maps {
             }
         }
 
-       call utils.SplitMarkers as splitvcf{
+       call utils.SplitMarkers as splitvcf {
             input:
               vcf_file = analysis.vcf
        }
 
-       call utils.SplitMarkers as splitbam{
+       call utils.SplitMarkers as splitbam {
             input:
               vcf_file = analysis.bam
        }
@@ -167,7 +167,7 @@ workflow Maps {
             max_cores = max_cores
     }
 
-    output{
+    output {
         File EmpiricalReads_results = JointReports.EmpiricalReads_results
     }
 }

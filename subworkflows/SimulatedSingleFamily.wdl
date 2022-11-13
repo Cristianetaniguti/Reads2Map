@@ -109,7 +109,7 @@ workflow SimulatedSingleFamily {
 
     scatter (origin in ["vcf", "bam"]){
 
-        call utils.SplitMarkers as splitgeno{
+        call utils.SplitMarkers as splitgeno {
              input:
                 vcf_file = vcfs[origin]
         }
@@ -180,12 +180,12 @@ workflow SimulatedSingleFamily {
         }
     }
 
-    call utils.SplitMarkers as splitvcf{
+    call utils.SplitMarkers as splitvcf {
          input:
            vcf_file = analysis.vcf
     }
 
-    call utils.SplitMarkers as splitbam{
+    call utils.SplitMarkers as splitbam {
          input:
            vcf_file = analysis.bam
     }
@@ -204,7 +204,7 @@ workflow SimulatedSingleFamily {
         max_cores = max_cores
     }
 
-    call snpcaller.SNPCallerMaps{
+    call snpcaller.SNPCallerMaps {
       input:
         simu_onemap_obj = truth_vcf.onemap_obj,
         vcf_file = splitvcf.biallelics,

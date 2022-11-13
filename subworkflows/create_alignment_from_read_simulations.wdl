@@ -119,7 +119,7 @@ workflow CreateAlignmentFromSimulation {
     # Two option of RADseq
     # The samples need to be simulated together, otherwise they will be all heterozygous
     if(sequencing.library_type == "sdRAD" || sequencing.library_type == "ddRAD"){
-      call radinitio.RADinitioSimulation{
+      call radinitio.RADinitioSimulation {
         input:
           depth          = sequencing.depth,
           depth_parents  = sequencing.depth_parents,

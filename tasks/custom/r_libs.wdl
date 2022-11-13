@@ -2,7 +2,7 @@ version 1.0
 
 import "../../structs/dna_seq_structs.wdl"
 
-task SimuscopProfile{
+task SimuscopProfile {
   input {
     String library_type
     File?  emp_bam
@@ -53,12 +53,12 @@ task SimuscopProfile{
     description: "Run [seqToProfile](https://github.com/qasimyu/simuscop) to generate data set profile."
   }
 
-  output{
+  output {
     File profile = "sample.profile"
   }
 }
 
-task SimuscopSimulation{
+task SimuscopSimulation {
  input {
     String library_type
     String sampleName
@@ -137,7 +137,7 @@ task SimuscopSimulation{
 
 
 task GusmapReport {
-  input{
+  input {
     File vcf_file
     String SNPCall_program
     String GenotypeCall_program
@@ -181,7 +181,7 @@ task GusmapReport {
 
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/reads2map:0.0.1"
     cpu: max_cores
     # Cloud
@@ -199,7 +199,7 @@ task GusmapReport {
         description: "Estimate genetic distances by GUSMap HMM multi-point approach in a set o markers ordered by genomic position. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
   }
 
-  output{
+  output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
     File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz"

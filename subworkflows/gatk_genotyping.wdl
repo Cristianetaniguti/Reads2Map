@@ -137,7 +137,7 @@ workflow GatkGenotyping {
    Array[File] counts_source = [Normalization.vcf_norm, ReplaceAD.bam_vcf]
 
    scatter (one_vcf in counts_source){
-      call MCHapWf.MCHap{
+      call MCHapWf.MCHap {
         input:
           reference = references.ref_fasta,
           reference_idx = references.ref_fasta_index,

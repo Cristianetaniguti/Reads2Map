@@ -3,7 +3,7 @@ version 1.0
 import "../tasks/utilsR.wdl" as utilsR
 import "../tasks/utils.wdl" as utils
 
-workflow SNPCallerMaps{
+workflow SNPCallerMaps {
   input {
      File simu_onemap_obj
      File simu_vcfR
@@ -24,7 +24,7 @@ workflow SNPCallerMaps{
     }
 
   if (multiallelics == "TRUE") {
-    call utils.JointMarkers{
+    call utils.JointMarkers {
       input:
         biallelic_vcf = vcf_file,
         multiallelic_vcf = multiallelics_file
@@ -50,7 +50,7 @@ workflow SNPCallerMaps{
   Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
 
   scatter (item in methods_and_objects) {
-      call utilsR.FiltersReport{
+      call utilsR.FiltersReport {
         input:
           onemap_obj = item.right,
           SNPCall_program = SNPCall_program,
@@ -60,7 +60,7 @@ workflow SNPCallerMaps{
           depth = depth
       }
 
-      call utilsR.MapsReport{
+      call utilsR.MapsReport {
         input:
           onemap_obj = FiltersReport.onemap_obj_filtered,
           ref_alt_alleles = ref_alt_alleles,
@@ -74,7 +74,7 @@ workflow SNPCallerMaps{
           max_cores = max_cores
       }
 
-      call utilsR.ErrorsReport{
+      call utilsR.ErrorsReport {
         input:
           onemap_obj = item.right,
           SNPCall_program = SNPCall_program,

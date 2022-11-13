@@ -34,7 +34,7 @@ workflow onemapMaps {
   }
 
   if (multiallelics == "TRUE") {
-    call utils.JointMarkers{
+    call utils.JointMarkers {
       input:
         biallelic_vcf = ReGenotyping.regeno_vcf,
         multiallelic_vcf = multiallelics_file
@@ -43,7 +43,7 @@ workflow onemapMaps {
 
   File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
 
-  call utilsR.SetProbs{
+  call utilsR.SetProbs {
     input:
       vcf_file = updated_vcf,
       cross = cross,
@@ -83,7 +83,7 @@ workflow onemapMaps {
             max_cores = max_cores
           }
 
-        call utilsR.ErrorsReport{
+        call utilsR.ErrorsReport {
             input:
               onemap_obj = item.right,
               SNPCall_program = SNPCall_program,

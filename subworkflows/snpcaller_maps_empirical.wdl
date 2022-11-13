@@ -3,7 +3,7 @@ version 1.0
 import "../tasks/utilsR.wdl" as utilsR
 import "../tasks/utils.wdl" as utils
 
-workflow SNPCallerMapsEmp{
+workflow SNPCallerMapsEmp {
   input {
      File vcf_file
      String cross
@@ -22,7 +22,7 @@ workflow SNPCallerMapsEmp{
     }
 
   if (multiallelics == "TRUE") {
-    call utils.JointMarkers{
+    call utils.JointMarkers {
       input:
         biallelic_vcf = vcf_file,
         multiallelic_vcf = multiallelics_file
@@ -31,7 +31,7 @@ workflow SNPCallerMapsEmp{
 
   File updated_vcf = select_first([JointMarkers.merged_vcf, vcf_file])
 
-  call utilsR.SetProbsDefault{
+  call utilsR.SetProbsDefault {
     input:
       vcf_file = updated_vcf,
       cross = cross,

@@ -43,7 +43,7 @@ workflow TestGenotypingR {
         parent2 = parent2
     }
 
-    call utilsR.MultiVcf2onemap{
+    call utilsR.MultiVcf2onemap {
        input:
           multi = analysis_multi_vcf,
           cross = cross,
