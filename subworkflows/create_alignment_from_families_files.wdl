@@ -8,7 +8,7 @@ import "../tasks/utils.wdl" as utils
 workflow CreateAlignmentFromFamilies {
     input {
         File families_info
-        Reference references
+        ReferenceFasta references
         Int max_cores
         String rm_dupli
         Int chunk_size

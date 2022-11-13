@@ -11,7 +11,7 @@ workflow SNPCalling {
 
   input {
     File samples_info
-    Reference references
+    ReferenceFasta references
     Int max_cores
     Int chunk_size
     String rm_dupli

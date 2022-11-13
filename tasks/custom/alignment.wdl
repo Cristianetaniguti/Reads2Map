@@ -11,7 +11,7 @@ task RunBwaAlignment {
     Array[String] sampleName
     Array[File] reads
     Array[String] libraries
-    Reference references
+    ReferenceFasta references
     Int max_cores
     String rm_dupli
   }
@@ -123,7 +123,7 @@ task RunBwaAlignmentForGatkPolyploid {
     Array[String] sampleName
     Array[File] reads
     Array[String] libraries
-    Reference references
+    ReferenceFasta references
     Int max_cores
   }
 
@@ -206,7 +206,7 @@ task RunBwaAlignmentSimu {
   input {
     File reads
     Array[File] fastqs
-    Reference references
+    ReferenceFasta references
     Int max_cores
     String rm_dupli
   }

@@ -6,7 +6,7 @@ import "../tasks/custom/r_libs.wdl"
 
 workflow HardFilteringEmp {
     input {
-        Reference references
+        ReferenceFasta references
         File vcf_file
         File vcf_tbi
     }

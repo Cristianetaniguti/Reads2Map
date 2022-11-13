@@ -9,7 +9,7 @@ struct Family {
   String cross
 }
 
-struct Sequencing{
+struct Sequencing {
   String library_type
   Int depth
   Int depth_parents
@@ -30,7 +30,7 @@ struct Sequencing{
   Int mapsize
 }
 
-struct OptionalFilters{
+struct OptionalFilters {
   String? Filter1
   String? Filter2
   String? Filter3

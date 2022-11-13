@@ -15,7 +15,7 @@ workflow GatkGenotyping {
   input {
     Array[File] bams
     Array[File] bais
-    Reference references
+    ReferenceFasta references
     String program
     File? vcf_simu
     Int? seed

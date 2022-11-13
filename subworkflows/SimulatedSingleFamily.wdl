@@ -17,7 +17,7 @@ import "gatk_genotyping.wdl" as gatk
 workflow SimulatedSingleFamily {
 
   input {
-    Reference references
+    ReferenceFasta references
     Family family
     Sequencing sequencing
     String? filters

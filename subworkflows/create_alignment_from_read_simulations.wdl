@@ -1,6 +1,6 @@
 version 1.0
 
-import "../structs/struct_reads_simu.wdl"
+import "../structs/read_simulation.wdl"
 import "../tasks/custom/alignment.wdl" as alg
 import "../tasks/custom/vcf.wdl"
 import "../tasks/custom/chunk_lists.wdl"
@@ -15,7 +15,7 @@ import "../tasks/radinitio.wdl"
 
 workflow CreateAlignmentFromSimulation {
     input {
-        Reference references
+        ReferenceFasta references
         Family family
         Sequencing sequencing
         Int max_cores

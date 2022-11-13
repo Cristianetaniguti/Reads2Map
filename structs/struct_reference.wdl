@@ -1,7 +1,7 @@
 version 1.0
 
 
-struct Reference {
+struct ReferenceFasta {
   File ref_dict
   File ref_fasta
   File ref_fasta_index

@@ -8,7 +8,7 @@ task RADinitioSimulation{
     File radinitio_vcf
     String enzyme1
     String? enzyme2
-    Reference references
+    ReferenceFasta references
     Int depth
     Int depth_parents
     Int? insert_size

@@ -11,7 +11,7 @@ workflow FreebayesGenotyping {
   input {
     Array[File] bams
     Array[File] bais
-    Reference references
+    ReferenceFasta references
     String program
     Int max_cores
     File? vcf_simu

@@ -11,7 +11,7 @@ workflow GATK_poly {
 
   input {
     File samples_info
-    Reference references
+    ReferenceFasta references
     Int max_cores
     Int chunk_size
     Int ploidy

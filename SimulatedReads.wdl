@@ -5,7 +5,7 @@ import "subworkflows/SimulatedSingleFamily.wdl" as sub
 workflow SimulatedReads {
 
   input {
-    Reference references
+    ReferenceFasta references
     Family family
     Sequencing sequencing
     Int number_of_families

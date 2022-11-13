@@ -7,7 +7,7 @@ task SimuscopProfile{
     String library_type
     File?  emp_bam
     File   vcf
-    Reference  references
+    ReferenceFasta  references
   }
 
   Int disk_size = ceil(size(vcf, "GiB") * 2 + size(emp_bam, "GiB"))
@@ -65,7 +65,7 @@ task SimuscopSimulation{
     Int depth
     File? emp_bam
     File vcf
-    Reference references
+    ReferenceFasta references
     String chrom
     File profile
   }
