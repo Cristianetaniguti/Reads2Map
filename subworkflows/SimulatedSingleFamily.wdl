@@ -6,12 +6,12 @@ import "../tasks/utils.wdl" as utils
 import "../tasks/utilsR.wdl" as utilsR
 import "../tasks/custom/r_libs.wdl"
 
-import "create_alignment_from_read_simulations.wdl" as simulation
-import "genotyping_simulated.wdl" as genotyping
-import "gusmap_maps_simulated.wdl" as gusmap
-import "snpcaller_maps_simulated.wdl" as snpcaller
-import "freebayes_genotyping.wdl" as freebayes
-import "gatk_genotyping.wdl" as gatk
+import "../subworkflows/create_alignment_from_read_simulations.wdl" as simulation
+import "../subworkflows/genotyping_simulated.wdl" as genotyping
+import "../subworkflows/gusmap_maps_simulated.wdl" as gusmap
+import "../subworkflows/snpcaller_maps_simulated.wdl" as snpcaller
+import "../subworkflows/freebayes_genotyping.wdl" as freebayes
+import "../subworkflows/gatk_genotyping.wdl" as gatk
 
 
 workflow SimulatedSingleFamily {

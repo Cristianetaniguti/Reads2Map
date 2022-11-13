@@ -4,7 +4,7 @@ import "../structs/dna_seq_structs.wdl"
 import "../tasks/utils.wdl" as utils
 import "../tasks/freebayes.wdl"
 
-import "norm_filt_vcf.wdl" as norm_filt
+import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
 
 
 workflow FreebayesGenotyping {

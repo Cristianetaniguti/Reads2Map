@@ -5,10 +5,10 @@ import "../tasks/custom/chunk_lists.wdl"
 import "../tasks/gatk.wdl"
 import "../tasks/utils.wdl" as utils
 
-import "norm_filt_vcf.wdl" as norm_filt
-import "hard_filtering_simulated.wdl" as hard_filt
-import "hard_filtering_empirical.wdl" as hard_filt_emp
-import "MCHap.wdl" as MCHapWf
+import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
+import "../subworkflows/hard_filtering_simulated.wdl" as hard_filt
+import "../subworkflows/hard_filtering_empirical.wdl" as hard_filt_emp
+import "../subworkflows/MCHap.wdl" as MCHapWf
 
 
 workflow GatkGenotyping {
