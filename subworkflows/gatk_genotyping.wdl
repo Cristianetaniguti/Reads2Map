@@ -6,8 +6,8 @@ import "../tasks/gatk.wdl"
 import "../tasks/utils.wdl" as utils
 
 import "norm_filt_vcf.wdl" as norm_filt
-import "hard_filtering-simulated.wdl" as hard_filt
-import "hard_filtering-empirical.wdl" as hard_filt_emp
+import "hard_filtering_simulated.wdl" as hard_filt
+import "hard_filtering_empirical.wdl" as hard_filt_emp
 import "MCHap.wdl" as MCHapWf
 
 

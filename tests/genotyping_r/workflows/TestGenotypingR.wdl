@@ -1,9 +1,9 @@
 version 1.0
 
 import "utilsR.wdl" as utilsR
-import "default_maps.wdl" as default
+import "default_maps.wdl" as default  # TODO: Could not find this .wdl in the repository
 import "snpcaller_maps.wdl" as snpcaller
-import "genotyping-simulated.wdl" as genotyping
+import "genotyping_simulated.wdl" as genotyping
 import "gusmap_maps.wdl" as gusmap
 
 
