@@ -1,5 +1,11 @@
 version: 2.1
 
+
+machine_default: &machine_default
+  machine:
+    image: ubuntu-2004:202010-01
+
+
 jobs:
   wdl-validate:
     docker:
@@ -10,8 +16,19 @@ jobs:
           name: Checking WDL sintax
           command: for i in *.wdl; do echo $i; java -jar /app/womtool.jar validate $i; done
 
+  run-tasks-tests:
+    <<: *machine_default
+    steps:
+      - checkout
+
+      - run: pip3 install -r tests/requirements.txt
+      - run: pytest --tag bcftools tests/
+
 
 workflows:
   test-and-release:
     jobs:
       - wdl-validate
+      - run-tasks-tests:
+          requires:
+            - download-test-data
