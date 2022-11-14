@@ -319,17 +319,15 @@ task QualPlots {
     }
 
     Int disk_size = ceil(size(Total, "GB") + 1)
-    Int memory_size = ceil(size(Total, "MiB") * 1.25)
+    Int memory_size = ceil(size(Total, "MiB") * 1.5)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
-            system("cp ~{Total} .")
-
             library(ggplot2)
             library(dplyr)
             library(tidyr)
 
-            tot <- read.table("Total.table", header = T)
+            tot <- read.table("~{Total}", header = T)
             tot <- cbind(set = "Total", tot)
 
             df <- pivot_longer(tot, cols = c(4:9))
