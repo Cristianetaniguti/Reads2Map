@@ -11,8 +11,6 @@ import "../tasks/pedigree_simulator.wdl"
 import "../tasks/utils.wdl" as utils
 import "../tasks/radinitio.wdl"
 
-
-
 workflow CreateAlignmentFromSimulation {
     input {
         ReferenceFasta references

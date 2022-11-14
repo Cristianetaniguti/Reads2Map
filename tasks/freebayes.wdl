@@ -11,7 +11,7 @@ task RunFreebayes {
   }
 
   Int disk_size = ceil(size(reference, "GiB") + size(bam, "GiB") +  50)
-  Int memory_size = ceil(size(bam, "MiB") * 1.25)
+  Int memory_size = ceil(size(bam, "MiB") * 3 + 5000)
 
   command <<<
    # needed for some singularity versions

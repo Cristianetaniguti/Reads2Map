@@ -1,0 +1,4 @@
+- name: Align empirical FASTQ reads to a reference genome 
+  tags:
+    - create_alignment_from_families_files
+  command: miniwdl run -i tests/subworkflows/create_alignment_from_families_files/inputs.json subworkflows/create_alignment_from_families_files.wdl
