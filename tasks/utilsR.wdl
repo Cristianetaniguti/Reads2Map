@@ -9,7 +9,7 @@ task vcf2onemap {
    }
 
    Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-   Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+   Int memory_size = ceil(size(vcf_file, "MiB") * 2 + 2000)
 
    command <<<
 
@@ -78,7 +78,7 @@ task FiltersReport {
   }
 
   Int disk_size = ceil(size(onemap_obj, "GiB") * 2)
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 2)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 2000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -131,7 +131,7 @@ task FiltersReportEmp {
   }
 
   Int disk_size = ceil(size(onemap_obj, "GiB") * 2)
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 2)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 2 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -188,7 +188,7 @@ task MapsReport {
   }
 
   Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(ref_alt_alleles, "GiB") + (size(simu_onemap_obj, "GiB") * 2) + size(simulated_phases, "GiB"))
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 8)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 4000)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -294,7 +294,7 @@ task ErrorsReport {
   }
 
   Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(vcfR_obj, "GiB") + (size(simu_vcfR, "GiB") * 2))
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 4)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 3000)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -382,7 +382,7 @@ task CheckDepths {
   }
 
   Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(vcfR_obj, "GiB"))
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 4)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -442,7 +442,7 @@ task MapsReportEmp {
   }
 
   Int disk_size = ceil((size(sequence_obj, "GiB") * 2))
-  Int memory_size = ceil(size(sequence_obj, "MiB") * 8)
+  Int memory_size = ceil(size(sequence_obj, "MiB") * 3 + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -509,7 +509,7 @@ task ReGenotyping {
   }
 
   Int disk_size = ceil((size(vcf_file, "GiB") * 4))
-  Int memory_size = ceil(size(vcf_file, "MiB") * 8)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 3 + 4000)
 
   command <<<
      R --vanilla --no-save <<RSCRIPT
@@ -609,7 +609,7 @@ task SetProbs {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 3)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 3)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2 + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -700,7 +700,7 @@ task SetProbsDefault {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 3)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 3)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -786,7 +786,7 @@ task FilterSegregation {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+  Int memory_size = 3000
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
