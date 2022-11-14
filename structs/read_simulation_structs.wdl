@@ -7,11 +7,6 @@ struct Family {
   File? doses
   Int ploidy
   String cross
-
-  String? enzyme1
-  String? enzyme2
-  Float? depth
-  String? multiallelics
 }
 
 struct Sequencing {

@@ -1,17 +1,23 @@
 {
-  "SNPCalling.samples_info": "/home/cris/Reads2Map/data/toy_empirical/EmpiricalSNPCalling/samples_info_pop_sub.tsv",
-  "SNPCalling.max_cores": "3",
+  "SNPCalling.GatkGenotyping.depth": "Int? (optional)",
+  "SNPCalling.samples_info": "File",
+  "SNPCalling.P1": "String",
+  "SNPCalling.max_cores": "Int",
+  "SNPCalling.P2": "String",
+  "SNPCalling.FreebayesGenotyping.vcf_simu": "File? (optional)",
+  "SNPCalling.gatk_mchap": "String",
   "SNPCalling.references": {
-    "ref_fasta": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa",
-    "ref_dict": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.dict",
-    "ref_ann": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa.ann",
-    "ref_sa": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa.sa",
-    "ref_amb": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa.amb",
-    "ref_bwt": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa.bwt",
-    "ref_fasta_index": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa.fai",
-    "ref_pac": "/home/cris/Reads2Map/data/toy_genome/Chr10.11.2M.fa.pac"
+    "ref_fasta": "File",
+    "ref_dict": "File",
+    "ref_ann": "File",
+    "ref_sa": "File",
+    "ref_amb": "File",
+    "ref_bwt": "File",
+    "ref_fasta_index": "File",
+    "ref_pac": "File"
   },
-  "SNPCalling.rm_dupli": "FALSE",
-  "SNPCalling.chunk_size": "3"
+  "SNPCalling.rm_dupli": "String",
+  "SNPCalling.GatkGenotyping.vcf_simu": "File? (optional)",
+  "SNPCalling.GatkGenotyping.seed": "Int? (optional)",
+  "SNPCalling.chunk_size": "Int"
 }
-
