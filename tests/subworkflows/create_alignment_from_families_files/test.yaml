@@ -2,3 +2,6 @@
   tags:
     - create_alignment_from_families_files
   command: miniwdl run -i tests/subworkflows/create_alignment_from_families_files/inputs.json subworkflows/create_alignment_from_families_files.wdl
+    files:
+    - path: _LAST/call-SepareChunksFastqString/out/chunks/0/chunk_1.txt
+      md5sum: 2a246c134dd8df6537e6c27c6e04b3c9

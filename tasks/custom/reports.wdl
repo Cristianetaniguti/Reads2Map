@@ -10,6 +10,9 @@ task JointReports{
     Int max_cores
   }
 
+  Int disk_size = ceil(size(SNPCaller, "GiB") * 1.5 + size(updog, "GiB") * 1.5 + size(polyrad, "GiB") * 1.5 + size(supermassa, "GiB") * 1.5 + size(gusmap, "GiB") * 1.5)
+  Int memory_size = 4000
+
   command <<<
      R --vanilla --no-save <<RSCRIPT
 
@@ -101,14 +104,14 @@ task JointReports{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.1"
-    # time:"10:00:00"
-    # mem:"80GB"
-    # cpu:1
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "JointReports"
-    node:"--nodes=1"
-    mem:"--mem=20G"
-    cpu:"--ntasks=4"
-    time:"01:00:00"
+    mem:"~{memory_size}M"
+    time:"01:40:00"
   }
 
   output{
