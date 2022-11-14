@@ -29,7 +29,7 @@ workflow GatkGenotyping {
     String? P2
   }
 
-  call chunk_lists.CreateChunks {
+  call chunk_lists.CreateChunksBam {
     input:
       bams=bams,
       bams_index=bais,
@@ -37,7 +37,7 @@ workflow GatkGenotyping {
       reference_fasta = references.ref_fasta
   }
 
-  scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
+  scatter (chunk in zip(CreateChunksBam.bams_chunks, CreateChunksBam.bais_chunks)) {
 
     call gatk.HaplotypeCaller {
       input:
@@ -51,7 +51,7 @@ workflow GatkGenotyping {
     }
   }
 
-  Array[String] calling_intervals = read_lines(CreateChunks.interval_list)
+  Array[String] calling_intervals = read_lines(CreateChunksBam.interval_list)
 
   scatter (interval in calling_intervals) {
     call gatk.ImportGVCFs {
@@ -77,10 +77,7 @@ workflow GatkGenotyping {
   call gatk.MergeVCFs {
     input:
       input_vcfs = GenotypeGVCFs.vcf,
-      input_vcf_indices = GenotypeGVCFs.vcf_tbi,
-      ref_fasta = references.ref_fasta,
-      ref_fasta_index = references.ref_fasta_index,
-      ref_dict = references.ref_dict
+      input_vcf_indices = GenotypeGVCFs.vcf_tbi
   }
 
   # Simulations

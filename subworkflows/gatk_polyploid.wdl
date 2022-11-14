@@ -17,7 +17,7 @@ workflow GATK_poly {
     Int ploidy
   }
 
-    call chunk_lists.SepareChunksFromGatkPolyploid as SepareChunks {
+    call chunk_lists.SepareChunksFastqString as SepareChunks {
         input:
             families_info=samples_info,
             chunk_size = chunk_size
@@ -37,7 +37,7 @@ workflow GATK_poly {
         }
     }
 
-call chunk_lists.CreateChunksFromGatkPolyploid as CreateChunks {
+call chunk_lists.CreateChunksBam as CreateChunks {
     input:
       bams=flatten(RunBwaAlignment.bam),
       bams_index=flatten(RunBwaAlignment.bai),
@@ -47,7 +47,7 @@ call chunk_lists.CreateChunksFromGatkPolyploid as CreateChunks {
 
   scatter (chunk in zip(CreateChunks.bams_chunks, CreateChunks.bais_chunks)) {
 
-    call gatk.HaplotypeCallerFromGatkPolyploid as HaplotypeCaller {
+    call gatk.HaplotypeCaller as HaplotypeCaller {
       input:
         bams = read_lines(chunk.left),
         bams_index = read_lines(chunk.right),
@@ -62,7 +62,7 @@ call chunk_lists.CreateChunksFromGatkPolyploid as CreateChunks {
   Array[String] calling_intervals = read_lines(CreateChunks.interval_list)
 
   scatter (interval in calling_intervals) {
-    call gatk.ImportGVCFsFromGatkPolyploid as ImportGVCFs {
+    call gatk.ImportGVCFs as ImportGVCFs {
       input:
         vcfs=flatten(HaplotypeCaller.vcfs),
         vcfs_index=flatten(HaplotypeCaller.vcfs_index),
@@ -72,7 +72,7 @@ call chunk_lists.CreateChunksFromGatkPolyploid as CreateChunks {
         interval = interval
     }
 
-    call gatk.GenotypeGVCFsFromGatkPolyploid as GenotypeGVCFs {
+    call gatk.GenotypeGVCFs as GenotypeGVCFs {
       input:
         workspace_tar = ImportGVCFs.output_workspace,
         interval = interval,
@@ -82,7 +82,7 @@ call chunk_lists.CreateChunksFromGatkPolyploid as CreateChunks {
     }
   }
 
-  call gatk.MergeVCFsFromGatkPolyploid as MergeVCFs {
+  call gatk.MergeVCFs as MergeVCFs {
     input:
       input_vcfs = GenotypeGVCFs.vcf,
       input_vcf_indices = GenotypeGVCFs.vcf_tbi

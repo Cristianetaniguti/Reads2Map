@@ -35,24 +35,11 @@ workflow SimulatedReads {
   # Here we generate Family objects on the fly, based on the values
   # from the family and the random seed of the previous task.
   scatter (seed in ProduceFamiliesSeeds.seeds) {
-    Family fam = object {
-      cmBymb: family.cmBymb,
-      popsize: family.popsize,
-      enzyme1: sequencing.enzyme1,
-      enzyme2: sequencing.enzyme2,
-      seed: seed,
-      depth: sequencing.depth,
-      doses: family.doses,
-      ploidy: family.ploidy,
-      cross: family.cross,
-      multiallelics: sequencing.multiallelics,
-    }
-
     # Calling reads_simu for each seed
     call sub.SimulatedSingleFamily {
       input:
         references=references,
-        family=fam,
+        family=family,
         sequencing = sequencing,
         max_cores = max_cores,
         filters = filters,
@@ -62,7 +49,7 @@ workflow SimulatedReads {
     }
   }
 
-  call reports.JointTables {
+  call reports.JointTablesSimu {
     input:
       data1_depths_geno_prob   = SimulatedSingleFamily.data1_depths_geno_prob,
       data2_maps               = SimulatedSingleFamily.data2_maps,
@@ -82,6 +69,6 @@ workflow SimulatedReads {
   # Here you can reference outputs from the sub workflow. Remember that
   # it will be an array of the same type of the original.
   output {
-    File results = JointTables.results
+    File results = JointTablesSimu.results
   }
 }

@@ -14,13 +14,13 @@ workflow CreateAlignmentFromFamilies {
         Int chunk_size
     }
 
-    call chunk_lists.SepareChunks {
+    call chunk_lists.SepareChunksFastqString {
         input:
             families_info=families_info,
             chunk_size = chunk_size
     }
 
-    scatter (chunk in SepareChunks.chunks) {
+    scatter (chunk in SepareChunksFastqString.chunks) {
 
         Array[Array[String]] sample_file = read_tsv(chunk)
 

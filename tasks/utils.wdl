@@ -158,7 +158,7 @@ task ReplaceAD {
   }
 
   Int disk_size = ceil(size(ref_fasta, "GiB") + size(bams, "GiB") * 1.5 + size(vcf, "GiB") * 1.5)
-  Int memory_size = ceil(size(vcf, "MiB") * 8)
+  Int memory_size = ceil(size(vcf, "MiB") * 8 + 5000)
 
   command <<<
 

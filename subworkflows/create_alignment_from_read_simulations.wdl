@@ -141,13 +141,13 @@ workflow CreateAlignmentFromSimulation {
 
   Array[File] fastq = select_first([RADinitioSimulation.fastq_rad, SimuscopSimulation.fastq_seq])
 
-  call chunk_lists.SepareChunksInputList {
+  call chunk_lists.SepareChunksFastq {
     input:
       fastqs = fastq,
       chunk_size = chunk_size
   }
 
-  scatter (chunk in SepareChunksInputList.chunks){
+  scatter (chunk in SepareChunksFastq.chunks){
 
     call alg.RunBwaAlignmentSimu {
       input:

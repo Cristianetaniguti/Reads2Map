@@ -4,7 +4,7 @@ import "structs/population_structs.wdl"
 
 import "../tasks/utils.wdl" as utils
 import "../tasks/utilsR.wdl" as utilsR
-import "../tasks/custom/r_libs.wdl"
+import "../tasks/custom/reports.wdl" as reports
 
 import "../subworkflows/create_alignment_from_read_simulations.wdl" as simulation
 import "../subworkflows/genotyping_simulated.wdl" as genotyping
@@ -226,7 +226,7 @@ workflow SimulatedSingleFamily {
   }
 
   # Compress files
-  call r_libs.JointReports {
+  call reports.JointReportsSimu {
     input:
       SNPCaller                 = SNPCallerMaps.tar_gz_report,
       updog                     = flatten(updogMaps.tar_gz_report),
@@ -242,15 +242,15 @@ workflow SimulatedSingleFamily {
   }
 
   output {
-    File data1_depths_geno_prob   = JointReports.data1_depths_geno_prob
-    File data2_maps               = JointReports.data2_maps
-    File data3_filters            = JointReports.data3_filters
-    File data4_times              = JointReports.data4_times
-    File data5_SNPCall_efficiency = JointReports.data5_SNPCall_efficiency
-    File data6_RDatas             = JointReports.data6_RDatas
-    File data7_gusmap             = JointReports.data7_gusmap
-    File data8_names              = JointReports.data8_names
-    File data10_counts            = JointReports.data10_counts
+    File data1_depths_geno_prob   = JointReportsSimu.data1_depths_geno_prob
+    File data2_maps               = JointReportsSimu.data2_maps
+    File data3_filters            = JointReportsSimu.data3_filters
+    File data4_times              = JointReportsSimu.data4_times
+    File data5_SNPCall_efficiency = JointReportsSimu.data5_SNPCall_efficiency
+    File data6_RDatas             = JointReportsSimu.data6_RDatas
+    File data7_gusmap             = JointReportsSimu.data7_gusmap
+    File data8_names              = JointReportsSimu.data8_names
+    File data10_counts            = JointReportsSimu.data10_counts
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
     File Plots                    = GatkGenotyping.Plots
     File positions                = GetMarkersPos.positions
