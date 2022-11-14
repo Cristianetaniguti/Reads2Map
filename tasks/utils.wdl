@@ -12,7 +12,7 @@ task ApplyRandomFilters {
   }
 
   Int disk_size = ceil(size(gatk_vcf, "GiB") * 2 + size(freebayes_vcf, "GiB") * 2 + size(gatk_vcf_bam_counts, "GiB") * 2 + size(freebayes_vcf_bam_counts, "GiB") * 2)
-  Int memory_size = ceil(size(freebayes_vcf_bam_counts, "MiB") * 2)
+  Int memory_size = 3000
 
   command <<<
     # Required update to deal with polyploids
@@ -58,7 +58,7 @@ task SplitMarkers {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+  Int memory_size = 3000
 
   command <<<
     bcftools view --max-alleles 2 --min-alleles 2 --output-type z --output-file biallelics.vcf.gz  ~{vcf_file}
@@ -96,7 +96,7 @@ task JointMarkers {
   }
 
    Int disk_size = ceil(size(biallelic_vcf, "GiB") * 2 + size(multiallelic_vcf, "GiB") * 2)
-  Int memory_size = ceil(size(biallelic_vcf, "MiB") * 2)
+  Int memory_size = 3000
 
   command <<<
 
