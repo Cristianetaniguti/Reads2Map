@@ -31,7 +31,7 @@ jobs:
     <<: *machine_default
     steps:
       - checkout
-      - run: for i in *.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e dev -p; done
+      - run: for i in pipelines/*/*.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e dev -p $i; done
 
 
 workflows:
