@@ -1,0 +1,13 @@
+{
+    "onemapMapsEmp.cross": "F1",
+    "onemapMapsEmp.CountsFrom": "VCF",
+    "onemapMapsEmp.parent2": "PT_M",
+    "onemapMapsEmp.max_cores": 2,
+    "onemapMapsEmp.SNPCall_program": "freebayes",
+    "onemapMapsEmp.multiallelics_file": "tests/data/EmpiricalMaps/genotyping_vcfs/multiallelics.vcf.gz",
+    "onemapMapsEmp.GenotypeCall_program": "String",
+    "onemapMapsEmp.multiallelics": "TRUE",
+    "onemapMapsEmp.parent1": "PT_F",
+    "onemapMapsEmp.chromosome": "Chr10",
+    "onemapMapsEmp.vcf_file": "tests/data/EmpiricalMaps/genotyping_vcfs/filtered.vcf.gz"
+  }
