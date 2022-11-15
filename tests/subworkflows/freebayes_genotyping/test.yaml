@@ -1,0 +1,4 @@
+- name: Freebayes SNP calling
+  tags:
+    - freebayes
+  command: miniwdl run -i tests/subworkflows/freebayes_genotyping/inputs.json subworkflows/freebayes_genotyping.wdl

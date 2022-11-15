@@ -5,7 +5,7 @@
     "onemapMapsEmp.max_cores": 2,
     "onemapMapsEmp.SNPCall_program": "freebayes",
     "onemapMapsEmp.multiallelics_file": "tests/data/EmpiricalMaps/genotyping_vcfs/multiallelics.vcf.gz",
-    "onemapMapsEmp.GenotypeCall_program": "String",
+    "onemapMapsEmp.GenotypeCall_program": "updog",
     "onemapMapsEmp.multiallelics": "TRUE",
     "onemapMapsEmp.parent1": "PT_F",
     "onemapMapsEmp.chromosome": "Chr10",
