@@ -18,11 +18,13 @@ jobs:
 
   run-tasks-tests:
     <<: *machine_default
+    environment:
+      MINIWDL__FILE_IO__ALLOW_ANY_INPUT: "true"  # required (probably) because of some "Strigs" used as "File" in WDL
     steps:
       - checkout
 
       - run: pip3 install -r tests/requirements.txt
-      - run: pytest --tag bcftools tests/
+      - run: pytest --tag create_alignment_from_families_files tests/
 
 
 workflows:
