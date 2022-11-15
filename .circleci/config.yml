@@ -24,7 +24,7 @@ jobs:
       - checkout
 
       - run: pip3 install -r tests/requirements.txt
-      - run: pytest --tag create_alignment_from_families_files tests/
+      - run: pytest --git-aware --tag create_alignment_from_families_files tests/
 
 
   release-develop:
