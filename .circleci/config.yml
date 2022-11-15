@@ -27,6 +27,13 @@ jobs:
       - run: pytest --tag create_alignment_from_families_files tests/
 
 
+  release-develop:
+    <<: *machine_default
+    steps:
+      - checkout
+      - run: for i in *.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e dev -p; done
+
+
 workflows:
   test-and-release:
     jobs:
@@ -34,3 +41,6 @@ workflows:
       - run-tasks-tests:
           requires:
             - wdl-validate
+      - release-develop:
+          requires:
+            - run-tasks-tests
