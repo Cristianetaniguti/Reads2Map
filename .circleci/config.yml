@@ -14,7 +14,7 @@ jobs:
       - checkout
       - run:
           name: Checking WDL sintax
-          command: for i in *.wdl; do echo $i; java -jar /app/womtool.jar validate $i; done
+          command: for i in pipelines/*/*.wdl; do echo $i; java -jar /app/womtool.jar validate $i; done
 
   run-tasks-tests:
     <<: *machine_default
