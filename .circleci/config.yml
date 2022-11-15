@@ -14,15 +14,24 @@ jobs:
       - checkout
       - run:
           name: Checking WDL sintax
-          command: for i in *.wdl; do echo $i; java -jar /app/womtool.jar validate $i; done
+          command: for i in pipelines/*/*.wdl; do echo $i; java -jar /app/womtool.jar validate $i; done
 
   run-tasks-tests:
     <<: *machine_default
+    environment:
+      MINIWDL__FILE_IO__ALLOW_ANY_INPUT: "true"  # required (probably) because of some "Strigs" used as "File" in WDL
     steps:
       - checkout
 
       - run: pip3 install -r tests/requirements.txt
-      - run: pytest --tag bcftools tests/
+      - run: pytest --tag create_alignment_from_families_files tests/
+
+
+  release-develop:
+    <<: *machine_default
+    steps:
+      - checkout
+      - run: for i in pipelines/*/*.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e dev -p $i; done
 
 
 workflows:
@@ -32,3 +41,6 @@ workflows:
       - run-tasks-tests:
           requires:
             - wdl-validate
+      - release-develop:
+          requires:
+            - run-tasks-tests

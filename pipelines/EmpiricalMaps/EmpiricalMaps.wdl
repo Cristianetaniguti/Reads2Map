@@ -1,15 +1,15 @@
 version 1.0
 
-import "structs/empirical_maps_structs.wdl"
-import "structs/population_structs.wdl"
+import "../../structs/empirical_maps_structs.wdl"
+import "../../structs/population_structs.wdl"
 
-import "tasks/utils.wdl" as utils
-import "tasks/utilsR.wdl" as utilsR
-import "tasks/custom/reports.wdl"
+import "../../tasks/utils.wdl" as utils
+import "../../tasks/utilsR.wdl" as utilsR
+import "../../tasks/custom/reports.wdl"
 
-import "subworkflows/genotyping_empirical.wdl" as genotyping
-import "subworkflows/snpcaller_maps_empirical.wdl" as snpcaller
-import "subworkflows/gusmap_maps_empirical.wdl" as gusmap
+import "../../subworkflows/genotyping_empirical.wdl" as genotyping
+import "../../subworkflows/snpcaller_maps_empirical.wdl" as snpcaller
+import "../../subworkflows/gusmap_maps_empirical.wdl" as gusmap
 
 
 
