@@ -1,9 +1,9 @@
 version 1.0
 
-import "structs/dna_seq_structs.wdl"
+import "../../structs/dna_seq_structs.wdl"
 
-import "subworkflows/create_alignment_from_families_files.wdl" as fam
-import "subworkflows/gatk_genotyping.wdl" as gatk
+import "../../subworkflows/create_alignment_from_families_files.wdl" as fam
+import "../../subworkflows/gatk_genotyping.wdl" as gatk
 
 
 workflow SNPCalling_gatk {

@@ -1,11 +1,11 @@
 version 1.0
 
 
-import "structs/preprocessing_reads_structs.wdl"
+import "../../structs/preprocessing_reads_structs.wdl"
 
-import "tasks/stacks.wdl"
-import "tasks/cutadapt.wdl"
-import "tasks/utils.wdl"
+import "../../tasks/stacks.wdl"
+import "../../tasks/cutadapt.wdl"
+import "../../tasks/utils.wdl"
 
 
 workflow PreprocessingReads{

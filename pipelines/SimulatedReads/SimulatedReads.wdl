@@ -1,13 +1,13 @@
 version 1.0
 
 
-import "structs/dna_seq_structs.wdl"
-import "structs/read_simulation_structs.wdl"
+import "../../structs/dna_seq_structs.wdl"
+import "../../structs/read_simulation_structs.wdl"
 
-import "tasks/custom/pedigree_simulator_utils.wdl"
-import "tasks/custom/reports.wdl"
+import "../../tasks/custom/pedigree_simulator_utils.wdl"
+import "../../tasks/custom/reports.wdl"
 
-import "subworkflows/SimulatedSingleFamily.wdl" as sub
+import "../../subworkflows/SimulatedSingleFamily.wdl" as sub
 
 workflow SimulatedReads {
 
