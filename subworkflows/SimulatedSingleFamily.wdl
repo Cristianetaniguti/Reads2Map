@@ -61,7 +61,8 @@ workflow SimulatedSingleFamily {
       references = references,
       program    = "freebayes",
       max_cores  = max_cores,
-      vcf_simu   = CreateAlignmentFromSimulation.true_vcf
+      vcf_simu   = CreateAlignmentFromSimulation.true_vcf,
+      ploidy     = family.ploidy
   }
 
   call utilsR.vcf2onemap as truth_vcf {
