@@ -14,6 +14,7 @@ workflow FreebayesGenotyping {
     ReferenceFasta references
     String program
     Int max_cores
+    Int ploidy
     File? vcf_simu
   }
 
@@ -23,7 +24,8 @@ workflow FreebayesGenotyping {
       reference_idx=references.ref_fasta_index,
       bam=bams,
       bai=bais,
-      max_cores = max_cores
+      max_cores = max_cores,
+      ploidy = ploidy
   }
 
   call norm_filt.Normalization {

@@ -18,6 +18,7 @@ workflow SNPCalling {
     String P1
     String P2
     String gatk_mchap
+    Int ploidy
   }
 
   call fam.CreateAlignmentFromFamilies {
@@ -35,7 +36,7 @@ workflow SNPCalling {
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
       chunk_size = chunk_size,
-      ploidy = 2,
+      ploidy = ploidy,
       program="gatk",
       max_cores = max_cores,
       merged_bams = CreateAlignmentFromFamilies.merged_bam,
@@ -50,7 +51,8 @@ workflow SNPCalling {
       bais=CreateAlignmentFromFamilies.bai,
       references=references,
       program="freebayes",
-      max_cores = max_cores
+      max_cores = max_cores,
+      ploidy = ploidy
   }
 
   output {
