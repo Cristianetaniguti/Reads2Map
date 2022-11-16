@@ -524,7 +524,6 @@ task QualPlotsForHardFilteringSimulated {
 
 }
 
-
 task VariantFiltration {
     input {
         File vcf_file
@@ -591,7 +590,7 @@ task FilterMulti {
     }
 
     Int disk_size = ceil(size(multi_vcf, "GiB") * 1.5)
-    Int memory_size = 10000
+    Int memory_size = 3000
 
     command <<<
         R --vanilla --no-save <<RSCRIPT

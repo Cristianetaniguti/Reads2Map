@@ -66,15 +66,19 @@ workflow MCHap {
         haplo_vcf = OneMCHap_recall.haplo_vcf
   }
 
-  call r_libs.FilterMulti {
-      input:
-        multi_vcf = mergeVCFs.merged_vcf,
-        ploidy = ploidy,
-        P1 = P1,
-        P2 = P2
+   if(defined(P1)){
+      call r_libs.FilterMulti {
+          input:
+            multi_vcf = mergeVCFs.merged_vcf,
+            ploidy = ploidy,
+            P1 = P1,
+            P2 = P2
+      }
   }
 
+  File final_vcf = select_first([FilterMulti.multi_vcf_filt, mergeVCFs.merged_vcf])
+
   output {
-    File haplo_vcf_merged = FilterMulti.multi_vcf_filt
+    File haplo_vcf_merged = final_vcf
   }
 }

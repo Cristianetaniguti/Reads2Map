@@ -1,0 +1,17 @@
+{
+    "MCHap.n_nodes": 1,
+    "MCHap.ploidy": 2,
+    "MCHap.bais": ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bam", 
+                  "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bam",
+                  "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bam",
+                  "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bam"],
+    "MCHap.reference_idx": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.fai",
+    "MCHap.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/MCHap_vcf/vcf_norm.vcf.gz",
+    "MCHap.reference": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa",
+    "MCHap.max_cores": 2,
+    "MCHap.bams": ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bam", 
+                   "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bam",
+                   "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bam",
+                   "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bam"],
+    "MCHap.merged_bams": "tests/data/Ptremula_PRJNA395596_subset/bams/merged.bam"
+  }

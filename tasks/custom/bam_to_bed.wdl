@@ -6,7 +6,7 @@ task BamToBed {
     }
 
     Int disk_size = ceil(size(merged_bams, "GiB") * 1.5)
-    Int memory_size = 7000
+    Int memory_size = 3000
 
     command <<<
         bamToBed -i ~{merged_bams} > file.bed

@@ -18,5 +18,6 @@
         "ref_fasta_index": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.fai",
         "ref_pac": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.pac"
     },
+    "FreebayesGenotyping.ploidy": 2,
     "FreebayesGenotyping.program": "freebayes"
 }

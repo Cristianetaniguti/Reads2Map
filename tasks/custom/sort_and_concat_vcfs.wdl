@@ -6,7 +6,7 @@ task mergeVCFs {
     }
 
     Int disk_size = ceil(size(haplo_vcf, "GiB") * 1.5)
-    Int memory_size = 5000
+    Int memory_size = 3000
 
     command <<<
 

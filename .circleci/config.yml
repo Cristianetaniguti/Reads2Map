@@ -31,6 +31,7 @@ jobs:
       - run: pytest --git-aware --tag gusmap tests/
       - run: pytest --git-aware --tag SplitMarkers tests/
       - run: pytest --git-aware --tag FilterSegregation tests/
+      - run: pytest --git-aware --tag MCHap tests/
 
   release-develop:
     <<: *machine_default
