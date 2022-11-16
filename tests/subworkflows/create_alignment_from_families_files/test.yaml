@@ -3,5 +3,11 @@
     - create_alignment_from_families_files
   command: miniwdl run -i tests/subworkflows/create_alignment_from_families_files/inputs.json subworkflows/create_alignment_from_families_files.wdl
   files:
-  - path: _LAST/call-SepareChunksFastqString/out/chunks/0/chunk_1.txt
-    md5sum: e58b94d2066c0fe3b59bb792ed85280e
+  - path: _LAST/out/bam/0/I_3_55.sorted.merged.filtered.bam
+    md5sum: 81273d465ab2d4f3722514ff70d88bcc
+  - path: _LAST/out/bam/1/I_3_66.sorted.merged.filtered.bam
+    md5sum: 55d7ea4699327e90702eb8c9ccfaa08d
+  - path: _LAST/out/bam/2/PT_F.sorted.merged.filtered.bam
+    md5sum: aafbf7cfb1757b82a673d0c65019a5d3
+  - path: _LAST/out/bam/3/PT_M.sorted.merged.filtered.bam
+    md5sum: 62c63d9015925648e7fe8f715c52ef7f

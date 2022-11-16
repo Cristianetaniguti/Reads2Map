@@ -1,0 +1,3 @@
+{
+    "vcf_file": "tests/data/Ptremula_PRJNA395596_subset/snpcalling_vcfs/gatk_bam_norm_filt.recode.vcf.gz"
+}

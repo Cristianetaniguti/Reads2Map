@@ -15,7 +15,9 @@ task HaplotypeCaller {
   }
 
   Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
-  Int memory_size = ceil(10000 * chunk_size)
+  Int memory_max = ceil(1000 * chunk_size)
+  Int memory_min = memory_max / 2
+  Int memory_size = memory_min * 2
   Int max_cores = ceil(chunk_size * 4 + 2)
 
   command <<<
@@ -28,7 +30,7 @@ task HaplotypeCaller {
     ## gvcf for each sample
     for bam in *.bam; do
       out_name=$(basename -s ".bam" "$bam")
-      /usr/gitc/gatk4/./gatk --java-options "-Xms8000m -Xmx9000m" HaplotypeCaller \
+      /usr/gitc/gatk4/./gatk --java-options "-Xms~{memory_min}m -Xmx~{memory_max}m" HaplotypeCaller \
         -ERC GVCF \
         -R ~{reference_fasta} \
         -ploidy ~{ploidy} \
@@ -75,6 +77,9 @@ task ImportGVCFs  {
   }
 
   Int disk_size = ceil(size(vcfs, "GiB") * 1.5 + size(reference_fasta, "GiB") * 1.5)
+  Int memory_max = 2300
+  Int memory_min = 2000
+  Int memory_size = 26000
 
   command <<<
     set -euo pipefail
@@ -83,7 +88,7 @@ task ImportGVCFs  {
     for i in ~{sep=" " vcfs}; do ln -s $i gvcfs/; done
     for i in ~{sep=" " vcfs_index}; do ln -s $i gvcfs/; done
 
-    /usr/gitc/gatk4/./gatk --java-options "-Xms8000m -Xmx25000m" GenomicsDBImport \
+    /usr/gitc/gatk4/./gatk --java-options "-Xms~{memory_min}m -Xmx~{memory_max}m" GenomicsDBImport \
       --batch-size 50 \
       --reader-threads 5 \
       --genomicsdb-workspace-path cohort_db \
@@ -99,11 +104,11 @@ task ImportGVCFs  {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 4
     # Cloud
-    memory:"26000 MiB"
+    memory:"~{memory_size} MiB"
     disks:"local-disk " + disk_size + " HDD"
     # Slurm
     job_name: "ImportGVCFs"
-    mem:"26000M"
+    mem:"~{memory_size}M"
     time:"24:00:00"
   }
 
@@ -128,13 +133,16 @@ task GenotypeGVCFs   {
   }
 
   Int disk_size = ceil(size(reference_fasta, "GiB") * 1.5 + size(workspace_tar, "GiB") * 1.5)
+  Int memory_max = 2300
+  Int memory_min = 2000
+  Int memory_size = 26000
 
   command <<<
     set -euo pipefail
 
     tar -xf ~{workspace_tar}
 
-    /usr/gitc/gatk4/./gatk --java-options "-Xms8000m -Xmx25000m" GenotypeGVCFs \
+    /usr/gitc/gatk4/./gatk --java-options "-Xms~{memory_min}m -Xmx~{memory_max}m" GenotypeGVCFs \
       -R ~{reference_fasta} \
       -V gendb://cohort_db \
       -L ~{interval} \
@@ -147,11 +155,11 @@ task GenotypeGVCFs   {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 2
     # Cloud
-    memory:"26000 MiB"
+    memory:"~{memory_size} MiB"
     disks:"local-disk " + disk_size + " HDD"
     # Slurm
     job_name: "GenotypeGVCFs"
-    mem:"26000M"
+    mem:"~{memory_size}M"
     time:"24:00:00"
   }
 
@@ -175,10 +183,13 @@ task MergeVCFs {
   }
 
   Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
+  Int memory_max = 2800
+  Int memory_min = 2600
+  Int memory_size = 3000
 
   command <<<
 
-    /usr/gitc/gatk4/./gatk --java-options "-Xms2000m -Xmx2500m" \
+    /usr/gitc/gatk4/./gatk --java-options "-Xms~{memory_min}m -Xmx~{memory_max}m" \
       MergeVcfs \
         -I ~{sep=' -I' input_vcfs} \
         -O gatk_joint.vcf.gz
@@ -188,11 +199,11 @@ task MergeVCFs {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
-    memory:"3000 MiB"
+    memory:"~{memory_size} MiB"
     disks:"local-disk " + disk_size + " HDD"
     # Slurm
     job_name: "MergeVCFs"
-    mem:"3000M"
+    mem:"~{memory_size}M"
     time:"10:00:00"
   }
 
@@ -218,7 +229,7 @@ task VariantsToTable {
     }
 
     Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + 2)
-    Int memory_size = 8000
+    Int memory_size = 2500
 
     command <<<
 
@@ -269,7 +280,7 @@ task VariantFiltration {
     }
 
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
-    Int memory_size = 5000
+    Int memory_size = 3000
 
     command <<<
         /usr/gitc/gatk4/./gatk VariantFiltration \
@@ -326,7 +337,7 @@ task VariantsToTableForHardFilteringSimulated {
     }
 
      Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + size(simu_vcf, "GB") + 2)
-     Int memory_size = 8000
+     Int memory_size = 3000
 
     command <<<
         /usr/gitc/./bgzip -c  ~{simu_vcf} > ~{simu_vcf}.gz
@@ -414,7 +425,7 @@ task VariantEval {
   }
 
   Int disk_size = ceil(size(vcf_norm, "GiB") + size(reference, "GiB") + size(vcf_simu, "GiB") + 2)
-  Int memory_size = 7000
+  Int memory_size = 3000
 
   command <<<
     java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt

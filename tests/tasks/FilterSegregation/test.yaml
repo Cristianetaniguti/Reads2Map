@@ -1,0 +1,4 @@
+- name: Filter non-informative in VCF file 
+  tags:
+    - FilterSegregation
+  command: miniwdl run --task FilterSegregation -i tests/tasks/FilterSegregation/inputs.json tasks/utilsR.wdl

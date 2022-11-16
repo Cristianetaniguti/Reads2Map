@@ -1,4 +1,4 @@
-- name: Use updog, polyRAD or SuperMASSA to call dosages 
+- name: Use updog polyRAD or SuperMASSA to call dosages 
   tags:
     - regenotyping
     - genotyping_empirical

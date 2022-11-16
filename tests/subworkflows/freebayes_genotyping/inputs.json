@@ -1,13 +1,9 @@
 {
     "FreebayesGenotyping.bais": ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bai", 
-                                 "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_56.sorted.merged.filtered.bai", 
-                                 "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_58.sorted.merged.filtered.bai", 
                                  "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bai",
                                  "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bai",
                                  "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bai"],
     "FreebayesGenotyping.bams": ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bam", 
-                                 "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_56.sorted.merged.filtered.bam", 
-                                 "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_58.sorted.merged.filtered.bam", 
                                  "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bam",
                                  "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bam",
                                  "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bam"],
