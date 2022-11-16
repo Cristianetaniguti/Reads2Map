@@ -1,4 +1,4 @@
-tests/data/Ptremula_PRJNA395596_subset/SRR6249787.sub.fastq   I_3_55  I_3_55.Lib1_C09_AGAAGTC
-tests/data/Ptremula_PRJNA395596_subset/SRR6249788.sub.fastq   I_3_66  I_3_66.Lib1_D06_GCCAACT
-tests/data/Ptremula_PRJNA395596_subset/SRR6249795.sub.fastq   PT_F    PT_F.Lib1_E09_TGAACAT
-tests/data/Ptremula_PRJNA395596_subset/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG 
+tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249787.sub.fastq   I_3_55  I_3_55.Lib1_C09_AGAAGTC
+tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249788.sub.fastq   I_3_66  I_3_66.Lib1_D06_GCCAACT
+tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249795.sub.fastq   PT_F    PT_F.Lib1_E09_TGAACAT
+tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG 
