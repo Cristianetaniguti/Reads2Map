@@ -32,56 +32,56 @@ workflows:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
     primaryDescriptorPath: /tasks/SimulatedSingleFamily.wdl
-    name: SimulatedSingleFamily 
+    name: SimulatedSingleFamily
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
     primaryDescriptorPath: /tasks/CreateAlignmentFromFamilies.wdl
-    name: CreateAlignmentFromFamilies 
+    name: CreateAlignmentFromFamilies
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
     primaryDescriptorPath: /tasks/CreateAlignmentFromSimulation.wdl
-    name: CreateAlignmentFromSimulation  
+    name: CreateAlignmentFromSimulation
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
     primaryDescriptorPath: /tasks/FreebayesGenotyping.wdl
-    name: FreebayesGenotyping  
+    name: FreebayesGenotyping
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
     primaryDescriptorPath: /tasks/GatkGenotyping.wdl
-    name: GatkGenotyping  
+    name: GatkGenotyping
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/gusmap_maps-empirical.wdl
+    primaryDescriptorPath: /tasks/gusmap_maps_empirical.wdl
     name: gusmapMapsEmp
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/gusmap_maps-simulated.wdl
+    primaryDescriptorPath: /tasks/gusmap_maps_simulated.wdl
     name: gusmapMaps
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/genotyping-empirical.wdl
+    primaryDescriptorPath: /tasks/genotyping_empirical.wdl
     name: onemapMapsEmp
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/genotyping-simulated.wdl
-    name: onemapMaps 
+    primaryDescriptorPath: /tasks/genotyping_simulated.wdl
+    name: onemapMaps
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/hard_filtering-empirical.wdl
+    primaryDescriptorPath: /tasks/hard_filtering_empirical.wdl
     name: HardFilteringEmp
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/hard_filtering-simulated.wdl
+    primaryDescriptorPath: /tasks/hard_filtering_simulated.wdl
     name: HardFiltering
     authors:
       - orcid: 0000-0002-2021-6883
@@ -91,12 +91,12 @@ workflows:
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/snpcaller_maps-empirical.wdl
+    primaryDescriptorPath: /tasks/snpcaller_maps_empirical.wdl
     name: SNPCallerMapsEmp
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: /tasks/snpcaller_maps-simulated.wdl
+    primaryDescriptorPath: /tasks/snpcaller_maps_simulated.wdl
     name: SNPCallerMaps
     authors:
       - orcid: 0000-0002-2021-6883

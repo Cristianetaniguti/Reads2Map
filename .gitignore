@@ -19,3 +19,4 @@ figures_gabaritos
 *tar.gz
 **/__pycache__/**
 import_paths.txt
+releases/

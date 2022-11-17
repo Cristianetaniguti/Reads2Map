@@ -1,0 +1,24 @@
+{
+    "FreebayesGenotyping.bais": ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bai", 
+                                 "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bai",
+                                 "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bai",
+                                 "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bai"],
+    "FreebayesGenotyping.bams": ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bam", 
+                                 "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bam",
+                                 "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bam",
+                                 "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bam"],
+    "FreebayesGenotyping.max_cores": 2,
+    "FreebayesGenotyping.references": {
+        "ref_fasta": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa",
+        "ref_dict": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.dict",
+        "ref_ann": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.ann",
+        "ref_sa": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.sa",
+        "ref_amb": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.amb",
+        "ref_bwt": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.bwt",
+        "ref_fasta_index": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.fai",
+        "ref_pac": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.pac"
+    },
+    "FreebayesGenotyping.ploidy": 2,
+    "FreebayesGenotyping.replaceAD": true,
+    "FreebayesGenotyping.program": "freebayes"
+}

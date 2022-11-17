@@ -1,0 +1,4 @@
+- name: Split biallelic and multiallelic markers
+  tags:
+    - SplitMarkers
+  command: miniwdl run --task SplitMarkers -i tests/tasks/SplitMarkers/inputs.json tasks/utils.wdl

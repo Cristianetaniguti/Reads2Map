@@ -1,0 +1,7 @@
+- name: Freebayes SNP calling
+  tags:
+    - freebayes
+  command: miniwdl run -i tests/subworkflows/freebayes_genotyping/inputs.json subworkflows/freebayes_genotyping.wdl
+  files:
+  - path: _LAST/out/vcfEval/vcfEval.txt
+    md5sum: 3a1f85f0d7125de3faa3868e53b64101

@@ -1,15 +1,15 @@
 version 1.0
 
-task vcf2onemap{
+task vcf2onemap {
    input {
      File vcf_file
      String cross
      String parent1
      String parent2
    }
-   
+
    Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-   Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+   Int memory_size = ceil(size(vcf_file, "MiB") * 2 + 2000)
 
    command <<<
 
@@ -52,7 +52,7 @@ task vcf2onemap{
       # Slurm
       job_name: "vcf2onemap"
       mem:"~{memory_size}M"
-      time:"10:00:00"   
+      time:"10:00:00"
     }
 
     meta {
@@ -61,14 +61,14 @@ task vcf2onemap{
       description: "Convert VCF file to onemap object. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
     }
 
-    output{
+    output {
       File onemap_obj = "vcf_onemap.obj.RData"
       File vcfR_obj = "vcfR_obj.RData"
     }
 }
 
-task FiltersReport{
-  input{
+task FiltersReport {
+  input {
     File onemap_obj
     String SNPCall_program
     String GenotypeCall_program
@@ -77,8 +77,8 @@ task FiltersReport{
     Int depth
   }
 
-  Int disk_size = ceil(size(onemap_obj, "GiB") * 2) 
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 2)
+  Int disk_size = ceil(size(onemap_obj, "GiB") * 2)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 2000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -88,7 +88,7 @@ task FiltersReport{
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_simu(temp.obj, "~{SNPCall_program}",
-                                                  "~{CountsFrom}", "~{GenotypeCall_program}", 
+                                                  "~{CountsFrom}", "~{GenotypeCall_program}",
                                                    ~{seed}, ~{depth}, threshold = NULL) # Threshold define the genotype probability filter
 
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
@@ -121,8 +121,8 @@ task FiltersReport{
   }
 }
 
-task FiltersReportEmp{
-  input{
+task FiltersReportEmp {
+  input {
     File onemap_obj
     String SNPCall_program
     String GenotypeCall_program
@@ -130,8 +130,8 @@ task FiltersReportEmp{
     String chromosome
   }
 
-  Int disk_size = ceil(size(onemap_obj, "GiB") * 2) 
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 2)
+  Int disk_size = ceil(size(onemap_obj, "GiB") * 2)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 2 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -141,7 +141,7 @@ task FiltersReportEmp{
       temp <- load("~{onemap_obj}")
       temp.obj <- get(temp)
       onemap_obj_filtered <- create_filters_report_emp(temp.obj, "~{SNPCall_program}",
-                                           "~{CountsFrom}", "~{GenotypeCall_program}", 
+                                           "~{CountsFrom}", "~{GenotypeCall_program}",
                                            "~{chromosome}", threshold = NULL)
       save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
 
@@ -173,7 +173,7 @@ task FiltersReportEmp{
   }
 }
 
-task MapsReport{
+task MapsReport {
   input {
    File onemap_obj
    File ref_alt_alleles
@@ -188,7 +188,7 @@ task MapsReport{
   }
 
   Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(ref_alt_alleles, "GiB") + (size(simu_onemap_obj, "GiB") * 2) + size(simulated_phases, "GiB"))
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 8)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 4000)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -209,25 +209,25 @@ task MapsReport{
       times_fake <-system.time(info_fake <- create_maps_report_simu(input.seq = filtered_onemap,
                                                   tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                                   "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                                  fake= "with-false", "~{CountsFrom}", simulated_phases, 
+                                                  fake= "with-false", "~{CountsFrom}", simulated_phases,
                                                   ~{seed}, ~{depth}, cores))
 
-      times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
+      times <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}",
                           CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "with-false",
                           time = times_fake[3])
 
       # It will not run if all markers are true markers
-      if(all(info_fake[[2]][,"real.mks"] == "true marker")){     
+      if(all(info_fake[[2]][,"real.mks"] == "true marker")){
         cat("skip :) \n")
         times_temp <- times_fake
         info_correct <- update_fake_info(info_fake, simu_onemap_obj, ref_alt_alleles, simulated_phases)
-        
+
       } else {
         ## Without false SNPs
         times_temp <-system.time(info_correct <- create_maps_report_simu(input.seq = filtered_onemap,
                                               tot_mks = ref_alt_alleles, gab = simu_onemap_obj,
                                               "~{SNPCall_program}" , "~{GenotypeCall_program}",
-                                              fake= "without-false", "~{CountsFrom}", simulated_phases, 
+                                              fake= "without-false", "~{CountsFrom}", simulated_phases,
                                               ~{seed}, ~{depth}, cores))
       }
 
@@ -239,12 +239,12 @@ task MapsReport{
       RDatas_joint <- list()
       RDatas_joint[[1]] <- info_fake[[1]]
       RDatas_joint[[2]] <- info_correct[[1]]
-      names(RDatas_joint) <- c("map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE", 
+      names(RDatas_joint) <- c("map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE",
                                "map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
       save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData")
 
       # Joint times data.frames
-      times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}", 
+      times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}",
                                CountsFrom = "~{CountsFrom}", GenoCall =  "~{GenotypeCall_program}", fake = "without-false",
                                time = times_temp[3])
 
@@ -294,7 +294,7 @@ task ErrorsReport {
   }
 
   Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(vcfR_obj, "GiB") + (size(simu_vcfR, "GiB") * 2))
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 4)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 3000)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -309,7 +309,7 @@ task ErrorsReport {
         vcf <- get(temp)
 
         p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "P1",
-                                   parent2 = "P2", vcf.par = "AD",recovering = FALSE, 
+                                   parent2 = "P2", vcf.par = "AD",recovering = FALSE,
                                    GTfrom = "onemap", alpha=0.1,
                                    rds.file = paste0("vcf_depths.rds"))
 
@@ -344,7 +344,7 @@ task ErrorsReport {
 
   >>>
 
-  runtime{
+  runtime {
     docker: "cristaniguti/reads2map:0.0.1"
     cpu: max_cores
     # Cloud
@@ -362,13 +362,13 @@ task ErrorsReport {
         description: "Creates data.frame with probabilities used in the OneMap HMM. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
   }
 
-  output{
+  output {
     File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_errors_report.tsv.gz"
   }
 }
 
-task CheckDepths{
-  input{
+task CheckDepths {
+  input {
     File onemap_obj
     File vcfR_obj
     String parent1
@@ -382,7 +382,7 @@ task CheckDepths{
   }
 
   Int disk_size = ceil((size(onemap_obj, "GiB") * 2) + size(vcfR_obj, "GiB"))
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 4)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 3 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -408,7 +408,7 @@ task CheckDepths{
 
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/reads2map:0.0.1"
     cpu: max_cores
     # Cloud
@@ -426,14 +426,14 @@ task CheckDepths{
         description: "Creates data.frame with reads depth information. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
   }
 
-  output{
+  output {
     File errors_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_errors_report.tsv.gz"
   }
 
 }
 
-task MapsReportEmp{
-  input{
+task MapsReportEmp {
+  input {
    File sequence_obj
    String SNPCall_program
    String GenotypeCall_program
@@ -442,7 +442,7 @@ task MapsReportEmp{
   }
 
   Int disk_size = ceil((size(sequence_obj, "GiB") * 2))
-  Int memory_size = ceil(size(sequence_obj, "MiB") * 8)
+  Int memory_size = ceil(size(sequence_obj, "MiB") * 3 + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -460,18 +460,18 @@ task MapsReportEmp{
       vroom::vroom_write(df[[2]], "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz", num_threads = ~{max_cores})
       map_out <- df[[1]]
       save(map_out,  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
-    
-      times <- data.frame(SNPCall = "~{SNPCall_program}", 
-                          CountsFrom = "~{CountsFrom}", 
+
+      times <- data.frame(SNPCall = "~{SNPCall_program}",
+                          CountsFrom = "~{CountsFrom}",
                           GenoCall =  "~{GenotypeCall_program}",
-                          time = times_temp[3])   
+                          time = times_temp[3])
 
       vroom::vroom_write(times, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz", num_threads = ~{max_cores})
 
     RSCRIPT
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/reads2map:0.0.1"
     cpu:max_cores
     # Cloud
@@ -489,7 +489,7 @@ task MapsReportEmp{
         description: "Estimate genetic distances by OneMap HMM multi-point approach in a set o empirical markers ordered by genomic position. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
   }
 
-  output{
+  output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz"
     File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
     File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz"
@@ -498,7 +498,7 @@ task MapsReportEmp{
 
 # Genotype calling with updog, polyrad and supermassa
 # Exclusive for biallelic markers, input VCF file are normalized with -m-any
-task ReGenotyping{
+task ReGenotyping {
   input {
     String GenotypeCall_program
     File vcf_file
@@ -509,7 +509,7 @@ task ReGenotyping{
   }
 
   Int disk_size = ceil((size(vcf_file, "GiB") * 4))
-  Int memory_size = ceil(size(vcf_file, "MiB") * 8)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 3 + 4000)
 
   command <<<
      R --vanilla --no-save <<RSCRIPT
@@ -575,7 +575,7 @@ task ReGenotyping{
      RSCRIPT
   >>>
 
-  runtime{
+  runtime {
     docker:"cristaniguti/reads2map:0.0.1"
     cpu: max_cores
     # Cloud
@@ -598,8 +598,8 @@ task ReGenotyping{
   }
 }
 
-task SetProbs{
-  input{
+task SetProbs {
+  input {
     File vcf_file
     String cross
     String parent1
@@ -609,7 +609,7 @@ task SetProbs{
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 3)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 3)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2 + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -629,7 +629,7 @@ task SetProbs{
       save(vcf, file = "vcfR.RData")
 
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
-          
+
       onemap.obj <- onemap_read_vcfR(vcfR.object = vcf,
                                      cross= cross,
                                      parent1="~{parent1}",
@@ -661,7 +661,7 @@ task SetProbs{
     RSCRIPT
 
   >>>
-  runtime{
+  runtime {
     docker:"cristaniguti/reads2map:0.0.1"
     cpu:1
     # Cloud
@@ -679,7 +679,7 @@ task SetProbs{
         description:"Get GQ or PL values from VCF file and set them as genotype probabilities in OneMap object. Also produce an OneMap object with global error rate of 0.05. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
   }
 
-  output{
+  output {
     File probs_onemap_obj = "probs_onemap_obj.RData"
     File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
     File vcfR_obj = "vcfR.RData"
@@ -687,8 +687,8 @@ task SetProbs{
 }
 
 
-task SetProbsDefault{
-  input{
+task SetProbsDefault {
+  input {
     File vcf_file
     File? multiallelics_mchap
     String mchap
@@ -700,7 +700,7 @@ task SetProbsDefault{
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 3)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 3)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 2 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -718,7 +718,7 @@ task SetProbsDefault{
 
       if(as.logical("~{mchap}") & "~{SNPCall_program}" == "gatk") vcf <- read.vcfR("~{multiallelics_mchap}") else  vcf <- read.vcfR("~{vcf_file}")
       save(vcf, file = "vcfR.RData")
-      
+
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
 
       onemap.obj <- onemap_read_vcfR(vcfR.object = vcf,
@@ -752,7 +752,7 @@ task SetProbsDefault{
     RSCRIPT
 
   >>>
-  runtime{
+  runtime {
     docker:"cristaniguti/reads2map:0.0.1"
     cpu:1
     # Cloud
@@ -770,7 +770,7 @@ task SetProbsDefault{
         description: "Set OneMap object genotype probabilities to value used in OneMap < 3.0 and to 0.05. See [OneMap](https://github.com/Cristianetaniguti/onemap) for more information."
   }
 
-  output{
+  output {
     File probs_onemap_obj = "probs_onemap_obj.RData"
     File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
     File default_onemap_obj = "default_onemap_obj.RData"
@@ -786,11 +786,11 @@ task FilterSegregation {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") * 2)
+  Int memory_size = 3000
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
-        
+
         library(vcfR)
         library(Reads2MapTools)
         obj <- read.vcfR("~{vcf_file}")
@@ -806,7 +806,7 @@ task FilterSegregation {
       RSCRIPT
   >>>
 
-  runtime{
+  runtime {
       docker:"cristaniguti/reads2map:0.0.1"
       cpu:1
       # Cloud
@@ -828,4 +828,260 @@ task FilterSegregation {
     File vcf_filtered = "filtered.vcf.gz"
   }
 
+}
+
+task QualPlots {
+    input {
+        File Total
+    }
+
+    Int disk_size = ceil(size(Total, "GB") + 1)
+    Int memory_size = 3000
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+            library(ggplot2)
+            library(dplyr)
+            library(tidyr)
+
+            tot <- read.table("~{Total}", header = T)
+            tot <- cbind(set = "Total", tot)
+
+            df <- pivot_longer(tot, cols = c(4:9))
+
+            p <- df %>% filter(name == "QD") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                    geom_density(alpha=0.4) +
+                    geom_vline(aes(xintercept=2), color = "purple", linetype="dashed") +
+                    xlab("QD")
+
+            ggsave(p, filename = "QD.png")
+
+            p <- df %>% filter(name == "FS") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("FS") + geom_vline(aes(xintercept=60), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "FS.png")
+
+            p <- df %>% filter(name == "SOR") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("SOR") +
+                        geom_vline(aes(xintercept=3), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "SOR.png")
+
+            p <- df %>% filter(name == "MQ") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQ") +
+                        geom_vline(aes(xintercept=40), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQ.png")
+
+            p <- df %>% filter(name == "MQRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQRankSum") +
+                        geom_vline(aes(xintercept=-12.5), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQRankSum.png")
+
+            p <- df %>% filter(name == "ReadPosRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("ReadPosRankSum") +
+                        geom_vline(aes(xintercept=-8), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "ReadPosRankSum.png")
+
+            system("mkdir QualPlots")
+            system("mv *png QualPlots")
+            system("tar -czvf QualPlots.tar.gz QualPlots")
+
+        RSCRIPT
+
+    >>>
+
+    runtime {
+        docker: "cristaniguti/reads2map:0.0.1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "QualPlots"
+        mem:"~{memory_size}M"
+        time:"01:40:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Generated graphics about empirical markers quality parameters and Hard Filtering. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants) tool"
+    }
+
+    output {
+        File Plots = "QualPlots.tar.gz"
+    }
+}
+
+
+task QualPlotsForHardFilteringSimulated {
+    input {
+        File FalsePositives
+        File TruePositives
+        File Total
+        Int? seed
+        Int? depth
+    }
+
+    Int disk_size = ceil(size(FalsePositives, "GB") + size(TruePositives, "GB") + size(Total, "GB") + 1)
+    Int memory_size = ceil(size(Total, "MiB") * 1.25)
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+            system("cp ~{FalsePositives} .")
+            system("cp ~{TruePositives} .")
+            system("cp ~{Total} .")
+
+            library(ggplot2)
+            library(dplyr)
+            library(tidyr)
+
+            tot <- read.table("Total.table", header = T)
+            tot <- cbind(set = "Total", tot)
+
+            fp <- read.table("FalsePositives.table", header = T)
+            fp <- cbind(set = "False positive", fp)
+
+            tp <- read.table("TruePositives.table", header = T)
+            tp <- cbind(set = "True positive", tp)
+
+            df <- rbind(tot, fp, tp)
+            df <- pivot_longer(df, cols = c(4:9))
+
+            p <- df %>% filter(name == "QD") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                    geom_density(alpha=0.4) +
+                    geom_vline(aes(xintercept=2), color = "purple", linetype="dashed") +
+                    xlab("QD")
+
+            ggsave(p, filename = "QD.png")
+
+            p <- df %>% filter(name == "FS") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("FS") + geom_vline(aes(xintercept=60), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "FS.png")
+
+            p <- df %>% filter(name == "SOR") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("SOR") +
+                        geom_vline(aes(xintercept=3), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "SOR.png")
+
+            p <- df %>% filter(name == "MQ") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQ") +
+                        geom_vline(aes(xintercept=40), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQ.png")
+
+            p <- df %>% filter(name == "MQRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQRankSum") +
+                        geom_vline(aes(xintercept=-12.5), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQRankSum.png")
+
+            p <- df %>% filter(name == "ReadPosRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("ReadPosRankSum") +
+                        geom_vline(aes(xintercept=-8), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "ReadPosRankSum.png")
+
+            system("mkdir ~{seed}_~{depth}_QualPlots")
+            system("mv *png ~{seed}_~{depth}_QualPlots")
+            system("tar -czvf ~{seed}_~{depth}_QualPlots.tar.gz ~{seed}_~{depth}_QualPlots")
+
+        RSCRIPT
+
+    >>>
+
+    runtime {
+        docker: "cristaniguti/reads2map:0.0.1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "QualPlots"
+        mem:"~{memory_size}M"
+        time:"01:40:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Generated graphics about simulated markers quality parameters and Hard Filtering. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants) tool"
+    }
+
+    output {
+        File Plots = "~{seed}_~{depth}_QualPlots.tar.gz"
+    }
+
+}
+
+task FilterMulti {
+    input {
+        File multi_vcf
+        String? P1
+        String? P2
+        Int ploidy
+    }
+
+    Int disk_size = ceil(size(multi_vcf, "GiB") * 1.5)
+    Int memory_size = 3000
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+
+            library(Reads2MapTools)
+            filter_multi_vcf("~{multi_vcf}", "~{P1}", "~{P2}",
+                             ploidy = ~{ploidy},
+                             vcf.out = "multi_vcf_filt.vcf.gz")
+
+        RSCRIPT
+    >>>
+
+    runtime {
+        docker:"cristaniguti/reads2map:0.0.1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "FilterMulti"
+        mem:"~{memory_size}M"
+        time:"01:00:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Filters VCF file markers according to segregation expected in a outcrossing F1 population. Adapts the alleles codification. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
+    }
+
+    output {
+        File multi_vcf_filt = "multi_vcf_filt.vcf.gz"
+    }
 }

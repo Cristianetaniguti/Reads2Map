@@ -1,0 +1,5 @@
+- name: Use updog polyRAD or SuperMASSA to call dosages 
+  tags:
+    - regenotyping
+    - genotyping_empirical
+  command: miniwdl run -i tests/subworkflows/genotyping_empirical/inputs.json subworkflows/genotyping_empirical.wdl

@@ -1,0 +1,4 @@
+- name: MCHap haplotyping
+  tags:
+    - MCHap
+  command: miniwdl run -i tests/subworkflows/MCHap/inputs.json subworkflows/MCHap.wdl
