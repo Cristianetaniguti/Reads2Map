@@ -202,3 +202,61 @@ task SepareChunksBed {
         Array[File] chunks = glob("chunk*")
     }
 }
+
+
+task CreateChunksBamByChr {
+  input {
+    File merged_bam
+    File reference
+    Int n_chrom
+  }
+
+  Int disk_size = ceil(size(reference, "GiB") + 2)
+  Int nline = n_chrom + 1
+
+  command <<<
+    set -e
+    
+    samtools index ~{merged_bam}
+    
+    cat ~{reference} | grep '>' | tr '\n' ',' | sed '$ s/.$//' | sed 's/,/ \n/g' | sed 's/>//g' > intervals.txt
+    
+    for index in $(head -n ~{n_chrom} intervals.txt); do
+      samtools view -b ~{merged_bam} $index > in_$index.bam
+      samtools index in_$index.bam
+    done
+
+    tail -n +~{nline} intervals.txt > scaffolds.txt
+
+    for index in $(cat scaffolds.txt); do
+      samtools view -b ~{merged_bam} $index > sca_$index.bam
+    done
+
+    samtools merge in_scaffolds.bam sca_*.bam
+    samtools index in_scaffolds.bam
+
+  >>>
+
+  runtime {
+    docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    cpu: 1
+    # Cloud
+    memory:"1000 MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "CreateChunks"
+    mem:"1G"
+    time:"00:05:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Split the merged samples BAM alignment file in chunks by chromossome."
+  }
+
+  output {
+    Array[File] bams_chunks = glob("in_*.bam")
+    Array[File] bais_chunks = glob("in_*.bai")
+  }
+}

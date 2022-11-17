@@ -36,17 +36,16 @@ workflow CreateAlignmentFromFamilies {
     }
 
     # Store for MCHap
-    if(gatk_mchap){
-        call utils.MergeBams {
+    call utils.MergeBams {
             input:
                 bam_files = flatten(RunBwaAlignment.bam)
-        }
     }
+    
 
     output {
         Array[File] bam = flatten(RunBwaAlignment.bam)
         Array[File] bai = flatten(RunBwaAlignment.bai)
         Array[Array[File]] dup_metrics = RunBwaAlignment.dup_metrics
-        File? merged_bam = MergeBams.merged_bam
+        File merged_bam = MergeBams.merged_bam
     }
 }

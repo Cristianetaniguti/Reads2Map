@@ -5,8 +5,8 @@ task RunFreebayes {
   input {
     File reference
     File reference_idx
-    Array[File] bam
-    Array[File] bai
+    File bam
+    File bai
     Int max_cores
     Int ploidy
   }
@@ -15,12 +15,9 @@ task RunFreebayes {
   Int memory_size = ceil(size(bam, "MiB") * 3 + 3000)
 
   command <<<
-   # needed for some singularity versions
-   ln -sf ~{sep=" " bam} .
-   ln -sf ~{sep=" " bai} .
 
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
-   --genotype-qualities --ploidy ~{ploidy} -f ~{reference} *.bam > "freebayes.vcf"
+   --genotype-qualities --ploidy ~{ploidy} -f ~{reference} ~{bam} > "freebayes.vcf"
 
   >>>
 

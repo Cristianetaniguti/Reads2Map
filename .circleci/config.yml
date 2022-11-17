@@ -24,14 +24,8 @@ jobs:
       - checkout
 
       - run: pip3 install -r tests/requirements.txt
-      - run: pytest --git-aware --tag create_alignment_from_families_files tests/
       - run: pytest --git-aware --tag freebayes tests/
       - run: pytest --git-aware --tag gatk tests/
-      - run: pytest --git-aware --tag genotyping_empirical tests/
-      - run: pytest --git-aware --tag gusmap tests/
-      - run: pytest --git-aware --tag SplitMarkers tests/
-      - run: pytest --git-aware --tag FilterSegregation tests/
-      - run: pytest --git-aware --tag MCHap tests/
 
   release-develop:
     <<: *machine_default

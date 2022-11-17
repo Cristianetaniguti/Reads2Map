@@ -18,6 +18,7 @@ workflow SimulatedReads {
     Int number_of_families
     Int global_seed
     Int max_cores
+    Int n_chrom
     String? filters
 
     Int chunk_size = 5
@@ -49,7 +50,8 @@ workflow SimulatedReads {
         chunk_size = chunk_size,
         gatk_mchap=gatk_mchap,
         hardfilters = hardfilters,
-        replaceAD = replaceAD
+        replaceAD = replaceAD,
+        n_chrom  = n_chrom
     }
   }
 
