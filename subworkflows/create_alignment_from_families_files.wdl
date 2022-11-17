@@ -1,16 +1,16 @@
 version 1.0
 
-import "../tasks/custom/alignment.wdl" as alg
-import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/BWA.wdl" as alg
+import "../tasks/chunk_lists.wdl"
 import "../tasks/utils.wdl" as utils
-
 
 workflow CreateAlignmentFromFamilies {
     input {
         File families_info
         ReferenceFasta references
         Int max_cores
-        String rm_dupli
+        Boolean rm_dupli
+        Boolean gatk_mchap
         Int chunk_size
     }
 
@@ -36,15 +36,17 @@ workflow CreateAlignmentFromFamilies {
     }
 
     # Store for MCHap
-    call utils.MergeBams {
-        input:
-            bam_files = flatten(RunBwaAlignment.bam)
+    if(gatk_mchap){
+        call utils.MergeBams {
+            input:
+                bam_files = flatten(RunBwaAlignment.bam)
+        }
     }
 
     output {
         Array[File] bam = flatten(RunBwaAlignment.bam)
         Array[File] bai = flatten(RunBwaAlignment.bai)
         Array[Array[File]] dup_metrics = RunBwaAlignment.dup_metrics
-        File merged_bam = MergeBams.merged_bam
+        File? merged_bam = MergeBams.merged_bam
     }
 }

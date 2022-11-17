@@ -288,7 +288,7 @@ task JointTablesSimu{
     Array[File] data8_names
     Array[File] data9_simu_haplo
     Array[File] data10_counts
-    Array[File] plots
+    Array[File?] plots
     Array[File] positions
     Int depth
   }

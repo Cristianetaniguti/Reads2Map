@@ -4,8 +4,8 @@ version 1.0
 import "../../structs/dna_seq_structs.wdl"
 import "../../structs/read_simulation_structs.wdl"
 
-import "../../tasks/custom/pedigree_simulator_utils.wdl"
-import "../../tasks/custom/reports.wdl"
+import "../../tasks/pedigree_simulator_utils.wdl"
+import "../../tasks/JointReports.wdl" as reports
 
 import "../../subworkflows/SimulatedSingleFamily.wdl" as sub
 
@@ -21,7 +21,9 @@ workflow SimulatedReads {
     String? filters
 
     Int chunk_size = 5
-    String gatk_mchap = "TRUE"  # TODO: It could probably be Boolean type
+    Boolean gatk_mchap = false
+    Boolean hardfilters = true
+    Boolean replaceAD = true
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -45,7 +47,9 @@ workflow SimulatedReads {
         filters = filters,
         ploidy =  family.ploidy,
         chunk_size = chunk_size,
-        gatk_mchap=gatk_mchap
+        gatk_mchap=gatk_mchap,
+        hardfilters = hardfilters,
+        replaceAD = replaceAD
     }
   }
 

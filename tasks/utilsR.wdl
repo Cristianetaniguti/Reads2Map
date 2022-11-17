@@ -829,3 +829,259 @@ task FilterSegregation {
   }
 
 }
+
+task QualPlots {
+    input {
+        File Total
+    }
+
+    Int disk_size = ceil(size(Total, "GB") + 1)
+    Int memory_size = 3000
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+            library(ggplot2)
+            library(dplyr)
+            library(tidyr)
+
+            tot <- read.table("~{Total}", header = T)
+            tot <- cbind(set = "Total", tot)
+
+            df <- pivot_longer(tot, cols = c(4:9))
+
+            p <- df %>% filter(name == "QD") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                    geom_density(alpha=0.4) +
+                    geom_vline(aes(xintercept=2), color = "purple", linetype="dashed") +
+                    xlab("QD")
+
+            ggsave(p, filename = "QD.png")
+
+            p <- df %>% filter(name == "FS") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("FS") + geom_vline(aes(xintercept=60), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "FS.png")
+
+            p <- df %>% filter(name == "SOR") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("SOR") +
+                        geom_vline(aes(xintercept=3), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "SOR.png")
+
+            p <- df %>% filter(name == "MQ") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQ") +
+                        geom_vline(aes(xintercept=40), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQ.png")
+
+            p <- df %>% filter(name == "MQRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQRankSum") +
+                        geom_vline(aes(xintercept=-12.5), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQRankSum.png")
+
+            p <- df %>% filter(name == "ReadPosRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("ReadPosRankSum") +
+                        geom_vline(aes(xintercept=-8), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "ReadPosRankSum.png")
+
+            system("mkdir QualPlots")
+            system("mv *png QualPlots")
+            system("tar -czvf QualPlots.tar.gz QualPlots")
+
+        RSCRIPT
+
+    >>>
+
+    runtime {
+        docker: "cristaniguti/reads2map:0.0.1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "QualPlots"
+        mem:"~{memory_size}M"
+        time:"01:40:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Generated graphics about empirical markers quality parameters and Hard Filtering. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants) tool"
+    }
+
+    output {
+        File Plots = "QualPlots.tar.gz"
+    }
+}
+
+
+task QualPlotsForHardFilteringSimulated {
+    input {
+        File FalsePositives
+        File TruePositives
+        File Total
+        Int? seed
+        Int? depth
+    }
+
+    Int disk_size = ceil(size(FalsePositives, "GB") + size(TruePositives, "GB") + size(Total, "GB") + 1)
+    Int memory_size = ceil(size(Total, "MiB") * 1.25)
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+            system("cp ~{FalsePositives} .")
+            system("cp ~{TruePositives} .")
+            system("cp ~{Total} .")
+
+            library(ggplot2)
+            library(dplyr)
+            library(tidyr)
+
+            tot <- read.table("Total.table", header = T)
+            tot <- cbind(set = "Total", tot)
+
+            fp <- read.table("FalsePositives.table", header = T)
+            fp <- cbind(set = "False positive", fp)
+
+            tp <- read.table("TruePositives.table", header = T)
+            tp <- cbind(set = "True positive", tp)
+
+            df <- rbind(tot, fp, tp)
+            df <- pivot_longer(df, cols = c(4:9))
+
+            p <- df %>% filter(name == "QD") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                    geom_density(alpha=0.4) +
+                    geom_vline(aes(xintercept=2), color = "purple", linetype="dashed") +
+                    xlab("QD")
+
+            ggsave(p, filename = "QD.png")
+
+            p <- df %>% filter(name == "FS") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("FS") + geom_vline(aes(xintercept=60), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "FS.png")
+
+            p <- df %>% filter(name == "SOR") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("SOR") +
+                        geom_vline(aes(xintercept=3), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "SOR.png")
+
+            p <- df %>% filter(name == "MQ") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQ") +
+                        geom_vline(aes(xintercept=40), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQ.png")
+
+            p <- df %>% filter(name == "MQRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("MQRankSum") +
+                        geom_vline(aes(xintercept=-12.5), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "MQRankSum.png")
+
+            p <- df %>% filter(name == "ReadPosRankSum") %>%
+                    ggplot(aes(x=value, fill=set)) +
+                        geom_density(alpha=0.4) +
+                        xlab("ReadPosRankSum") +
+                        geom_vline(aes(xintercept=-8), color = "purple", linetype="dashed")
+
+            ggsave(p, filename = "ReadPosRankSum.png")
+
+            system("mkdir ~{seed}_~{depth}_QualPlots")
+            system("mv *png ~{seed}_~{depth}_QualPlots")
+            system("tar -czvf ~{seed}_~{depth}_QualPlots.tar.gz ~{seed}_~{depth}_QualPlots")
+
+        RSCRIPT
+
+    >>>
+
+    runtime {
+        docker: "cristaniguti/reads2map:0.0.1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "QualPlots"
+        mem:"~{memory_size}M"
+        time:"01:40:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Generated graphics about simulated markers quality parameters and Hard Filtering. See more information in [VariatsToTable](https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants) tool"
+    }
+
+    output {
+        File Plots = "~{seed}_~{depth}_QualPlots.tar.gz"
+    }
+
+}
+
+task FilterMulti {
+    input {
+        File multi_vcf
+        String? P1
+        String? P2
+        Int ploidy
+    }
+
+    Int disk_size = ceil(size(multi_vcf, "GiB") * 1.5)
+    Int memory_size = 3000
+
+    command <<<
+        R --vanilla --no-save <<RSCRIPT
+
+            library(Reads2MapTools)
+            filter_multi_vcf("~{multi_vcf}", "~{P1}", "~{P2}",
+                             ploidy = ~{ploidy},
+                             vcf.out = "multi_vcf_filt.vcf.gz")
+
+        RSCRIPT
+    >>>
+
+    runtime {
+        docker:"cristaniguti/reads2map:0.0.1"
+        cpu: 1
+        # Cloud
+        memory:"~{memory_size} MiB"
+        disks:"local-disk " + disk_size + " HDD"
+        # Slurm
+        job_name: "FilterMulti"
+        mem:"~{memory_size}M"
+        time:"01:00:00"
+    }
+
+    meta {
+      author: "Cristiane Taniguti"
+      email: "chtaniguti@tamu.edu"
+      description: "Filters VCF file markers according to segregation expected in a outcrossing F1 population. Adapts the alleles codification. See [Reads2MapTools](https://github.com/Cristianetaniguti/Reads2MapTools) for more information."
+    }
+
+    output {
+        File multi_vcf_filt = "multi_vcf_filt.vcf.gz"
+    }
+}

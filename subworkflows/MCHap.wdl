@@ -1,9 +1,8 @@
 version 1.0
 
-import "../tasks/custom/bam_to_bed.wdl"
-import "../tasks/custom/chunk_lists.wdl"
-import "../tasks/custom/r_libs.wdl"
-import "../tasks/custom/sort_and_concat_vcfs.wdl"
+import "../tasks/chunk_lists.wdl"
+import "../tasks/utilsR.wdl"
+import "../tasks/utils.wdl"
 import "../tasks/mchap.wdl"
 
 workflow MCHap {
@@ -21,7 +20,7 @@ workflow MCHap {
     String? P2
   }
 
-  call bam_to_bed.BamToBed {
+  call utils.BamToBed {
       input:
         merged_bams = merged_bams
   }
@@ -61,13 +60,13 @@ workflow MCHap {
     }
   }
 
-  call sort_and_concat_vcfs.mergeVCFs {
+  call utils.mergeVCFs {
       input:
         haplo_vcf = OneMCHap_recall.haplo_vcf
   }
 
    if(defined(P1)){
-      call r_libs.FilterMulti {
+      call utilsR.FilterMulti {
           input:
             multi_vcf = mergeVCFs.merged_vcf,
             ploidy = ploidy,

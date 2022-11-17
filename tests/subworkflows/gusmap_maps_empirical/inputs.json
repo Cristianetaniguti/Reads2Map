@@ -2,8 +2,8 @@
     "gusmapMapsEmp.max_cores": 2,
     "gusmapMapsEmp.SNPCall_program": "gatk",
     "gusmapMapsEmp.GenotypeCall_program": "gusmap",
-    "gusmapMapsEmp.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted/biallelics.vcf.gz",
+    "gusmapMapsEmp.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk.vcf.gz",
     "gusmapMapsEmp.parent2": "PT_M",
-    "gusmapMapsEmp.new_vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted/biallelics.vcf.gz",
+    "gusmapMapsEmp.vcf_bam_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk_bam.vcf.gz",
     "gusmapMapsEmp.parent1": "PT_F"
   }

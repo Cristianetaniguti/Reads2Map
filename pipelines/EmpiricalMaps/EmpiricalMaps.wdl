@@ -5,13 +5,11 @@ import "../../structs/population_structs.wdl"
 
 import "../../tasks/utils.wdl" as utils
 import "../../tasks/utilsR.wdl" as utilsR
-import "../../tasks/custom/reports.wdl"
+import "../../tasks/JointReports.wdl" as reports
 
 import "../../subworkflows/genotyping_empirical.wdl" as genotyping
 import "../../subworkflows/snpcaller_maps_empirical.wdl" as snpcaller
 import "../../subworkflows/gusmap_maps_empirical.wdl" as gusmap
-
-
 
 workflow Maps {
 
@@ -130,7 +128,7 @@ workflow Maps {
        call gusmap.gusmapMapsEmp {
             input:
               vcf_file = splitvcf.biallelics,
-              new_vcf_file = splitbam.biallelics,
+              vcf_bam_file = splitbam.biallelics,
               SNPCall_program = analysis.method,
               GenotypeCall_program = "gusmap",
               parent1 = dataset.parent1,

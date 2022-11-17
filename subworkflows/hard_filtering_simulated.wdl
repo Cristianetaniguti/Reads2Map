@@ -2,7 +2,7 @@ version 1.0
 
 import "../structs/dna_seq_structs.wdl"
 import "../tasks/gatk.wdl"
-import "../tasks/custom/r_libs.wdl"
+import "../tasks/utilsR.wdl"
 
 workflow HardFiltering {
     input {
@@ -24,7 +24,7 @@ workflow HardFiltering {
             reference_idx = references.ref_fasta_index
     }
 
-    call r_libs.QualPlotsForHardFilteringSimulated as QualPlots {
+    call utilsR.QualPlotsForHardFilteringSimulated as QualPlots {
         input:
             FalsePositives = VariantsToTable.FalsePositives,
             TruePositives  = VariantsToTable.TruePositives,

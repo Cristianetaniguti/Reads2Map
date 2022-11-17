@@ -1,12 +1,11 @@
 version 1.0
 
-import "../tasks/utils.wdl" as utils
-import "../tasks/custom/r_libs.wdl"
+import "../tasks/gusmap.wdl" 
 
 workflow gusmapMapsEmp {
   input {
     File vcf_file
-    File new_vcf_file
+    File vcf_bam_file
     String SNPCall_program
     String GenotypeCall_program
     String parent1
@@ -15,11 +14,11 @@ workflow gusmapMapsEmp {
   }
 
   Array[String] counts                      = ["vcf", "bam"]
-  Array[File] vcfs                          = [vcf_file, new_vcf_file]
+  Array[File] vcfs                          = [vcf_file, vcf_bam_file]
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
 
   scatter (vcf in counts_and_vcfs) {
-    call r_libs.GusmapReport {
+    call gusmap.GusmapReport {
         input:
           vcf_file = vcf.right,
           SNPCall_program = SNPCall_program,
@@ -31,7 +30,7 @@ workflow gusmapMapsEmp {
         }
     }
 
-    call utils.CompressGusmap {
+    call gusmap.CompressGusmap {
       input:
         name = "gusmap_map",
         RDatas = GusmapReport.maps_RData,

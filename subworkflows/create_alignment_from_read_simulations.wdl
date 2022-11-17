@@ -1,11 +1,10 @@
 version 1.0
 
 import "../structs/read_simulation_structs.wdl"
-import "../tasks/custom/alignment.wdl" as alg
-import "../tasks/custom/vcf.wdl"
-import "../tasks/custom/chunk_lists.wdl"
-import "../tasks/custom/r_libs.wdl"
-import "../tasks/custom/pedigree_simulator_utils.wdl"
+import "../tasks/BWA.wdl" as alg
+import "../tasks/chunk_lists.wdl"
+import "../tasks/simuscop.wdl"
+import "../tasks/pedigree_simulator_utils.wdl"
 import "../tasks/pirs.wdl"
 import "../tasks/pedigree_simulator.wdl"
 import "../tasks/utils.wdl" as utils
@@ -83,14 +82,14 @@ workflow CreateAlignmentFromSimulation {
       mapsize         = sequencing.mapsize
   }
 
-  call vcf.GenerateSampleNames {
+  call utils.GenerateSampleNames {
     input:
       simulated_vcf = ConvertPedigreeSimulationToVcf.simu_vcf
   }
 
   if(sequencing.library_type == "WGS" || sequencing.library_type == "exome"){
 
-    call r_libs.SimuscopProfile {
+    call simuscop.SimuscopProfile {
       input:
         library_type = sequencing.library_type,
         emp_bam = sequencing.emp_bam,
@@ -100,7 +99,7 @@ workflow CreateAlignmentFromSimulation {
 
     scatter (sampleName in GenerateSampleNames.names) {
 
-      call r_libs.SimuscopSimulation {
+      call simuscop.SimuscopSimulation {
         input:
           library_type  = sequencing.library_type,
           sampleName    = sampleName,

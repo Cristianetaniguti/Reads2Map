@@ -16,6 +16,7 @@ workflow FreebayesGenotyping {
     Int max_cores
     Int ploidy
     File? vcf_simu
+    Boolean replaceAD
   }
 
   call freebayes.RunFreebayes {
@@ -39,20 +40,22 @@ workflow FreebayesGenotyping {
 
   Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
 
-  call utils.ReplaceAD {
-    input:
-      ref_fasta = references.ref_fasta,
-      ref_index = references.ref_fasta_index,
-      bams = map_bams["bam"],
-      bais = map_bams["bai"],
-      vcf = Normalization.vcf_norm,
-      tbi = Normalization.vcf_norm_tbi,
-      program = program
+  if(replaceAD){
+    call utils.ReplaceAD {
+      input:
+        ref_fasta = references.ref_fasta,
+        ref_index = references.ref_fasta_index,
+        bams = map_bams["bam"],
+        bais = map_bams["bai"],
+        vcf = Normalization.vcf_norm,
+        tbi = Normalization.vcf_norm_tbi,
+        program = program
+    }
   }
 
   output {
     File vcf_norm = Normalization.vcf_norm
-    File vcf_norm_bamcounts = ReplaceAD.bam_vcf
+    File? vcf_norm_bamcounts = ReplaceAD.bam_vcf
     File vcfEval = Normalization.vcfEval
   }
 }

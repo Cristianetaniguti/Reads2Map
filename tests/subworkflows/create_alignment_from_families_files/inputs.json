@@ -1,6 +1,7 @@
 {
     "CreateAlignmentFromFamilies.max_cores": 2,
-    "CreateAlignmentFromFamilies.rm_dupli": "FALSE",
+    "CreateAlignmentFromFamilies.rm_dupli": false,
+    "CreateAlignmentFromFamilies.gatk_mchap": true,
     "CreateAlignmentFromFamilies.families_info": "tests/data/Ptremula_PRJNA395596_subset/fastq/samples_info_pop_sub.tsv",
     "CreateAlignmentFromFamilies.chunk_size": 2,
     "CreateAlignmentFromFamilies.references": {

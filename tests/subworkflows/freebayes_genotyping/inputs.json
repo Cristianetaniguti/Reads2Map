@@ -19,5 +19,6 @@
         "ref_pac": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.pac"
     },
     "FreebayesGenotyping.ploidy": 2,
+    "FreebayesGenotyping.replaceAD": true,
     "FreebayesGenotyping.program": "freebayes"
 }

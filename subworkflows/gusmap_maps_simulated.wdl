@@ -1,7 +1,6 @@
 version 1.0
 
-import "../tasks/utils.wdl" as utils
-import "../tasks/custom/r_libs.wdl"
+import "../tasks/gusmap.wdl"
 
 workflow gusmapMaps {
   input {
@@ -22,7 +21,7 @@ workflow gusmapMaps {
   Array[Pair[String, File]] counts_and_vcfs = zip(counts, vcfs)
 
   scatter (vcf in counts_and_vcfs) {
-    call r_libs.GusmapReportForSimulated as GusmapReport {
+    call gusmap.GusmapReportForSimulated as GusmapReport {
         input:
           vcf_file = vcf.right,
           simu_onemap_obj = simu_onemap_obj,
@@ -37,7 +36,7 @@ workflow gusmapMaps {
      }
   }
 
-  call utils.CompressGusmap {
+  call gusmap.CompressGusmap {
      input:
        name = "gusmap_map",
        RDatas = GusmapReport.maps_RData,

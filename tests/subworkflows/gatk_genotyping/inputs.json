@@ -16,7 +16,9 @@
         "ref_fasta_index": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.fai",
         "ref_pac": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.pac"
     },
-    "GatkGenotyping.mchap": "FALSE",
+    "GatkGenotyping.mchap": false,
+    "GatkGenotyping.hardfilters": true,
+    "GatkGenotyping.replaceAD": true,
     "GatkGenotyping.P2": "PT_M",
     "GatkGenotyping.chunk_size": 2,
     "GatkGenotyping.max_cores": 2,

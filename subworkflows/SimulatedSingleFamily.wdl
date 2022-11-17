@@ -4,7 +4,7 @@ import "../structs/population_structs.wdl"
 
 import "../tasks/utils.wdl" as utils
 import "../tasks/utilsR.wdl" as utilsR
-import "../tasks/custom/reports.wdl" as reports
+import "../tasks/JointReports.wdl" as reports
 
 import "../subworkflows/create_alignment_from_read_simulations.wdl" as simulation
 import "../subworkflows/genotyping_simulated.wdl" as genotyping
@@ -24,7 +24,9 @@ workflow SimulatedSingleFamily {
     Int max_cores
     Int chunk_size
     Int ploidy
-    String gatk_mchap
+    Boolean gatk_mchap
+    Boolean hardfilters
+    Boolean replaceAD
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -51,7 +53,9 @@ workflow SimulatedSingleFamily {
       max_cores  = max_cores,
       merged_bams = CreateAlignmentFromSimulation.merged_bam,
       P1 = "P1",
-      P2 = "P2"
+      P2 = "P2",
+      hardfilters = hardfilters,
+      replaceAD = replaceAD
   }
 
   call freebayes.FreebayesGenotyping {
@@ -62,7 +66,8 @@ workflow SimulatedSingleFamily {
       program    = "freebayes",
       max_cores  = max_cores,
       vcf_simu   = CreateAlignmentFromSimulation.true_vcf,
-      ploidy     = family.ploidy
+      ploidy     = family.ploidy,
+      replaceAD  = replaceAD
   }
 
   call utilsR.vcf2onemap as truth_vcf {
@@ -253,7 +258,7 @@ workflow SimulatedSingleFamily {
     File data8_names              = JointReportsSimu.data8_names
     File data10_counts            = JointReportsSimu.data10_counts
     File simu_haplo               = CreateAlignmentFromSimulation.simu_haplo
-    File Plots                    = GatkGenotyping.Plots
+    File? Plots                    = GatkGenotyping.Plots
     File positions                = GetMarkersPos.positions
   }
 }

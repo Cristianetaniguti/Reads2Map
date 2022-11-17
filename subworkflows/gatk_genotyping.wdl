@@ -1,7 +1,7 @@
 version 1.0
 
 import "../structs/dna_seq_structs.wdl"
-import "../tasks/custom/chunk_lists.wdl"
+import "../tasks/chunk_lists.wdl"
 import "../tasks/gatk.wdl"
 import "../tasks/utils.wdl" as utils
 
@@ -22,7 +22,9 @@ workflow GatkGenotyping {
     Int? depth
     Int chunk_size
     Int ploidy
-    String mchap
+    Boolean mchap
+    Boolean replaceAD
+    Boolean hardfilters
     Int max_cores
     File? merged_bams
     String? P1
@@ -80,31 +82,36 @@ workflow GatkGenotyping {
       input_vcf_indices = GenotypeGVCFs.vcf_tbi
   }
 
-  # Simulations
-  if(defined(seed)){
-    call hard_filt.HardFiltering {
-      input:
-        references = references,
-        vcf_file = MergeVCFs.output_vcf,
-        vcf_tbi  = MergeVCFs.output_vcf_index,
-        simu_vcf = vcf_simu,
-        seed = seed,
-        depth = depth
+  if(hardfilters){
+    # Simulations
+    if(defined(seed)){
+      call hard_filt.HardFiltering {
+        input:
+          references = references,
+          vcf_file = MergeVCFs.output_vcf,
+          vcf_tbi  = MergeVCFs.output_vcf_index,
+          simu_vcf = vcf_simu,
+          seed = seed,
+          depth = depth
+      }
     }
+
+    # Empirical
+    if(!defined(seed)){
+      call hard_filt_emp.HardFilteringEmp {
+        input:
+          references = references,
+          vcf_file = MergeVCFs.output_vcf,
+          vcf_tbi  = MergeVCFs.output_vcf_index,
+      }
+    }
+  
+    File sele_vcf = select_first([HardFiltering.filt_vcf, HardFilteringEmp.filt_vcf])
+    File QualPlots = select_first([HardFiltering.Plots, HardFilteringEmp.Plots])
+
   }
 
-  # Empirical
-  if(!defined(seed)){
-    call hard_filt_emp.HardFilteringEmp {
-      input:
-        references = references,
-        vcf_file = MergeVCFs.output_vcf,
-        vcf_tbi  = MergeVCFs.output_vcf_index,
-    }
-  }
-
-  File filt_vcf = select_first([HardFiltering.filt_vcf, HardFilteringEmp.filt_vcf])
-  File QualPlots = select_first([HardFiltering.Plots, HardFilteringEmp.Plots])
+  File filt_vcf = select_first([sele_vcf, MergeVCFs.output_vcf])
 
   call norm_filt.Normalization {
     input:
@@ -117,28 +124,27 @@ workflow GatkGenotyping {
 
   Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
 
-  call utils.ReplaceAD {
-    input:
-      ref_fasta = references.ref_fasta,
-      ref_index = references.ref_fasta_index,
-      bams = map_bams["bam"],
-      bais = map_bams["bai"],
-      vcf = Normalization.vcf_norm,
-      tbi = Normalization.vcf_norm_tbi,
-      program = program
+  if(replaceAD) {
+    call utils.ReplaceAD {
+      input:
+        ref_fasta = references.ref_fasta,
+        ref_index = references.ref_fasta_index,
+        bams = map_bams["bam"],
+        bais = map_bams["bai"],
+        vcf = Normalization.vcf_norm,
+        tbi = Normalization.vcf_norm_tbi,
+        program = program
+    }
   }
 
  # MCHap: micro-haplotyping
- if(mchap == "TRUE") {
+  if(mchap) {
 
-   Array[File] counts_source = [Normalization.vcf_norm, ReplaceAD.bam_vcf]
-
-   scatter (one_vcf in counts_source){
-      call MCHapWf.MCHap {
-        input:
+    call MCHapWf.MCHap {
+      input:
           reference = references.ref_fasta,
           reference_idx = references.ref_fasta_index,
-          vcf_file = one_vcf,
+          vcf_file = Normalization.vcf_norm,
           n_nodes = 10,
           max_cores = max_cores,
           bams = map_bams["bam"],
@@ -147,19 +153,16 @@ workflow GatkGenotyping {
           merged_bams = merged_bams,
           P1 = P1,
           P2 = P2
-      }
-   }
+    }  
 
-   File vcf_norm_mchap = MCHap.haplo_vcf_merged[0]
-   File vcf_bam_mchap = MCHap.haplo_vcf_merged[1]
+   File vcf_norm_mchap = MCHap.haplo_vcf_merged
  }
 
   output {
     File? vcf_multi = vcf_norm_mchap
-    File? vcf_multi_bamcounts = vcf_bam_mchap
     File vcf_norm = Normalization.vcf_norm
-    File vcf_norm_bamcounts = ReplaceAD.bam_vcf
+    File? vcf_norm_bamcounts = ReplaceAD.bam_vcf
     File vcfEval = Normalization.vcfEval
-    File Plots = QualPlots
+    File? Plots = QualPlots
   }
 }
