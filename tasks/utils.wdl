@@ -10,19 +10,20 @@ task mergeVCFs {
 
     command <<<
 
-        ln -s ~{sep=" " haplo_vcf} .
-
-        for file in $(echo haplotypes*); do
+        index=1
+        for file in $(echo ~{sep = " " haplo_vcf}); do
             filename=$(basename -- "$file")
-            name="${filename%.*}"
+            name="${filename%.*}_$index"
             echo $name
             bcftools sort $file --output-file $name.sorted.vcf
             bgzip $name.sorted.vcf
             tabix -p vcf $name.sorted.vcf.gz
+            index=$(expr $index + 1)
         done
 
-        bcftools concat *sorted.vcf.gz --output merged.vcf.gz
-        bcftools sort merged.vcf.gz --output-file merged.sorted.vcf.gz
+        bcftools concat *sorted.vcf.gz --output merged.vcf
+        bcftools sort merged.vcf --output-file merged.sorted.vcf
+        bgzip merged.sorted.vcf
 
     >>>
 
