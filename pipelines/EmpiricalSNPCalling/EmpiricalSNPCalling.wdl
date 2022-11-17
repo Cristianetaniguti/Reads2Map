@@ -23,6 +23,7 @@ workflow SNPCalling {
     Boolean run_gatk
     Boolean run_freebayes
     Int ploidy
+    Int n_chrom
   }
 
   call fam.CreateAlignmentFromFamilies {
@@ -57,13 +58,13 @@ workflow SNPCalling {
   if(run_freebayes){
     call freebayes.FreebayesGenotyping {
       input:
-        bams=CreateAlignmentFromFamilies.bam,
-        bais=CreateAlignmentFromFamilies.bai,
+        merged_bam=CreateAlignmentFromFamilies.merged_bam,
         references=references,
         program="freebayes",
         max_cores = max_cores,
         ploidy = ploidy,
-        replaceAD = replaceAD
+        replaceAD = replaceAD,
+        n_chrom = n_chrom
     }
   }
 

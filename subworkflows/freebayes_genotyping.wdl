@@ -11,8 +11,6 @@ import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
 workflow FreebayesGenotyping {
   input {
     File merged_bam
-    #Array[File] bams
-    #Array[File] bais
     ReferenceFasta references
     String program
     Int max_cores

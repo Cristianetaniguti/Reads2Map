@@ -27,6 +27,7 @@ workflow SimulatedSingleFamily {
     Boolean gatk_mchap
     Boolean hardfilters
     Boolean replaceAD
+    Int n_chrom
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -60,14 +61,14 @@ workflow SimulatedSingleFamily {
 
   call freebayes.FreebayesGenotyping {
     input:
-      bams       = CreateAlignmentFromSimulation.bam,
-      bais       = CreateAlignmentFromSimulation.bai,
+      merged_bam   = CreateAlignmentFromSimulation.merged_bam,
       references = references,
       program    = "freebayes",
       max_cores  = max_cores,
       vcf_simu   = CreateAlignmentFromSimulation.true_vcf,
       ploidy     = family.ploidy,
-      replaceAD  = replaceAD
+      replaceAD  = replaceAD,
+      n_chrom    = n_chrom
   }
 
   call utilsR.vcf2onemap as truth_vcf {
