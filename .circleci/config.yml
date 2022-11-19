@@ -27,7 +27,7 @@ jobs:
       - run: pytest --git-aware --tag freebayes tests/
       - run: pytest --git-aware --tag gatk tests/
 
-  release-develop:
+  release-to-github:
     <<: *machine_default
     parameters:
       env:
@@ -48,13 +48,17 @@ workflows:
       - run-tasks-tests:
           requires:
             - wdl-validate
-      - release-develop:
+      - release-to-github:
           name: release-development-version
           env: "dev"
           requires:
             - run-tasks-tests
-      - release-develop:
-          name: release-development-version
+          filters:
+            branches:
+              only:
+                - develop
+      - release-to-github:
+          name: release-production-version
           env: "dev"
           filters:
             branches:
