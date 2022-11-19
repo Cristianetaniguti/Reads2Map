@@ -29,9 +29,16 @@ jobs:
 
   release-develop:
     <<: *machine_default
+    parameters:
+      env:
+        description: The target environment of the deployment
+        type: enum
+        enum: ["dev", "prod"]
     steps:
       - checkout
-      - run: for i in pipelines/*/*.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e dev -p $i; done
+      - run:
+          name: "Prepare releases and publish to GitHub"
+          command: for i in pipelines/*/*.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e << parameters.env >> -p $i; done
 
 
 workflows:
@@ -42,5 +49,14 @@ workflows:
           requires:
             - wdl-validate
       - release-develop:
+          name: release-development-version
+          env: "dev"
           requires:
             - run-tasks-tests
+      - release-develop:
+          name: release-development-version
+          env: "dev"
+          filters:
+            branches:
+              only:
+                - main
