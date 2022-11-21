@@ -59,7 +59,7 @@ workflows:
                 - develop
       - release-to-github:
           name: release-production-version
-          env: "dev"
+          env: "prod"
           filters:
             branches:
               only:
