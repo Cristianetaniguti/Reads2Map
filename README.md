@@ -1,4 +1,7 @@
-## Reads2Map workflows
+[![Development](https://img.shields.io/badge/development-active-blue.svg)](https://img.shields.io/badge/development-active-blue.svg)
+
+
+## Reads2Map 
 
 Reads2Map presents [WDL workflows](https://openwdl.org/) to build linkage maps for diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling, and genetic map builders software. By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes), [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [superMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906), [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) are included.
 
