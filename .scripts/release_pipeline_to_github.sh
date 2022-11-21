@@ -79,7 +79,7 @@ function prod_release_to_github() {
   local -r changelog=$(dirname ${pipeline})/${pipelineName}.changelog.md
   local -r version=$(get_version_from_changelog ${changelog})
   local -r releaseName=${pipelineName}_v${version}
-  local -r targetCommitish="master"
+  local -r targetCommitish="main"
   local -r prerelease=false
 
   local -r previousReleaseID=$(curl \
