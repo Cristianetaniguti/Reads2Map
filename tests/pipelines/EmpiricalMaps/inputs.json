@@ -1,0 +1,17 @@
+{
+    "Maps.dataset": {
+      "parent2": "PT_M",
+      "name": "populus_sub",
+      "parent1": "PT_F",
+      "chromosome": "Chr10",
+      "cross": "F1",
+      "multiallelics": true
+    },
+    "Maps.max_cores": 2,
+    "Maps.gatk_mchap": "FALSE",
+    "Maps.vcfs_counts_source": ["",,,],
+    "Maps.filters": "String? (optional)",
+    "Maps.vcfs": "Array[File]",
+    "Maps.vcfs_software": "Array[String]",
+    "Maps.filter_noninfo": "Boolean"
+  }

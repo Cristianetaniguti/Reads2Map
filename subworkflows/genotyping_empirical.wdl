@@ -15,7 +15,7 @@ workflow onemapMapsEmp {
     String parent2
     String chromosome
     Int max_cores
-    String multiallelics
+    Boolean multiallelics
     File? multiallelics_file
   }
 
@@ -29,7 +29,7 @@ workflow onemapMapsEmp {
           max_cores = max_cores
   }
 
-  if (multiallelics == "TRUE") {
+  if (multiallelics) {
     call utils.JointMarkers {
       input:
         biallelic_vcf = ReGenotyping.regeno_vcf,

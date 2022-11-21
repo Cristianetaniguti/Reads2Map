@@ -2,7 +2,7 @@ version 1.0
 
 task JointReports{
   input{
-    Array[File] SNPCaller
+    Array[File?] SNPCaller
     Array[File] updog
     Array[File] polyrad
     Array[File] supermassa

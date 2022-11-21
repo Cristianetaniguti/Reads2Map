@@ -6,7 +6,7 @@
     "onemapMapsEmp.SNPCall_program": "freebayes",
     "onemapMapsEmp.multiallelics_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/multiallelics_gatk.vcf.gz",
     "onemapMapsEmp.GenotypeCall_program": "updog",
-    "onemapMapsEmp.multiallelics": "TRUE",
+    "onemapMapsEmp.multiallelics": true,
     "onemapMapsEmp.parent1": "PT_F",
     "onemapMapsEmp.chromosome": "Chr10",
     "onemapMapsEmp.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk.vcf.gz"

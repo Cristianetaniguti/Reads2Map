@@ -1,7 +1,7 @@
 version 1.0
 
 struct PopulationAnalysis {
-    String method
-    File vcf
-    File bam
+    Array[String] vcfs_counts_source
+    Array[String] vcfs_software
+    Array[File] vcfs
 }

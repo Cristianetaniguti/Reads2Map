@@ -1,0 +1,4 @@
+- name: Build linkage maps from VCFs
+  tags:
+    - empiricalmaps
+  command: miniwdl run -i tests/pipelines/EmpiricalMaps/inputs.json pipelines/EmpiricalMaps/EmpiricalMaps.wdl

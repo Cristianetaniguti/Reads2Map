@@ -15,142 +15,123 @@ workflow Maps {
 
     input {
         Dataset dataset
+        Array[File] vcfs
+        Array[String] vcfs_software
+        Array[String] vcfs_counts_source
         File? gatk_vcf_multi
         String gatk_mchap
-        File gatk_vcf
-        File freebayes_vcf
-        File gatk_vcf_bam_counts
-        File freebayes_vcf_bam_counts
+        Boolean filter_noninfo
         String? filters
         Int max_cores
     }
 
     if (defined(filters)) {
-        call utils.ApplyRandomFilters {
+        call utils.ApplyRandomFiltersArray {
             input:
-                gatk_vcf = gatk_vcf,
-                freebayes_vcf = freebayes_vcf,
-                gatk_vcf_bam_counts = gatk_vcf_bam_counts,
-                freebayes_vcf_bam_counts = freebayes_vcf_bam_counts,
+                vcfs = vcfs,
+                vcfs_software = vcfs_software,
+                vcfs_counts_source = vcfs_counts_source,
                 filters = filters,
                 chromosome = dataset.chromosome
         }
     }
 
-    File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt, gatk_vcf])
-    File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, gatk_vcf_bam_counts])
-    File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, freebayes_vcf])
-    File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, freebayes_vcf_bam_counts])
-
-    PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-    PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+    Array[File] filtered_vcfs = select_first([ApplyRandomFiltersArray.vcfs_filt, vcfs])
 
     # Re-Genotyping with updog, supermassa and polyrad; and building maps with onemap
-    scatter (analysis in [gatk_processing, freebayes_processing]) {
+    scatter (idx in range(length(filtered_vcfs))) {
 
-        Map[String, File] vcfs = {"vcf": analysis.vcf, "bam": analysis.bam}
-
-        scatter (origin in ["vcf", "bam"]) {
-
-            call utils.SplitMarkers as splitgeno {
-                 input:
-                    vcf_file = vcfs[origin]
-            }
-
-            # Suggestion to improve performance of SuperMASSA, polyRAD and updog
-            call utilsR.FilterSegregation {
+        call utils.SplitMarkers as splitgeno {
              input:
+                vcf_file = filtered_vcfs[idx]
+        }
+
+        # Suggestion to improve performance of SuperMASSA, polyRAD and updog
+        if(filter_noninfo){
+            call utilsR.FilterSegregation {
+            input:
                 vcf_file = splitgeno.biallelics,
                 parent1 = dataset.parent1,
                 parent2 = dataset.parent2
             }
-
-            call genotyping.onemapMapsEmp as updogMaps {
-                input:
-                    vcf_file = FilterSegregation.vcf_filtered,
-                    # vcf_file = splitgeno.biallelics,
-                    SNPCall_program = analysis.method,
-                    GenotypeCall_program = "updog",
-                    CountsFrom = origin,
-                    cross = dataset.cross,
-                    parent1 = dataset.parent1,
-                    parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome,
-                    multiallelics = dataset.multiallelics,
-                    multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores
-            }
-
-            call genotyping.onemapMapsEmp as supermassaMaps {
-                input:
-                    vcf_file = FilterSegregation.vcf_filtered,
-                    # vcf_file = splitgeno.biallelics,
-                    SNPCall_program = analysis.method,
-                    GenotypeCall_program = "supermassa",
-                    CountsFrom = origin,
-                    cross = dataset.cross,
-                    parent1 = dataset.parent1,
-                    parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome,
-                    multiallelics = dataset.multiallelics,
-                    multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores
-            }
-
-            call genotyping.onemapMapsEmp as polyradMaps {
-                input:
-                    vcf_file = FilterSegregation.vcf_filtered,
-                    # vcf_file = splitgeno.biallelics,
-                    SNPCall_program = analysis.method,
-                    GenotypeCall_program = "polyrad",
-                    CountsFrom = origin,
-                    cross = dataset.cross,
-                    parent1 = dataset.parent1,
-                    parent2 = dataset.parent2,
-                    chromosome = dataset.chromosome,
-                    multiallelics = dataset.multiallelics,
-                    multiallelics_file = splitgeno.multiallelics,
-                    max_cores = max_cores
-            }
         }
 
-       call utils.SplitMarkers as splitvcf {
-            input:
-              vcf_file = analysis.vcf
-       }
+        File vcf_up = select_first([FilterSegregation.vcf_filtered, splitgeno.biallelics])
 
-       call utils.SplitMarkers as splitbam {
+        call genotyping.onemapMapsEmp as updogMaps {
             input:
-              vcf_file = analysis.bam
-       }
+                vcf_file = vcf_up,
+                SNPCall_program = vcfs_software[idx],
+                GenotypeCall_program = "updog",
+                CountsFrom = vcfs_counts_source[idx],
+                cross = dataset.cross,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                chromosome = dataset.chromosome,
+                multiallelics = dataset.multiallelics,
+                multiallelics_file = splitgeno.multiallelics,
+                max_cores = max_cores
+        }
 
+        call genotyping.onemapMapsEmp as supermassaMaps {
+            input:
+                vcf_file = vcf_up,
+                SNPCall_program = vcfs_software[idx],
+                GenotypeCall_program = "supermassa",
+                CountsFrom = vcfs_counts_source[idx],
+                cross = dataset.cross,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                chromosome = dataset.chromosome,
+                multiallelics = dataset.multiallelics,
+                multiallelics_file = splitgeno.multiallelics,
+                max_cores = max_cores
+        }
+
+        call genotyping.onemapMapsEmp as polyradMaps {
+            input:
+                vcf_file = vcf_up,
+                SNPCall_program = vcfs_software[idx],
+                GenotypeCall_program = "polyrad",
+                CountsFrom = vcfs_counts_source[idx],
+                cross = dataset.cross,
+                parent1 = dataset.parent1,
+                parent2 = dataset.parent2,
+                chromosome = dataset.chromosome,
+                multiallelics = dataset.multiallelics,
+                multiallelics_file = splitgeno.multiallelics,
+                max_cores = max_cores
+        }
+        
        # Build maps with GUSMap
        call gusmap.gusmapMapsEmp {
             input:
-              vcf_file = splitvcf.biallelics,
-              vcf_bam_file = splitbam.biallelics,
-              SNPCall_program = analysis.method,
+              vcf_file = vcf_up,
+              SNPCall_program = vcfs_software[idx],
+              CountsFrom = vcfs_counts_source[idx],
               GenotypeCall_program = "gusmap",
               parent1 = dataset.parent1,
               parent2 = dataset.parent2,
               max_cores = max_cores
         }
 
-        call snpcaller.SNPCallerMapsEmp {
-            input:
-                vcf_file = splitvcf.biallelics,
-                cross = dataset.cross,
-                SNPCall_program = analysis.method,
-                GenotypeCall_program = "SNPCaller",
-                CountsFrom = "vcf",
-                parent1 = dataset.parent1,
-                parent2 = dataset.parent2,
-                chromosome = dataset.chromosome,
-                multiallelics = dataset.multiallelics,
-                max_cores = max_cores,
-                multiallelics_file = splitvcf.multiallelics,
-                multiallelics_mchap = gatk_vcf_multi,
-                mchap = gatk_mchap
+        if(vcfs_counts_source[idx] != "bam"){
+            call snpcaller.SNPCallerMapsEmp {
+                input:
+                    vcf_file = splitgeno.biallelics,
+                    cross = dataset.cross,
+                    SNPCall_program = vcfs_software[idx],
+                    GenotypeCall_program = "SNPCaller",
+                    CountsFrom = vcfs_counts_source[idx],
+                    parent1 = dataset.parent1,
+                    parent2 = dataset.parent2,
+                    chromosome = dataset.chromosome,
+                    multiallelics = dataset.multiallelics,
+                    max_cores = max_cores,
+                    multiallelics_file = splitgeno.multiallelics,
+                    multiallelics_mchap = gatk_vcf_multi,
+                    mchap = gatk_mchap
+            }
         }
     }
 
@@ -158,9 +139,9 @@ workflow Maps {
     call reports.JointReports {
         input:
             SNPCaller = SNPCallerMapsEmp.tar_gz_report,
-            updog = flatten(updogMaps.tar_gz_report),
-            polyrad = flatten(polyradMaps.tar_gz_report),
-            supermassa = flatten(supermassaMaps.tar_gz_report),
+            updog = updogMaps.tar_gz_report,
+            polyrad = polyradMaps.tar_gz_report,
+            supermassa = supermassaMaps.tar_gz_report,
             gusmap = gusmapMapsEmp.tar_gz_report,
             max_cores = max_cores
     }

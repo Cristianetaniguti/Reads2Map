@@ -180,9 +180,9 @@ task GusmapReportForSimulated {
 task CompressGusmap {
     input{
       String name
-      Array[File] RDatas
-      Array[File] maps_report
-      Array[File] times
+      File RDatas
+      File maps_report
+      File times
     }
 
     Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB"))
@@ -191,8 +191,8 @@ task CompressGusmap {
     command <<<
 
       mkdir ~{name}
-      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
-                ~{sep=" " times} ~{name}
+      mv ~{RDatas} ~{maps_report} \
+                ~{times} ~{name}
 
       tar -czvf ~{name}.tar.gz ~{name}
 

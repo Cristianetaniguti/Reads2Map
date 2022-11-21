@@ -576,7 +576,7 @@ task ReGenotyping {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.2"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"

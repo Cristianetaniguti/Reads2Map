@@ -149,6 +149,55 @@ task ApplyRandomFilters {
   }
 }
 
+task ApplyRandomFiltersArray {
+  input{
+    Array[File] vcfs
+    Array[String] vcfs_software
+    Array[String] vcfs_counts_source
+    String? filters
+    String? chromosome
+  }
+
+  Int disk_size = ceil(size(vcfs, "GiB") * 2)
+  Int memory_size = 3000
+
+  command <<<
+
+      vcfs=(echo ~{sep = " " vcfs})
+      vcfs_software=(~{sep=" " vcfs_software})
+      vcfs_counts_source=(~{sep="" vcfs_counts_source})
+
+      for index in ${!vcfs[*]}; do
+          tabix -p ${vcfs[$index]}
+          bcftools view ${vcfs[$index]} ~{filters} -r ~{chromosome} \
+          -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
+      done
+  >>>
+
+  runtime {
+    docker:"lifebitai/bcftools:1.10.2"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "ApplyRandomFilters"
+    mem:"~{memory_size}M"
+    time:"01:00:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [vcftools](http://vcftools.sourceforge.net/) to filter VCF file by user-defined criterias."
+  }
+
+  output {
+    Array[File] vcfs_filt = glob("vcf_filt_*.vcf.gz")
+  }
+}
+
+
 task SplitMarkers {
   input{
     File vcf_file
@@ -322,7 +371,7 @@ task Compress {
 
       mkdir ~{name}
 
-      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
+      cp ~{sep=" " RDatas} ~{sep=" " maps_report} \
         ~{sep=" " times} ~{sep=" " filters_report} \
         ~{sep=" " errors_report}  ~{name}
 
