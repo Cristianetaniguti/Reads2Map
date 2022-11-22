@@ -1,243 +1,39 @@
-## Reads2Map workflows
+## Reads2Map 
 
-Reads2Map presents [WDL workflows](https://openwdl.org/) to build linkage maps for diploid outcrossing species from sequencing reads. It compares performances of SNP calling, genotype calling, and genetic map builders software. By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes), [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [superMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906), [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) are included.
+Reads2Map presents [WDL workflows](https://openwdl.org/) a collection of pipelines to build linkage maps from sequencing reads. Each pipeline release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
-The main workflows are the `SimulatedReads.wdl`, the `EmpiricalSNPCalling.wdl`, and the `EmpiricalMaps.wdl`. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building. `EmpiricalSNPCalling.wdl` performs the SNP calling and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads.
 
-## Requisites
+The main workflows are the `EmpiricalSNPCalling.wdl`, the `EmpiricalMaps.wdl`, and the `SimulatedReads.wdl`. `EmpiricalSNPCalling.wdl` performs the SNP calling and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
-The only software that you will need to download and install to run these workflows are [Java](https://www.java.com/en/),  [Cromwell](https://cromwell.readthedocs.io/en/stable/tutorials/FiveMinuteIntro/), and [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/2.6/user-guide/index.html).
+By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) for linkage map build.
 
-Clone or download this repository:
 
-```
-git clone https://github.com/Cristianetaniguti/Reads2Map.git # Or download the directory. It is important to download the entire directory, once the main workflows request the tasks and structs.
-```
+![math_meth2](https://user-images.githubusercontent.com/7572527/203172239-e4d2d857-84e2-48c5-bb88-01052a287004.png)
 
-## Building maps from empirical reads
+## How to use
 
-The `EmpiricalSNPcalling` requires demultiplexed and cleaned FASTQ files. We made available a suggestion for preprocessing reads in `PreprocessingReads.wdl`.
+Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, and dxWDL. See further information in the [openwdl documentation](https://github.com/openwdl/wdl#execution-engines).
 
-* Adapt the path of the inputs in `inputs/EmpiricalSNPCalling.inputs.json`
-
-**samples_info**: tsv file with the first column with the path to FASTQ files, a second column with sample names, and the third column with sample names and lane specifications. Example:
-
-```
-data/populus_sub/SRR6249785.sub.fastq   I_3_58  I_3_58.Lib1_C11_TTCCACG
-data/populus_sub/SRR6249786.sub.fastq   I_3_56  I_3_56.Lib1_C10_CCTGCAC
-data/populus_sub/SRR6249787.sub.fastq   I_3_55  I_3_55.Lib1_C09_AGAAGTC
-data/populus_sub/SRR6249788.sub.fastq   I_3_66  I_3_66.Lib1_D06_GCCAACT
-data/populus_sub/SRR6249795.sub.fastq   PT_F    PT_F.Lib1_E09_TGAACAT
-data/populus_sub/SRR6249808.sub.fastq   PT_M    PT_M.Lib2_E06_CGATGCG
-```
-
-**rm_dupli**: if workflow should (TRUE) or not (FALSE) remove the duplicated sequences from the alignment file before the SNP calling analysis;
-
-**chunk_size**: how many samples to be evaluated by GATK in a single same node;
-
-**max_cores**: maximum number of cores to be used by alignment and Freebayes tasks;
-
-**empirical.references**
-- ref_fasta: chromosome sequence in fasta format (only one chromosome at a time);
-- ref_fasta_index: index made by samtools faidx;
-- ref_dict: index made by picard dict;
-- ref_sa: index made by bwa index;
-- ref_amb: index made by bwa index;
-- ref_bwt: index made by bwa index;
-- ref_ann: index made by bwa index;
-- ref_pac: index made by bwa index.
-
-### Run EmpiricalSNPCalling workflow with the test data set
-
-In the `Reads2Map/data` directory you can find files to run examples. The `toy_genome` presents two FASTA files one with a sub set of 2 million base pares of chromosome 10 and other with the same subset for chromosome 10 and 11. For the empirical data we will use the second: `Chr10.11.2M.fa`. We must provide also the index files generated by BWA, samtools and picard. You can use the follow containers to create these indexes:
-
-```
-docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z samtools faidx /data/toy_genome/Chr10.11.2M.fa
-docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z /usr/gitc/./bwa index /data/toy_genome/Chr10.11/2M.fa
-docker run -v $(pwd):/data/ us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z java -jar /usr/gitc/picard.jar CreateSequenceDictionary R=/data/toy_genome/Chr10.11.2M.fa O=/data/toy_genome/Chr10.11.2M.dict
-```
-
-or with singularity:
-
-```
-singularity run --bind $(pwd):/data/ us.gcr.io_broad-gotc-prod_genomes-in-the-cloud_2.5.7-2021-06-09_16-47-48Z.sif samtools faidx /data/Chr10.11.2M.fa
-singularity run --bind $(pwd):/data/ us.gcr.io_broad-gotc-prod_genomes-in-the-cloud_2.5.7-2021-06-09_16-47-48Z.sif /usr/gitc/./bwa index /data/Chr10.11.2M.fa
-singularity run --bind $(pwd):/data/  us.gcr.io_broad-gotc-prod_genomes-in-the-cloud_2.5.7-2021-06-09_16-47-48Z.sif java -jar /usr/gitc/picard.jar CreateSequenceDictionary R=/data/Chr10.populus.fa O=/data/Chr10.11.2M.dict
-```
-
-Once we you have all input files, you can use the [Cromwell](https://cromwell.readthedocs.io/en/stable/) engine to run the workflows. Cromwell offers many different ways of doing it. You can check all option available in [its documentation](https://cromwell.readthedocs.io/en/stable/). The most simple way would be:
-
-```
-Execute the workflow
-java -jar /path/to/cromwell.jar run -i inputs/EmpiricalSNPCalling.inputs.json EmpiricalSNPCalling.wdl
-```
-
-**Warning**: This analysis demand high computer capacity to run. You will be able to run the example dataset on a computer with 4G of RAM, but we suggest setting personalized configurations according to your system. Check some examples of configurations in `.configurations` directory. Here are two examples of how to use them:
-
-* For storing the metadata and cache in a MySQL database (see also [cromwell-cli](https://github.com/lmtani/cromwell-cli) to easy access to metadata):
-
-```
-# Open mySQL cointainer
-docker run -d -v banco_cromwell:/var/lib/mysql --rm --name mysql-cromwell -p 3307:3306 -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=cromwell mysql:5.7
-
-# Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i EmpiricalSNPCalling.inputs.json EmpiricalSNPCalling.wdl
-
-# Or execute the workflow through the server interface
-java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar server
-```
-
-In case you use the server interface, you must open it in your browser in the pointed local adress and submit the input (.json), workflow (.wdl) and the directories struct and tasks compressed with `zip -r -u tasks.zip tasks/ structs/` .
-
-* If you are using a High-Performance Computing (HPC) with slurm managment system:
-
-BATCH file named `slurm_main.sh`:
-
-```
-#!/bin/bash
-
-#SBATCH --export=NONE
-#SBATCH -J cromwell_Reads2Map
-#SBATCH --nodes=1                    
-#SBATCH --mem=1G
-#SBATCH --time=01:30:00
-#SBATCH -o /home/user/Reads2Map.log
-#SBATCH -e /home/user/Reads2Map.err
-
-# Maybe it will be required to import java and singularity modules here. Check the specifications of the HPC.
-#module load singularity
-#module load java
-
-java -jar -Dconfig.file=/home/user/Reads2Map/.configurations/cromwell_slurm_sing.conf \
-     -jar /home/user/Reads2Map/cromwell-65.jar \
-     run /home/user/Reads2Map/EmpiricalSNPCalling.wdl \
-     -i /home/user/Reads2Map/inputs/EmpiricalSNPCalling.inputs.json 
-```
-
-When the run is ended, the log description printed in the screen will point the path for the workflow output files. The files outputted by `EmpiricalSNPCalling.wdl` are inputs for `EmpiricalMaps.wdl`. However, we suggest to check the VCF markers quality parameters to apply proper filters before proceed to `EmpiricalMaps.wdl`. The `EmpiricalMaps.wdl` is limited to run only one chromosome, make sure you filter the VCF to retain only the selected one.
-
-* Adapt the path of the inputs in `inputs/EmpiricalMaps.inputs.json`
-
-**freebayes_vcf**: vcf file containing markers from freebayes snp calling;
-
-**gatk_vcf**: vcf file containing markers from gatk snp calling;
-
-**freebayes_vcf_bam_counts**: vcf file containing markers from freebayes snp calling with AD field replaced by BAM files read counts;
-
-**gatk_vcf_bam_counts**: vcf file containing markers from gatk snp calling with AD field replaced by BAM files read counts;
-
-**dataset**
-- parent1: parent 1 ID;
-- parent2: parent 2 ID;
-- name: experiment ID;
-- chromosome: chromosome being evaluated (only one allowed);
-- cross: cross type (by now, only F1 available);
-- multiallelics: consider or not the multiallelic markers.
-
-Running:
-
-```
-java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i EmpiricalMaps.inputs.json EmpiricalMaps.wdl
-```
-
-Here there are enough data to test the pipeline but not for having a good resolution genetic map. It contains the two parents and 4 progeny individuals. The original study has eight replicates for each parent and 122 progenies.
-
-You can download black cottonwood genome assembly (FASTA) and [RADseq reads from the BioProject PRJNA395596](https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA395596) for testing with the full data set:
-
-```
-bash /user/path/Reads2Map/data/populus/download_SRRs.sh
-```
-
-Check session [`Running large datasets`](#Running-large-datasets) before procede with the analysis with entire data set.
-
-## Run SimulatedReads workflow
-
-* Adapt the path of the inputs in `inputs/SimulatedReads.input.json`
-
-**number_of_families** : an integer defining the number of families with `popsize` individuals to be simulated;
-
-**global_seed**: This seed is used to generate the families seeds;
-
-**max_cores**: Maximum number of computer cores to be used;
-
-**filters**: filters in to be applied by VCFtools in the VCF file after SNP calling;
-
-**chunk_size**: how many samples are to be evaluated by GATK in a single same node
-
-**family**: 
-- seed: seed to reproduce the analysis after - warning: some steps are still random, as the reads simulation;
-- popsize: number of individuals at the progeny population;
-- ploidy: the ploidy of the species, by now only diploid (2) species are supported;
-- cross: cross-type. By now, only "F1" option is available;
-- doses: if you do not have a VCF file with variants to be simulated, you can define here the percentage of markers with doses 0, 1, and 2 (when the cross is F1);
-- cmBymb: if you do not have a reference linkage map, you can simulate using a general recombination rate according to other genetic maps of the specie
-
-**sequencing**:
-- library_type: the options RADseq, WGS, and Exome are available.
-- multiallelics: Define with "TRUE" or "FALSE", if the analysis should try to include multiallelic markers in the linkage maps.
-- emp_vcf: reference VCF file with the variants to be simulated.
-- emp_bam: reference BAM file. It will be used to define the reads profile in WGS and Exome simulation.
-- ref_map: reference linkage map, it is a text file with two columns, one named "cM" with values for centimorgan position of markers and the other named "bp" with the respective base pair position of each marker. The markers in your reference map do not need to be the same as the VCF file. Using splines, this map is used to train a model to define the position in centimorgan of the simulated variants in the genome.  
-- enzyme1: If RADseq, the enzyme used to reduce the genome representation.
-- enzyme2: If RADseq, the second enzyme used to reduce the genome representation.
-- vcf_parent1: parent 1 ID in the reference VCF.
-- vcf_parent2: parent 2 ID in the reference VCF.
-- chromosome: chromosome ID to be simulated.
-- pcr_cycles: If RADseq, the number of PCR cycles used in the library preparation (default: 9).
-- insert_size: If RADseq, define the insert size in bp (default: 350).
-- read_length: If RADseq, define the read length in bp (default: 150).
-- depth: sequencing depth (default: 20).
-- insert_size_dev: If RADseq, define the insert size standard deviation in bp (default: 35).
-
-**references**
-- ref_fasta: chromosome sequence in FASTA format (only one chromosome at a time, and no N are allowed)
-- ref_fasta_index: index made by samtools faidx
-- ref_dict: index made by picard dict
-- ref_sa: index made by bwa index
-- ref_amb: index made by bwa index
-- ref_bwt: index made by bwa index
-- ref_ann: index made by bwa index
-- ref_pac: index made by bwa index
-
-### Run test dataset for simulations
-
-In the directory `data/toy_simulations` you will find input files required to simulate reads and maps based on a subset of *Populus trichocarpa* chromosome 10. These files are: 1) `ref.variants.noindel.recode.vcf` a reference VCF file only with SNPs (indels are not supported by now); 2) and a reference linkage map `ref.map.csv`. The path to the files must be defined in `inputs/SimulatedReads.inputs.json`.
-
-Run the workflow:
-
-```
-Execute the workflow
-java -jar -Dconfig.file=.configurations/cromwell_cache.conf -jar cromwell.jar run -i SimulatedReads.inputs.json SimulatedReads.wdl
-```
-
-**Warning**: This analysis demand high computer capacity to run. You will be able to run the example dataset on a computer with 4G of RAM, but we suggest setting personalized configurations according to your system. Check some examples of configurations in `.configurations` directory. You can also check other option in the [Cromwell documentation](https://cromwell.readthedocs.io/en/stable/).
-
-## Running large datasets
-
-By default, the workflows are configurated for High-Performance Computing (HPC) services and we provide some configurations files examples in `.configurations` directory.
-
-If you don't have an HPC available, you may want to check cloud services. There are several services available, we would suggest starting your search by the [terra.bio](https://terra.bio/resources/analysis-tools/) platform. To adapt the workflows to cloud services it is required to change the `runtime` session of the workflow tasks according to the cloud format.
-
-The time and memory specifications in `runtime` session of each task also need to be adapted for different datasets. Consult the `Reads2MapApp` session `Workflows efficiency` to optimize the time and memory requirements for your data set. 
-
-## Visualize Reads2Map workflows output in Reads2MapApp
-
-You can search for all workflow's intermediary files in the `cromwell-executions` directory generated by the Cromwell. The `log` file will specify the workflow id and path for each executed task. The final output of `EmpiricalMaps.wdl` and `SimulatedReads.wdl` are compressed files called `EmpiricalReads_results.tar.gz` and `SimulatedReads_results.tar.gz`. These files contain tables for an overview of the entire procedure. They are inputs for the `Reads2MapApp`, a shiny app that provides a graphical view of the results. Check the [Reads2MapApp repository](https://github.com/Cristianetaniguti/Reads2MapApp) for further information.
-
-<img width="637" alt="entry" src="https://user-images.githubusercontent.com/7572527/134988930-65e14700-cd13-4b5a-aea8-d27a10402988.PNG">
+To run a pipeline, first navigate to [Reads2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases), search for the pipeline tag you which to run, and download the pipeline’s assets (the WDL workflow, the JSON, and the ZIP with accompanying dependencies).
 
 ## Documentation
 
-Here are some tutorials for further details about how to use the workflows:
+Check the description of the inputs for the pipelines:
 
-* [Introduction](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/introduction.html)
-* [Running SimulatedReads workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/SimulatedReads.html)
-* [Running EmpiricalReads2Map workflow](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/EmpiricalReads2Map.html)
-* [High density maps](https://cristianetaniguti.github.io/Tutorials/onemap_workflows/docs/High_density_maps.html)
+* [EmpiricalReads2Map (EmpiricalSNPCalling and EmpiricalMaps)](https://cristianetaniguti.github.io/Tutorials/Read2Map/EmpiricalReads2Map.html)
+* [SimulatedReads](https://cristianetaniguti.github.io/Tutorials/Reads2Map/SimulatedReads.html)
 
-You can also have more details about the workflows and how they can be applied:
+Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
-* [Papers]()
+* [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp)
+
+Once you selected the best pipeline using a subset of your data, you can build a complete high-density linkage map:
+
+* [Quick Guide to build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/High_density_maps.html)
+
+Check more information and example of usage in:
+
+* [Paper in preparation]()
 
 ## Third-party software and images
 
