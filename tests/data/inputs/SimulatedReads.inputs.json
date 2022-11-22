@@ -9,19 +9,19 @@
     "cross": "F1"
   },
   "SimulatedReads.references": {
-    "ref_fasta": "data/toy_genome/Chr10.2M.fa",
-    "ref_dict": "data/toy_genome/Chr10.2M.dict",
-    "ref_ann": "data/toy_genome/Chr10.2M.fa.ann",
-    "ref_sa": "data/toy_genome/Chr10.2M.fa.sa",
-    "ref_amb": "data/toy_genome/Chr10.2M.fa.amb",
-    "ref_bwt": "data/toy_genome/Chr10.2M.fa.bwt",
-    "ref_fasta_index": "data/toy_genome/Chr10.2M.fa.fai",
-    "ref_pac": "data/toy_genome/Chr10.2M.fa.pac"
+    "ref_fasta": "tests/data/toy_genome/Chr10.2M.fa",
+    "ref_dict": "tests/data/toy_genome/Chr10.2M.dict",
+    "ref_ann": "tests/data/toy_genome/Chr10.2M.fa.ann",
+    "ref_sa": "tests/data/toy_genome/Chr10.2M.fa.sa",
+    "ref_amb": "tests/data/toy_genome/Chr10.2M.fa.amb",
+    "ref_bwt": "tests/data/toy_genome/Chr10.2M.fa.bwt",
+    "ref_fasta_index": "tests/data/toy_genome/Chr10.2M.fa.fai",
+    "ref_pac": "tests/data/toy_genome/Chr10.2M.fa.pac"
   },
   "SimulatedReads.global_seed": "8080",
   "SimulatedReads.sequencing": {
     "vcf_parent2": "PT_F",
-    "emp_vcf": "data/toy_simulations/ref.variants.vcf",
+    "emp_vcf": "tests/data/toy_simulations/ref.variants.vcf",
     "enzyme1": "HinDIII",
     "pcr_cycles": "5",
     "vcf_parent1": "PT_M",
@@ -30,11 +30,10 @@
     "chromosome": "Chr10",
     "rm_dupli": "FALSE",
     "depth": "20",
-    "ref_map": "data/toy_simulations/ref.map.csv",
+    "ref_map": "tests/data/toy_simulations/ref.map.csv",
     "enzyme2": "NlaIII",
     "multiallelics": "TRUE"
   },
   "SimulatedReads.chunk_size": "1",
   "SimulatedReads.max_cores": "3"
 }
-
