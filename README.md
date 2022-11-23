@@ -1,12 +1,14 @@
+[![Development](https://img.shields.io/badge/development-active-blue.svg)](https://img.shields.io/badge/development-active-blue.svg)
+
+[![Reads2Map](https://circleci.com/gh/Cristianetaniguti/Reads2Map.svg?style=svg)](https://app.circleci.com/pipelines/github/Cristianetaniguti/Reads2Map)
+
 ## Reads2Map 
 
 Reads2Map presents [WDL workflows](https://openwdl.org/) a collection of pipelines to build linkage maps from sequencing reads. Each pipeline release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
-
 The main workflows are the `EmpiricalSNPCalling.wdl`, the `EmpiricalMaps.wdl`, and the `SimulatedReads.wdl`. `EmpiricalSNPCalling.wdl` performs the SNP calling and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
 By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) for linkage map build.
-
 
 ![math_meth2](https://user-images.githubusercontent.com/7572527/203172239-e4d2d857-84e2-48c5-bb88-01052a287004.png)
 
