@@ -10,3 +10,9 @@ The workflow also include de options to:
 * Perform the Hard Filtering in GATK results
 * Replace the VCF AD format field by counts from BAM files
 * Run MCHap software to build haplotypes based on GATK called markers
+
+This workflow requires:
+
+* Diploid or polyploid specie
+* Single-end reads
+* A reference genome

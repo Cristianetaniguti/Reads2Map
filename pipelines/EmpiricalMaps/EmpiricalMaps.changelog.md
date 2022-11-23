@@ -13,3 +13,9 @@ It also has the options to:
 
 * Include or not multiallelic (MNP) markers
 * Apply filters using VCFtools
+
+This workflow uses:
+
+* Diploid bi-parental F1 population
+* Genomic positions for markers order
+* A single chromosome from a reference genome
