@@ -1,5 +1,4 @@
 [![Development](https://img.shields.io/badge/development-active-blue.svg)](https://img.shields.io/badge/development-active-blue.svg)
-
 [![Reads2Map](https://circleci.com/gh/Cristianetaniguti/Reads2Map.svg?style=svg)](https://app.circleci.com/pipelines/github/Cristianetaniguti/Reads2Map)
 
 ## Reads2Map 
