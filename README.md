@@ -21,8 +21,9 @@ To run a pipeline, first navigate to [Reads2Map releases page](https://github.co
 
 Check the description of the inputs for the pipelines:
 
-* [EmpiricalReads2Map (EmpiricalSNPCalling and EmpiricalMaps)](https://cristianetaniguti.github.io/Tutorials/Read2Map/EmpiricalReads2Map.html)
-* [SimulatedReads](https://cristianetaniguti.github.io/Tutorials/Reads2Map/SimulatedReads.html)
+* [EmpiricalReads2Map (EmpiricalSNPCalling and EmpiricalMaps)](https://cristianetaniguti.github.io/Tutorials/Reads2Map/EmpiricalReads.html)
+
+* [SimulatedReads](https://cristianetaniguti.github.io/Tutorials/Reads2Map/simulatedreads.html)
 
 Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
@@ -30,11 +31,11 @@ Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
 Once you selected the best pipeline using a subset of your data, you can build a complete high-density linkage map:
 
-* [Quick Guide to build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/High_density_maps.html)
+* [Quick Guide to build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/Quick_HighDens/High_density_maps.html)
 
-Check more information and example of usage in:
+Check more information and examples of usage in:
 
-* [Paper in preparation]()
+* [Taniguti, C. H., Taniguti, L. M., Amadeu, R. R., Mollinari, M., Da, G., Pereira, S., Riera-Lizarazu, O., Lau, J., Byrne, D., de Siqueira Gesteira, G., De, T., Oliveira, P., Ferreira, G. C., &#38; Franco Garcia, A. A.  Developing best practices for genotyping-by-sequencing analysis using linkage maps as benchmarks. BioRxiv. https://doi.org/10.1101/2022.11.24.517847](https://www.biorxiv.org/content/10.1101/2022.11.24.517847v1)
 
 ## Third-party software and images
 
