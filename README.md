@@ -3,7 +3,7 @@
 
 ## Reads2Map 
 
-Reads2Map presents [WDL workflows](https://openwdl.org/) a collection of pipelines to build linkage maps from sequencing reads. Each pipeline release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
+Reads2Map presents a collection of [WDL workflows](https://openwdl.org/)  to build linkage maps from sequencing reads. Each workflow release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
 The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.wdl`. The `EmpiricalReads2Map.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads2Map.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
@@ -31,7 +31,7 @@ Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
 Once you selected the best pipeline using a subset of your data, you can build a complete high-density linkage map:
 
-* [Quick Guide to build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/Quick_HighDens/High_density_maps.html)
+* [A Guide to Build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/Quick_HighDens/High_density_maps.html)
 
 Check more information and examples of usage in:
 
