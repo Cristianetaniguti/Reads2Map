@@ -5,7 +5,7 @@
 
 Reads2Map presents [WDL workflows](https://openwdl.org/) a collection of pipelines to build linkage maps from sequencing reads. Each pipeline release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
-The main workflows are the `EmpiricalReads.wdl` and the `SimulatedReads.wdl`. The `EmpiricalReads.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
+The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.wdl`. The `EmpiricalReads2Map.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads2Map.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
 By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) for linkage map build.
 
@@ -23,7 +23,7 @@ Check the description of the inputs for the pipelines:
 
 * [EmpiricalReads2Map (EmpiricalSNPCalling and EmpiricalMaps)](https://cristianetaniguti.github.io/Tutorials/Reads2Map/EmpiricalReads.html)
 
-* [SimulatedReads](https://cristianetaniguti.github.io/Tutorials/Reads2Map/simulatedreads.html)
+* [SimulatedReads2Map](https://cristianetaniguti.github.io/Tutorials/Reads2Map/simulatedreads.html)
 
 Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
