@@ -17,10 +17,10 @@ workflow Maps {
         Dataset dataset
         File? gatk_vcf_multi
         String gatk_mchap
-        File gatk_vcf
-        File freebayes_vcf
-        File gatk_vcf_bam_counts
-        File freebayes_vcf_bam_counts
+        File? gatk_vcf
+        File? freebayes_vcf
+        File? gatk_vcf_bam_counts
+        File? freebayes_vcf_bam_counts
         String? filters
         Int max_cores
     }
