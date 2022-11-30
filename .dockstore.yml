@@ -1,27 +1,33 @@
 version: 1.2
 workflows:
   - subclass: WDL
-    primaryDescriptorPath: pipelines/EmpiricalMaps/EmpiricalMaps.wdl
+    primaryDescriptorPath: /pipelines/EmpiricalMaps/EmpiricalMaps.wdl
     name: EmpiricalMaps
+    publish: true
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: pipelines/EmpiricalSNPCalling/EmpiricalSNPCalling.wdl
+    primaryDescriptorPath: /pipelines/EmpiricalSNPCalling/EmpiricalSNPCalling.wdl
     name: EmpiricalSNPCalling
+    publish: true
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: pipelines/PreprocessingReads/PreprocessingReads.wdl
+    primaryDescriptorPath: /pipelines/PreprocessingReads/PreprocessingReads.wdl
     name: PreprocessingReads
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: pipelines/SimulatedReads2Map/SimulatedReads2Map.wdl
+    primaryDescriptorPath: /pipelines/SimulatedReads2Map/SimulatedReads2Map.wdl
     name: SimulatedReads2Map
+    publish: true
+    doi: https://doi.org/10.48546/WORKFLOWHUB.WORKFLOW.410.1
     authors:
       - orcid: 0000-0002-2021-6883
   - subclass: WDL
-    primaryDescriptorPath: EmpiricalReads2Map/EmpiricalReads2Map/EmpiricalReads2Map.wdl
+    primaryDescriptorPath: /pipelines/EmpiricalReads2Map/EmpiricalReads2Map/EmpiricalReads2Map.wdl
     name: EmpiricalReads2Map
+    publish: true
+    doi: https://doi.org/10.48546/WORKFLOWHUB.WORKFLOW.409.1
     authors:
       - orcid: 0000-0002-2021-6883
