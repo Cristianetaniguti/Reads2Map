@@ -22,4 +22,3 @@
   "SNPCalling_gatk.GatkGenotyping.depth": "Int? (optional)",
   "SNPCalling_gatk.samples_info": "File"
 }
-

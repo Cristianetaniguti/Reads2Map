@@ -29,11 +29,3 @@ struct Sequencing {
   String rm_dupli
   Int mapsize
 }
-
-struct OptionalFilters {  # TODO: Check if it is used. If not: remove it
-  String? Filter1
-  String? Filter2
-  String? Filter3
-  String? Filter4
-  String? Filter5
-}

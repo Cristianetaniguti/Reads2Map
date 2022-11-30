@@ -20,7 +20,10 @@ workflow Maps {
         Array[String] vcfs_counts_source
         File? gatk_vcf_multi
         String gatk_mchap
-        Boolean filter_noninfo
+        File? gatk_vcf
+        File? freebayes_vcf
+        File? gatk_vcf_bam_counts
+        File? freebayes_vcf_bam_counts
         String? filters
         Int max_cores
     }

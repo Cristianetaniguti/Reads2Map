@@ -100,8 +100,8 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
 
 task ApplyRandomFilters {
   input{
-    File gatk_vcf
-    File freebayes_vcf
+    File? gatk_vcf
+    File? freebayes_vcf
     File? gatk_vcf_bam_counts
     File? freebayes_vcf_bam_counts
     String? filters

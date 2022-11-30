@@ -27,11 +27,18 @@ jobs:
       - run: pytest --git-aware --tag freebayes tests/
       - run: pytest --git-aware --tag gatk tests/
 
-  release-develop:
+  release-to-github:
     <<: *machine_default
+    parameters:
+      env:
+        description: The target environment of the deployment
+        type: enum
+        enum: ["dev", "prod"]
     steps:
       - checkout
-      - run: for i in pipelines/*/*.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e dev -p $i; done
+      - run:
+          name: "Prepare releases and publish to GitHub"
+          command: for i in pipelines/*/*.wdl; do echo $i; bash .scripts/release_pipeline_to_github.sh -e << parameters.env >> -p $i; done
 
 
 workflows:
@@ -41,6 +48,19 @@ workflows:
       - run-tasks-tests:
           requires:
             - wdl-validate
-      - release-develop:
+      - release-to-github:
+          name: release-development-version
+          env: "dev"
           requires:
             - run-tasks-tests
+          filters:
+            branches:
+              only:
+                - develop
+      - release-to-github:
+          name: release-production-version
+          env: "prod"
+          filters:
+            branches:
+              only:
+                - main
