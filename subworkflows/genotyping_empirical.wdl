@@ -97,5 +97,7 @@ workflow onemapMapsEmp {
 
    output {
       File tar_gz_report = Compress.tar_gz_report
+      Array[File] maps_report = MapsReportEmp.maps_report
+      File regeno_vcf = ReGenotyping.regeno_vcf
    }
 }
