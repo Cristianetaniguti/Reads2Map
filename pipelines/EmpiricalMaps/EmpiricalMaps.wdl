@@ -19,6 +19,7 @@ workflow Maps {
         Array[String] vcfs_software
         Array[String] vcfs_counts_source
         Boolean filter_noninfo
+        String replaceADbyMissing
         File? gatk_vcf_multi
         String gatk_mchap
         String? filters
@@ -48,11 +49,12 @@ workflow Maps {
 
         # Suggestion to improve performance of SuperMASSA, polyRAD and updog
         if(filter_noninfo){
-            call utilsR.FilterSegregation {
+            call utilsR.RemoveNonInformative {
             input:
                 vcf_file = splitgeno.biallelics,
                 parent1 = dataset.parent1,
-                parent2 = dataset.parent2
+                parent2 = dataset.parent2,
+                replaceADbyMissing = replaceADbyMissing
             }
         }
 

@@ -576,7 +576,7 @@ task ReGenotyping {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.2"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -778,11 +778,12 @@ task SetProbsDefault {
   }
 }
 
-task FilterSegregation {
+task RemoveNonInformative {
   input {
     File vcf_file
     String parent1
     String parent2
+    String replaceADbyMissing
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
@@ -790,18 +791,14 @@ task FilterSegregation {
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
-
-        library(vcfR)
         library(Reads2MapTools)
-        obj <- read.vcfR("~{vcf_file}")
-        gt <- extract.gt(obj)
-        dp <- extract.gt(obj, element = "DP")
         # Replace AD and DP by 0 when GT is missing
-        obj@gt[,-1][which(is.na(gt))] <- obj@gt[,-1][which(is.na(dp))][1]
-        write.vcf(obj, file = "missing_counts_fixed.vcf")
         # Remove non-informatives
-        segregation_test_vcf("missing_counts_fixed.vcf", P1 = "~{parent1}", P2 = "~{parent2}",
-                             out.vcf = "filtered.vcf.gz", threshold = 0.05, rm_just_noninfo = TRUE)
+        remove_non_informative("~{vcf_file}", 
+                                P1 = "~{parent1}", 
+                                P2 = "~{parent2}",
+                                replaceAD = "~{replaceADbyMissing}",
+                                out.vcf = "filtered.vcf.gz")
 
       RSCRIPT
   >>>

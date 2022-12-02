@@ -163,12 +163,13 @@ task ApplyRandomFiltersArray {
 
   command <<<
 
-      vcfs=(echo ~{sep = " " vcfs})
+      cp ~{sep = " " vcfs} .
+      vcfs=$(echo *vcf*)
       vcfs_software=(~{sep=" " vcfs_software})
       vcfs_counts_source=(~{sep="" vcfs_counts_source})
 
       for index in ${!vcfs[*]}; do
-          tabix -p ${vcfs[$index]}
+          tabix -p vcf ${vcfs[$index]}
           bcftools view ${vcfs[$index]} ~{filters} -r ~{chromosome} \
           -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
       done

@@ -18,6 +18,7 @@ workflow EmpiricalReads {
         Boolean gatk_mchap = false
         Boolean hardfilters = true
         Boolean replaceAD = true
+        String replaceADbyMissing = "TRUE" # Boolean inside R
         Boolean run_gatk = true
         Boolean run_freebayes = true
         Int ploidy = 2
@@ -51,7 +52,8 @@ workflow EmpiricalReads {
             gatk_vcf_multi = SNPCalling.gatk_multi_vcf,
             gatk_mchap = gatk_mchap,
             filters = filters,
-            max_cores = max_cores
+            max_cores = max_cores,
+            replaceADbyMissing = replaceADbyMissing
     }
 
     output {
