@@ -58,7 +58,7 @@ workflow Maps {
             }
         }
 
-        File vcf_up = select_first([FilterSegregation.vcf_filtered, splitgeno.biallelics])
+        File vcf_up = select_first([RemoveNonInformative.vcf_filtered, splitgeno.biallelics])
 
         call genotyping.onemapMapsEmp as updogMaps {
             input:
