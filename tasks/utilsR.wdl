@@ -44,7 +44,7 @@ task vcf2onemap {
     >>>
 
     runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
+      docker:"cristaniguti/reads2map:0.0.3"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -98,7 +98,7 @@ task FiltersReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -150,7 +150,7 @@ task FiltersReportEmp {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -256,7 +256,7 @@ task MapsReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -345,7 +345,7 @@ task ErrorsReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -409,7 +409,7 @@ task CheckDepths {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -472,7 +472,7 @@ task MapsReportEmp {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu:max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -662,7 +662,7 @@ task SetProbs {
 
   >>>
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -753,7 +753,7 @@ task SetProbsDefault {
 
   >>>
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -807,7 +807,7 @@ task FilterSegregation {
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
+      docker:"cristaniguti/reads2map:0.0.3"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -905,7 +905,7 @@ task QualPlots {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1018,7 +1018,7 @@ task QualPlotsForHardFilteringSimulated {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1064,7 +1064,7 @@ task FilterMulti {
     >>>
 
     runtime {
-        docker:"cristaniguti/reads2map:0.0.1"
+        docker:"cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"

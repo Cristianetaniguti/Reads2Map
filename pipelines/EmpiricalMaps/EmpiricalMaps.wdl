@@ -135,10 +135,12 @@ workflow Maps {
         }
     }
 
+    Array[File] snpcaller_results = select_all(SNPCallerMapsEmp.tar_gz_report)
+
     # Compress files
     call reports.JointReports {
         input:
-            SNPCaller = SNPCallerMapsEmp.tar_gz_report,
+            SNPCaller = snpcaller_results,
             updog = updogMaps.tar_gz_report,
             polyrad = polyradMaps.tar_gz_report,
             supermassa = supermassaMaps.tar_gz_report,

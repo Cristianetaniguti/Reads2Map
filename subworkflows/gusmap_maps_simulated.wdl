@@ -36,7 +36,7 @@ workflow gusmapMaps {
      }
   }
 
-  call gusmap.CompressGusmap {
+  call gusmap.CompressGusmapSimu {
      input:
        name = "gusmap_map",
        RDatas = GusmapReport.maps_RData,
@@ -45,6 +45,6 @@ workflow gusmapMaps {
   }
 
    output {
-     File tar_gz_report = CompressGusmap.tar_gz_report
+     File tar_gz_report = CompressGusmapSimu.tar_gz_report
    }
 }

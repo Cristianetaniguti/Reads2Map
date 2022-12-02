@@ -45,12 +45,11 @@ workflow EmpiricalReads {
     call maps.Maps {
         input:
             dataset = dataset,
+            vcfs = SNPCalling.vcfs,
+            vcfs_software = SNPCalling.vcfs_software,
+            vcfs_counts_source = SNPCalling.vcfs_counts_source,
             gatk_vcf_multi = SNPCalling.gatk_multi_vcf,
             gatk_mchap = gatk_mchap,
-            gatk_vcf = SNPCalling.gatk_vcf,
-            freebayes_vcf = SNPCalling.freebayes_vcf,
-            gatk_vcf_bam_counts = SNPCalling.gatk_vcf_bam_count,
-            freebayes_vcf_bam_counts = SNPCalling.freebayes_vcf_bam_count,
             filters = filters,
             max_cores = max_cores
     }

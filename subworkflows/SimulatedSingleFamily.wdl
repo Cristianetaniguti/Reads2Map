@@ -26,7 +26,6 @@ workflow SimulatedSingleFamily {
     Int ploidy
     Boolean gatk_mchap
     Boolean hardfilters
-    Boolean replaceAD
     Int n_chrom
   }
 
@@ -56,7 +55,7 @@ workflow SimulatedSingleFamily {
       P1 = "P1",
       P2 = "P2",
       hardfilters = hardfilters,
-      replaceAD = replaceAD
+      replaceAD = true
   }
 
   call freebayes.FreebayesGenotyping {
@@ -67,7 +66,7 @@ workflow SimulatedSingleFamily {
       max_cores  = max_cores,
       vcf_simu   = CreateAlignmentFromSimulation.true_vcf,
       ploidy     = family.ploidy,
-      replaceAD  = replaceAD,
+      replaceAD  = true,
       n_chrom    = n_chrom
   }
 
@@ -79,36 +78,37 @@ workflow SimulatedSingleFamily {
       parent2 = "P2"
   }
 
-  if (defined(filters)) {
-      call utils.ApplyRandomFilters {
-          input:
-              gatk_vcf = GatkGenotyping.vcf_norm,
-              freebayes_vcf = FreebayesGenotyping.vcf_norm,
-              gatk_vcf_bam_counts = GatkGenotyping.vcf_norm_bamcounts,
-              freebayes_vcf_bam_counts = FreebayesGenotyping.vcf_norm_bamcounts,
-              filters = filters,
-              chromosome = sequencing.chromosome
-      }
-  }
+  Array[File] vcfs_sele = flatten(select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs]))
+  Array[File] software_sele = flatten(select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software]))
+  Array[File] source_sele = flatten(select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source]))
 
-  File filtered_gatk_vcf = select_first([ApplyRandomFilters.gatk_vcf_filt,  GatkGenotyping.vcf_norm])
-  File filtered_gatk_vcf_bamcounts = select_first([ApplyRandomFilters.gatk_vcf_bam_counts_filt, GatkGenotyping.vcf_norm_bamcounts])
-  File filtered_freebayes_vcf = select_first([ApplyRandomFilters.freebayes_vcf_filt, FreebayesGenotyping.vcf_norm])
-  File filtered_freebayes_vcf_bamcounts = select_first([ApplyRandomFilters.freebayes_vcf_bam_counts_filt, FreebayesGenotyping.vcf_norm_bamcounts])
+   if (defined(filters)) {
+        call utils.ApplyRandomFiltersArray {
+            input:
+                vcfs = vcfs_sele,
+                vcfs_software = software_sele,
+                vcfs_counts_source = source_sele,
+                filters = filters,
+                chromosome = sequencing.chromosome
+        }
+    }
 
+  Array[File] filtered_vcfs = select_first([ApplyRandomFiltersArray.vcfs_filt, vcfs_sele])
+
+  # Requires adaptation starting from here, to run in arrays
   call utils.GetMarkersPos {
     input:
       true_vcf = CreateAlignmentFromSimulation.true_vcf,
-      filtered_gatk_vcf = filtered_gatk_vcf,
-      filtered_gatk_vcf_bamcounts = filtered_gatk_vcf_bamcounts,
-      filtered_freebayes_vcf = filtered_freebayes_vcf,
-      filtered_freebayes_vcf_bamcounts = filtered_freebayes_vcf_bamcounts,
+      filtered_gatk_vcf = filtered_vcfs[0],
+      filtered_gatk_vcf_bamcounts = filtered_vcfs[1],
+      filtered_freebayes_vcf = filtered_vcfs[2],
+      filtered_freebayes_vcf_bamcounts = filtered_vcfs[3],
       depth = sequencing.depth,
       seed = family.seed
   }
 
-  PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_gatk_vcf, "bam": filtered_gatk_vcf_bamcounts}
-  PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_freebayes_vcf, "bam": filtered_freebayes_vcf_bamcounts}
+  PopulationAnalysis gatk_processing = {"method": "gatk", "vcf": filtered_vcfs[0], "bam": filtered_vcfs[1]}
+  PopulationAnalysis freebayes_processing = {"method": "freebayes", "vcf": filtered_vcfs[2], "bam": filtered_vcfs[3]}
 
   scatter (analysis in [gatk_processing, freebayes_processing]){
 

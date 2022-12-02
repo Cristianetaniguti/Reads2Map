@@ -68,14 +68,17 @@ workflow SNPCalling {
     }
   }
 
+  Array[File] vcfs_sele = flatten(select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs]))
+  Array[File] software_sele = flatten(select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software]))
+  Array[File] source_sele = flatten(select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source]))
+
   output {
+    Array[File] vcfs = vcfs_sele
+    Array[File] vcfs_software = software_sele
+    Array[File] vcfs_counts_source = source_sele
     File? gatk_multi_vcf = GatkGenotyping.vcf_multi
-    File? gatk_vcf = GatkGenotyping.vcf_norm
-    File? gatk_vcf_bam_count = GatkGenotyping.vcf_norm_bamcounts
     File? gatk_vcfEval = GatkGenotyping.vcfEval
     File? Plots = GatkGenotyping.Plots
-    File? freebayes_vcf = FreebayesGenotyping.vcf_norm
-    File? freebayes_vcf_bam_count = FreebayesGenotyping.vcf_norm_bamcounts
     File? freebayes_vcfEval = FreebayesGenotyping.vcfEval
     File? merged_bam = CreateAlignmentFromFamilies.merged_bam
   }

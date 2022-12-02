@@ -2,3 +2,5 @@
   tags:
     - empiricalmaps
   command: miniwdl run -i tests/pipelines/EmpiricalMaps/inputs.json pipelines/EmpiricalMaps/EmpiricalMaps.wdl
+  files:
+  - path: _LAST/out//EmpiricalReads_results/EmpiricalReads_results.tar.gz

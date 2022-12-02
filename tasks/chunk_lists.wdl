@@ -30,7 +30,7 @@ task SepareChunksFastqString {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.3"
         cpu:1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -84,7 +84,7 @@ task SepareChunksFastq {
   >>>
 
   runtime {
-      docker: "cristaniguti/reads2map:0.0.1"
+      docker: "cristaniguti/reads2map:0.0.3"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -181,7 +181,7 @@ task SepareChunksBed {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"

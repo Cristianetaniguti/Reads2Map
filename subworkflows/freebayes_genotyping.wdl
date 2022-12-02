@@ -65,13 +65,19 @@ workflow FreebayesGenotyping {
         bais = map_bams["bai"],
         vcf = Normalization.vcf_norm,
         tbi = Normalization.vcf_norm_tbi,
-        program = program
+        program = program,
+        counts_source = "bam"
     }
   }
 
+  Array[File] freebayes_vcfs = select_all([Normalization.vcf_norm, ReplaceAD.bam_vcf]) 
+  Array[String] freebayes_software = select_all([program, ReplaceAD.software])
+  Array[String] freebayes_counts_source = select_all(["vcf", ReplaceAD.source])
+
   output {
-    File vcf_norm = Normalization.vcf_norm
-    File? vcf_norm_bamcounts = ReplaceAD.bam_vcf
+    Array[File] vcfs = freebayes_vcfs
+    Array[String] vcfs_software = freebayes_software 
+    Array[String] vcfs_counts_source = freebayes_counts_source
     File vcfEval = Normalization.vcfEval
   }
 }

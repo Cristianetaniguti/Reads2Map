@@ -133,7 +133,8 @@ workflow GatkGenotyping {
         bais = map_bams["bai"],
         vcf = Normalization.vcf_norm,
         tbi = Normalization.vcf_norm_tbi,
-        program = program
+        program = program,
+        counts_source = "bam"
     }
   }
 
@@ -158,10 +159,15 @@ workflow GatkGenotyping {
    File vcf_norm_mchap = MCHap.haplo_vcf_merged
  }
 
+ Array[File] gatk_vcfs = select_all([Normalization.vcf_norm, ReplaceAD.bam_vcf]) 
+ Array[String] gatk_software = select_all([program, ReplaceAD.software])
+ Array[String] gatk_counts_source = select_all(["vcf", ReplaceAD.source])
+
   output {
+    Array[File] vcfs = gatk_vcfs
+    Array[String] vcfs_software = gatk_software
+    Array[String] vcfs_counts_source = gatk_counts_source
     File? vcf_multi = vcf_norm_mchap
-    File vcf_norm = Normalization.vcf_norm
-    File? vcf_norm_bamcounts = ReplaceAD.bam_vcf
     File vcfEval = Normalization.vcfEval
     File? Plots = QualPlots
   }

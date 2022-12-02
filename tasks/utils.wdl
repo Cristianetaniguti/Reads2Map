@@ -301,6 +301,7 @@ task ReplaceAD {
     File vcf
     File tbi
     String program
+    String counts_source
   }
 
   Int disk_size = ceil(size(ref_fasta, "GiB") + size(bams, "GiB") * 1.5 + size(vcf, "GiB") * 1.5)
@@ -351,6 +352,8 @@ task ReplaceAD {
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
     File bam_vcf_tbi = "~{program}_bam_vcf.vcf.gz.tbi"
+    String software = "~{program}"
+    String source = "~{counts_source}"
   }
 }
 
