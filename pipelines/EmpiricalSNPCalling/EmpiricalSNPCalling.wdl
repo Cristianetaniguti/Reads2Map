@@ -15,8 +15,8 @@ workflow SNPCalling {
     Int max_cores
     Int chunk_size
     Boolean rm_dupli
-    String P1
-    String P2
+    String? P1
+    String? P2
     Boolean gatk_mchap
     Boolean hardfilters
     Boolean replaceAD

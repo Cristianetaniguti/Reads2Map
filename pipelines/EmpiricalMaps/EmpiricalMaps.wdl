@@ -24,6 +24,7 @@ workflow Maps {
         String gatk_mchap
         String? filters
         Int max_cores
+        Int ploidy
     }
 
     if (defined(filters)) {
@@ -72,7 +73,8 @@ workflow Maps {
                 chromosome = dataset.chromosome,
                 multiallelics = dataset.multiallelics,
                 multiallelics_file = splitgeno.multiallelics,
-                max_cores = max_cores
+                max_cores = max_cores,
+                ploidy = ploidy
         }
 
         call genotyping.onemapMapsEmp as supermassaMaps {
@@ -87,7 +89,8 @@ workflow Maps {
                 chromosome = dataset.chromosome,
                 multiallelics = dataset.multiallelics,
                 multiallelics_file = splitgeno.multiallelics,
-                max_cores = max_cores
+                max_cores = max_cores,
+                ploidy = ploidy
         }
 
         call genotyping.onemapMapsEmp as polyradMaps {
@@ -102,7 +105,8 @@ workflow Maps {
                 chromosome = dataset.chromosome,
                 multiallelics = dataset.multiallelics,
                 multiallelics_file = splitgeno.multiallelics,
-                max_cores = max_cores
+                max_cores = max_cores,
+                ploidy = ploidy
         }
         
        # Build maps with GUSMap

@@ -140,7 +140,6 @@ workflow GatkGenotyping {
 
  # MCHap: micro-haplotyping
   if(mchap) {
-
     call MCHapWf.MCHap {
       input:
           reference = references.ref_fasta,

@@ -53,7 +53,8 @@ workflow EmpiricalReads {
             gatk_mchap = gatk_mchap,
             filters = filters,
             max_cores = max_cores,
-            replaceADbyMissing = replaceADbyMissing
+            replaceADbyMissing = replaceADbyMissing,
+            ploidy = ploidy
     }
 
     output {
