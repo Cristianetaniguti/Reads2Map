@@ -122,17 +122,18 @@ workflow SimulatedSingleFamily {
         }
 
         # Suggestion for better SuperMASSA, updog and polyRAD performance
-        call utilsR.FilterSegregation {
+        call utilsR.RemoveNonInformative {
              input:
                 vcf_file = splitgeno.biallelics,
                 parent1 = "P1",
-                parent2 = "P2"
+                parent2 = "P2",
+                replaceADbyMissing = "TRUE"
         }
 
         call genotyping.onemapMaps as updogMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            vcf_file = FilterSegregation.vcf_filtered,
+            vcf_file = RemoveNonInformative.vcf_filtered,
             #vcf_file = splitgeno.biallelics,
             genotyping_program = "updog",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -145,13 +146,14 @@ workflow SimulatedSingleFamily {
             seed = family.seed,
             depth = sequencing.depth,
             multiallelics = sequencing.multiallelics,
-            multiallelics_file = splitgeno.multiallelics
+            multiallelics_file = splitgeno.multiallelics,
+            ploidy = ploidy
         }
 
         call genotyping.onemapMaps as supermassaMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            vcf_file = FilterSegregation.vcf_filtered,
+            vcf_file = RemoveNonInformative.vcf_filtered,
             #vcf_file = splitgeno.biallelics,
             genotyping_program = "supermassa",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -164,13 +166,14 @@ workflow SimulatedSingleFamily {
             seed = family.seed,
             depth = sequencing.depth,
             multiallelics = sequencing.multiallelics,
-            multiallelics_file = splitgeno.multiallelics
+            multiallelics_file = splitgeno.multiallelics,
+            ploidy = ploidy
         }
 
         call genotyping.onemapMaps as polyradMaps {
           input:
             simu_onemap_obj = truth_vcf.onemap_obj,
-            vcf_file = FilterSegregation.vcf_filtered,
+            vcf_file = RemoveNonInformative.vcf_filtered,
             #vcf_file = splitgeno.biallelics,
             genotyping_program = "polyrad",
             ref_alt_alleles = CreateAlignmentFromSimulation.ref_alt_alleles,
@@ -183,7 +186,8 @@ workflow SimulatedSingleFamily {
             seed = family.seed,
             depth = sequencing.depth,
             multiallelics = sequencing.multiallelics,
-            multiallelics_file = splitgeno.multiallelics
+            multiallelics_file = splitgeno.multiallelics,
+            ploidy = ploidy
         }
     }
 
