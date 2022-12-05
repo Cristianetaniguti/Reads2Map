@@ -1,5 +1,6 @@
 {
     "onemapMapsEmp.cross": "F1",
+    "onemapMapsEmp.ploidy": 2,
     "onemapMapsEmp.CountsFrom": "VCF",
     "onemapMapsEmp.parent2": "PT_M",
     "onemapMapsEmp.max_cores": 2,
@@ -10,4 +11,4 @@
     "onemapMapsEmp.parent1": "PT_F",
     "onemapMapsEmp.chromosome": "Chr10",
     "onemapMapsEmp.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk.vcf.gz"
-  }
+}

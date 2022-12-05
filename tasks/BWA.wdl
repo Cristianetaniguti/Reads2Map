@@ -17,7 +17,7 @@ task RunBwaAlignment {
   }
 
   Int disk_size = ceil(size(reads, "GiB") * 2 + size(references.ref_fasta, "GiB") + 20)
-  Int memory_size = 14000
+  Int memory_size = 4000 * max_cores
 
   command <<<
     mkdir tmp

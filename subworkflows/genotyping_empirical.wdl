@@ -17,6 +17,7 @@ workflow onemapMapsEmp {
     Int max_cores
     Boolean multiallelics
     File? multiallelics_file
+    Int ploidy
   }
 
   call utilsR.ReGenotyping {
@@ -26,7 +27,8 @@ workflow onemapMapsEmp {
           cross = cross,
           parent1 = parent1,
           parent2 = parent2,
-          max_cores = max_cores
+          max_cores = max_cores,
+          ploidy = ploidy
   }
 
   if (multiallelics) {

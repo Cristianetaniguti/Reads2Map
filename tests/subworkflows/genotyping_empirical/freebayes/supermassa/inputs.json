@@ -1,5 +1,6 @@
 {
     "onemapMapsEmp.cross": "F1",
+    "onemapMapsEmp.ploidy": 2,
     "onemapMapsEmp.CountsFrom": "VCF",
     "onemapMapsEmp.parent2": "PT_M",
     "onemapMapsEmp.max_cores": 2,

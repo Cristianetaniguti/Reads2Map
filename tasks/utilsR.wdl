@@ -506,6 +506,7 @@ task ReGenotyping {
     String parent1
     String parent2
     Int max_cores
+    String ploidy
   }
 
   Int disk_size = ceil((size(vcf_file, "GiB") * 4))
@@ -520,53 +521,43 @@ task ReGenotyping {
        cross <- "~{cross}"
 
        if(cross == "F1"){
-          cross <- "outcross"
-          f1 = NULL
-       } else if (cross == "F2"){
-          cross <- "f2 intercross"
-          f1 = "F1"
+        cross <- "outcross"
+       } else {
+        stop("Invalid crosstype")
        }
 
        out_vcf <- "regeno.vcf.gz"
 
         if (method == "updog") {
-            out_onemap_obj <- updog_genotype(vcf="~{vcf_file}",
-                                            vcf.par="AD",
-                                            out_vcf = out_vcf,
-                                            parent1="~{parent1}",
-                                            parent2="~{parent2}",
-                                            f1 = f1,
-                                            crosstype= cross,
-                                            recovering=TRUE,
-                                            cores="~{max_cores}",
-                                            depths=NULL,
-                                            global_error = NULL,
-                                            use_genotypes_errors = FALSE,
-                                            use_genotypes_probs = TRUE)
+          updog_genotype_vcf(vcf="~{vcf_file}",
+                             vcf.par="AD",
+                             out_vcf = out_vcf,
+                             parent1="~{parent1}",
+                             parent2="~{parent2}",
+                             crosstype= cross,
+                             cores=~{max_cores},
+                             ploidy = ~{ploidy})
         } else if (method == "supermassa") {
-            out_onemap_obj <- supermassa_genotype(vcf="~{vcf_file}",
-                                                  vcf.par="AD",
-                                                  out_vcf = out_vcf,
-                                                  parent1="~{parent1}",
-                                                  parent2="~{parent2}",
-                                                  crosstype= cross,
-                                                  f1 = f1,
-                                                  recovering=TRUE,
-                                                  cores="~{max_cores}",
-                                                  depths=NULL,
-                                                  global_error = NULL,
-                                                  use_genotypes_errors = FALSE,
-                                                  use_genotypes_probs = TRUE)
+          supermassa_genotype_vcf(vcf="~{vcf_file}",
+                                  vcf.par="AD",
+                                  out_vcf = out_vcf,
+                                  parent1="~{parent1}",
+                                  parent2="~{parent2}",
+                                  crosstype= cross,
+                                  cores=~{max_cores},
+                                  ploidy = ~{ploidy})
         } else if (method == "polyrad") {
-            ex <- strsplit(basename("~{vcf_file}"), split="[.]")[[1]]
-            if(ex[length(ex)] == "gz") {
+          ex <- strsplit(basename("~{vcf_file}"), split="[.]")[[1]]
+          if(ex[length(ex)] == "gz") {
               system("gunzip -f ~{vcf_file}")
               vcf_in <- paste0(dirname("~{vcf_file}"), "/", paste0(ex[-length(ex)], collapse = "."))
-            } else vcf_in <- "~{vcf_file}"
-            out_onemap_obj <- polyRAD_genotype_vcf(vcf=vcf_in,
-                                                   parent1="~{parent1}",
-                                                   parent2="~{parent2}",
-                                                   outfile = out_vcf)
+          } else vcf_in <- "~{vcf_file}"
+
+          polyRAD_genotype_vcf(vcf=vcf_in,
+                               parent1="~{parent1}",
+                               parent2="~{parent2}",
+                               ploidy = ~{ploidy},
+                               out_vcf = out_vcf)                                                 
         }
 
         system("gunzip regeno.vcf.gz")
@@ -576,7 +567,7 @@ task ReGenotyping {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.3"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
