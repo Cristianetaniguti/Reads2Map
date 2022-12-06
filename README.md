@@ -3,9 +3,9 @@
 
 ## Reads2Map 
 
-Reads2Map presents [WDL workflows](https://openwdl.org/) a collection of pipelines to build linkage maps from sequencing reads. Each pipeline release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
+Reads2Map presents a collection of [WDL workflows](https://openwdl.org/)  to build linkage maps from sequencing reads. Each workflow release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
-The main workflows are the `EmpiricalSNPCalling.wdl`, the `EmpiricalMaps.wdl`, and the `SimulatedReads.wdl`. `EmpiricalSNPCalling.wdl` performs the SNP calling and `EmpiricalMaps.wdl` performs the genotype calling and map building in empirical reads. The `SimulatedReads.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
+The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.wdl`. The `EmpiricalReads2Map.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads2Map.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
 By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) for linkage map build.
 
@@ -23,7 +23,7 @@ Check the description of the inputs for the pipelines:
 
 * [EmpiricalReads2Map (EmpiricalSNPCalling and EmpiricalMaps)](https://cristianetaniguti.github.io/Tutorials/Reads2Map/EmpiricalReads.html)
 
-* [SimulatedReads](https://cristianetaniguti.github.io/Tutorials/Reads2Map/simulatedreads.html)
+* [SimulatedReads2Map](https://cristianetaniguti.github.io/Tutorials/Reads2Map/simulatedreads.html)
 
 Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
@@ -31,11 +31,11 @@ Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
 Once you selected the best pipeline using a subset of your data, you can build a complete high-density linkage map:
 
-* [Quick Guide to build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/Quick_HighDens/High_density_maps.html)
+* [A Guide to Build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/Quick_HighDens/High_density_maps.html)
 
 Check more information and examples of usage in:
 
-* [Taniguti, C. H., Taniguti, L. M., Amadeu, R. R., Mollinari, M., Da, G., Pereira, S., Riera-Lizarazu, O., Lau, J., Byrne, D., de Siqueira Gesteira, G., De, T., Oliveira, P., Ferreira, G. C., &#38; Franco Garcia, A. A.  Developing best practices for genotyping-by-sequencing analysis using linkage maps as benchmarks. BioRxiv. https://doi.org/10.1101/2022.11.24.517847](https://www.biorxiv.org/content/10.1101/2022.11.24.517847v1)
+* [Taniguti, C. H., Taniguti, L. M., Amadeu, R. R., Mollinari, M., Da, G., Pereira, S., Riera-Lizarazu, O., Lau, J., Byrne, D., de Siqueira Gesteira, G., De, T., Oliveira, P., Ferreira, G. C., &#38; Franco Garcia, A. A.  Developing best practices for genotyping-by-sequencing analysis using linkage maps as benchmarks. BioRxiv. https://doi.org/10.1101/2022.11.24.517847](https://www.biorxiv.org/content/10.1101/2022.11.24.517847v2)
 
 ## Third-party software and images
 
@@ -53,6 +53,7 @@ Check more information and examples of usage in:
 - [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Efficient Exact Maximum a Posteriori Computation for Bayesian SNP Genotyping in Polyploids;
 - [bcftools](https://github.com/samtools/bcftools) in [lifebitai/bcftools:1.10.2](https://hub.docker.com/r/lifebitai/bcftools): utilities for variant calling and manipulating VCFs and BCFs;
 - [vcftools](http://vcftools.sourceforge.net/) in [cristaniguti/split_markers:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/split_markers): program package designed for working with VCF files.
+- [MCHap](https://github.com/PlantandFoodResearch/MCHap) in [cristaniguti/mchap:0.7.0](https://hub.docker.com/repository/docker/cristaniguti/mchap): Polyploid micro-haplotype assembly using Markov chain Monte Carlo simulation.
 
 ### R packages
 

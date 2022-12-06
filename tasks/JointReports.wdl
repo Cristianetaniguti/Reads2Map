@@ -2,7 +2,7 @@ version 1.0
 
 task JointReports{
   input{
-    Array[File] SNPCaller
+    Array[File?] SNPCaller
     Array[File] updog
     Array[File] polyrad
     Array[File] supermassa
@@ -103,7 +103,7 @@ task JointReports{
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -246,7 +246,7 @@ task JointReportsSimu {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -366,7 +366,7 @@ task JointTablesSimu{
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
+      docker:"cristaniguti/reads2map:0.0.3"
       # preemptible: 3
       # cpu: 1
       # memory: "3 GB"

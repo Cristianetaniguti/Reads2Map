@@ -10,6 +10,8 @@ workflow Normalization {
     File reference
     File reference_idx
     File reference_dict
+    String program
+    String counts_source
   }
 
   call bcftools.BiallelicNormalization {
@@ -33,5 +35,7 @@ workflow Normalization {
     File vcf_norm = BiallelicNormalization.vcf_norm
     File vcf_norm_tbi = BiallelicNormalization.vcf_norm_tbi
     File vcfEval = VariantEval.vcfEval
+    String software = "~{program}"
+    String source = "~{counts_source}"
   }
 }

@@ -14,14 +14,14 @@ workflow SNPCalling {
     ReferenceFasta references
     Int max_cores
     Int chunk_size
-    Boolean rm_dupli
-    String P1
-    String P2
-    Boolean gatk_mchap
-    Boolean hardfilters
-    Boolean replaceAD
-    Boolean run_gatk
-    Boolean run_freebayes
+    Boolean rm_dupli = true
+    String? P1
+    String? P2
+    Boolean gatk_mchap = false
+    Boolean hardfilters = true
+    Boolean replaceAD = false
+    Boolean run_gatk = true
+    Boolean run_freebayes = true
     Int ploidy
     Int n_chrom
   }
@@ -68,14 +68,17 @@ workflow SNPCalling {
     }
   }
 
+  Array[Array[File]] vcfs_sele = select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs])
+  Array[Array[String]] software_sele = select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software])
+  Array[Array[String]] source_sele = select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source])
+
   output {
+    Array[File] vcfs = flatten(vcfs_sele)
+    Array[String] vcfs_software = flatten(software_sele)
+    Array[String] vcfs_counts_source = flatten(source_sele)
     File? gatk_multi_vcf = GatkGenotyping.vcf_multi
-    File? gatk_vcf = GatkGenotyping.vcf_norm
-    File? gatk_vcf_bam_count = GatkGenotyping.vcf_norm_bamcounts
     File? gatk_vcfEval = GatkGenotyping.vcfEval
     File? Plots = GatkGenotyping.Plots
-    File? freebayes_vcf = FreebayesGenotyping.vcf_norm
-    File? freebayes_vcf_bam_count = FreebayesGenotyping.vcf_norm_bamcounts
     File? freebayes_vcfEval = FreebayesGenotyping.vcfEval
     File? merged_bam = CreateAlignmentFromFamilies.merged_bam
   }

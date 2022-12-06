@@ -1,0 +1,4 @@
+- name: Filter non-informative in VCF file 
+  tags:
+    - RemoveNonInformative
+  command: miniwdl run --task RemoveNonInformative -i tests/tasks/RemoveNonInformative/inputs.json tasks/utilsR.wdl

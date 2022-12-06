@@ -15,8 +15,9 @@ workflow onemapMapsEmp {
     String parent2
     String chromosome
     Int max_cores
-    String multiallelics
+    Boolean multiallelics
     File? multiallelics_file
+    Int ploidy
   }
 
   call utilsR.ReGenotyping {
@@ -26,10 +27,11 @@ workflow onemapMapsEmp {
           cross = cross,
           parent1 = parent1,
           parent2 = parent2,
-          max_cores = max_cores
+          max_cores = max_cores,
+          ploidy = ploidy
   }
 
-  if (multiallelics == "TRUE") {
+  if (multiallelics) {
     call utils.JointMarkers {
       input:
         biallelic_vcf = ReGenotyping.regeno_vcf,
@@ -97,5 +99,7 @@ workflow onemapMapsEmp {
 
    output {
       File tar_gz_report = Compress.tar_gz_report
+      Array[File] maps_report = MapsReportEmp.maps_report
+      File regeno_vcf = ReGenotyping.regeno_vcf
    }
 }

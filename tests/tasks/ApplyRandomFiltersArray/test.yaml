@@ -1,0 +1,4 @@
+- name: Use bcftools to filter variants in VCF
+  tags:
+    - ApplyRandomFiltersArray
+  command: miniwdl run --task ApplyRandomFiltersArray -i tests/tasks/ApplyRandomFiltersArray/inputs.json tasks/utils.wdl

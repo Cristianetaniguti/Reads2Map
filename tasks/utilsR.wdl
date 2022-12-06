@@ -44,7 +44,7 @@ task vcf2onemap {
     >>>
 
     runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
+      docker:"cristaniguti/reads2map:0.0.3"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -98,7 +98,7 @@ task FiltersReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -150,7 +150,7 @@ task FiltersReportEmp {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -256,7 +256,7 @@ task MapsReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -345,7 +345,7 @@ task ErrorsReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -409,7 +409,7 @@ task CheckDepths {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -472,7 +472,7 @@ task MapsReportEmp {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu:max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -506,6 +506,7 @@ task ReGenotyping {
     String parent1
     String parent2
     Int max_cores
+    String ploidy
   }
 
   Int disk_size = ceil((size(vcf_file, "GiB") * 4))
@@ -520,53 +521,43 @@ task ReGenotyping {
        cross <- "~{cross}"
 
        if(cross == "F1"){
-          cross <- "outcross"
-          f1 = NULL
-       } else if (cross == "F2"){
-          cross <- "f2 intercross"
-          f1 = "F1"
+        cross <- "outcross"
+       } else {
+        stop("Invalid crosstype")
        }
 
        out_vcf <- "regeno.vcf.gz"
 
         if (method == "updog") {
-            out_onemap_obj <- updog_genotype(vcf="~{vcf_file}",
-                                            vcf.par="AD",
-                                            out_vcf = out_vcf,
-                                            parent1="~{parent1}",
-                                            parent2="~{parent2}",
-                                            f1 = f1,
-                                            crosstype= cross,
-                                            recovering=TRUE,
-                                            cores="~{max_cores}",
-                                            depths=NULL,
-                                            global_error = NULL,
-                                            use_genotypes_errors = FALSE,
-                                            use_genotypes_probs = TRUE)
+          updog_genotype_vcf(vcf="~{vcf_file}",
+                             vcf.par="AD",
+                             out_vcf = out_vcf,
+                             parent1="~{parent1}",
+                             parent2="~{parent2}",
+                             crosstype= cross,
+                             cores=~{max_cores},
+                             ploidy = ~{ploidy})
         } else if (method == "supermassa") {
-            out_onemap_obj <- supermassa_genotype(vcf="~{vcf_file}",
-                                                  vcf.par="AD",
-                                                  out_vcf = out_vcf,
-                                                  parent1="~{parent1}",
-                                                  parent2="~{parent2}",
-                                                  crosstype= cross,
-                                                  f1 = f1,
-                                                  recovering=TRUE,
-                                                  cores="~{max_cores}",
-                                                  depths=NULL,
-                                                  global_error = NULL,
-                                                  use_genotypes_errors = FALSE,
-                                                  use_genotypes_probs = TRUE)
+          supermassa_genotype_vcf(vcf="~{vcf_file}",
+                                  vcf.par="AD",
+                                  out_vcf = out_vcf,
+                                  parent1="~{parent1}",
+                                  parent2="~{parent2}",
+                                  crosstype= cross,
+                                  cores=~{max_cores},
+                                  ploidy = ~{ploidy})
         } else if (method == "polyrad") {
-            ex <- strsplit(basename("~{vcf_file}"), split="[.]")[[1]]
-            if(ex[length(ex)] == "gz") {
+          ex <- strsplit(basename("~{vcf_file}"), split="[.]")[[1]]
+          if(ex[length(ex)] == "gz") {
               system("gunzip -f ~{vcf_file}")
               vcf_in <- paste0(dirname("~{vcf_file}"), "/", paste0(ex[-length(ex)], collapse = "."))
-            } else vcf_in <- "~{vcf_file}"
-            out_onemap_obj <- polyRAD_genotype_vcf(vcf=vcf_in,
-                                                   parent1="~{parent1}",
-                                                   parent2="~{parent2}",
-                                                   outfile = out_vcf)
+          } else vcf_in <- "~{vcf_file}"
+
+          polyRAD_genotype_vcf(vcf=vcf_in,
+                               parent1="~{parent1}",
+                               parent2="~{parent2}",
+                               ploidy = ~{ploidy},
+                               out_vcf = out_vcf)                                                 
         }
 
         system("gunzip regeno.vcf.gz")
@@ -576,7 +567,7 @@ task ReGenotyping {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -662,7 +653,7 @@ task SetProbs {
 
   >>>
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -753,7 +744,7 @@ task SetProbsDefault {
 
   >>>
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -778,11 +769,12 @@ task SetProbsDefault {
   }
 }
 
-task FilterSegregation {
+task RemoveNonInformative {
   input {
     File vcf_file
     String parent1
     String parent2
+    String replaceADbyMissing
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
@@ -790,24 +782,20 @@ task FilterSegregation {
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
-
-        library(vcfR)
         library(Reads2MapTools)
-        obj <- read.vcfR("~{vcf_file}")
-        gt <- extract.gt(obj)
-        dp <- extract.gt(obj, element = "DP")
         # Replace AD and DP by 0 when GT is missing
-        obj@gt[,-1][which(is.na(gt))] <- obj@gt[,-1][which(is.na(dp))][1]
-        write.vcf(obj, file = "missing_counts_fixed.vcf")
         # Remove non-informatives
-        segregation_test_vcf("missing_counts_fixed.vcf", P1 = "~{parent1}", P2 = "~{parent2}",
-                             out.vcf = "filtered.vcf.gz", threshold = 0.05, rm_just_noninfo = TRUE)
+        remove_non_informative("~{vcf_file}", 
+                                P1 = "~{parent1}", 
+                                P2 = "~{parent2}",
+                                replaceAD = "~{replaceADbyMissing}",
+                                out.vcf = "filtered.vcf.gz")
 
       RSCRIPT
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
+      docker:"cristaniguti/reads2map:0.0.3"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -905,7 +893,7 @@ task QualPlots {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1018,7 +1006,7 @@ task QualPlotsForHardFilteringSimulated {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1064,7 +1052,7 @@ task FilterMulti {
     >>>
 
     runtime {
-        docker:"cristaniguti/reads2map:0.0.1"
+        docker:"cristaniguti/reads2map:0.0.3"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"

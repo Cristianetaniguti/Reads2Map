@@ -100,8 +100,8 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
 
 task ApplyRandomFilters {
   input{
-    File gatk_vcf
-    File freebayes_vcf
+    File? gatk_vcf
+    File? freebayes_vcf
     File? gatk_vcf_bam_counts
     File? freebayes_vcf_bam_counts
     String? filters
@@ -148,6 +148,56 @@ task ApplyRandomFilters {
     File freebayes_vcf_bam_counts_filt = "freebayes_vcf_bam_counts_filt.vcf"
   }
 }
+
+task ApplyRandomFiltersArray {
+  input{
+    Array[File] vcfs
+    Array[String] vcfs_software
+    Array[String] vcfs_counts_source
+    String? filters
+    String? chromosome
+  }
+
+  Int disk_size = ceil(size(vcfs, "GiB") * 2)
+  Int memory_size = 3000
+
+  command <<<
+
+      cp ~{sep = " " vcfs} .
+      vcfs=$(echo *vcf*)
+      vcfs_software=(~{sep=" " vcfs_software})
+      vcfs_counts_source=(~{sep="" vcfs_counts_source})
+
+      for index in ${!vcfs[*]}; do
+          tabix -p vcf ${vcfs[$index]}
+          bcftools view ${vcfs[$index]} ~{filters} -r ~{chromosome} \
+          -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
+      done
+  >>>
+
+  runtime {
+    docker:"lifebitai/bcftools:1.10.2"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "ApplyRandomFilters"
+    mem:"~{memory_size}M"
+    time:"01:00:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [vcftools](http://vcftools.sourceforge.net/) to filter VCF file by user-defined criterias."
+  }
+
+  output {
+    Array[File] vcfs_filt = glob("vcf_filt_*.vcf.gz")
+  }
+}
+
 
 task SplitMarkers {
   input{
@@ -252,6 +302,7 @@ task ReplaceAD {
     File vcf
     File tbi
     String program
+    String counts_source
   }
 
   Int disk_size = ceil(size(ref_fasta, "GiB") + size(bams, "GiB") * 1.5 + size(vcf, "GiB") * 1.5)
@@ -302,6 +353,8 @@ task ReplaceAD {
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
     File bam_vcf_tbi = "~{program}_bam_vcf.vcf.gz.tbi"
+    String software = "~{program}"
+    String source = "~{counts_source}"
   }
 }
 
@@ -322,7 +375,7 @@ task Compress {
 
       mkdir ~{name}
 
-      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
+      cp ~{sep=" " RDatas} ~{sep=" " maps_report} \
         ~{sep=" " times} ~{sep=" " filters_report} \
         ~{sep=" " errors_report}  ~{name}
 
@@ -445,6 +498,9 @@ task TarFiles {
     Array[File] sequences
   }
 
+  Int disk_size = ceil(size(sequences, "GiB") * 2)
+  Int memory_size = 6000
+  
   command <<<
     mkdir results
     mv ~{sep=" " sequences} results
@@ -453,11 +509,14 @@ task TarFiles {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "TarFiles"
-    node:"--nodes=1"
-    mem:"--mem=30G"
-    tasks:"--ntasks=1"
-    time:"24:00:00"
+    mem:"~{memory_size}M"
+    time:"10:00:00"
   }
 
   output {

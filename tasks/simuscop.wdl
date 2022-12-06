@@ -36,7 +36,7 @@ task SimuscopProfile {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -113,7 +113,7 @@ task SimuscopSimulation {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.3"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"

@@ -1,3 +1,11 @@
+# 1.1.0
+
+2022-12-05
+
+* Define default values
+* Include optional values to skip some of the sub-workflows
+* More tests and example data sets included
+
 # 1.0.0
 
 Initial release
