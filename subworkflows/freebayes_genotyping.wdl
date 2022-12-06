@@ -51,7 +51,9 @@ workflow FreebayesGenotyping {
       vcf_simu = vcf_simu,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
-      reference_dict = references.ref_dict
+      reference_dict = references.ref_dict,
+      program = program,
+      counts_source = "vcf"
   }
 
   Map[String, Array[File]] map_bams = {"bam": CreateChunksBamByChr.bams_chunks, "bai": CreateChunksBamByChr.bais_chunks}
@@ -71,8 +73,8 @@ workflow FreebayesGenotyping {
   }
 
   Array[File] freebayes_vcfs = select_all([Normalization.vcf_norm, ReplaceAD.bam_vcf]) 
-  Array[String] freebayes_software = select_all([program, ReplaceAD.software])
-  Array[String] freebayes_counts_source = select_all(["vcf", ReplaceAD.source])
+  Array[String] freebayes_software = select_all([Normalization.software, ReplaceAD.software])
+  Array[String] freebayes_counts_source = select_all([Normalization.source, ReplaceAD.source])
 
   output {
     Array[File] vcfs = freebayes_vcfs

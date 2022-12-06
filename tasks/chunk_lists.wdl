@@ -232,8 +232,12 @@ task CreateChunksBamByChr {
       samtools view -b ~{merged_bam} $index > sca_$index.bam
     done
 
+    count=`ls -1 sca_*.bam 2>/dev/null | wc -l`
+    if [ $count != 0 ]
+    then 
     samtools merge in_scaffolds.bam sca_*.bam
     samtools index in_scaffolds.bam
+    fi 
 
   >>>
 

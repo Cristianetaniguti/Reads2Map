@@ -14,14 +14,14 @@ workflow SNPCalling {
     ReferenceFasta references
     Int max_cores
     Int chunk_size
-    Boolean rm_dupli
+    Boolean rm_dupli = true
     String? P1
     String? P2
-    Boolean gatk_mchap
-    Boolean hardfilters
-    Boolean replaceAD
-    Boolean run_gatk
-    Boolean run_freebayes
+    Boolean gatk_mchap = false
+    Boolean hardfilters = true
+    Boolean replaceAD = false
+    Boolean run_gatk = true
+    Boolean run_freebayes = true
     Int ploidy
     Int n_chrom
   }
@@ -68,14 +68,14 @@ workflow SNPCalling {
     }
   }
 
-  Array[File] vcfs_sele = flatten(select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs]))
-  Array[File] software_sele = flatten(select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software]))
-  Array[File] source_sele = flatten(select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source]))
+  Array[Array[File]] vcfs_sele = select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs])
+  Array[Array[String]] software_sele = select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software])
+  Array[Array[String]] source_sele = select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source])
 
   output {
-    Array[File] vcfs = vcfs_sele
-    Array[File] vcfs_software = software_sele
-    Array[File] vcfs_counts_source = source_sele
+    Array[File] vcfs = flatten(vcfs_sele)
+    Array[String] vcfs_software = flatten(software_sele)
+    Array[String] vcfs_counts_source = flatten(source_sele)
     File? gatk_multi_vcf = GatkGenotyping.vcf_multi
     File? gatk_vcfEval = GatkGenotyping.vcfEval
     File? Plots = GatkGenotyping.Plots

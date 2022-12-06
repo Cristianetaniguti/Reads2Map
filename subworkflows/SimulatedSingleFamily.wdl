@@ -78,16 +78,16 @@ workflow SimulatedSingleFamily {
       parent2 = "P2"
   }
 
-  Array[File] vcfs_sele = flatten(select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs]))
-  Array[File] software_sele = flatten(select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software]))
-  Array[File] source_sele = flatten(select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source]))
+  Array[Array[File]] vcfs_sele = select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs])
+  Array[Array[File]] software_sele = select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software])
+  Array[Array[File]] source_sele = select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source])
 
    if (defined(filters)) {
         call utils.ApplyRandomFiltersArray {
             input:
-                vcfs = vcfs_sele,
-                vcfs_software = software_sele,
-                vcfs_counts_source = source_sele,
+                vcfs = flatten(vcfs_sele),
+                vcfs_software = flatten(software_sele),
+                vcfs_counts_source = flatten(source_sele),
                 filters = filters,
                 chromosome = sequencing.chromosome
         }

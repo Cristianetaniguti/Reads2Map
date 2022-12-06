@@ -119,7 +119,9 @@ workflow GatkGenotyping {
       vcf_simu = vcf_simu,
       reference = references.ref_fasta,
       reference_idx = references.ref_fasta_index,
-      reference_dict = references.ref_dict
+      reference_dict = references.ref_dict,
+      program = program,
+      counts_source = "vcf"
   }
 
   Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
@@ -159,8 +161,8 @@ workflow GatkGenotyping {
  }
 
  Array[File] gatk_vcfs = select_all([Normalization.vcf_norm, ReplaceAD.bam_vcf]) 
- Array[String] gatk_software = select_all([program, ReplaceAD.software])
- Array[String] gatk_counts_source = select_all(["vcf", ReplaceAD.source])
+ Array[String] gatk_software = select_all([Normalization.software, ReplaceAD.software])
+ Array[String] gatk_counts_source = select_all([Normalization.source, ReplaceAD.source])
 
   output {
     Array[File] vcfs = gatk_vcfs
