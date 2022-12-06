@@ -5,6 +5,6 @@
   command: miniwdl run -i tests/subworkflows/genotyping_empirical/freebayes/polyrad/inputs.json subworkflows/genotyping_empirical.wdl
   files:
   - path: _LAST/out/maps_report/1/freebayes_VCF_polyrad0.05_map_report.tsv.gz
-    md5sum: ee998a0844ab6bd94917aee2089a6b2c
+    md5sum: 83ef1b8c3f2209d71019149a5cf8ac03
   - path: _LAST/out/maps_report/0/freebayes_VCF_polyrad_map_report.tsv.gz
-    md5sum: d21c74bea06611ba3d5d56b0b96aa243
+    md5sum: d0a3acceb2f4d233437082758e11f8c7
