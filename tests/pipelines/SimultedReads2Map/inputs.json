@@ -4,7 +4,7 @@
   "SimulatedReads.family": {
     "seed": 1000,
     "cross": "F1",
-    "popsize": 100,
+    "popsize": 50,
     "ploidy": 2
   },
   "SimulatedReads.references": {
@@ -29,8 +29,8 @@
     "pcr_cycles": 5,
     "vcf_parent1": "PT_M",
     "library_type": "ddRAD",
-    "depth_parents": 160,
-    "mapsize": 38,
+    "depth_parents": 20,
+    "mapsize": 15,
     "rm_dupli": "FALSE",
     "depth": 20,
     "ref_map": "tests/data/Ptremula_PRJNA395596_subset/simulations_refs/ref.map.chr10.taniguti_subset.csv",
