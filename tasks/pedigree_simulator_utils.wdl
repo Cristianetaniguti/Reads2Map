@@ -394,17 +394,6 @@ task ProduceFamiliesSeeds {
   >>>
 
   runtime {
-    docker: "python:3.7"
-    # preemptible: 3
-    # cpu: 1
-    # memory: "1 GB"
-    job_name: "ProduceFamiliesSeeds"
-    node:"--nodes=1"
-    mem:"--mem=1G"
-    cpu:"--ntasks=1"
-    time:"01:00:00"
-    maxRetries: 5
-
     docker:"python:3.7"
     cpu:1
     # Cloud
