@@ -2,7 +2,7 @@
   "SimulatedReads.filters": "--maf 0.05",
   "SimulatedReads.hardfilters": true,
   "SimulatedReads.family": {
-    "seed": "1000",
+    "seed": 1000,
     "cross": "F1",
     "popsize": 100,
     "ploidy": 2
@@ -24,7 +24,7 @@
   "SimulatedReads.gatk_mchap": false,
   "SimulatedReads.global_seed": 8080,
   "SimulatedReads.sequencing": {
-    "emp_vcf": "tests/data/Ptremula_PRJNA395596_subset/gatk_chr10_maxmissing0.75_bi_maf0.05.recode_subset.vcf",
+    "emp_vcf": "tests/data/Ptremula_PRJNA395596_subset/simulations_refs/gatk_noindels_maxmissing0.75_maf0.05.recode_subset.vcf",
     "enzyme1": "HinDIII",
     "pcr_cycles": 5,
     "vcf_parent1": "PT_M",
@@ -33,7 +33,7 @@
     "mapsize": 38,
     "rm_dupli": "FALSE",
     "depth": 20,
-    "ref_map": "tests/data/Ptremula_PRJNA395596_subset/ref.map.chr10.taniguti_subset.csv",
+    "ref_map": "tests/data/Ptremula_PRJNA395596_subset/simulations_refs/ref.map.chr10.taniguti_subset.csv",
     "enzyme2": "NlaIII",
     "multiallelics": "TRUE",
     "vcf_parent2": "PT_F",
