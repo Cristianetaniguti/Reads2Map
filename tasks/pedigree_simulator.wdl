@@ -12,11 +12,12 @@ task RunPedigreeSimulator {
   Int memory_size = 3000
 
   command <<<
+    cp ~{parfile} parfile.txt
     set -e
-    sed -i 's+chromosome.txt+~{chromfile}+g' ~{parfile}
-    sed -i 's+mapfile.txt+~{mapfile}+g' ~{parfile}
-    sed -i 's+founderfile.txt+~{founderfile}+g' ~{parfile}
-    java -jar /usr/jars/PedigreeSim.jar ~{parfile}
+    sed -i 's+chromosome.txt+~{chromfile}+g' parfile.txt
+    sed -i 's+mapfile.txt+~{mapfile}+g' parfile.txt
+    sed -i 's+founderfile.txt+~{founderfile}+g' parfile.txt
+    java -jar /usr/jars/PedigreeSim.jar parfile.txt
 
   >>>
 
