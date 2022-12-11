@@ -381,6 +381,9 @@ task ProduceFamiliesSeeds {
     Int global_seed
   }
 
+  Int disk_size = 1
+  Int memory_size = 1000
+
   command <<<
     python <<CODE
     import random
@@ -401,6 +404,16 @@ task ProduceFamiliesSeeds {
     cpu:"--ntasks=1"
     time:"01:00:00"
     maxRetries: 5
+
+    docker:"python:3.7"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "ProduceFamiliesSeeds"
+    mem:"~{memory_size}M"
+    time:"01:00:00"
   }
 
   output {

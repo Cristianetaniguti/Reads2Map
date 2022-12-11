@@ -2,7 +2,7 @@
   "SimulatedReads.filters": "--maf 0.05",
   "SimulatedReads.hardfilters": true,
   "SimulatedReads.family": {
-    "seed": "1000",
+    "seed": 1000,
     "cross": "F1",
     "popsize": 100,
     "ploidy": 2
