@@ -1,5 +1,5 @@
 {
-  "SimulatedReads.filters": "--maf 0.05",
+  "SimulatedReads.filters": "-q 0.05:minor",
   "SimulatedReads.hardfilters": true,
   "SimulatedReads.family": {
     "seed": 1000,
