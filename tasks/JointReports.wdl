@@ -366,16 +366,15 @@ task JointTablesSimu{
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map:0.0.3"
-      # preemptible: 3
-      # cpu: 1
-      # memory: "3 GB"
-      job_name: "JointTables"
-      node:"--nodes=1"
-      mem:"--mem=30G"
-      cpu:"--ntasks=1"
-      time:"10:00:00"
-      maxRetries: 5
+    docker:"ubuntu:20.04"
+    cpu: 1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "JointReports"
+    mem:"~{memory_size}M"
+    time:"01:40:00"
   }
 
   output {
