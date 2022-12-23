@@ -926,7 +926,7 @@ task QualPlotsForHardFilteringSimulated {
     }
 
     Int disk_size = ceil(size(FalsePositives, "GB") + size(TruePositives, "GB") + size(Total, "GB") + 1)
-    Int memory_size = ceil(size(Total, "MiB") * 1.25)
+    Int memory_size = ceil(size(Total, "MiB") * 2) + 4000
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
