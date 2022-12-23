@@ -293,6 +293,9 @@ task JointTablesSimu{
     Int depth
   }
 
+  Int disk_size = ceil(size(data1_depths_geno_prob, "GiB") * 2 + size(data2_maps, "GiB") + size(data3_filters, "GiB") + size(data5_SNPCall_efficiency, "GiB") + size(data4_times, "GiB") + size(data6_RDatas, "GiB") + size(data7_gusmap, "GiB") + size(data8_names, "GiB") + size(data9_simu_haplo, "GiB") + size(data10_counts, "GiB"))
+  Int memory_size = 7000
+
   command <<<
 
     R --vanilla --no-save <<RSCRIPT
@@ -366,13 +369,13 @@ task JointTablesSimu{
   >>>
 
   runtime {
-    docker:"ubuntu:20.04"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
     disks:"local-disk " + disk_size + " HDD"
     # Slurm
-    job_name: "JointReports"
+    job_name: "JointTables"
     mem:"~{memory_size}M"
     time:"01:40:00"
   }
