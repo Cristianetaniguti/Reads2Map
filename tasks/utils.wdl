@@ -5,17 +5,21 @@ task mergeVCFs {
         Array[File] haplo_vcf
     }
 
-    Int disk_size = ceil(size(haplo_vcf, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int disk_size = ceil(size(haplo_vcf, "GiB") * 2)
+    Int memory_size = 5000
 
     command <<<
 
+        ls -n ~{sep = " " haplo_vcf} .
+        vcfs=$(ls *.vcf)
+
         index=1
-        for file in $(echo ~{sep = " " haplo_vcf}); do
-            filename=$(basename -- "$file")
+        for file in ${!vcfs[*]}; do 
+            filename=$(basename -- "${vcfs[$file]}")
             name="${filename%.*}_$index"
             echo $name
-            bcftools sort $file --output-file $name.sorted.vcf
+            tabix -p vcf ${vcfs[$file]} 
+            bcftools sort ${vcfs[$file]} --output-file $name.sorted.vcf
             bgzip $name.sorted.vcf
             tabix -p vcf $name.sorted.vcf.gz
             index=$(expr $index + 1)
