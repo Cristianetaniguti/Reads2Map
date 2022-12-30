@@ -121,7 +121,8 @@ workflow GatkGenotyping {
       reference_idx = references.ref_fasta_index,
       reference_dict = references.ref_dict,
       program = program,
-      counts_source = "vcf"
+      counts_source = "vcf",
+      ploidy = ploidy
   }
 
   Map[String, Array[File]] map_bams = {"bam": bams, "bai": bais}
