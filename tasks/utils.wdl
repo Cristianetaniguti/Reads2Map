@@ -10,8 +10,7 @@ task mergeVCFs {
 
     command <<<
 
-        ls -n ~{sep = " " haplo_vcf} .
-        vcfs=$(ls *.vcf)
+        vcfs=(~{sep = " " haplo_vcf})
 
         index=1
         for file in ${!vcfs[*]}; do 
