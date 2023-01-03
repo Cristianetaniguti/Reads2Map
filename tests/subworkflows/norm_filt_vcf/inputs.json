@@ -1,0 +1,9 @@
+{
+  "Normalization.reference_dict": "tests/polyploid/RchinensisV1.0/Chr04_sub.dict",
+  "Normalization.vcf_in": "tests/polyploid/vcfs/freebayes_Chr04.sub.vcf.gz",
+  "Normalization.reference": "tests/polyploid/RchinensisV1.0/Chr04_sub.fasta",
+  "Normalization.counts_source": "vcf",
+  "Normalization.ploidy": 4,
+  "Normalization.program": "gatk",
+  "Normalization.reference_idx": "Chr04_sub.fasta.fai"
+}
