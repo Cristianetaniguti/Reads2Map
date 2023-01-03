@@ -1,9 +1,9 @@
 {
-    "haplo_vcf": ["/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr01.vcf",
-                  "/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr02.vcf",
-                  "/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr03.vcf",
-                  "/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr04.vcf",
-                  "/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr05.vcf",
-                  "/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr06.vcf",
-                  "/mnt/c/Users/chtan/Documents/tetraploid_roses/freebayes_vcfs/freebayes_Chr07.vcf"]
+    "haplo_vcf": ["/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr01.vcf",
+                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr02.vcf",
+                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr03.vcf",
+                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr04.vcf",
+                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr05.vcf",
+                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr06.vcf",
+                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr07.vcf"]
 }
