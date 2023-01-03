@@ -9,6 +9,7 @@ task BiallelicNormalization {
     File reference
     File reference_idx
     Int ploidy
+    String software
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") + size(reference, "GiB") + 2)
@@ -16,9 +17,9 @@ task BiallelicNormalization {
 
   command <<<
 
-    if [[ ~{ploidy} -gt 2 ]]
+    if [ ~{ploidy} -gt 2 ] && [ "~{software}" == "freebayes" ] # GATK returns an error when trying to split by row saying that PL has wrong number of fields
     then
-      bcftools norm ~{vcf_file} -m - --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
+      bcftools norm ~{vcf_file} -m - -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
     else
       bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
     fi
