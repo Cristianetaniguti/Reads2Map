@@ -1,21 +1,19 @@
 {
     "Maps.dataset": {
-      "parent2": "PT_M",
-      "name": "populus_sub",
-      "parent1": "PT_F",
-      "chromosome": "Chr10",
+      "parent2": "P1",
+      "name": "rose_sub",
+      "parent1": "P2",
+      "chromosome": "Chr04",
       "cross": "F1",
-      "multiallelics": true
+      "multiallelics": false
     },
     "Maps.max_cores": 2,
-    "Maps.ploidy": 2,
+    "Maps.ploidy": 4,
     "Maps.gatk_mchap": "FALSE",
-    "Maps.vcfs_counts_source": ["vcf","bam","vcf","bam"],
-    "Maps.vcfs": ["tests/data/Ptremula_PRJNA395596_subset/snpcalling_vcfs/gatk_fullpop/gatk_bam_norm_filt.recode.vcf.gz",
-                  "tests/data/Ptremula_PRJNA395596_subset/snpcalling_vcfs/gatk_fullpop/gatk_vcf_norm_filt.recode.vcf.gz",
-                  "tests/data/Ptremula_PRJNA395596_subset/snpcalling_vcfs/freebayes_fullpop/freebayes_bam_norm_filt.recode.vcf.gz",
-                  "tests/data/Ptremula_PRJNA395596_subset/snpcalling_vcfs/freebayes_fullpop/freebayes_vcf_norm_filt.recode.vcf.gz"],
-    "Maps.vcfs_software": ["gatk", "gatk", "freebayes", "freebayes"],
+    "Maps.vcfs_counts_source": ["vcf","vcf"],
+    "Maps.vcfs": ["tests/data/polyploid/vcfs_norm/gatk_vcf_norm.vcf.gz",
+                  "tests/data/polyploid/vcfs_norm/freebayes_vcf_norm.vcf.gz"],
+    "Maps.vcfs_software": ["gatk", "freebayes"],
     "Maps.filter_noninfo": true,
     "Maps.replaceADbyMissing": "TRUE"
   }
