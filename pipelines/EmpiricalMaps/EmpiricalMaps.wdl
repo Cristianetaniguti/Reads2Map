@@ -193,7 +193,8 @@ workflow Maps {
                         CountsFrom = vcfs_counts_source[idx],
                         parent1 = dataset.parent1,
                         parent2 = dataset.parent2,
-                        max_cores = max_cores
+                        max_cores = max_cores,
+			ploidy = ploidy
                 }
             }
         }
