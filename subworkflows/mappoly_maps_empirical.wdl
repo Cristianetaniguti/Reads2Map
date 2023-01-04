@@ -36,7 +36,8 @@ workflow MappolyMapsEmp {
       GenotypeCall_program = GenotypeCall_program,
       SNPCall_program = SNPCall_program,
       CountsFrom = CountsFrom,
-      max_cores = max_cores
+      max_cores = max_cores,
+      ploidy = ploidy
   }
 
    output {

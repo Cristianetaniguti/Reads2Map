@@ -9,6 +9,7 @@ task MappolyReport {
     String parent1
     String parent2
     Int max_cores
+    Int ploidy
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
@@ -24,7 +25,7 @@ task MappolyReport {
                         parent.2 = "~{parent2}", 
                         verbose = FALSE, 
                         read.geno.prob = TRUE, 
-                        prob.thres = 0.8)
+                        prob.thres = 0.8, ploidy = ~{ploidy})
 
         png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_raw_data.png"))
         plot(dat)
@@ -142,6 +143,6 @@ task MappolyReport {
   }
 
   output {
-    File results = "~{SNPCall_program}_~{GenotypeCall_program}_results.tar.gz"
+    File results = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_results.tar.gz"
   }
 }
