@@ -176,7 +176,9 @@ task ApplyRandomFiltersArray {
           bcftools view temp.vcf ~{filters} -r ~{chromosome} \
           -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
           rm temp.vcf temp.vcf.tbi
+          echo vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz >> outputs.txt
       done
+
   >>>
 
   runtime {
@@ -198,7 +200,7 @@ task ApplyRandomFiltersArray {
   }
 
   output {
-    Array[File] vcfs_filt = glob("vcf_filt_*.vcf.gz")
+    Array[File] vcfs_filt = read_lines("outputs.txt")
   }
 }
 
