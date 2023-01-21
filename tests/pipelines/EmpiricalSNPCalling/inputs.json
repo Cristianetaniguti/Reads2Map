@@ -4,7 +4,7 @@
   "SNPCalling.rm_dupli": false,
   "SNPCalling.replaceAD": false,
   "SNPCalling.run_gatk": true,
-  "SNPCalling.run_freebayes": yes,
+  "SNPCalling.run_freebayes": true,
   "SNPCalling.hardfilters": true,
   "SNPCalling.n_chrom": 1,
   "SNPCalling.chunk_size": 2,

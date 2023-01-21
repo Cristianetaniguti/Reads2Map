@@ -1,3 +1,9 @@
+# 1.2.0
+
+* Add MAPpoly to build linkage maps for polyploid species
+* Adjust runtimes 
+* Add polyploid dataset for tests
+
 # 1.1.0
 
 2022-12-05

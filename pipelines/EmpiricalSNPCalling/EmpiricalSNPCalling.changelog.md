@@ -1,3 +1,9 @@
+# 1.2.0
+
+* Run freebayes parallelizing in nodes according to chromosomes and cores splitting in genomic regions
+* Adjust runtimes 
+* Add polyploid dataset for tests
+
 # 1.1.0
 
 2022-12-05

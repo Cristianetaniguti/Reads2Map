@@ -194,7 +194,7 @@ workflow Maps {
                         parent1 = dataset.parent1,
                         parent2 = dataset.parent2,
                         max_cores = max_cores,
-			ploidy = ploidy
+			            ploidy = ploidy
                 }
             }
         }
