@@ -46,7 +46,7 @@ task GusmapReport {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.3"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -153,7 +153,7 @@ task GusmapReportForSimulated {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.3"
+    docker: "cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"

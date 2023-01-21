@@ -12,7 +12,7 @@ task RunFreebayes {
   }
 
   Int disk_size = ceil(size(reference, "GiB") + size(bam, "GiB") +  50)
-  Int memory_size = ceil(size(bam, "MiB") * 8 * max_cores + 10000)
+  Int memory_size = ceil(size(bam, "MiB") * 25 * max_cores + 10000)
 
   command <<<
 

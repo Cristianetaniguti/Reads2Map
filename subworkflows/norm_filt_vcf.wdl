@@ -12,13 +12,16 @@ workflow Normalization {
     File reference_dict
     String program
     String counts_source
+    Int ploidy
   }
 
   call bcftools.BiallelicNormalization {
     input:
       vcf_file = vcf_in,
       reference = reference,
-      reference_idx = reference_idx
+      reference_idx = reference_idx,
+      ploidy = ploidy,
+      software = program
   }
 
   call gatk.VariantEval {
@@ -28,7 +31,8 @@ workflow Normalization {
       vcf_simu = vcf_simu,
       reference = reference,
       reference_idx = reference_idx,
-      reference_dict = reference_dict
+      reference_dict = reference_dict,
+      ploidy = ploidy
   }
 
   output {

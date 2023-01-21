@@ -1,0 +1,4 @@
+- name: Filter non-informative in VCF file 
+  tags:
+    - ReGenotyping
+  command: miniwdl run --task ReGenotyping -i tests/tasks/ReGenotyping/inputs.json tasks/utilsR.wdl

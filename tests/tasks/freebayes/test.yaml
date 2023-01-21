@@ -1,0 +1,4 @@
+- name: SNP calling with freebayes 
+  tags:
+    - freebayes
+  command: miniwdl run --task RunFreebayes -i tests/tasks/freebayes/inputs.json tasks/freebayes.wdl

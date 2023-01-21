@@ -1,0 +1,9 @@
+{
+    "gusmapMapsEmp.max_cores": 2,
+    "gusmapMapsEmp.SNPCall_program": "gatk",
+    "gusmapMapsEmp.GenotypeCall_program": "gusmap",
+    "gusmapMapsEmp.CountsFrom": "vcf",
+    "gusmapMapsEmp.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk.vcf.gz",
+    "gusmapMapsEmp.parent2": "PT_M",
+    "gusmapMapsEmp.parent1": "PT_F"
+  }

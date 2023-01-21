@@ -5,17 +5,20 @@ task mergeVCFs {
         Array[File] haplo_vcf
     }
 
-    Int disk_size = ceil(size(haplo_vcf, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int disk_size = ceil(size(haplo_vcf, "GiB") * 2)
+    Int memory_size = 5000
 
     command <<<
 
+        vcfs=(~{sep = " " haplo_vcf})
+
         index=1
-        for file in $(echo ~{sep = " " haplo_vcf}); do
-            filename=$(basename -- "$file")
+        for file in ${!vcfs[*]}; do 
+            filename=$(basename -- "${vcfs[$file]}")
             name="${filename%.*}_$index"
             echo $name
-            bcftools sort $file --output-file $name.sorted.vcf
+            tabix -p vcf ${vcfs[$file]} 
+            bcftools sort ${vcfs[$file]} --output-file $name.sorted.vcf
             bgzip $name.sorted.vcf
             tabix -p vcf $name.sorted.vcf.gz
             index=$(expr $index + 1)
@@ -173,7 +176,9 @@ task ApplyRandomFiltersArray {
           bcftools view temp.vcf ~{filters} -r ~{chromosome} \
           -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
           rm temp.vcf temp.vcf.tbi
+          echo vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz >> outputs.txt
       done
+
   >>>
 
   runtime {
@@ -195,7 +200,7 @@ task ApplyRandomFiltersArray {
   }
 
   output {
-    Array[File] vcfs_filt = glob("vcf_filt_*.vcf.gz")
+    Array[File] vcfs_filt = read_lines("outputs.txt")
   }
 }
 

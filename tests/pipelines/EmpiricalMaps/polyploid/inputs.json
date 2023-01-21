@@ -1,0 +1,20 @@
+{
+    "Maps.dataset": {
+      "parent2": "GeorgeVancouver",
+      "name": "rose_sub",
+      "parent1": "MordenBlush",
+      "chromosome": "Chr01",
+      "cross": "F1",
+      "multiallelics": false
+    },
+    "Maps.max_cores": 20,
+    "Maps.ploidy": 4,
+    "Maps.filters": "-r Chr01",
+    "Maps.gatk_mchap": "FALSE",
+    "Maps.vcfs_counts_source": ["vcf","vcf"],
+    "Maps.vcfs": ["/home/rose_lab/freebayes_tetraploid/gatk_norm.vcf.gz",
+                  "/home/rose_lab/freebayes_tetraploid/freebayes_norm.vcf.gz"],
+    "Maps.vcfs_software": ["gatk", "freebayes"],
+    "Maps.filter_noninfo": true,
+    "Maps.replaceADbyMissing": "TRUE"
+  }
