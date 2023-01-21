@@ -20,6 +20,7 @@ workflow onemapMaps {
     Int depth
     String multiallelics
     File? multiallelics_file
+    Int ploidy
   }
 
 
@@ -30,7 +31,8 @@ workflow onemapMaps {
           cross = cross,
           parent1 = "P1",
           parent2 = "P2",
-          max_cores = max_cores
+          max_cores = max_cores,
+          ploidy = ploidy
   }
 
   if (multiallelics == "TRUE") {

@@ -2,11 +2,11 @@ version 1.0
 
 task JointReports{
   input{
-    Array[File] SNPCaller
-    Array[File] updog
-    Array[File] polyrad
-    Array[File] supermassa
-    Array[File] gusmap
+    Array[File?] SNPCaller
+    Array[File?] updog
+    Array[File?] polyrad
+    Array[File?] supermassa
+    Array[File?] gusmap
     Int max_cores
   }
 
@@ -103,7 +103,7 @@ task JointReports{
   >>>
 
   runtime{
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -246,7 +246,7 @@ task JointReportsSimu {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -292,6 +292,9 @@ task JointTablesSimu{
     Array[File] positions
     Int depth
   }
+
+  Int disk_size = ceil(size(data1_depths_geno_prob, "GiB") * 2 + size(data2_maps, "GiB") + size(data3_filters, "GiB") + size(data5_SNPCall_efficiency, "GiB") + size(data4_times, "GiB") + size(data6_RDatas, "GiB") + size(data7_gusmap, "GiB") + size(data8_names, "GiB") + size(data9_simu_haplo, "GiB") + size(data10_counts, "GiB"))
+  Int memory_size = 7000
 
   command <<<
 
@@ -366,19 +369,83 @@ task JointTablesSimu{
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map:0.0.1"
-      # preemptible: 3
-      # cpu: 1
-      # memory: "3 GB"
-      job_name: "JointTables"
-      node:"--nodes=1"
-      mem:"--mem=30G"
-      cpu:"--ntasks=1"
-      time:"10:00:00"
-      maxRetries: 5
+    docker:"cristaniguti/reads2map:0.0.4"
+    cpu: 1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "JointTables"
+    mem:"~{memory_size}M"
+    time:"01:40:00"     
   }
 
   output {
     File results = "SimulatedReads_results_depth~{depth}.tar.gz"
+  }
+}
+
+task JointReportsPoly{
+  input{
+    Array[File?] SNPCaller
+    Array[File?] updog
+    Array[File?] polyrad
+    Array[File?] supermassa
+  }
+
+  Int disk_size = ceil(size(SNPCaller, "GiB") * 1.5 + size(updog, "GiB") * 1.5 + size(polyrad, "GiB") * 1.5 + size(supermassa, "GiB") * 1.5)
+  Int memory_size = 4000
+
+  command <<<
+
+     snpcaller=(~{sep=" " SNPCaller})
+     updog=(~{sep=" " updog})
+     polyrad=(~{sep=" " polyrad})
+     supermassa=(~{sep=" " supermassa})
+
+     mkdir results_all
+
+     for index in ${!snpcaller[*]}; 
+       tar -xvf ${snpcaller[$index]}
+       mv results/* results_all
+       rm -r results
+     done
+
+     for index in ${!updog[*]}; 
+       tar -xvf ${updog[$index]}
+       mv results/* results_all
+       rm -r results     
+     done
+
+     for index in ${!polyrad[*]}; 
+       tar -xvf ${polyrad[$index]}
+       mv results/* results_all
+       rm -r results     
+     done
+
+     for index in ${!supermassa[*]}; 
+       tar -xvf ${supermassa[$index]}
+       mv results/* results_all
+       rm -r results
+     done
+
+    tar -czvf EmpiricalReads_results_poly.tar.gz results_all
+
+  >>>
+
+  runtime{
+    docker:"ubuntu:20.04"
+    cpu: 1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "JointReports"
+    mem:"~{memory_size}M"
+    time:"01:40:00"
+  }
+
+  output{
+    File EmpiricalReads_results = "EmpiricalReads_results_poly.tar.gz"
   }
 }

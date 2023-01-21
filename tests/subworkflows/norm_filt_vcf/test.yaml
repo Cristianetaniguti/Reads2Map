@@ -1,0 +1,4 @@
+- name: Normalize variants and get stats
+  tags:
+    - normalization
+  command: miniwdl run -i tests/subworkflows/norm_filt_vcf/inputs.json subworkflows/norm_filt_vcf.wdl

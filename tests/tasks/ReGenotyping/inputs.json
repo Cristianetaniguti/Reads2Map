@@ -1,0 +1,9 @@
+{
+    "vcf_file": "tests/data/polyploid/RemoveNonInformative/filtered.vcf.gz",
+    "GenotypeCall_program": "supermassa",
+    "parent1": "P1",
+    "parent2": "P2",
+    "cross": "F1",
+    "max_cores": 2,
+    "ploidy": 4
+}

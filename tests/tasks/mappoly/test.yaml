@@ -1,0 +1,4 @@
+- name: Filter non-informative in VCF file 
+  tags:
+    - mappoly
+  command: miniwdl run --task MappolyReport -i tests/tasks/mappoly/inputs.json tasks/mappoly.wdl

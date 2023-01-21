@@ -1,3 +1,18 @@
+# 1.2.0
+
+* Add MAPpoly to build linkage maps for polyploid species
+* Adjust runtimes 
+* Add polyploid dataset for tests
+
+# 1.1.0
+
+2022-12-05
+
+* Include optional values to skip some of the sub-workflows
+* Accepts any number of VCF files as input
+* Dosage calling with updog, polyRAD and SuperMASSA adapted to polyploids
+* More tests and example data sets included
+
 # 1.0.0
 
 Initial release

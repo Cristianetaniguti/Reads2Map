@@ -15,9 +15,9 @@ task HaplotypeCaller {
   }
 
   Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
-  Int memory_max = ceil(1000 * chunk_size)
+  Int memory_max = ceil(5000 * chunk_size)
   Int memory_min = memory_max / 2
-  Int memory_size = memory_min * 2
+  Int memory_size = memory_max + 5000
   Int max_cores = ceil(chunk_size * 4 + 2)
 
   command <<<
@@ -422,13 +422,14 @@ task VariantEval {
     File reference
     File reference_idx
     File reference_dict
+    Int ploidy
   }
 
   Int disk_size = ceil(size(vcf_norm, "GiB") + size(reference, "GiB") + size(vcf_simu, "GiB") + 2)
   Int memory_size = 3000
 
   command <<<
-    java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -o vcfEval.txt
+    java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -ploidy ~{ploidy} -o vcfEval.txt
   >>>
 
   runtime {

@@ -12,12 +12,15 @@ task RunFreebayes {
   }
 
   Int disk_size = ceil(size(reference, "GiB") + size(bam, "GiB") +  50)
-  Int memory_size = ceil(size(bam, "MiB") * 3 + 3000)
+  Int memory_size = ceil(size(bam, "MiB") * 25 * max_cores + 10000)
 
   command <<<
 
+   ln -s ~{bam} .
+   ln -s ~{bai} .
+
    freebayes-parallel <(fasta_generate_regions.py ~{reference_idx} 100000) ~{max_cores} \
-   --genotype-qualities --ploidy ~{ploidy} -f ~{reference} ~{bam} > "freebayes.vcf"
+   --genotype-qualities --ploidy ~{ploidy} -f ~{reference} *bam > "freebayes.vcf"
 
   >>>
 

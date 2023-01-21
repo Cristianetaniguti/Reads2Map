@@ -1,0 +1,4 @@
+- name: Filter non-informative in VCF file 
+  tags:
+    - mappoly
+  command: miniwdl run --task mergeVCFs -i tests/tasks/mergeVCFs/inputs.json tasks/utils.wdl

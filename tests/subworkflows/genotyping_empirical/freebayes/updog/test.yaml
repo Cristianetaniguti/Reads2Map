@@ -1,0 +1,10 @@
+- name: Use updog polyRAD or SuperMASSA to call dosages 
+  tags:
+    - regenotyping
+    - genotyping_empirical
+  command: miniwdl run -i tests/subworkflows/genotyping_empirical/freebayes/updog/inputs.json subworkflows/genotyping_empirical.wdl
+  files:
+  - path: _LAST/out/maps_report/1/freebayes_VCF_updog0.05_map_report.tsv.gz
+    md5sum: 71bc4410991efd0bb7e8ec2414ba17f1
+  - path: _LAST/out/maps_report/0/freebayes_VCF_updog_map_report.tsv.gz
+    md5sum: 6403f838779e405f357089f9a8a66ac0

@@ -30,7 +30,7 @@ task SepareChunksFastqString {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.4"
         cpu:1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -84,7 +84,7 @@ task SepareChunksFastq {
   >>>
 
   runtime {
-      docker: "cristaniguti/reads2map:0.0.1"
+      docker: "cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -181,7 +181,7 @@ task SepareChunksBed {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.1"
+        docker: "cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -232,8 +232,12 @@ task CreateChunksBamByChr {
       samtools view -b ~{merged_bam} $index > sca_$index.bam
     done
 
+    count=`ls -1 sca_*.bam 2>/dev/null | wc -l`
+    if [ $count != 0 ]
+    then 
     samtools merge in_scaffolds.bam sca_*.bam
     samtools index in_scaffolds.bam
+    fi 
 
   >>>
 
@@ -246,7 +250,7 @@ task CreateChunksBamByChr {
     # Slurm
     job_name: "CreateChunks"
     mem:"1G"
-    time:"00:05:00"
+    time:"01:00:00"
   }
 
   meta {

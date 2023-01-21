@@ -24,7 +24,6 @@ workflow SimulatedReads {
     Int chunk_size = 5
     Boolean gatk_mchap = false
     Boolean hardfilters = true
-    Boolean replaceAD = true
   }
 
   # ProduceFamiliesSeeds just generates random seeds. It returns an
@@ -50,7 +49,6 @@ workflow SimulatedReads {
         chunk_size = chunk_size,
         gatk_mchap=gatk_mchap,
         hardfilters = hardfilters,
-        replaceAD = replaceAD,
         n_chrom  = n_chrom
     }
   }

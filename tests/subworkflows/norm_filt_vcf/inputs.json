@@ -1,0 +1,9 @@
+{
+  "Normalization.reference_dict": "/home/rose_lab/genome/OBDH_1.0_formated.dict",
+  "Normalization.vcf_in": "/home/rose_lab/freebayes_tetraploid/freebayes_merged.sorted.vcf.gz",
+  "Normalization.reference": "/home/rose_lab/genome/OBDH_1.0_formated.fasta",
+  "Normalization.counts_source": "vcf",
+  "Normalization.ploidy": 4,
+  "Normalization.program": "freebayes",
+  "Normalization.reference_idx": "/home/rose_lab/genome/OBDH_1.0_formated.fasta.fai"
+}

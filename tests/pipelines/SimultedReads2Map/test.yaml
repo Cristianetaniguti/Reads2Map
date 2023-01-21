@@ -1,0 +1,4 @@
+- name: Reads Simulations
+  tags:
+    - simulations
+  command: miniwdl run -i tests/pipelines/SimulatedReads2Map/inputs.json pipelines/SimulatedReads2Map/SimulatedReads2Map.wdl

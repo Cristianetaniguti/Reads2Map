@@ -1,0 +1,4 @@
+- name: Build GUSMap map
+  tags:
+    - gusmap
+  command: miniwdl run -i tests/subworkflows/gusmap_maps_empirical/inputs.json subworkflows/gusmap_maps_empirical.wdl

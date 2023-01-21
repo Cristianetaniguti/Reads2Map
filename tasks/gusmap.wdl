@@ -46,7 +46,7 @@ task GusmapReport {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.1"
+    docker:"cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -153,7 +153,7 @@ task GusmapReportForSimulated {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.1"
+    docker: "cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -180,6 +180,50 @@ task GusmapReportForSimulated {
 task CompressGusmap {
     input{
       String name
+      File RDatas
+      File maps_report
+      File times
+    }
+
+    Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB"))
+    Int memory_size = 1000
+
+    command <<<
+
+      mkdir ~{name}
+      cp ~{RDatas} ~{maps_report} \
+                ~{times} ~{name}
+
+      tar -czvf ~{name}.tar.gz ~{name}
+
+    >>>
+
+  runtime {
+    docker:"ubuntu:20.04"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "CompressGusmap"
+    mem:"~{memory_size}M"
+    time:"01:00:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Move GUSMap resulted reports to a single directory and compress it."
+  }
+
+  output {
+    File tar_gz_report = "~{name}.tar.gz"
+  }
+}
+
+task CompressGusmapSimu {
+    input{
+      String name
       Array[File] RDatas
       Array[File] maps_report
       Array[File] times
@@ -191,7 +235,7 @@ task CompressGusmap {
     command <<<
 
       mkdir ~{name}
-      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
+      cp ~{sep=" " RDatas} ~{sep=" " maps_report} \
                 ~{sep=" " times} ~{name}
 
       tar -czvf ~{name}.tar.gz ~{name}

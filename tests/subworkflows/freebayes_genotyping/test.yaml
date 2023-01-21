@@ -5,3 +5,5 @@
   files:
   - path: _LAST/out/vcfEval/vcfEval.txt
     md5sum: 3a1f85f0d7125de3faa3868e53b64101
+  - path: _LAST/out/vcfs/0/vcf_norm.vcf.gz
+  - path: _LAST/out/vcfs/1/freebayes_bam_vcf.vcf.gz

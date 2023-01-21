@@ -1,0 +1,7 @@
+{
+    "vcfs": ["tests/data/polyploid/vcfs/gatk_Chr04.sub.vcf.gz", "tests/data/polyploid/vcfs/freebayes_Chr04.sub.vcf.gz"],
+    "vcfs_software": ["gatk", "freebayes"],
+    "vcfs_counts_source": ["vcf", "vcf"],
+    "filters": "--min-alleles 2 --max-alleles 2 --min-af 0.05:minor -i 'F_MISSING<0.25'",
+    "chromosome": "Chr04"
+}

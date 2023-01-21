@@ -5,17 +5,20 @@ task mergeVCFs {
         Array[File] haplo_vcf
     }
 
-    Int disk_size = ceil(size(haplo_vcf, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int disk_size = ceil(size(haplo_vcf, "GiB") * 2)
+    Int memory_size = 5000
 
     command <<<
 
+        vcfs=(~{sep = " " haplo_vcf})
+
         index=1
-        for file in $(echo ~{sep = " " haplo_vcf}); do
-            filename=$(basename -- "$file")
+        for file in ${!vcfs[*]}; do 
+            filename=$(basename -- "${vcfs[$file]}")
             name="${filename%.*}_$index"
             echo $name
-            bcftools sort $file --output-file $name.sorted.vcf
+            tabix -p vcf ${vcfs[$file]} 
+            bcftools sort ${vcfs[$file]} --output-file $name.sorted.vcf
             bgzip $name.sorted.vcf
             tabix -p vcf $name.sorted.vcf.gz
             index=$(expr $index + 1)
@@ -149,6 +152,59 @@ task ApplyRandomFilters {
   }
 }
 
+task ApplyRandomFiltersArray {
+  input{
+    Array[File] vcfs
+    Array[String] vcfs_software
+    Array[String] vcfs_counts_source
+    String? filters
+    String? chromosome
+  }
+
+  Int disk_size = ceil(size(vcfs, "GiB") * 2)
+  Int memory_size = 3000
+
+  command <<<
+
+      vcfs=(~{sep = " " vcfs})
+      vcfs_software=(~{sep=" " vcfs_software})
+      vcfs_counts_source=(~{sep=" " vcfs_counts_source})
+
+      for index in ${!vcfs[*]}; do
+          cp ${vcfs[$index]} temp.vcf
+          tabix -p vcf temp.vcf
+          bcftools view temp.vcf ~{filters} -r ~{chromosome} \
+          -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
+          rm temp.vcf temp.vcf.tbi
+          echo vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz >> outputs.txt
+      done
+
+  >>>
+
+  runtime {
+    docker:"lifebitai/bcftools:1.10.2"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
+    job_name: "ApplyRandomFilters"
+    mem:"~{memory_size}M"
+    time:"01:00:00"
+  }
+
+  meta {
+    author: "Cristiane Taniguti"
+    email: "chtaniguti@tamu.edu"
+    description: "Uses [vcftools](http://vcftools.sourceforge.net/) to filter VCF file by user-defined criterias."
+  }
+
+  output {
+    Array[File] vcfs_filt = read_lines("outputs.txt")
+  }
+}
+
+
 task SplitMarkers {
   input{
     File vcf_file
@@ -252,6 +308,7 @@ task ReplaceAD {
     File vcf
     File tbi
     String program
+    String counts_source
   }
 
   Int disk_size = ceil(size(ref_fasta, "GiB") + size(bams, "GiB") * 1.5 + size(vcf, "GiB") * 1.5)
@@ -302,6 +359,8 @@ task ReplaceAD {
   output {
     File bam_vcf =  "~{program}_bam_vcf.vcf.gz"
     File bam_vcf_tbi = "~{program}_bam_vcf.vcf.gz.tbi"
+    String software = "~{program}"
+    String source = "~{counts_source}"
   }
 }
 
@@ -322,7 +381,7 @@ task Compress {
 
       mkdir ~{name}
 
-      mv ~{sep=" " RDatas} ~{sep=" " maps_report} \
+      cp ~{sep=" " RDatas} ~{sep=" " maps_report} \
         ~{sep=" " times} ~{sep=" " filters_report} \
         ~{sep=" " errors_report}  ~{name}
 
@@ -445,6 +504,9 @@ task TarFiles {
     Array[File] sequences
   }
 
+  Int disk_size = ceil(size(sequences, "GiB") * 2)
+  Int memory_size = 6000
+  
   command <<<
     mkdir results
     mv ~{sep=" " sequences} results
@@ -453,11 +515,14 @@ task TarFiles {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    cpu:1
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk " + disk_size + " HDD"
+    # Slurm
     job_name: "TarFiles"
-    node:"--nodes=1"
-    mem:"--mem=30G"
-    tasks:"--ntasks=1"
-    time:"24:00:00"
+    mem:"~{memory_size}M"
+    time:"10:00:00"
   }
 
   output {

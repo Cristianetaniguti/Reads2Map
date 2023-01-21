@@ -1,5 +1,6 @@
 {
     "vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk_bam.vcf.gz",
     "parent1": "PT_F",
-    "parent2": "PT_M"
+    "parent2": "PT_M",
+    "replaceADbyMissing": "TRUE"
 }
