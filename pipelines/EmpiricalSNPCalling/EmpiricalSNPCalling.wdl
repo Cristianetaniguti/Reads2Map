@@ -14,7 +14,7 @@ workflow SNPCalling {
     ReferenceFasta references
     Int max_cores
     Int chunk_size
-    Boolean rm_dupli = true
+    Boolean rm_dupli = false
     String? P1
     String? P2
     Boolean gatk_mchap = false

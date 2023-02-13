@@ -63,7 +63,7 @@ task RunBwaAlignment {
         mv ${sampleName_unique[$index]}.*.bai ${sampleName_unique[$index]}.sorted_temp.bai
       fi
 
-      if [ "~{rm_dupli}" = "TRUE" ]; then
+      if [ "~{rm_dupli}" = "true" ]; then
         java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sampleName_unique[$index]}.sorted_temp.bam" \
             O="${sampleName_unique[$index]}.sorted.bam" \
@@ -149,7 +149,7 @@ task RunBwaAlignmentSimu {
             SORT_ORDER=coordinate \
             CREATE_INDEX=true
 
-      if [ "~{rm_dupli}" = "TRUE" ]; then
+      if [ "~{rm_dupli}" = "true" ]; then
         java -jar /usr/gitc/picard.jar MarkDuplicates \
             I="${sample}.sorted_temp.bam" \
             O="${sample}.sorted.bam" \
