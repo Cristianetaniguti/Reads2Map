@@ -36,6 +36,7 @@ task HaplotypeCaller {
         -ploidy ~{ploidy} \
         -I "$bam" \
         -O "vcfs/${out_name}.g.vcf.gz" \
+        --max-alternate-alleles 1 \
         --max-reads-per-alignment-start 0 &
     done
 
@@ -94,7 +95,7 @@ task ImportGVCFs  {
       --genomicsdb-workspace-path cohort_db \
       -L ~{interval} \
       -V $(find gvcfs/*.g.vcf.gz -type l | paste -d',' -s | sed 's/,/ -V /g') \
-      --consolidate
+      --consolidate 
 
     tar -cf cohort_db.tar cohort_db
 
@@ -147,7 +148,8 @@ task GenotypeGVCFs   {
       -V gendb://cohort_db \
       -L ~{interval} \
       -G StandardAnnotation \
-      -O gatk.vcf.gz
+      --max-alternate-alleles 1 \
+      -O gatk.vcf.gz 
 
   >>>
 

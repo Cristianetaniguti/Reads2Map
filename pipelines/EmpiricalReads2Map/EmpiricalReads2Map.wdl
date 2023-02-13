@@ -14,7 +14,7 @@ workflow EmpiricalReads {
         Dataset dataset
         Int max_cores
         Int chunk_size
-        Boolean rm_dupli = true
+        Boolean rm_dupli = false
         Boolean gatk_mchap = false
         Boolean hardfilters = true
         Boolean replaceAD = true
