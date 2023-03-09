@@ -8,8 +8,10 @@ task MappolyReport {
     String CountsFrom
     String parent1
     String parent2
+    Float prob_thres = 0.8 
     Int max_cores
     Int ploidy
+    String filt_segr = "TRUE"
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
@@ -25,7 +27,7 @@ task MappolyReport {
                         parent.2 = "~{parent2}", 
                         verbose = FALSE, 
                         read.geno.prob = TRUE, 
-                        prob.thres = 0.8, ploidy = ~{ploidy})
+                        prob.thres = ~{prob_thres}, ploidy = ~{ploidy})
 
         png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_raw_data.png"))
         plot(dat)
@@ -34,12 +36,16 @@ task MappolyReport {
         dat <- filter_missing(input.data = dat, type = "marker", 
                             filter.thres = 0.25, inter = FALSE)
 
-        pval.bonf <- 0.05/dat[[3]]
-        mrks.chi.filt <- filter_segregation(dat, 
-                                            chisq.pval.thres =  pval.bonf, 
-                                            inter = FALSE)
+        if("~{filt_segr}"){
+          pval.bonf <- 0.05/dat[[3]]
+          mrks.chi.filt <- filter_segregation(dat, 
+                                              chisq.pval.thres =  pval.bonf, 
+                                              inter = FALSE)
 
-        seq.init <- make_seq_mappoly(mrks.chi.filt)
+          seq.init <- make_seq_mappoly(mrks.chi.filt)
+        } else {
+          seq.init <- make_seq_mappoly(dat, "all")
+        }
 
         png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_","filters.png"))
         plot(seq.init)
@@ -64,60 +70,62 @@ task MappolyReport {
         plot(mat, ord = s.o[[3]])
         dev.off()
 
-        est.map <- est_rf_hmm_sequential(input.seq = s.o,
-                                        start.set = 5,
-                                        thres.twopt = 10,
-                                        thres.hmm = 50,
-                                        extend.tail = 30,
-                                        twopt =  all.rf.pairwise,
-                                        verbose = F,
-                                        phase.number.limit = 20,
-                                        sub.map.size.diff.limit = 5)
+        # est.map <- est_rf_hmm_sequential(input.seq = s.o,
+        #                                 start.set = 5,
+        #                                 thres.twopt = 10,
+        #                                 thres.hmm = 50,
+        #                                 extend.tail = 30,
+        #                                 twopt =  all.rf.pairwise,
+        #                                 verbose = F,
+        #                                 phase.number.limit = 20,
+        #                                 sub.map.size.diff.limit = 5)
 
-        map.err <- est_full_hmm_with_global_error(input.map = est.map, error = 0.05)
-        map.prob <- est_full_hmm_with_prior_prob(input.map = est.map, dat.prob = dat)
+        # map.err <- est_full_hmm_with_global_error(input.map = est.map, error = 0.05)
+        # map.prob <- est_full_hmm_with_prior_prob(input.map = est.map, dat.prob = dat)
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_no_error_cMbyMb.png"))
-        plot_genome_vs_map(est.map, same.ch.lg = TRUE)
-        dev.off()
+        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_no_error_cMbyMb.png"))
+        # plot_genome_vs_map(est.map, same.ch.lg = TRUE)
+        # dev.off()
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"global_error_cMbyMb.png"))
-        plot_genome_vs_map(map.err, same.ch.lg = TRUE)
-        dev.off()
+        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"global_error_cMbyMb.png"))
+        # plot_genome_vs_map(map.err, same.ch.lg = TRUE)
+        # dev.off()
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_probs_cMbyMb.png"))
-        plot_genome_vs_map(map.prob, same.ch.lg = TRUE)
-        dev.off()
+        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_probs_cMbyMb.png"))
+        # plot_genome_vs_map(map.prob, same.ch.lg = TRUE)
+        # dev.off()
 
-        summary <- summary_maps(list(est.map, map.err, map.prob))
-        summary <- cbind(method = c("no_error", "global_error", "probs", "-"), summary)
+        # summary <- summary_maps(list(est.map, map.err, map.prob))
+        # summary <- cbind(method = c("no_error", "global_error", "probs", "-"), summary)
 
-        write.csv(summary, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_map_summary.csv"))
+        # write.csv(summary, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_map_summary.csv"))
 
-        export_map_list(est.map, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_no_error_","map_file.csv"))
-        export_map_list(map.err, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_global_error_","map_file.csv"))
-        export_map_list(map.prob, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_probs_","map_file.csv"))
+        # export_map_list(est.map, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_no_error_","map_file.csv"))
+        # export_map_list(map.err, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_global_error_","map_file.csv"))
+        # export_map_list(map.prob, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_probs_","map_file.csv"))
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_map_draw.png"))
-        plot_map_list(list(default = est.map, 
-                        global = map.err,
-                        probs = map.prob), col = "ggstyle")
-        dev.off()
+        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_map_draw.png"))
+        # plot_map_list(list(default = est.map, 
+        #                 global = map.err,
+        #                 probs = map.prob), col = "ggstyle")
+        # dev.off()
 
-        genoprob <- calc_genoprob_error(input.map = est.map, error = 0)
-        genoprob.err <- calc_genoprob_error(input.map = map.err, error = 0.05)
-        genoprob.prob <- calc_genoprob_dist(input.map = map.prob, dat.prob = dat)
+        # genoprob <- calc_genoprob_error(input.map = est.map, error = 0)
+        # genoprob.err <- calc_genoprob_error(input.map = map.err, error = 0.05)
+        # genoprob.prob <- calc_genoprob_dist(input.map = map.prob, dat.prob = dat)
 
-        homoprobs = calc_homologprob(genoprob)
-        homoprobs.err = calc_homologprob(genoprob.err)
-        homoprobs.prob = calc_homologprob(genoprob.prob)
+        # homoprobs = calc_homologprob(genoprob)
+        # homoprobs.err = calc_homologprob(genoprob.err)
+        # homoprobs.prob = calc_homologprob(genoprob.prob)
 
-        save(homoprobs, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.RData"))
-        save(homoprobs.err, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.err.RData"))
-        save(homoprobs.prob, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.prob.RData"))
+        # save(homoprobs, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.RData"))
+        # save(homoprobs.err, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.err.RData"))
+        # save(homoprobs.prob, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.prob.RData"))
 
         system("mkdir results")
-        system("mv *.png *.RData *csv results")
+        #system("mv *.png *.RData *csv results")
+        system("mv *.png  results")
+
         system(paste0("tar -czvf ", "~{SNPCall_program}", "_", "~{GenotypeCall_program}", "_", "~{CountsFrom}","_results.tar.gz results"))
 
     RSCRIPT
