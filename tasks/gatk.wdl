@@ -15,9 +15,9 @@ task HaplotypeCaller {
   }
 
   Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
-  Int memory_max = ceil(5000 * chunk_size)
+  Int memory_max = 12000
   Int memory_min = memory_max / 2
-  Int memory_size = memory_max + 5000
+  Int memory_size = ceil(memory_max * chunk_size + 5000)
   Int max_cores = ceil(chunk_size * 4 + 2)
 
   command <<<

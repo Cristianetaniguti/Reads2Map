@@ -387,10 +387,10 @@ task JointTablesSimu{
 
 task JointReportsPoly{
   input{
-    Array[File?] SNPCaller
-    Array[File?] updog
-    Array[File?] polyrad
-    Array[File?] supermassa
+    Array[File] SNPCaller
+    Array[File] updog
+    Array[File] polyrad
+    Array[File] supermassa
   }
 
   Int disk_size = ceil(size(SNPCaller, "GiB") * 1.5 + size(updog, "GiB") * 1.5 + size(polyrad, "GiB") * 1.5 + size(supermassa, "GiB") * 1.5)
@@ -398,32 +398,32 @@ task JointReportsPoly{
 
   command <<<
 
-     snpcaller=(~{sep=" " SNPCaller})
-     updog=(~{sep=" " updog})
-     polyrad=(~{sep=" " polyrad})
-     supermassa=(~{sep=" " supermassa})
+     snpcaller=( ~{sep=" " SNPCaller} )
+     updog=( ~{sep=" " updog} )
+     polyrad=( ~{sep=" " polyrad} )
+     supermassa=( ~{sep=" " supermassa} )
 
      mkdir results_all
 
-     for index in ${!snpcaller[*]}; 
+     for index in ${!snpcaller[*]}; do
        tar -xvf ${snpcaller[$index]}
        mv results/* results_all
        rm -r results
      done
 
-     for index in ${!updog[*]}; 
+     for index in ${!updog[*]}; do
        tar -xvf ${updog[$index]}
        mv results/* results_all
        rm -r results     
      done
 
-     for index in ${!polyrad[*]}; 
+     for index in ${!polyrad[*]}; do
        tar -xvf ${polyrad[$index]}
        mv results/* results_all
        rm -r results     
      done
 
-     for index in ${!supermassa[*]}; 
+     for index in ${!supermassa[*]}; do
        tar -xvf ${supermassa[$index]}
        mv results/* results_all
        rm -r results

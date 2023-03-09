@@ -250,7 +250,7 @@ task CreateChunksBamByChr {
     # Slurm
     job_name: "CreateChunks"
     mem:"1G"
-    time:"01:00:00"
+    time:"10:00:00"
   }
 
   meta {

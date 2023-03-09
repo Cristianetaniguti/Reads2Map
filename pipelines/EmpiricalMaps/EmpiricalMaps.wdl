@@ -27,6 +27,8 @@ workflow Maps {
         String? filters
         Int max_cores
         Int ploidy
+        Float? prob_thres
+        String? filt_segr
     }
 
     if (defined(filters)) {
@@ -155,7 +157,9 @@ workflow Maps {
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
                     max_cores = max_cores,
-                    ploidy = ploidy
+                    ploidy = ploidy,
+                    prob_thres = prob_thres,
+                    filt_segr = filt_segr
             }
 
             call mappoly_sub.MappolyMapsEmp as polyradPolyMaps {
@@ -168,7 +172,9 @@ workflow Maps {
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
                     max_cores = max_cores,
-                    ploidy = ploidy
+                    ploidy = ploidy,
+                    prob_thres = prob_thres,
+                    filt_segr = filt_segr
             }
 
             call mappoly_sub.MappolyMapsEmp as supermassaPolyMaps {
@@ -181,7 +187,9 @@ workflow Maps {
                     parent1 = dataset.parent1,
                     parent2 = dataset.parent2,
                     max_cores = max_cores,
-                    ploidy = ploidy
+                    ploidy = ploidy,
+                    prob_thres = prob_thres,
+                    filt_segr = filt_segr
             }
 
             if(vcfs_counts_source[idx] != "bam"){
@@ -194,7 +202,9 @@ workflow Maps {
                         parent1 = dataset.parent1,
                         parent2 = dataset.parent2,
                         max_cores = max_cores,
-			            ploidy = ploidy
+			            ploidy = ploidy,
+                        prob_thres = prob_thres,
+                        filt_segr = filt_segr
                 }
             }
         }
@@ -216,14 +226,13 @@ workflow Maps {
     }
 
     if(ploidy > 2){
-        Array[File] snpcaller_results_poly = select_all(MappolyReport.results)
-
+        
         call reports.JointReportsPoly {
             input:
-                SNPCaller = snpcaller_results_poly,
-                updog = updogPolyMaps.tar_gz_report,
-                polyrad = polyradPolyMaps.tar_gz_report,
-                supermassa = supermassaPolyMaps.tar_gz_report
+                SNPCaller = select_all(MappolyReport.results),
+                updog = select_all(updogPolyMaps.tar_gz_report),
+                polyrad = select_all(polyradPolyMaps.tar_gz_report),
+                supermassa = select_all(supermassaPolyMaps.tar_gz_report)
         }
     }
 
