@@ -1,3 +1,8 @@
+# 1.2.1
+
+* Avoid estimating multipoint genetic distances to save time
+* Adjustments in runtime
+
 # 1.2.0
 
 * Add MAPpoly to build linkage maps for polyploid species
