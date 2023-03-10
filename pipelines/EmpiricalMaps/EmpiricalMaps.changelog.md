@@ -1,3 +1,7 @@
+# 1.2.2
+
+* Supermassa has smaller probability threshold	
+
 # 1.2.1
 
 * Avoid estimating multipoint genetic distances to save time
