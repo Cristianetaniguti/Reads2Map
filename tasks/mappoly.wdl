@@ -22,12 +22,14 @@ task MappolyReport {
 
         library(mappoly)
 
+        if("~{GenotypeCall_program}" == "supermassa") prob.thres = ~{prob_thres} else prob.thres = ~{prob_thres} - 0.3
+        
         dat <- read_vcf(file = "~{vcf_file}", 
                         parent.1 = "~{parent1}", 
                         parent.2 = "~{parent2}", 
                         verbose = FALSE, 
                         read.geno.prob = TRUE, 
-                        prob.thres = ~{prob_thres}, ploidy = ~{ploidy})
+                        prob.thres = prob.thres, ploidy = ~{ploidy})
 
         png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_raw_data.png"))
         plot(dat)
