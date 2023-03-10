@@ -1,6 +1,6 @@
 # 1.2.2
 
-* Supermassa has smaller probability threshold	
+* Supermassa has smaller probability threshold
 
 # 1.2.1
 
