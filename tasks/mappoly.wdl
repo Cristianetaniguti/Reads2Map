@@ -22,7 +22,7 @@ task MappolyReport {
 
         library(mappoly)
 
-        if("~{GenotypeCall_program}" == "supermassa") prob.thres = ~{prob_thres} else prob.thres = ~{prob_thres} - 0.3
+        if("~{GenotypeCall_program}" == "supermassa") prob.thres = ~{prob_thres} - 0.3 else prob.thres = ~{prob_thres}
         
         dat <- read_vcf(file = "~{vcf_file}", 
                         parent.1 = "~{parent1}", 
