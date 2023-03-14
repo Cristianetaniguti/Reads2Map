@@ -1,0 +1,19 @@
+{
+  "Maps.ploidy": "4",
+  "Maps.dataset": {
+    "parent2": "P1",
+    "name": "roses",
+    "parent1": "P2",
+    "chromosome": "Chr04",
+    "cross": "F1",
+    "multiallelics": "false"
+  },
+  "Maps.max_cores": "2",
+  "Maps.gatk_mchap": "false",
+  "Maps.vcfs_counts_source": ["vcf"],
+  "Maps.vcfs_software": ["gatk"],
+  "Maps.filter_noninfo": "true",
+  "Maps.vcfs": ["gatk_Chr04_filt_example.vcf.gz"],
+  "Maps.replaceADbyMissing": "TRUE",
+  "Maps.prob_thres": 0.8
+}
