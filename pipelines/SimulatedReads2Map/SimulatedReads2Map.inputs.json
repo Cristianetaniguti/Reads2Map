@@ -1,0 +1,49 @@
+{
+  "SimulatedReads.filters": "String? (optional)",
+  "SimulatedReads.hardfilters": "Boolean (optional, default = true)",
+  "SimulatedReads.family": {
+    "cmBymb": "Float? (optional)",
+    "seed": "Int",
+    "doses": "File? (optional)",
+    "cross": "String",
+    "popsize": "Int",
+    "ploidy": "Int"
+  },
+  "SimulatedReads.references": {
+    "ref_fasta": "File",
+    "ref_dict": "File",
+    "ref_ann": "File",
+    "ref_sa": "File",
+    "ref_amb": "File",
+    "ref_pac": "File",
+    "ref_bwt": "File",
+    "ref_fasta_index": "File"
+  },
+  "SimulatedReads.n_chrom": "Int",
+  "SimulatedReads.chunk_size": "Int (optional, default = 5)",
+  "SimulatedReads.max_cores": "Int",
+  "SimulatedReads.number_of_families": "Int",
+  "SimulatedReads.gatk_mchap": "Boolean (optional, default = false)",
+  "SimulatedReads.global_seed": "Int",
+  "SimulatedReads.sequencing": {
+    "emp_vcf": "File",
+    "enzyme1": "String",
+    "pcr_cycles": "Int? (optional)",
+    "vcf_parent1": "String",
+    "library_type": "String",
+    "depth_parents": "Int",
+    "mapsize": "Int",
+    "rm_dupli": "String",
+    "insert_size": "Int? (optional)",
+    "depth": "Int",
+    "insert_size_dev": "Int? (optional)",
+    "ref_map": "File? (optional)",
+    "enzyme2": "String? (optional)",
+    "multiallelics": "String",
+    "vcf_parent2": "String",
+    "read_length": "Int? (optional)",
+    "emp_bam": "File? (optional)",
+    "chromosome": "String"
+  }
+}
+

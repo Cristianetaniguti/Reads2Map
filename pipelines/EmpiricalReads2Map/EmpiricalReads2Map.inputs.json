@@ -1,0 +1,38 @@
+{
+  "EmpiricalReads.replaceAD": "Boolean (optional, default = true)",
+  "EmpiricalReads.run_freebayes": "Boolean (optional, default = true)",
+  "EmpiricalReads.filters": "String? (optional)",
+  "EmpiricalReads.filt_segr": "String? (optional)",
+  "EmpiricalReads.replaceADbyMissing": "String (optional, default = \"TRUE\")",
+  "EmpiricalReads.Maps.filter_noninfo": "Boolean",
+  "EmpiricalReads.chunk_size": "Int",
+  "EmpiricalReads.gatk_mchap": "Boolean (optional, default = false)",
+  "EmpiricalReads.rm_dupli": "Boolean (optional, default = false)",
+  "EmpiricalReads.samples_info": "File",
+  "EmpiricalReads.dataset": {
+    "parent2": "String",
+    "name": "String",
+    "parent1": "String",
+    "chromosome": "String",
+    "cross": "String",
+    "multiallelics": "Boolean"
+  },
+  "EmpiricalReads.run_gatk": "Boolean (optional, default = true)",
+  "EmpiricalReads.ploidy": "Int (optional, default = 2)",
+  "EmpiricalReads.n_chrom": "Int",
+  "EmpiricalReads.SNPCalling.chunk_size": "Int",
+  "EmpiricalReads.prob_thres": "Float? (optional)",
+  "EmpiricalReads.hardfilters": "Boolean (optional, default = true)",
+  "EmpiricalReads.max_cores": "Int",
+  "EmpiricalReads.references": {
+    "ref_fasta": "File",
+    "ref_dict": "File",
+    "ref_ann": "File",
+    "ref_sa": "File",
+    "ref_amb": "File",
+    "ref_pac": "File",
+    "ref_bwt": "File",
+    "ref_fasta_index": "File"
+  }
+}
+
