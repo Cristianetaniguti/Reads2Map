@@ -5,6 +5,7 @@
                             "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bai"],
     "GatkGenotyping.ploidy": 2,
     "GatkGenotyping.program": "gatk",
+    "GatkGenotyping.max_ram": 4000,
     "GatkGenotyping.P1": "PT_F",
     "GatkGenotyping.references": {
         "ref_fasta": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa",

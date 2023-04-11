@@ -1,4 +1,4 @@
-- name: Filter non-informative in VCF file 
+- name: Estimate recombination fractions with mappoly
   tags:
     - mappoly
   command: miniwdl run --task MappolyReport -i tests/tasks/mappoly/inputs.json tasks/mappoly.wdl

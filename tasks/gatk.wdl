@@ -12,12 +12,13 @@ task HaplotypeCaller {
     Array[File] bams_index
     Int ploidy
     Int chunk_size
+    Int max_ram = 10000
   }
 
   Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
-  Int memory_max = 12000
-  Int memory_min = memory_max / 2
-  Int memory_size = ceil(memory_max * chunk_size + 5000)
+  Int memory_max = ceil(max_ram/chunk_size - 1000)
+  Int memory_min = ceil((max_ram/chunk_size)/5)
+  Int memory_size = max_ram
   Int max_cores = ceil(chunk_size * 4 + 2)
 
   command <<<
@@ -40,7 +41,7 @@ task HaplotypeCaller {
         --max-reads-per-alignment-start 0 &
     done
 
-    wait  # TODO: Why this line? Because of the &
+    wait  
   >>>
 
   runtime {
@@ -75,12 +76,13 @@ task ImportGVCFs  {
     File reference_fai
     File reference_dict
     String interval
+    Int max_ram = 26000
   }
 
   Int disk_size = ceil(size(vcfs, "GiB") * 1.5 + size(reference_fasta, "GiB") * 1.5)
-  Int memory_max = 2300
-  Int memory_min = 2000
-  Int memory_size = 26000
+  Int memory_max = ceil(max_ram - 1000)
+  Int memory_min = ceil(max_ram/3.85)
+  Int memory_size = max_ram
 
   command <<<
     set -euo pipefail
@@ -131,12 +133,13 @@ task GenotypeGVCFs   {
     File reference_fai
     File reference_dict
     String interval
+    Int max_ram = 26000
   }
 
   Int disk_size = ceil(size(reference_fasta, "GiB") * 1.5 + size(workspace_tar, "GiB") * 1.5)
-  Int memory_max = 2300
-  Int memory_min = 2000
-  Int memory_size = 26000
+  Int memory_max = ceil(max_ram - 1000)
+  Int memory_min = ceil(max_ram/3.85)
+  Int memory_size = max_ram
 
   command <<<
     set -euo pipefail
@@ -185,8 +188,8 @@ task MergeVCFs {
   }
 
   Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
-  Int memory_max = 2800
-  Int memory_min = 2600
+  Int memory_max = 2600
+  Int memory_min = 2500
   Int memory_size = 3000
 
   command <<<

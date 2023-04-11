@@ -1,8 +1,8 @@
 {
     "reference": "tests/data/PtrichocarpaV3.0/Chr10.2M.fa",
     "reference_idx": "tests/data/PtrichocarpaV3.0/Chr10.2M.fa.fai",
-    "bam": "tests/data/Ptremula_PRJNA395596_subset/merged.bam",
-    "bai": "tests/data/Ptremula_PRJNA395596_subset/merged.bam.bai",
+    "bam": "tests/data/Ptremula_PRJNA395596_subset/bams/merged.bam",
+    "bai": "tests/data/Ptremula_PRJNA395596_subset/bams/merged.bam.bai",
     "max_cores": 2,
     "ploidy": 4
 }
