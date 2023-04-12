@@ -29,6 +29,7 @@ workflow GatkGenotyping {
     File? merged_bams
     String? P1
     String? P2
+    Int? max_ram
   }
 
   call chunk_lists.CreateChunksBam {
@@ -49,7 +50,8 @@ workflow GatkGenotyping {
         reference_fai = references.ref_fasta_index,
         reference_dict = references.ref_dict,
         ploidy = ploidy,
-        chunk_size = chunk_size
+        chunk_size = chunk_size,
+        max_ram = max_ram
     }
   }
 
@@ -63,7 +65,8 @@ workflow GatkGenotyping {
         reference_fasta=references.ref_fasta,
         reference_fai=references.ref_fasta_index,
         reference_dict=references.ref_dict,
-        interval = interval
+        interval = interval,
+        max_ram = max_ram
     }
 
     call gatk.GenotypeGVCFs {
@@ -72,7 +75,8 @@ workflow GatkGenotyping {
         interval = interval,
         reference_fasta = references.ref_fasta,
         reference_fai = references.ref_fasta_index,
-        reference_dict = references.ref_dict
+        reference_dict = references.ref_dict,
+        max_ram = max_ram
     }
   }
 

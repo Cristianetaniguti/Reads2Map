@@ -13,6 +13,7 @@
   "Maps.vcfs_counts_source": ["vcf"],
   "Maps.vcfs_software": ["gatk"],
   "Maps.filter_noninfo": "true",
-  "Maps.vcfs": ["gatk_vcf_norm.vcf.gz"],
-  "Maps.replaceADbyMissing": "TRUE"
+  "Maps.vcfs": ["gatk_Chr04_filt_example.vcf.gz"],
+  "Maps.replaceADbyMissing": "TRUE",
+  "Maps.prob_thres": 0.8
 }

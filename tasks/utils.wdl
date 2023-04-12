@@ -469,7 +469,7 @@ task MergeBams{
     }
 
     Int disk_size = ceil(size(bam_files, "GiB") * 2)
-    Int memory_size = 5000
+    Int memory_size = ceil(size(bam_files, "MiB") * 2)
 
     command <<<
         samtools merge merged.bam ~{sep=" " bam_files}

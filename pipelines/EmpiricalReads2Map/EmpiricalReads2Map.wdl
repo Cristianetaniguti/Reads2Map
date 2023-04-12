@@ -14,7 +14,7 @@ workflow EmpiricalReads {
         Dataset dataset
         Int max_cores
         Int chunk_size
-        Boolean rm_dupli = true
+        Boolean rm_dupli = false
         Boolean gatk_mchap = false
         Boolean hardfilters = true
         Boolean replaceAD = true
@@ -24,6 +24,8 @@ workflow EmpiricalReads {
         Int ploidy = 2
         Int n_chrom
         String? filters
+        Float? prob_thres
+        String? filt_segr
     }
 
     call snpcalling.SNPCalling {
@@ -54,7 +56,9 @@ workflow EmpiricalReads {
             filters = filters,
             max_cores = max_cores,
             replaceADbyMissing = replaceADbyMissing,
-            ploidy = ploidy
+            ploidy = ploidy,
+            prob_thres = prob_thres,
+            filt_segr = filt_segr
     }
 
     output {

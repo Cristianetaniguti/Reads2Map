@@ -1,3 +1,7 @@
+# 1.2.1
+
+* Adjustments in runtime
+
 # 1.2.0
 
 * Run freebayes parallelizing in nodes according to chromosomes and cores splitting in genomic regions

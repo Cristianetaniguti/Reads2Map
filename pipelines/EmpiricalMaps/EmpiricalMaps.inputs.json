@@ -1,0 +1,23 @@
+{
+  "Maps.dataset": {
+    "parent2": "String",
+    "name": "String",
+    "parent1": "String",
+    "chromosome": "String",
+    "cross": "String",
+    "multiallelics": "Boolean"
+  },
+  "Maps.max_cores": "Int",
+  "Maps.gatk_vcf_multi": "File? (optional)",
+  "Maps.gatk_mchap": "String",
+  "Maps.vcfs_counts_source": "Array[String]",
+  "Maps.filters": "String? (optional)",
+  "Maps.filt_segr": "String? (optional)",
+  "Maps.prob_thres": "Float? (optional)",
+  "Maps.ploidy": "Int",
+  "Maps.vcfs_software": "Array[String]",
+  "Maps.filter_noninfo": "Boolean",
+  "Maps.vcfs": "Array[File]",
+  "Maps.replaceADbyMissing": "String"
+}
+

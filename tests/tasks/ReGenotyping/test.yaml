@@ -1,4 +1,4 @@
-- name: Filter non-informative in VCF file 
+- name: Genotype/Dosage calling with SuperMASSA, polyRAD and updog 
   tags:
     - ReGenotyping
   command: miniwdl run --task ReGenotyping -i tests/tasks/ReGenotyping/inputs.json tasks/utilsR.wdl

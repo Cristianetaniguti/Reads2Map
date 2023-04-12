@@ -1,3 +1,16 @@
+# 1.2.3
+
+* Supermassa has smaller probability threshold (bugfix)
+
+# 1.2.2
+
+* Supermassa has smaller probability threshold
+
+# 1.2.1
+
+* Avoid estimating multipoint genetic distances to save time
+* Adjustments in runtime
+
 # 1.2.0
 
 * Add MAPpoly to build linkage maps for polyploid species

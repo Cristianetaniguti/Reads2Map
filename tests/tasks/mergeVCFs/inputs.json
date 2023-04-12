@@ -1,9 +1,4 @@
 {
-    "haplo_vcf": ["/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr01.vcf",
-                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr02.vcf",
-                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr03.vcf",
-                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr04.vcf",
-                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr05.vcf",
-                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr06.vcf",
-                  "/mnt/c/Users/Rose_Lab/Documents/Cris_temp/freebayes_tetraploid/freebayes_Chr07.vcf"]
+    "haplo_vcf": ["tests/data/polyploid/vcfs/freebayes_Chr01_sub.vcf.gz",
+                  "tests/data/polyploid/vcfs/freebayes_Chr02_sub.vcf.gz"]
 }

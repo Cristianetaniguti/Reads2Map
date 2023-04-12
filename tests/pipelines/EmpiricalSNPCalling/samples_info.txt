@@ -1,0 +1,4 @@
+1.fastq.gz   1   1
+98.fastq.gz   98    98
+P1.fastq.gz   P1    P1
+P2.fastq.gz   P2    P2

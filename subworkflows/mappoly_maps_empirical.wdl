@@ -13,8 +13,10 @@ workflow MappolyMapsEmp {
     String cross
     String parent1
     String parent2
+    Float? prob_thres
     Int max_cores
     Int ploidy
+    String? filt_segr
   }
 
   call utilsR.ReGenotyping {
@@ -37,7 +39,9 @@ workflow MappolyMapsEmp {
       SNPCall_program = SNPCall_program,
       CountsFrom = CountsFrom,
       max_cores = max_cores,
-      ploidy = ploidy
+      ploidy = ploidy,
+      prob_thres = prob_thres,
+      filt_segr = filt_segr
   }
 
    output {
