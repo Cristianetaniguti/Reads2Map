@@ -197,7 +197,7 @@ function upload_to_github_as_draft() {
     ${pipelineName} \
     ${version} \
     ${releaseName} \
-    "json" \
+    "inputs.json" \
     "application/json"
 
   local -r dependenciesZip=${localReleaseDir}/${pipelineName}/${pipelineName}_${version}.zip
