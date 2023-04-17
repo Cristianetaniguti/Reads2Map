@@ -10,7 +10,7 @@ declare VERSION=""
 declare OUTPUT_DIR=""
 declare ENV=""
 
-declare -r ZIP_SUFFIX=".zip" WDL_SUFFIX=".wdl" OPTIONS_SUFFIX=".options.json"
+declare -r ZIP_SUFFIX=".zip" WDL_SUFFIX=".wdl" OPTIONS_SUFFIX=".inputs.json"
 
 function make_release() {
   local -r rootWdl=${ROOT_WDL}
@@ -37,7 +37,8 @@ function make_release() {
   # Strip the paths out of the root WDL imports
   sed -E '/http/! s/import "(.*)\/(.*\'${WDL_SUFFIX}')"/import "\2"/g' ${rootWdl} > ${outputVersionedPrefix}${WDL_SUFFIX}
 
-  write_options ${rootWdl} ${outputVersionedPrefix}
+  sed -E '/http/! s/import "(.*)\/(.*\'${OPTIONS_SUFFIX}')"/import "\2"/g' ${rootWdl} > ${outputVersionedPrefix}${OPTIONS_SUFFIX}
+  # write_options ${rootWdl} ${outputVersionedPrefix}
 
   versioned_dependencies_zip=${outputVersionedPrefix}${ZIP_SUFFIX}
 
