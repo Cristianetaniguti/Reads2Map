@@ -2,6 +2,12 @@
 
 * Adjustments in runtime
 
+# 1.3.0
+
+* TASSEL 5.0 included
+* releases include the input files template
+* new parameter to control maximum ram memory used by GATK and TASSEL
+
 # 1.2.0
 
 * Run freebayes parallelizing in nodes according to chromosomes and cores splitting in genomic regions

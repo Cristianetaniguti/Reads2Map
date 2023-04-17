@@ -5,7 +5,7 @@ import "../../structs/dna_seq_structs.wdl"
 import "../../subworkflows/create_alignment_from_families_files.wdl" as fam
 import "../../subworkflows/gatk_genotyping.wdl" as gatk
 import "../../subworkflows/freebayes_genotyping.wdl" as freebayes
-
+import "../../subworkflows/tassel_genotyping.wdl" as tassel
 
 workflow SNPCalling {
 
@@ -13,6 +13,7 @@ workflow SNPCalling {
     File samples_info
     ReferenceFasta references
     Int max_cores
+    Int max_ram
     Int chunk_size
     Boolean rm_dupli = false
     String? P1
@@ -22,6 +23,8 @@ workflow SNPCalling {
     Boolean replaceAD = false
     Boolean run_gatk = true
     Boolean run_freebayes = true
+    Boolean run_tassel = true
+    String? enzyme
     Int ploidy
     Int n_chrom
   }
@@ -46,6 +49,7 @@ workflow SNPCalling {
         ploidy = ploidy,
         program="gatk",
         max_cores = max_cores,
+        max_ram = max_ram,
         merged_bams = CreateAlignmentFromFamilies.merged_bam,
         P1 = P1,
         P2 = P2,
@@ -68,9 +72,20 @@ workflow SNPCalling {
     }
   }
 
-  Array[Array[File]] vcfs_sele = select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs])
-  Array[Array[String]] software_sele = select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software])
-  Array[Array[String]] source_sele = select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source])
+  if(run_tassel) {
+    call tassel.TasselGenotyping{
+      input:
+        families_info = samples_info,
+        references = references,
+        max_cores = max_cores,
+        max_ram = max_ram,
+        enzyme = enzyme
+    }
+  }
+
+  Array[Array[File]] vcfs_sele = select_all([GatkGenotyping.vcfs, FreebayesGenotyping.vcfs, TasselGenotyping.vcfs])
+  Array[Array[String]] software_sele = select_all([GatkGenotyping.vcfs_software, FreebayesGenotyping.vcfs_software, TasselGenotyping.software_sele])
+  Array[Array[String]] source_sele = select_all([GatkGenotyping.vcfs_counts_source, FreebayesGenotyping.vcfs_counts_source, TasselGenotyping.source_sele])
 
   output {
     Array[File] vcfs = flatten(vcfs_sele)

@@ -1,0 +1,4 @@
+- name: SNP calling with TASSEL
+  tags:
+    - tassel
+  command: miniwdl run -i tests/subworkflows/tassel_genotyping/inputs.json subworkflows/tassel_genotyping.wdl

@@ -1,4 +1,4 @@
-FROM openjdk:7
+FROM ibmjava:jre
 
 COPY ./PedigreeSim.jar /usr/jars/
 
@@ -10,3 +10,10 @@ RUN apt-get update \
     && make \
     && mv vcf2diploid.jar /usr/jars/ 
  
+
+RUN wget https://bitbucket.org/tasseladmin/tassel-5-standalone/get/5f68583d0f56.zip \
+    && unzip 5f68583d0f56.zip \
+    && mkdir /usr/tassel \
+    && mv tasseladmin-tassel-5-standalone-5f68583d0f56/* /usr/tassel
+
+RUN apt-get install -y samtools
