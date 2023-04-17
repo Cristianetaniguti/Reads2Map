@@ -1,0 +1,7 @@
+{
+    "fastq": ["tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249787.sub.fastq", 
+              "tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249788.sub.fastq",
+              "tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249795.sub.fastq",
+              "tests/data/Ptremula_PRJNA395596_subset/fastq/SRR6249808.sub.fastq"],
+    "FullSampleName": ["I_3_55", "I_3_66", "PT_F", "PT_M"]
+}

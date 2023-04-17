@@ -1,0 +1,16 @@
+{
+    "TasselGenotyping.max_ram": 2000,
+    "TasselGenotyping.max_cores": 2,
+    "TasselGenotyping.enzyme": "NgoMIV",
+    "TasselGenotyping.families_info": "tests/data/polyploid/fastq/samples_info.txt",
+    "TasselGenotyping.references": {
+        "ref_fasta": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta",
+        "ref_dict": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.dict",
+        "ref_ann": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.ann",
+        "ref_sa": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.sa",
+        "ref_amb": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.amb",
+        "ref_bwt": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.bwt",
+        "ref_fasta_index": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.fai",
+        "ref_pac": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.pac"
+    }
+}

@@ -1,0 +1,4 @@
+- name: Add fake barcode to fastq files
+  tags:
+    - BarcodeFaker
+  command: miniwdl run --task BarcodeFaker -i tests/tasks/BarcodeFaker/inputs.json tasks/tassel.wdl

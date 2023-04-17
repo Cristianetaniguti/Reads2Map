@@ -1,3 +1,10 @@
+# 1.2.0
+
+* Add MAPpoly to build linkage maps for polyploid species
+* Run freebayes parallelizing in nodes according to chromosomes and cores splitting in genomic regions
+* Adjust runtimes 
+* Add polyploid dataset for tests
+
 # 1.0.0
 
 Initial release

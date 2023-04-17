@@ -13,6 +13,7 @@ workflow EmpiricalReads {
         ReferenceFasta references
         Dataset dataset
         Int max_cores
+        Int max_ram
         Int chunk_size
         Boolean rm_dupli = false
         Boolean gatk_mchap = false
@@ -21,6 +22,8 @@ workflow EmpiricalReads {
         String replaceADbyMissing = "TRUE" # Boolean inside R
         Boolean run_gatk = true
         Boolean run_freebayes = true
+        Boolean run_tassel = true
+        String? enzyme
         Int ploidy = 2
         Int n_chrom
         String? filters
@@ -41,8 +44,10 @@ workflow EmpiricalReads {
             replaceAD = replaceAD,
             run_gatk = run_gatk,
             run_freebayes = run_freebayes,
+            run_tassel = run_tassel,
             ploidy = ploidy,
-            n_chrom = n_chrom
+            n_chrom = n_chrom,
+            enzyme = enzyme
     }
 
     call maps.Maps {

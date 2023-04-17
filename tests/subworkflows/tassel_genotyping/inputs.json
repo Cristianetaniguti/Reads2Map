@@ -1,0 +1,16 @@
+{
+    "TasselGenotyping.max_ram": 3000,
+    "TasselGenotyping.max_cores": 2,
+    "TasselGenotyping.enzyme": "HindIII",
+    "TasselGenotyping.families_info": "tests/data/Ptremula_PRJNA395596_subset/fastq/samples_info_pop_sub.tsv",
+    "TasselGenotyping.references": {
+        "ref_fasta": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa",
+        "ref_dict": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.dict",
+        "ref_ann": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.ann",
+        "ref_sa": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.sa",
+        "ref_amb": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.amb",
+        "ref_bwt": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.bwt",
+        "ref_fasta_index": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.fai",
+        "ref_pac": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.pac"
+    }
+}
