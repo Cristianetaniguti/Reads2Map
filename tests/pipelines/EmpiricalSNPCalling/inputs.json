@@ -1,23 +1,24 @@
 {
   "SNPCalling.max_cores": 2,
+  "SNPCalling.max_ram": 2000,
   "SNPCalling.ploidy": 4,
   "SNPCalling.rm_dupli": false,
-  "SNPCalling.replaceAD": false,
-  "SNPCalling.run_gatk": true,
-  "SNPCalling.run_freebayes": true,
+  "SNPCalling.run_gatk": false,
+  "SNPCalling.run_freebayes": false,
+  "SNPCalling.run_tassel": false,
+  "SNPCalling.run_stacks": true,
   "SNPCalling.hardfilters": true,
   "SNPCalling.n_chrom": 1,
-  "SNPCalling.chunk_size": 2,
-  "SNPCalling.samples_info": "tests/data/polyploid/fastq/samples_info.txt",
-  "SNPCalling.gatk_mchap": false,
+  "SNPCalling.chunk_size": 1,
+  "SNPCalling.samples_info": "tests/data/Ptremula_PRJNA395596_subset/fastq/samples_info_pop_sub.tsv",
   "SNPCalling.references": {
-    "ref_fasta": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta",
-    "ref_dict": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.dict",
-    "ref_ann": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.ann",
-    "ref_sa": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.sa",
-    "ref_amb": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.amb",
-    "ref_pac": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.pac",
-    "ref_bwt": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.bwt",
-    "ref_fasta_index": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.fai"
+    "ref_fasta": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa",
+    "ref_dict": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.dict",
+    "ref_ann": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.ann",
+    "ref_sa": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.sa",
+    "ref_amb": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.amb",
+    "ref_pac": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.pac",
+    "ref_bwt": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.bwt",
+    "ref_fasta_index": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa.fai"
   }
 }
