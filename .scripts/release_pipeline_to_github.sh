@@ -197,8 +197,8 @@ function upload_to_github_as_draft() {
     ${pipelineName} \
     ${version} \
     ${releaseName} \
-    "json" \
-    "text/plain"
+    "options.json" \
+    "application/json"
 
   local -r dependenciesZip=${localReleaseDir}/${pipelineName}/${pipelineName}_${version}.zip
 
@@ -220,7 +220,7 @@ function upload_artifact_to_github() {
   local -r pipelineName=${2}
   local -r version=${3}
   local -r releaseName=${4}
-  local -r artifact=${5}  # 'zip', 'inputs.json', or 'wdl'
+  local -r artifact=${5}  # 'zip', 'options.json', or 'wdl'
   local -r contentType=${6} # 'text/plain' or 'application/zip'
 
 
