@@ -27,9 +27,9 @@ workflow StacksGenotyping {
     }
 
     output {
-        File vcfs = RefMap.stacks_vcf
+        Array[File] vcfs = [RefMap.stacks_vcf]
         File stacks_multiallelics = RefMap.stacks_multiallelics
-        String software_sele = "stacks"
-        String source_sele = "vcf"
+        Array[String] software_sele = ["stacks"]
+        Array[String] source_sele = ["vcf"]
     }
 }

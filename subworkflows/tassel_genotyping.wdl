@@ -57,8 +57,8 @@ workflow TasselGenotyping {
     }
 
     output {
-        File vcfs = TasselAfterAlign.tassel_vcf
-        String software_sele = "tassel"
-        String source_sele = "vcf"
+        Array[File] vcfs = [TasselAfterAlign.tassel_vcf]
+        Array[String] software_sele = ["tassel"]
+        Array[String] source_sele = ["vcf"]
     }
 }
