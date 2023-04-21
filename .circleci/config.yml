@@ -24,7 +24,10 @@ jobs:
       - checkout
 
       - run: pip3 install -r tests/requirements.txt
-      - run: pytest --git-aware tests/pipelines/EmpiricalSNPCalling/
+      - run: pytest --git-aware tests/subworkflows/gatk_genotyping/
+      - run: pytest --git-aware tests/subworkflows/tassel_genotyping/
+      - run: pytest --git-aware tests/subworkflows/stacks_genotyping/
+      - run: pytest --git-aware tests/subworkflows/freebayes_genotyping/
 
   release-to-github:
     <<: *machine_default

@@ -153,6 +153,6 @@ task MappolyReport {
   }
 
   output {
-    File results = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_results.tar.gz"
+    File results = "~{SNPCall_program}_~{GenotypeCall_program}Poly_~{CountsFrom}_results.tar.gz"
   }
 }
