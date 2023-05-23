@@ -30,6 +30,7 @@ task BiallelicNormalization {
 
   runtime {
     docker: "lifebitai/bcftools:1.10.2"
+    singularity:"docker://lifebitai/bcftools:1.10.2"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -37,7 +38,7 @@ task BiallelicNormalization {
     # Slurm
     job_name: "BiallelicNormalization"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {

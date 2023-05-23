@@ -12,6 +12,9 @@ task SepareChunksFastqString {
     command <<<
         R --vanilla --no-save <<RSCRIPT
             df <- read.table("~{families_info}")
+            if(dim(df)[2] > 3) { #pair-end
+              df <- df[,c(1,3,4,2)]
+            } 
             split_df <- split.data.frame(df, df[,2])
 
             n_chunk <- as.integer(length(split_df)/~{chunk_size})
@@ -22,6 +25,7 @@ task SepareChunksFastqString {
             for(i in 1:length(chunk_sep)){
                 df <- do.call(rbind, unlist(chunk_sep[i], recursive = F))
                 df <- t(df)
+                print(df)
                 write.table(df, file = paste0("chunk_",i, ".txt"), quote = F, col.names = F, row.names = F, sep="\t")
             }
 

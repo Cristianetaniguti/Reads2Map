@@ -9,27 +9,38 @@ task RunBwaAlignment {
 
   input {
     Array[String] sampleName
-    Array[File] reads
+    Array[File] reads1
+    Array[File]? reads2
     Array[String] libraries
     ReferenceFasta references
+    Boolean pair_end
     Int max_cores
     String rm_dupli
   }
 
-  Int disk_size = ceil(size(reads, "GiB") * 2 + size(references.ref_fasta, "GiB") + 20)
+  Int disk_size = ceil(size(reads1, "GiB") * 2 + size(references.ref_fasta, "GiB") + 20)
   Int memory_size = 4000 * max_cores
 
   command <<<
     mkdir tmp
 
-    reads_list=( ~{sep=" " reads} )
+    reads1_list=( ~{sep=" " reads1} )
+    reads2_list=( ~{sep=" " reads2} )
     lib_list=( ~{sep=" " libraries} )
     sampleName_list=( ~{sep=" " sampleName})
     BAMS=()
-    for index in ${!reads_list[*]}; do
-      echo "${reads_list[$index]} is in ${lib_list[$index]}"
+    for index in ${!reads1_list[*]}; do
+      echo "${reads1_list[$index]} is in ${lib_list[$index]}"
+      
+      if "~{pair_end}" == "true"
+      then 
+        reads=( "${reads1_list[$index]} ${reads2_list[$index]}" ) 
+      else 
+        reads=( "${reads1_list[$index]}" ) 
+      fi
+
       bwa_header="@RG\tID:${sampleName_list[$index]}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:${sampleName_list[$index]}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "${reads_list[$index]}" | \
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "$reads" | \
           java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
             O="${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam" \

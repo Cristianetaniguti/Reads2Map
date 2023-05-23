@@ -439,6 +439,7 @@ task VariantEval {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity: "docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -446,7 +447,7 @@ task VariantEval {
     # Slurm
     job_name: "VariantEval"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
