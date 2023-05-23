@@ -2,13 +2,14 @@
   "SNPCalling.enzyme": "String? (optional)",
   "SNPCalling.P1": "String? (optional)",
   "SNPCalling.max_cores": "Int",
+  "SNPCalling.pair_end": "Boolean (optional, default = false)",
   "SNPCalling.ploidy": "Int",
   "SNPCalling.rm_dupli": "Boolean (optional, default = false)",
   "SNPCalling.GatkGenotyping.vcf_simu": "File? (optional)",
   "SNPCalling.replaceAD": "Boolean (optional, default = false)",
   "SNPCalling.run_gatk": "Boolean (optional, default = true)",
+  "SNPCalling.pop_map": "File? (optional)",
   "SNPCalling.run_tassel": "Boolean (optional, default = true)",
-  "SNPCalling.hardfilters": "Boolean (optional, default = true)",
   "SNPCalling.n_chrom": "Int",
   "SNPCalling.chunk_size": "Int",
   "SNPCalling.GatkGenotyping.depth": "Int? (optional)",
@@ -27,7 +28,9 @@
     "ref_bwt": "File",
     "ref_fasta_index": "File"
   },
-  "SNPCalling.run_freebayes": "Boolean (optional, default = true)",
-  "SNPCalling.GatkGenotyping.seed": "Int? (optional)"
+  "SNPCalling.run_freebayes": "Boolean (optional, default = false)",
+  "SNPCalling.GatkGenotyping.seed": "Int? (optional)",
+  "SNPCalling.run_stacks": "Boolean (optional, default = true)",
+  "SNPCalling.hardfilters": "Boolean (optional, default = true)"
 }
 

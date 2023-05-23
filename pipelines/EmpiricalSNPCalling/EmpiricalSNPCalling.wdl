@@ -27,6 +27,7 @@ workflow SNPCalling {
     Boolean run_freebayes = false
     Boolean run_tassel = true
     Boolean run_stacks = true
+    Boolean pair_end = false
     File? pop_map
     String? enzyme
     Int ploidy
@@ -40,7 +41,8 @@ workflow SNPCalling {
       max_cores = max_cores,
       rm_dupli = rm_dupli,
       chunk_size = chunk_size,
-      gatk_mchap = gatk_mchap
+      gatk_mchap = gatk_mchap,
+      pair_end = pair_end
   }
 
   if(run_gatk){

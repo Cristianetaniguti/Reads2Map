@@ -39,7 +39,8 @@ workflow TasselGenotyping {
     call BWA.RunBwaAlignment {
         input:
             sampleName = ["tasselSample"],
-            reads = [TasselBeforeAlign.fastq_align],
+            reads1 = [TasselBeforeAlign.fastq_align],
+            pair_end = false,
             libraries = ["tasselSample"],
             references = references,
             max_cores = max_cores,
