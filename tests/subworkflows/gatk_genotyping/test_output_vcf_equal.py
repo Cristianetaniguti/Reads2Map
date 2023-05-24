@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 
-# Parei aqui! Adaptar os caminhos
 @pytest.mark.workflow("SNP and genotype calling with GATK")
 def test_ensure_vcf_1_are_equal(workflow_dir, compare_files):
     vcf1 = Path(workflow_dir, "_LAST/out/vcfs/0/vcf_norm.vcf.gz")

@@ -13,7 +13,11 @@ By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://gith
 
 ## How to use
 
-Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, and dxWDL. See further information in the [openwdl documentation](https://github.com/openwdl/wdl#execution-engines).
+Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, and dxWDL. See further information in the [openwdl documentation](https://github.com/openwdl/wdl#execution-engines). 
+
+In addition, we also suggest two wrappers: [cromwell-cli](https://github.com/lmtani/cromwell-cli) and [Caper](https://github.com/ENCODE-DCC/caper). Here is a tutorial on how to setup these tools and one example running the EmpiricalReads2Map:
+
+* [Setup and run Reads2Map workflows](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Main.html)
 
 To run a pipeline, first navigate to [Reads2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases), search for the pipeline tag you which to run, and download the pipeline’s assets (the WDL workflow, the JSON, and the ZIP with accompanying dependencies).
 
@@ -29,9 +33,7 @@ Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
 * [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp)
 
-Once you selected the best pipeline using a subset of your data, you can build a complete high-density linkage map:
-
-* [A Guide to Build High-Density Linkage Maps](https://cristianetaniguti.github.io/Tutorials/onemap/Quick_HighDens/High_density_maps.html)
+Once you selected the best pipeline using a subset of your data, you can [`OneMap`](https://statgen-esalq.github.io/tutorials/onemap/Outcrossing_Populations.html) or [`MAPoly`](https://rpubs.com/mmollin/tetra_mappoly_vignette) tutorials for guidance on building the linkage map for the complete dataset.
 
 Check more information and examples of usage in:
 
@@ -64,3 +66,5 @@ Check more information and examples of usage in:
 - [polyRAD](https://github.com/lvclark/polyRAD) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Genotype Calling with Uncertainty from Sequencing Data in Polyploids
 - [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp) in [cristaniguti/reads2mapApp:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Shiny app to evaluate Reads2Map workflows results
 - [simuscopR](https://github.com/Cristianetaniguti/simuscopR) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Wrap-up R package for SimusCop simulations
+
+# Funding
