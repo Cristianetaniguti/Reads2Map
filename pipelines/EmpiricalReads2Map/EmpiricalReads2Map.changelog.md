@@ -1,3 +1,15 @@
+# 1.4.0
+
+* STACKs included
+* support to pair-end reads
+* defined defaults
+
+# 1.3.0
+
+* TASSEL 5.0 included
+* releases include the input files template
+* new parameter to control maximum ram memory used by GATK and TASSEL
+
 # 1.2.0
 
 * Add MAPpoly to build linkage maps for polyploid species

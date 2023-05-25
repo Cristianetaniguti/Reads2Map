@@ -1,3 +1,9 @@
+# 1.4.0
+
+* STACKs included
+* support to pair-end reads
+* defined defaults
+
 # 1.3.0
 
 * TASSEL 5.0 included
