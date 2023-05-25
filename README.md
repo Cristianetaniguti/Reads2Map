@@ -1,7 +1,7 @@
 [![Development](https://img.shields.io/badge/development-active-blue.svg)](https://img.shields.io/badge/development-active-blue.svg)
 [![Reads2Map](https://circleci.com/gh/Cristianetaniguti/Reads2Map.svg?style=svg)](https://app.circleci.com/pipelines/github/Cristianetaniguti/Reads2Map)
 
-## Reads2Map <img src="https://github.com/Cristianetaniguti/Reads2Map/assets/7572527/6074320a-0eba-44b9-88e1-b89eda8aad70" align="right" width="300"/>
+<img src="https://github.com/Cristianetaniguti/Reads2Map/assets/7572527/6074320a-0eba-44b9-88e1-b89eda8aad70" align="center" width="450"/>
 
 Reads2Map presents a collection of [WDL workflows](https://openwdl.org/)  to build linkage maps from sequencing reads. Each workflow release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
@@ -18,8 +18,6 @@ In addition, we also suggest two wrappers: [cromwell-cli](https://github.com/lmt
 * [Setup and run Reads2Map workflows](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
 
 To run a pipeline, first navigate to [Reads2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases), search for the pipeline tag you which to run, and download the pipeline’s assets (the WDL workflow, the JSON, and the ZIP with accompanying dependencies).
-
-## Documentation
 
 Check the description of the inputs for the pipelines:
 
