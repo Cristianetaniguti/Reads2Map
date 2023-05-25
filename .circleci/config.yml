@@ -49,10 +49,6 @@ workflows:
       - run-tasks-tests:
           requires:
             - wdl-validate
-          filters:
-            branches:
-              only:
-                - develop
       - release-to-github:
           name: release-development-version
           env: "dev"
