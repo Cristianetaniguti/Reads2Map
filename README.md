@@ -14,6 +14,8 @@ The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.
 
 By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), [GUSMap](https://github.com/tpbilton/GUSMap), and [MAPpoly](https://github.com/mmollina/MAPpoly) for linkage map build.
 
+The Reads2Map workflows perform the SNP and genotype/dosage calling for your complete data set. However, it builds the linkage map for only a single chromosome (reference genome is required) for each combination of software and parameters. The produced maps will probably still require improvements, but their characteristics will suggest which combination of SNP and genotype calling software and parameters you should use for your data. Once the pipeline is selected, you can input the respective VCF file in R and build the complete linkage map using OneMap or MAPpoly. Use [OneMap](https://statgen-esalq.github.io/tutorials/onemap/Outcrossing_Populations.html) or [MAPoly](https://rpubs.com/mmollin/tetra_mappoly_vignette) tutorials for guidance on building and improving the linkage map for the complete dataset. 
+
 ## How to use
 
 Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, and dxWDL. See further information in the [openwdl documentation](https://github.com/openwdl/wdl#execution-engines). 
@@ -33,8 +35,6 @@ Check the description of the inputs for the pipelines:
 Check how to evaluate the workflows results in Reads2MapApp Shiny:
 
 * [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp)
-
-Once you selected the best pipeline using a subset of your data, you can [`OneMap`](https://statgen-esalq.github.io/tutorials/onemap/Outcrossing_Populations.html) or [`MAPoly`](https://rpubs.com/mmollin/tetra_mappoly_vignette) tutorials for guidance on building the linkage map for the complete dataset.
 
 Check more information and examples of usage in:
 
@@ -69,6 +69,6 @@ Check more information and examples of usage in:
 - [simuscopR](https://github.com/Cristianetaniguti/simuscopR) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Wrap-up R package for SimusCop simulations
 - [MAPpoly](https://github.com/mmollina/MAPpoly) in [cristaniguti/reads2map:0.0.5](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Build linkage maps for autopolyploid species
 
-# Funding
+### Funding
 
 This work was partially supported by the National Council for Scientific and Technological Development (CNPq - 313269/2021-1); by USDA, National Institute of Food and Agriculture (NIFA), Specialty Crop Research Initiative (SCRI) project “Tools for Genomics Assisted Breeding in Polyploids: Development of a Community Resource” (Award No. 2020-51181-32156); and by the Bill and Melinda Gates Foundation (OPP1213329) project SweetGAINS.
