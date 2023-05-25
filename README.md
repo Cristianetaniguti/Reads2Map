@@ -1,15 +1,13 @@
 [![Development](https://img.shields.io/badge/development-active-blue.svg)](https://img.shields.io/badge/development-active-blue.svg)
 [![Reads2Map](https://circleci.com/gh/Cristianetaniguti/Reads2Map.svg?style=svg)](https://app.circleci.com/pipelines/github/Cristianetaniguti/Reads2Map)
 
-## Reads2Map 
+## Reads2Map <img src="https://github.com/Cristianetaniguti/Reads2Map/assets/7572527/fbcf1a93-48b7-4eaa-a589-ec831c0ca48c" align="right" width="200"/>
 
 Reads2Map presents a collection of [WDL workflows](https://openwdl.org/)  to build linkage maps from sequencing reads. Each workflow release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
 The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.wdl`. The `EmpiricalReads2Map.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads2Map.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
-By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), and [GUSMap](https://github.com/tpbilton/GUSMap) for linkage map build.
-
-![math_meth2](https://user-images.githubusercontent.com/7572527/203172239-e4d2d857-84e2-48c5-bb88-01052a287004.png)
+By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), [GUSMap](https://github.com/tpbilton/GUSMap), and [MAPpoly](https://github.com/mmollina/MAPpoly) for linkage map build.
 
 ## How to use
 
@@ -17,7 +15,7 @@ Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, a
 
 In addition, we also suggest two wrappers: [cromwell-cli](https://github.com/lmtani/cromwell-cli) and [Caper](https://github.com/ENCODE-DCC/caper). Here is a tutorial on how to setup these tools and one example running the EmpiricalReads2Map:
 
-* [Setup and run Reads2Map workflows](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Main.html)
+* [Setup and run Reads2Map workflows](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
 
 To run a pipeline, first navigate to [Reads2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases), search for the pipeline tag you which to run, and download the pipeline’s assets (the WDL workflow, the JSON, and the ZIP with accompanying dependencies).
 
@@ -66,5 +64,8 @@ Check more information and examples of usage in:
 - [polyRAD](https://github.com/lvclark/polyRAD) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Genotype Calling with Uncertainty from Sequencing Data in Polyploids
 - [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp) in [cristaniguti/reads2mapApp:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Shiny app to evaluate Reads2Map workflows results
 - [simuscopR](https://github.com/Cristianetaniguti/simuscopR) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Wrap-up R package for SimusCop simulations
+- [MAPpoly](https://github.com/mmollina/MAPpoly) in [cristaniguti/reads2map:0.0.5](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Build linkage maps for autopolyploid species
 
 # Funding
+
+This work was partially supported by the National Council for Scientific and Technological Development (CNPq - 313269/2021-1); by USDA, National Institute of Food and Agriculture (NIFA), Specialty Crop Research Initiative (SCRI) project “Tools for Genomics Assisted Breeding in Polyploids: Development of a Community Resource” (Award No. 2020-51181-32156); and by the Bill and Melinda Gates Foundation (OPP1213329) project SweetGAINS.
