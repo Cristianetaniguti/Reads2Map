@@ -1,7 +1,7 @@
 [![Development](https://img.shields.io/badge/development-active-blue.svg)](https://img.shields.io/badge/development-active-blue.svg)
 [![Reads2Map](https://circleci.com/gh/Cristianetaniguti/Reads2Map.svg?style=svg)](https://app.circleci.com/pipelines/github/Cristianetaniguti/Reads2Map)
 
-## Reads2Map <img src="https://github.com/Cristianetaniguti/Reads2Map/assets/7572527/fbcf1a93-48b7-4eaa-a589-ec831c0ca48c" align="right" width="200"/>
+## Reads2Map <img src="https://github.com/Cristianetaniguti/Reads2Map/assets/7572527/6074320a-0eba-44b9-88e1-b89eda8aad70" align="right" width="300"/>
 
 Reads2Map presents a collection of [WDL workflows](https://openwdl.org/)  to build linkage maps from sequencing reads. Each workflow release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
