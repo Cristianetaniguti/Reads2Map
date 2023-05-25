@@ -1,0 +1,7 @@
+{
+    "StacksGenotyping.max_cores": 2,
+    "StacksGenotyping.bams":  ["tests/data/Ptremula_PRJNA395596_subset/bams/I_3_55.sorted.merged.filtered.bam", 
+                               "tests/data/Ptremula_PRJNA395596_subset/bams/I_3_66.sorted.merged.filtered.bam",
+                               "tests/data/Ptremula_PRJNA395596_subset/bams/PT_F.sorted.merged.filtered.bam",
+                               "tests/data/Ptremula_PRJNA395596_subset/bams/PT_M.sorted.merged.filtered.bam"]
+}

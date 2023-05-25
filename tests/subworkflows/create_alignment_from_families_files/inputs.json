@@ -4,6 +4,7 @@
     "CreateAlignmentFromFamilies.gatk_mchap": true,
     "CreateAlignmentFromFamilies.families_info": "tests/data/Ptremula_PRJNA395596_subset/fastq/samples_info_pop_sub.tsv",
     "CreateAlignmentFromFamilies.chunk_size": 2,
+    "CreateAlignmentFromFamilies.pair_end": false,
     "CreateAlignmentFromFamilies.references": {
       "ref_fasta": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.fa",
       "ref_dict": "tests/data/PtrichocarpaV3.0/Chr10.11.2M.dict",

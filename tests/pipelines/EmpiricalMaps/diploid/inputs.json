@@ -8,6 +8,10 @@
       "multiallelics": true
     },
     "Maps.max_cores": 2,
+    "Maps.run_supermassa": "false",
+    "Maps.run_gusmap": "false",
+    "Maps.run_polyrad": "false",
+    "Maps.run_updog": "true",
     "Maps.ploidy": 2,
     "Maps.gatk_mchap": "FALSE",
     "Maps.vcfs_counts_source": ["vcf","bam","vcf","bam"],

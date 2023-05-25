@@ -264,7 +264,6 @@ task TasselAfterAlign {
     Int disk_size = ceil(size(tassel_database, "GiB"))
     Int memory_min = ceil(max_ram/2)
 
-
     command <<<
 
       samtools view -h ~{bam} > file.sam 

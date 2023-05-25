@@ -23,6 +23,7 @@ workflow EmpiricalReads {
         Boolean run_gatk = true
         Boolean run_freebayes = true
         Boolean run_tassel = true
+        Boolean pair_end = false
         String? enzyme
         Int ploidy = 2
         Int n_chrom
@@ -47,7 +48,8 @@ workflow EmpiricalReads {
             run_tassel = run_tassel,
             ploidy = ploidy,
             n_chrom = n_chrom,
-            enzyme = enzyme
+            enzyme = enzyme,
+            pair_end = pair_end
     }
 
     call maps.Maps {

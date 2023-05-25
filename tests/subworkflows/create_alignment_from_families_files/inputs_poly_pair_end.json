@@ -1,0 +1,17 @@
+{
+    "CreateAlignmentFromFamilies.max_cores": 2,
+    "CreateAlignmentFromFamilies.rm_dupli": false,
+    "CreateAlignmentFromFamilies.gatk_mchap": false,
+    "CreateAlignmentFromFamilies.families_info": "tests/data/polyploid/fastq/pair_end/samples_info.txt",
+    "CreateAlignmentFromFamilies.chunk_size": 2,
+    "CreateAlignmentFromFamilies.references": {
+      "ref_fasta": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta",
+      "ref_dict": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.dict",
+      "ref_ann": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.ann",
+      "ref_sa": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.sa",
+      "ref_amb": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.amb",
+      "ref_bwt": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.bwt",
+      "ref_fasta_index": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.fai",
+      "ref_pac": "tests/data/polyploid/RchinensisV1.0/Chr04_sub.fasta.pac"
+    }
+  }

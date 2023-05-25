@@ -1,4 +1,4 @@
-- name: Build linkage maps from VCFs
+- name: SNP calling
   tags:
     - snpcalling
   command: miniwdl run -i tests/pipelines/EmpiricalSNPCalling/inputs.json pipelines/EmpiricalSNPCalling/EmpiricalSNPCalling.wdl

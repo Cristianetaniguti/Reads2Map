@@ -1,16 +1,17 @@
 {
   "EmpiricalReads.replaceAD": "Boolean (optional, default = true)",
   "EmpiricalReads.filters": "String? (optional)",
+  "EmpiricalReads.Maps.run_updog": "Boolean (optional, default = true)",
   "EmpiricalReads.filt_segr": "String? (optional)",
   "EmpiricalReads.max_ram": "Int",
   "EmpiricalReads.replaceADbyMissing": "String (optional, default = \"TRUE\")",
-  "EmpiricalReads.Maps.filter_noninfo": "Boolean",
+  "EmpiricalReads.Maps.run_supermassa": "Boolean (optional, default = false)",
   "EmpiricalReads.run_tassel": "Boolean (optional, default = true)",
   "EmpiricalReads.chunk_size": "Int",
+  "EmpiricalReads.Maps.run_gusmap": "Boolean (optional, default = false)",
   "EmpiricalReads.gatk_mchap": "Boolean (optional, default = false)",
   "EmpiricalReads.rm_dupli": "Boolean (optional, default = false)",
   "EmpiricalReads.SNPCalling.max_ram": "Int",
-  "EmpiricalReads.samples_info": "File",
   "EmpiricalReads.dataset": {
     "parent2": "String",
     "name": "String",
@@ -19,7 +20,6 @@
     "cross": "String",
     "multiallelics": "Boolean"
   },
-  "EmpiricalReads.run_gatk": "Boolean (optional, default = true)",
   "EmpiricalReads.ploidy": "Int (optional, default = 2)",
   "EmpiricalReads.n_chrom": "Int",
   "EmpiricalReads.SNPCalling.chunk_size": "Int",
@@ -37,6 +37,13 @@
     "ref_pac": "File",
     "ref_bwt": "File",
     "ref_fasta_index": "File"
-  }
+  },
+  "EmpiricalReads.Maps.run_polyrad": "Boolean (optional, default = true)",
+  "EmpiricalReads.SNPCalling.run_stacks": "Boolean (optional, default = true)",
+  "EmpiricalReads.Maps.filter_noninfo": "Boolean",
+  "EmpiricalReads.SNPCalling.pop_map": "File? (optional)",
+  "EmpiricalReads.samples_info": "File",
+  "EmpiricalReads.pair_end": "Boolean (optional, default = false)",
+  "EmpiricalReads.run_gatk": "Boolean (optional, default = true)"
 }
 
