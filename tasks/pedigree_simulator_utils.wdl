@@ -180,7 +180,7 @@ task CreatePedigreeSimulatorInputs {
     # Slurm
     job_name: "CreatePedigreeSimulatorInputs"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -284,7 +284,7 @@ task ConvertPedigreeSimulationToVcf {
     # Slurm
     job_name: "ConvertPedigreeSimulationToVcf"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -356,7 +356,7 @@ task Vcf2PedigreeSimulator{
       # Slurm
       job_name: "Vcf2PedigreeSimulator"
       mem:"~{memory_size}M"
-      time:"05:00:00"
+      time: 5
   }
 
   meta {
@@ -402,7 +402,7 @@ task ProduceFamiliesSeeds {
     # Slurm
     job_name: "ProduceFamiliesSeeds"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   output {

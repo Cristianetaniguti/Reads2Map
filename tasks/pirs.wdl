@@ -23,7 +23,7 @@ task GenerateAlternativeGenome {
     # Slurm
     job_name: "GenerateAlternativeGenome"
     mem:"3000M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {

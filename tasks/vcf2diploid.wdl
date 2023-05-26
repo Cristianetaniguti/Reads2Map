@@ -27,7 +27,7 @@ task RunVcf2diploid {
     # Slurm
     job_name: "RunVcf2diploid"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {

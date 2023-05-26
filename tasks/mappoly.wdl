@@ -143,7 +143,7 @@ task MappolyReport {
     # Slurm
     job_name: "MappolyReport"
     mem:"~{memory_size}G"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {

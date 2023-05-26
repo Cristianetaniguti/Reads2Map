@@ -165,7 +165,7 @@ task GenotypeGVCFs   {
     # Slurm
     job_name: "GenotypeGVCFs"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -209,7 +209,7 @@ task MergeVCFs {
     # Slurm
     job_name: "MergeVCFs"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -260,7 +260,7 @@ task VariantsToTable {
         # Slurm
         job_name: "VariantsToTable"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -316,7 +316,7 @@ task VariantFiltration {
         # Slurm
         job_name: "VariantFiltration"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {
@@ -403,7 +403,7 @@ task VariantsToTableForHardFilteringSimulated {
         # Slurm
         job_name: "VariantsToTable"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {

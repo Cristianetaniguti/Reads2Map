@@ -145,7 +145,7 @@ task JointAllReports{
     # Slurm
     job_name: "JointAllReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   output {
@@ -265,7 +265,7 @@ task JointReports{
     # Slurm
     job_name: "JointReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   output{
@@ -408,7 +408,7 @@ task JointReportsSimu {
     # Slurm
     job_name: "JointReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   meta {
@@ -531,7 +531,7 @@ task JointTablesSimu{
     # Slurm
     job_name: "JointTables"
     mem:"~{memory_size}M"
-    time:"01:40:00"     
+    time: 2   
   }
 
   output {
@@ -596,7 +596,7 @@ task JointReportsPoly{
     # Slurm
     job_name: "JointReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   output{

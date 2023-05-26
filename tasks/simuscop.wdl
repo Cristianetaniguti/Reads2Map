@@ -44,7 +44,7 @@ task SimuscopProfile {
     # Slurm
     job_name: "SimuscopProfile"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -121,7 +121,7 @@ task SimuscopSimulation {
     # Slurm
     job_name: "SimuscopSimulation"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
