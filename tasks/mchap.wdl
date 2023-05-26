@@ -53,7 +53,7 @@ task OneMCHap {
         # Slurm
         job_name: "MCHap"
         mem:"~{memory_size}M"
-        time:"24:00:00"
+        time: 24
     }
 
     meta {
@@ -111,7 +111,7 @@ task OneMCHap_recall {
         # Slurm
         job_name: "OneMCHap_recall"
         mem:"~{memory_size}M"
-        time:"24:00:00"
+        time: 24
     }
 
     meta {

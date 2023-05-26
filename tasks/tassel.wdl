@@ -25,7 +25,7 @@ task transposeSamples {
     # Slurm
     job_name: "transposeSamples"
     mem:"1G"
-    time:"04:00:00"
+    time: 4
   }
 
   meta {
@@ -186,7 +186,7 @@ task BarcodeFaker {
     # Slurm
     job_name: "BarcodeFaker"
     mem:"1G"
-    time:"04:00:00"
+    time: 4
   }
 
   meta {
@@ -236,7 +236,7 @@ task TasselBeforeAlign {
     # Slurm
     job_name: "GBSSeqToTagDBPlugin"
     mem:"~{max_ram}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -303,7 +303,7 @@ task TasselAfterAlign {
       # Slurm
       job_name: "SAMToGBSdbPlugin"
       mem:"~{max_ram}M"
-      time:"24:00:00"
+      time: 24
     }
 
     meta {

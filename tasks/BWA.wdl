@@ -111,7 +111,7 @@ task RunBwaAlignment {
     # Slurm
     job_name: "RunBwaAlignment"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -204,7 +204,7 @@ task RunBwaAlignmentSimu {
     # Slurm
     job_name: "RunBwaAlignmentSimu"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -245,7 +245,7 @@ task CreateChunksFastq {
     # Slurm
     job_name: "CreateChunksFastq"
     mem:"~{memory_size}M"
-    time:"00:05:00"
+    time: 1
   }
 
   meta {

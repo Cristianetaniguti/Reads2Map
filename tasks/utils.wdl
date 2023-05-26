@@ -39,7 +39,7 @@ task mergeVCFs {
         # Slurm
         job_name: "mergeVCFs"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {
@@ -87,7 +87,7 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
     # Slurm
     job_name: "GenerateSampleNames"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -135,7 +135,7 @@ task ApplyRandomFilters {
     # Slurm
     job_name: "ApplyRandomFilters"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -190,7 +190,7 @@ task ApplyRandomFiltersArray {
     # Slurm
     job_name: "ApplyRandomFilters"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -227,7 +227,7 @@ task SplitMarkers {
     # Slurm
     job_name: "SplitMarkers"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -284,7 +284,7 @@ task JointMarkers {
     # Slurm
     job_name: "JointMarkers"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -347,7 +347,7 @@ task ReplaceAD {
     # Slurm
     job_name: "ReplaceAD"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -398,7 +398,7 @@ task Compress {
     # Slurm
     job_name: "Compress"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -449,7 +449,7 @@ task GetMarkersPos {
     # Slurm
     job_name: "GetMarkerPos"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -484,7 +484,7 @@ task MergeBams{
         # Slurm
         job_name: "MergeBams"
         mem:"~{memory_size}M"
-        time:"10:00:00"
+        time: 10
     }
 
     meta {
@@ -522,7 +522,7 @@ task TarFiles {
     # Slurm
     job_name: "TarFiles"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   output {
@@ -571,7 +571,7 @@ task VariantFiltration {
         # Slurm
         job_name: "VariantFiltration"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {
@@ -608,7 +608,7 @@ task BamToBed {
         # Slurm
         job_name: "BamToBed"
         mem:"~{memory_size}M"
-        time:"05:00:00"
+        time: 5
     }
 
     meta {

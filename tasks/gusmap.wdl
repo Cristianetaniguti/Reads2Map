@@ -54,7 +54,7 @@ task GusmapReport {
     # Slurm
     job_name: "GusmapReport"
     mem:"~{memory_size}G"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -161,7 +161,7 @@ task GusmapReportForSimulated {
     # Slurm
     job_name: "GusmapReport"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -207,7 +207,7 @@ task CompressGusmap {
     # Slurm
     job_name: "CompressGusmap"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -251,7 +251,7 @@ task CompressGusmapSimu {
     # Slurm
     job_name: "CompressGusmap"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {

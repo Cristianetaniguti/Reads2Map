@@ -52,7 +52,7 @@ task vcf2onemap {
       # Slurm
       job_name: "vcf2onemap"
       mem:"~{memory_size}M"
-      time:"10:00:00"
+      time: 10
     }
 
     meta {
@@ -106,7 +106,7 @@ task FiltersReport {
     # Slurm
     job_name: "Filters"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -158,7 +158,7 @@ task FiltersReportEmp {
     # Slurm
     job_name: "Filters"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -264,7 +264,7 @@ task MapsReport {
     # Slurm
     job_name: "MapsReport"
     mem:"~{memory_size}M"
-    time:"48:00:00"
+    time: 48
   }
 
   meta {
@@ -353,7 +353,7 @@ task ErrorsReport {
     # Slurm
     job_name: "ErrorsReport"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -417,7 +417,7 @@ task CheckDepths {
     # Slurm
     job_name: "CheckDepths"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -480,7 +480,7 @@ task MapsReportEmp {
     # Slurm
     job_name: "MapsEmp"
     mem:"~{memory_size}M"
-    time:"48:00:00"
+    time: 48
   }
 
   meta {
@@ -575,7 +575,7 @@ task ReGenotyping {
     # Slurm
     job_name: "ReGenotyping"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -661,7 +661,7 @@ task SetProbs {
     # Slurm
     job_name: "SetProbs"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -752,7 +752,7 @@ task SetProbsDefault {
     # Slurm
     job_name: "SetProbsDefault"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -803,7 +803,7 @@ task RemoveNonInformative {
       # Slurm
       job_name: "FilterSegregation"
       mem:"~{memory_size}M"
-      time:"10:00:00"
+      time: 10
   }
 
   meta {
@@ -901,7 +901,7 @@ task QualPlots {
         # Slurm
         job_name: "QualPlots"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -1014,7 +1014,7 @@ task QualPlotsForHardFilteringSimulated {
         # Slurm
         job_name: "QualPlots"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -1060,7 +1060,7 @@ task FilterMulti {
         # Slurm
         job_name: "FilterMulti"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {

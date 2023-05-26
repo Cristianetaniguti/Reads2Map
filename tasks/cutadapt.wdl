@@ -23,7 +23,7 @@ task RemoveAdapt {
     # Slurm
     job_name: "RemoveAdapt"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 1
   }
 
   output {

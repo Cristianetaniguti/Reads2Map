@@ -33,7 +33,7 @@ task RunFreebayes {
     # Slurm
     job_name: "RunFreebayes"
     mem:"~{memory_size}M"
-    time:"48:00:00"
+    time: 48
   }
 
   meta {

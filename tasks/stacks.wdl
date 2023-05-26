@@ -31,7 +31,7 @@ task ProcessRadTags {
       # Slurm
       job_name: "ProcessRadTags"
       mem:"~{memory_size}M"
-      time:"10:00:00"
+      time: 10
     }
 
     output {
@@ -68,7 +68,7 @@ task CreatePopMapFile {
       # Slurm
       job_name: "CreatePopMapFile"
       mem:"100M"
-      time:"10:00:00"
+      time: 10
     }
 
     meta {
@@ -112,7 +112,7 @@ task RefMap {
       # Slurm
       job_name: "ProcessRadTags"
       mem:"~{memory_size}M"
-      time:"10:00:00"
+      time: 10
     }
 
     meta {

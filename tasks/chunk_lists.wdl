@@ -42,7 +42,7 @@ task SepareChunksFastqString {
         # Slurm
         job_name: "SepareChunksIndividuals"
         mem:"~{memory_size}M"
-        time:"00:10:00"
+        time: 1
     }
 
     meta {
@@ -96,7 +96,7 @@ task SepareChunksFastq {
       # Slurm
       job_name: "SepareChunksIndividuals"
       mem:"~{memory_size}M"
-      time:"00:10:00"
+      time: 1
   }
 
   meta {
@@ -141,7 +141,7 @@ task CreateChunksBam {
     # Slurm
     job_name: "CreateChunks"
     mem:"1G"
-    time:"00:05:00"
+    time: 1
   }
 
   meta {
@@ -193,7 +193,7 @@ task SepareChunksBed {
         # Slurm
         job_name: "SepareChunksBed"
         mem:"~{memory_size}M"
-        time:"00:05:00"
+        time: 1
     }
 
     meta {
@@ -254,7 +254,7 @@ task CreateChunksBamByChr {
     # Slurm
     job_name: "CreateChunks"
     mem:"1G"
-    time:"10:00:00"
+    time: 1
   }
 
   meta {
