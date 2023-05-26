@@ -47,6 +47,7 @@ task GusmapReport {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -154,6 +155,7 @@ task GusmapReportForSimulated {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -200,6 +202,7 @@ task CompressGusmap {
 
   runtime {
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -244,6 +247,7 @@ task CompressGusmapSimu {
 
   runtime {
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"

@@ -173,6 +173,7 @@ task CreatePedigreeSimulatorInputs {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -277,6 +278,7 @@ task ConvertPedigreeSimulationToVcf {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -349,6 +351,7 @@ task Vcf2PedigreeSimulator{
 
   runtime {
       docker:"cristaniguti/reads2map:0.0.4"
+      singularity: "docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -395,6 +398,7 @@ task ProduceFamiliesSeeds {
 
   runtime {
     docker:"python:3.7"
+    singularity: "docker://python:3.7"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"

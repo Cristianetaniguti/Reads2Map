@@ -103,6 +103,7 @@ task RunBwaAlignment {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -196,6 +197,7 @@ task RunBwaAlignmentSimu {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -238,6 +240,7 @@ task CreateChunksFastq {
 
   runtime {
     docker: "ubuntu:20.04"
+    singularity:"docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"

@@ -23,6 +23,7 @@ task RunPedigreeSimulator {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.1"
+    singularity: "docker://cristaniguti/java-in-the-cloud:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"

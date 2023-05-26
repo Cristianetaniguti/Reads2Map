@@ -24,6 +24,7 @@ task ProcessRadTags {
 
     runtime {
       docker:"cristaniguti/stacks:0.0.1"
+      singularity: "docker://cristaniguti/stacks:0.0.1"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -61,6 +62,7 @@ task CreatePopMapFile {
 
    runtime {
       docker:"cristaniguti/r-samtools:latest"
+      singularity: "docker://cristaniguti/r-samtools:latest"
       cpu:1
       # Cloud
       memory:"100 MiB"
@@ -105,6 +107,7 @@ task RefMap {
 
    runtime {
       docker:"cristaniguti/stacks:0.0.1"
+      singularity: "docker://cristaniguti/stacks:0.0.1"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"

@@ -16,6 +16,7 @@ task RemoveAdapt {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    singularity:"docker://kfdrc/cutadapt"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"

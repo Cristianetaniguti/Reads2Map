@@ -46,6 +46,7 @@ task OneMCHap {
 
     runtime {
         docker: "cristaniguti/mchap:0.0.1"
+        singularity: "docker://cristaniguti/mchap:0.0.1"
         cpu: max_cores
         # Cloud
         memory:"~{memory_size} MiB"
@@ -104,6 +105,7 @@ task OneMCHap_recall {
 
     runtime {
         docker: "cristaniguti/mchap:0.0.1"
+        singularity: "docker://cristaniguti/mchap:0.0.1"
         cpu: max_cores
         # Cloud
         memory:"~{memory_size} MiB"
