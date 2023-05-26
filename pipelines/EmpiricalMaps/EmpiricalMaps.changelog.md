@@ -1,3 +1,8 @@
+# 1.2.4
+
+* runtimes adapted to run with Caper
+
+
 # 1.2.3
 
 * Supermassa has smaller probability threshold (bugfix)

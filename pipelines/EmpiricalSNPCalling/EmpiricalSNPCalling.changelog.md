@@ -3,6 +3,7 @@
 * STACKs included
 * support to pair-end reads
 * defined defaults
+* runtimes adapted to run with Caper
 
 # 1.3.0
 
