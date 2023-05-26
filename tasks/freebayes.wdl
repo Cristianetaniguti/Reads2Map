@@ -26,6 +26,7 @@ task RunFreebayes {
 
   runtime {
     docker: "cristaniguti/freebayes:0.0.1"
+    singularity:"docker://cristaniguti/freebayes:0.0.1"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"

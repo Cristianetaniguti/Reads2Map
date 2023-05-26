@@ -35,6 +35,7 @@ task SepareChunksFastqString {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu:1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -89,6 +90,7 @@ task SepareChunksFastq {
 
   runtime {
       docker: "cristaniguti/reads2map:0.0.4"
+      singularity:"docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -134,6 +136,7 @@ task CreateChunksBam {
 
   runtime {
     docker: "ubuntu:20.04"
+    singularity:"docker://ubuntu:20.04"
     cpu: 1
     # Cloud
     memory:"1000 MiB"
@@ -186,6 +189,7 @@ task SepareChunksBed {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -247,6 +251,7 @@ task CreateChunksBamByChr {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
     memory:"1000 MiB"

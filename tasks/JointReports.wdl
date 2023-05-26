@@ -138,6 +138,7 @@ task JointAllReports{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -258,6 +259,7 @@ task JointReports{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -401,6 +403,7 @@ task JointReportsSimu {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -524,6 +527,7 @@ task JointTablesSimu{
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -589,6 +593,7 @@ task JointReportsPoly{
 
   runtime{
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"

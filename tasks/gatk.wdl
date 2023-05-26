@@ -46,6 +46,7 @@ task HaplotypeCaller {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -105,6 +106,7 @@ task ImportGVCFs  {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -158,6 +160,7 @@ task GenotypeGVCFs   {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 2
     # Cloud
     memory:"~{memory_size} MiB"
@@ -202,6 +205,7 @@ task MergeVCFs {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -253,6 +257,7 @@ task VariantsToTable {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -309,6 +314,7 @@ task VariantFiltration {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -396,6 +402,7 @@ task VariantsToTableForHardFilteringSimulated {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"

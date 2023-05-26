@@ -45,6 +45,7 @@ task vcf2onemap {
 
     runtime {
       docker:"cristaniguti/reads2map:0.0.4"
+      singularity: "docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -99,6 +100,7 @@ task FiltersReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -151,6 +153,7 @@ task FiltersReportEmp {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -257,6 +260,7 @@ task MapsReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -346,6 +350,7 @@ task ErrorsReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -410,6 +415,7 @@ task CheckDepths {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -473,6 +479,7 @@ task MapsReportEmp {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -568,6 +575,7 @@ task ReGenotyping {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.5"
+    singularity:"docker://cristaniguti/reads2map:0.0.5"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -654,6 +662,7 @@ task SetProbs {
   >>>
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -745,6 +754,7 @@ task SetProbsDefault {
   >>>
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -796,6 +806,7 @@ task RemoveNonInformative {
 
   runtime {
       docker:"cristaniguti/reads2map:0.0.4"
+      singularity:"docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -894,6 +905,7 @@ task QualPlots {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1007,6 +1019,7 @@ task QualPlotsForHardFilteringSimulated {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1053,6 +1066,7 @@ task FilterMulti {
 
     runtime {
         docker:"cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"

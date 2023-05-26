@@ -18,6 +18,7 @@ task transposeSamples {
 
   runtime {
     docker: "cristaniguti/r-samtools:latest"
+    singularity: "docker://cristaniguti/r-samtools:latest"
     cpu: 1
     # Cloud
     memory:"1 GiB"
@@ -179,6 +180,7 @@ task BarcodeFaker {
 
   runtime {
     docker: "cristaniguti/r-samtools:latest"
+    singularity: "docker://cristaniguti/r-samtools:latest"
     cpu: 1
     # Cloud
     memory:"1 GiB"
@@ -229,6 +231,7 @@ task TasselBeforeAlign {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.2"
+    singularity: "docker://cristaniguti/java-in-the-cloud:0.0.2"
     cpu: 1
     # Cloud
     memory:"~{max_ram} MiB"
@@ -296,6 +299,7 @@ task TasselAfterAlign {
 
     runtime {
       docker: "cristaniguti/java-in-the-cloud:0.0.2"
+      singularity: "docker://cristaniguti/java-in-the-cloud:0.0.2"
       cpu: 1
       # Cloud
       memory:"~{max_ram} MiB"

@@ -32,6 +32,7 @@ task mergeVCFs {
 
     runtime {
         docker:"lifebitai/bcftools:1.10.2"
+        singularity: "docker://lifebitai/bcftools:1.10.2"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -80,6 +81,7 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
 
   runtime {
     docker: "cristaniguti/miniconda-alpine:0.0.1"
+    singularity: "docker://cristaniguti/miniconda-alpine:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -128,6 +130,7 @@ task ApplyRandomFilters {
 
   runtime {
     docker:"cristaniguti/split_markers:0.0.1"
+    singularity: "docker://cristaniguti/split_markers:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -183,6 +186,7 @@ task ApplyRandomFiltersArray {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -220,6 +224,7 @@ task SplitMarkers {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -277,6 +282,7 @@ task JointMarkers {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -340,6 +346,7 @@ task ReplaceAD {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -391,6 +398,7 @@ task Compress {
 
   runtime {
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -442,6 +450,7 @@ task GetMarkersPos {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -477,6 +486,7 @@ task MergeBams{
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity: "docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu:1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -515,6 +525,7 @@ task TarFiles {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    singularity: "docker://kfdrc/cutadapt"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -564,6 +575,7 @@ task VariantFiltration {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity: "docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -601,6 +613,7 @@ task BamToBed {
 
     runtime {
         docker: "biocontainers/bedtools:v2.27.1dfsg-4-deb_cv1"
+        singularity: "docker://biocontainers/bedtools:v2.27.1dfsg-4-deb_cv1"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
