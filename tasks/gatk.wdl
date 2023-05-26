@@ -53,7 +53,7 @@ task HaplotypeCaller {
     # Slurm
     job_name: "HaplotypeCaller"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -112,7 +112,7 @@ task ImportGVCFs  {
     # Slurm
     job_name: "ImportGVCFs"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
