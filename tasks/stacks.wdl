@@ -9,7 +9,7 @@ task ProcessRadTags {
     }
 
     Int disk_size = ceil(size(fq_files, "GiB") * 2)
-    Int memory_size = 6000
+    Int memory_size = 4000 + ceil(size(fq_files, "MiB") * 2)
 
     command <<<
       mkdir raw process_radtags_results
@@ -65,11 +65,11 @@ task CreatePopMapFile {
       singularity: "docker://cristaniguti/r-samtools:latest"
       cpu:1
       # Cloud
-      memory:"100 MiB"
+      memory:"1000 MiB"
       disks:"local-disk 1 GiB HDD"
       # Slurm
       job_name: "CreatePopMapFile"
-      mem:"100M"
+      mem:"1000M"
       time: 10
     }
 
@@ -92,7 +92,7 @@ task RefMap {
   }
 
     Int disk_size = ceil(size(bams, "GiB") * 2)
-    Int memory_size = 6000
+    Int memory_size = 4000 + ceil(size(bams, "MiB") * 2)
 
   command <<<
 

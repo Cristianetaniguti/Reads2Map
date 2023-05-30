@@ -238,7 +238,7 @@ task VariantsToTable {
     }
 
     Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + 2)
-    Int memory_size = 2500
+    Int memory_size = 2500 + ceil(size(reference, "MB") + size(vcf_file, "MB") + 2)
 
     command <<<
 
@@ -290,7 +290,7 @@ task VariantFiltration {
     }
 
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(vcf_file, "MB") + size(reference, "MB") + 1)
 
     command <<<
         /usr/gitc/gatk4/./gatk VariantFiltration \
@@ -348,7 +348,7 @@ task VariantsToTableForHardFilteringSimulated {
     }
 
      Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + size(simu_vcf, "GB") + 2)
-     Int memory_size = 3000
+     Int memory_size = 3000 + ceil(size(reference, "MB") + size(vcf_file, "MB") + size(simu_vcf, "MB") + 2)
 
     command <<<
         /usr/gitc/./bgzip -c  ~{simu_vcf} > ~{simu_vcf}.gz
@@ -438,7 +438,7 @@ task VariantEval {
   }
 
   Int disk_size = ceil(size(vcf_norm, "GiB") + size(reference, "GiB") + size(vcf_simu, "GiB") + 2)
-  Int memory_size = 3000
+  Int memory_size = 3000 + ceil(size(vcf_norm, "MiB") + size(reference, "MiB") + size(vcf_simu, "MiB") + 2)
 
   command <<<
     java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -ploidy ~{ploidy} -o vcfEval.txt

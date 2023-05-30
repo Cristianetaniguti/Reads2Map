@@ -13,7 +13,7 @@ task OneMCHap {
     }
 
     Int disk_size = ceil(size(bams, "GiB") * 1.5 + size(bed, "GiB") * 1.5 + size(vcf_file, "GiB") * 1.5 + size(reference, "GiB"))
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(bams, "MiB") * 1.5 + size(bed, "MiB") * 1.5 + size(vcf_file, "MiB") * 1.5 + size(reference, "MiB"))
 
     command <<<
 
@@ -78,7 +78,7 @@ task OneMCHap_recall {
     }
 
     Int disk_size = ceil(size(bams, "GiB") * 1.25 + size(vcf_file, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(bams, "MiB") * 1.25 + size(vcf_file, "MiB") * 1.5)
 
     command <<<
 

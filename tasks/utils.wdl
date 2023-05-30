@@ -6,7 +6,7 @@ task mergeVCFs {
     }
 
     Int disk_size = ceil(size(haplo_vcf, "GiB") * 2)
-    Int memory_size = 5000
+    Int memory_size =  ceil(3000 + size(haplo_vcf, "MiB") * 2)
 
     command <<<
 
@@ -63,7 +63,7 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
   }
 
   Int disk_size = ceil(size(simulated_vcf, "GiB") * 2) 
-  Int memory_size = 1000 
+  Int memory_size = ceil(1000 + size(simulated_vcf, "MiB") * 2)  
 
   command <<<
     export PATH=$PATH:/opt/conda/bin
@@ -114,7 +114,7 @@ task ApplyRandomFilters {
   }
 
   Int disk_size = ceil(size(gatk_vcf, "GiB") * 2 + size(freebayes_vcf, "GiB") * 2 + size(gatk_vcf_bam_counts, "GiB") * 2 + size(freebayes_vcf_bam_counts, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(gatk_vcf, "MiB") * 2 + size(freebayes_vcf, "MiB") * 2 + size(gatk_vcf_bam_counts, "MiB") * 2 + size(freebayes_vcf_bam_counts, "MiB") * 2)
 
   command <<<
     # Required update to deal with polyploids
@@ -165,7 +165,7 @@ task ApplyRandomFiltersArray {
   }
 
   Int disk_size = ceil(size(vcfs, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(vcfs, "MiB") * 2)
 
   command <<<
 
@@ -215,7 +215,7 @@ task SplitMarkers {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(vcf_file, "MiB") * 2)
 
   command <<<
     bcftools view --max-alleles 2 --min-alleles 2 --output-type z --output-file biallelics.vcf.gz  ~{vcf_file}
@@ -254,7 +254,7 @@ task JointMarkers {
   }
 
    Int disk_size = ceil(size(biallelic_vcf, "GiB") * 2 + size(multiallelic_vcf, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(biallelic_vcf, "MiB") * 2 + size(multiallelic_vcf, "MiB") * 2)
 
   command <<<
 
@@ -382,7 +382,7 @@ task Compress {
     }
 
     Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB") + size(filters_report, "GiB") + size(errors_report, "GiB"))
-    Int memory_size = 1000
+    Int memory_size = ceil(2000 + size(RDatas, "MiB") + size(maps_report, "MiB") + size(times, "MiB") + size(filters_report, "MiB") + size(errors_report, "MiB"))
 
     command <<<
 
@@ -433,7 +433,7 @@ task GetMarkersPos {
   }
 
   Int disk_size = ceil(size(true_vcf, "GiB") * 1.5 + size(filtered_gatk_vcf, "GiB") * 1.5 + size(filtered_gatk_vcf_bamcounts, "GiB") + size(filtered_freebayes_vcf, "GiB") + size(filtered_freebayes_vcf_bamcounts, "GiB"))
-  Int memory_size = 5000
+  Int memory_size = ceil(3000 + size(true_vcf, "MiB") * 1.5 + size(filtered_gatk_vcf, "MiB") * 1.5 + size(filtered_gatk_vcf_bamcounts, "MiB") + size(filtered_freebayes_vcf, "MiB") + size(filtered_freebayes_vcf_bamcounts, "MiB"))
 
   command <<<
 
@@ -478,7 +478,7 @@ task MergeBams{
     }
 
     Int disk_size = ceil(size(bam_files, "GiB") * 2)
-    Int memory_size = ceil(size(bam_files, "MiB") * 6)
+    Int memory_size = ceil(3000 + size(bam_files, "MiB") * 2)
 
     command <<<
         samtools merge merged.bam ~{sep=" " bam_files}
@@ -515,7 +515,7 @@ task TarFiles {
   }
 
   Int disk_size = ceil(size(sequences, "GiB") * 2)
-  Int memory_size = 6000
+  Int memory_size = ceil(4000 + size(sequences, "MiB") * 2)
   
   command <<<
     mkdir results
@@ -551,7 +551,7 @@ task VariantFiltration {
     }
 
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
-    Int memory_size = 5000
+    Int memory_size = ceil(5000 + size(vcf_file, "MiB") * 2)
 
     command <<<
         /usr/gitc/gatk4/./gatk VariantFiltration \
@@ -604,7 +604,7 @@ task BamToBed {
     }
 
     Int disk_size = ceil(size(merged_bams, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int memory_size = ceil(3000 + size(merged_bams, "MiB") * 1.5)
 
     command <<<
         bamToBed -i ~{merged_bams} > file.bed

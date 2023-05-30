@@ -7,7 +7,7 @@ task SepareChunksFastqString {
     }
 
     Int disk_size = ceil(size(families_info, "GiB") * 2)
-    Int memory_size = 4000
+    Int memory_size = 4000 + ceil(size(families_info, "MiB") * 2)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -65,7 +65,7 @@ task SepareChunksFastq {
   }
 
   Int disk_size = ceil(size(fastqs, "GiB") * 2)
-  Int memory_size = 1000
+  Int memory_size = 1000 + ceil(size(fastqs, "MiB") * 2)
 
   command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -167,7 +167,7 @@ task SepareChunksBed {
     }
 
     Int disk_size = ceil(size(bed_file, "GiB") * 1.5)
-    Int memory_size = 1000
+    Int memory_size = 1000 + ceil(size(bed_file, "MiB") * 1.5)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
