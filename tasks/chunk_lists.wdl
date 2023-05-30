@@ -7,7 +7,7 @@ task SepareChunksFastqString {
     }
 
     Int disk_size = ceil(size(families_info, "GiB") * 2)
-    Int memory_size = 1000
+    Int memory_size = 4000
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
