@@ -788,7 +788,7 @@ task RemoveNonInformative {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(vcf_file, "MiB") * 2)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -834,8 +834,8 @@ task QualPlots {
         File Total
     }
 
-    Int disk_size = ceil(size(Total, "GB") + 1)
-    Int memory_size = 3000
+    Int disk_size = ceil(size(Total, "GiB") + 1)
+    Int memory_size = ceil(3000 + size(Total, "MiB") + 1)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -1051,7 +1051,7 @@ task FilterMulti {
     }
 
     Int disk_size = ceil(size(multi_vcf, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(multi_vcf, "MiB") * 1.5)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT

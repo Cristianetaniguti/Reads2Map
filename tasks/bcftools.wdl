@@ -13,7 +13,7 @@ task BiallelicNormalization {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") + size(reference, "GiB") + 2)
-  Int memory_size = 7000
+  Int memory_size = 4000 + ceil(size(vcf_file, "MiB") + size(reference, "MiB") + 2)
 
   command <<<
 

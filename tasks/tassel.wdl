@@ -183,11 +183,11 @@ task BarcodeFaker {
     singularity: "docker://cristaniguti/r-samtools:latest"
     cpu: 1
     # Cloud
-    memory:"1 GiB"
+    memory:"2 GiB"
     disks:"local-disk 3 GiB HDD"
     # Slurm
     job_name: "BarcodeFaker"
-    mem:"1G"
+    mem:"2G"
     time: 4
   }
 
