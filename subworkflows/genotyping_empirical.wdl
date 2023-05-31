@@ -23,6 +23,8 @@ workflow onemapMapsEmp {
   call utilsR.ReGenotyping {
       input:
           vcf_file = vcf_file,
+          SNPCall_program = SNPCall_program,
+          CountsFrom = CountsFrom,
           GenotypeCall_program = GenotypeCall_program,
           cross = cross,
           parent1 = parent1,
@@ -31,31 +33,43 @@ workflow onemapMapsEmp {
           ploidy = ploidy
   }
 
+  call utils.ApplyRandomFiltersArray as FilterBi{
+            input:
+                vcfs = [ReGenotyping.regeno_vcf],
+                vcfs_SNPCall_software = [SNPCall_program],
+                vcfs_Counts_source = [CountsFrom],
+                vcfs_GenoCall_software = [GenotypeCall_program + "_biallelic"],
+                chromosome = chromosome
+  }
+
   if (multiallelics) {
+
+    Array[File] array_vcf = select_all([multiallelics_file])
+
+    call utils.ApplyRandomFiltersArray as FilterMulti{
+            input:
+                vcfs = array_vcf,
+                vcfs_SNPCall_software = [SNPCall_program],
+                vcfs_Counts_source = [CountsFrom],
+                vcfs_GenoCall_software = [GenotypeCall_program + "_multiallelic"],
+                chromosome = chromosome
+    }
+
     call utils.JointMarkers {
       input:
-        biallelic_vcf = ReGenotyping.regeno_vcf,
-        multiallelic_vcf = multiallelics_file,
+        biallelic_vcf = FilterBi.vcfs_filt[0],
+        multiallelic_vcf = FilterMulti.vcfs_filt[0],
         SNPCall_program = SNPCall_program,
         CountsFrom = CountsFrom,
         GenotypeCall_program = GenotypeCall_program
     }
   }
 
-  File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
-
-  call utils.ApplyRandomFiltersArray {
-            input:
-                vcfs = [updated_vcf],
-                vcfs_SNPCall_software = [SNPCall_program],
-                vcfs_Counts_source = [CountsFrom],
-                vcfs_GenoCall_software = [GenotypeCall_program],
-                chromosome = chromosome
-  }
+  File updated_vcf = select_first([JointMarkers.merged_vcf, FilterBi.vcfs_filt[0]])
 
   call utilsR.SetProbs {
     input:
-      vcf_file = ApplyRandomFiltersArray.vcfs_filt[0],
+      vcf_file = updated_vcf,
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,

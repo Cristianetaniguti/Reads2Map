@@ -28,6 +28,8 @@ workflow onemapMaps {
       input:
           vcf_file = vcf_file,
           GenotypeCall_program = genotyping_program,
+          SNPCall_program = SNPCall_program,
+          CountsFrom = CountsFrom,
           cross = cross,
           parent1 = "P1",
           parent2 = "P2",
