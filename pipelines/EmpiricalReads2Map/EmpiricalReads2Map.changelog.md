@@ -4,6 +4,7 @@
 * support to pair-end reads
 * defined defaults
 * runtimes adapted to run with Caper
+* [new tutorial](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
 
 # 1.3.0
 

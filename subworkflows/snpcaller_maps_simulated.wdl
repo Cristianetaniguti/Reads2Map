@@ -27,7 +27,10 @@ workflow SNPCallerMaps {
     call utils.JointMarkers {
       input:
         biallelic_vcf = vcf_file,
-        multiallelic_vcf = multiallelics_file
+        multiallelic_vcf = multiallelics_file,
+        SNPCall_program = SNPCall_program,
+        CountsFrom = CountsFrom,
+        GenotypeCall_program = GenotypeCall_program
     }
   }
 

@@ -2,6 +2,7 @@
 
 * runtimes adapted to run with Caper
 * perform the genotype calling with updog, SuperMASSA and polyRAD with complete data set (not only for the selected chromosome)
+* [new tutorial](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
 
 # 1.2.3
 

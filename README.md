@@ -8,11 +8,13 @@
 <br>
 <p/>
 
-Reads2Map presents a collection of [WDL workflows](https://openwdl.org/)  to build linkage maps from sequencing reads. Each workflow release is described in the [Read2Map releases page](https://github.com/Cristianetaniguti/Reads2Map/releases). 
+Reads2Map is a collection of [WDL workflows](https://openwdl.org/) designed to facilitate the contruction of linkage maps from sequencing reads. You can find details of each workflow release on the Read2Map releases page, available [here](https://github.com/Cristianetaniguti/Reads2Map/releases). 
 
-The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.wdl`. The `EmpiricalReads2Map.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads2Map.wdl` simulates Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
+The main workflows are the `EmpiricalReads2Map.wdl` and the `SimulatedReads2Map.wdl`. The `EmpiricalReads2Map.wdl` is composed by the `EmpiricalSNPCalling.wdl` that performs the SNP calling, and the `EmpiricalMaps.wdl` that performs the genotype calling and map building in empirical reads. The `SimulatedReads2Map.wdl` used RADinitio software to simulate Illumina reads for RADseq, exome, or WGS data and performs the SNP and genotype calling and genetic map building.
 
-By now, [GATK](https://github.com/broadinstitute/gatk), [Freebayes](https://github.com/ekg/freebayes) are included for SNP calling; [updog](https://github.com/dcgerard/updog), [polyRAD](https://github.com/lvclark/polyRAD), [SuperMASSA](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0030906) for dosage calling; and [OneMap](https://github.com/augusto-garcia/onemap), [GUSMap](https://github.com/tpbilton/GUSMap), and [MAPpoly](https://github.com/mmollina/MAPpoly) for linkage map build.
+The SNP calling step in Reads2Map currently includes the popular tools: GATK, Freebayes, TASSEL, and STACKs. For genotype/dosage calling, the workflow utilizes tools like updog, polyRAD, and SuperMASSA. Lastly, Reads2Map leverages OneMap, GUSMap, and MAPpoly for linkage map construction.
+
+For diploid data, you can visualize the results using the R package and shiny app called Reads2MapApp, available [here](https://github.com/Cristianetaniguti/Reads2MapApp). This package supports the visualization of linkage maps built using OneMap and GUSMap.
 
 The Reads2Map workflows perform the SNP and genotype/dosage calling for your complete data set. However, it builds the linkage map for only a single chromosome (reference genome is required) for each combination of software and parameters. The produced maps will probably still require improvements, but their characteristics will suggest which combination of SNP and genotype calling software and parameters you should use for your data. Once the pipeline is selected, you can input the respective VCF file in R and build the complete linkage map using OneMap or MAPpoly. Use [OneMap](https://statgen-esalq.github.io/tutorials/onemap/Outcrossing_Populations.html) or [MAPoly](https://rpubs.com/mmollin/tetra_mappoly_vignette) tutorials for guidance on building and improving the linkage map for the complete dataset. 
 
@@ -32,7 +34,7 @@ Check the description of the inputs for the pipelines:
 
 * [SimulatedReads2Map](https://cristianetaniguti.github.io/Tutorials/Reads2Map/simulatedreads.html)
 
-Check how to evaluate the workflows results in Reads2MapApp Shiny:
+Check how to evaluate the workflows results in Reads2MapApp Shiny (so far only available for diploid datasets):
 
 * [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp)
 
@@ -47,6 +49,8 @@ Check more information and examples of usage in:
 - [ddRADseqTools](https://github.com/GGFHF/ddRADseqTools) in [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): Set of applications useful to in silico design and testing of double digest RADseq (ddRADseq) experiments;
 - [Freebayes](https://github.com/ekg/freebayes) in [Cristaniguti/freebayes:0.0.1](): Variant call step;
 - [GATK](https://github.com/broadinstitute/gatk) in [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Variant call step using Haplotype Caller, GenomicsDBImport and GenotypeGVCFs;
+- [TASSEL](https://www.maizegenetics.net/tassel) in [cristaniguti/java-in-the-cloud:0.0.2](https://hub.docker.com/repository/docker/cristaniguti/java-in-the-cloud/general): Variant Call
+- [STACKs](https://catchenlab.life.illinois.edu/stacks/) in [cristaniguti/stacks:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/stacks/general): Variant Call
 - [PedigreeSim](https://github.com/PBR/pedigreeSim?files=1) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Simulates progeny genotypes from parents genotypes for different types of populations;
 - [picard](https://github.com/broadinstitute/picard) in [us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z](https://console.cloud.google.com/gcr/images/broad-gotc-prod/US/genomes-in-the-cloud): Process alignment files;
 - [pirs](https://github.com/galaxy001/pirs) in [cristaniguti/ pirs-ddrad-cutadapt:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/pirs-ddrad-cutadapt): To generate simulates paired-end reads from a reference genome;
