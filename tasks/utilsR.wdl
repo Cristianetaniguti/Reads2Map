@@ -507,6 +507,8 @@ task MapsReportEmp {
 # Exclusive for biallelic markers, input VCF file are normalized with -m-any
 task ReGenotyping {
   input {
+    String SNPCall_program
+    String CountsFrom
     String GenotypeCall_program
     File vcf_file
     String cross
@@ -533,7 +535,7 @@ task ReGenotyping {
         stop("Invalid crosstype")
        }
 
-       out_vcf <- "regeno.vcf.gz"
+       out_vcf <- "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_regeno.vcf.gz"
 
         if (method == "updog") {
           updog_genotype_vcf(vcf="~{vcf_file}",
@@ -567,7 +569,7 @@ task ReGenotyping {
                                out_vcf = out_vcf)                                                 
         }
 
-        system("gunzip regeno.vcf.gz")
+        system("gunzip ~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_regeno.vcf.gz")
 
 
      RSCRIPT
@@ -593,7 +595,7 @@ task ReGenotyping {
   }
 
   output {
-    File regeno_vcf = "regeno.vcf"
+    File regeno_vcf = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_regeno.vcf"
   }
 }
 

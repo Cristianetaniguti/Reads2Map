@@ -176,12 +176,18 @@ task ApplyRandomFiltersArray {
       vcfs_geno_software=(~{sep=" " vcfs_GenoCall_software})
 
       for index in ${!vcfs[*]}; do
-          cp ${vcfs[$index]} temp.vcf
-          bcftools sort temp.vcf --output-file temp_sort.vcf
-          tabix -p vcf temp_sort.vcf
-          bcftools view temp_sort.vcf ~{filters} ~{"-r " + chromosome} \
-          -o vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf.gz
-          rm temp_sort.vcf temp_sort.vcf.tbi
+          if [[ ${vcfs[$index]} != *.gz ]]; then
+            cp ${vcfs[$index]} temp.vcf
+            bgzip temp.vcf
+          else 
+            cp ${vcfs[$index]} temp.vcf.gz
+          fi
+          
+          tabix -p vcf temp.vcf.gz
+          bcftools view temp.vcf.gz ~{filters} ~{" -r " + chromosome} \
+          -o vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf
+          bgzip vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf
+          rm temp.vcf.gz temp.vcf.gz.tbi
           echo vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf.gz >> outputs.txt
       done
 
