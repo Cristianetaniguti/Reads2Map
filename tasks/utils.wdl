@@ -158,8 +158,9 @@ task ApplyRandomFilters {
 task ApplyRandomFiltersArray {
   input{
     Array[File] vcfs
-    Array[String] vcfs_software
-    Array[String] vcfs_counts_source
+    Array[String] vcfs_SNPCall_software
+    Array[String] vcfs_Counts_source
+    Array[String] vcfs_GenoCall_software
     String? filters
     String? chromosome
   }
@@ -170,16 +171,17 @@ task ApplyRandomFiltersArray {
   command <<<
 
       vcfs=(~{sep = " " vcfs})
-      vcfs_software=(~{sep=" " vcfs_software})
-      vcfs_counts_source=(~{sep=" " vcfs_counts_source})
+      vcfs_snp_software=(~{sep=" " vcfs_SNPCall_software})
+      vcfs_counts_source=(~{sep=" " vcfs_Counts_source})
+      vcfs_geno_software=(~{sep=" " vcfs_GenoCall_software})
 
       for index in ${!vcfs[*]}; do
           cp ${vcfs[$index]} temp.vcf
           tabix -p vcf temp.vcf
-          bcftools view temp.vcf ~{filters} -r ~{chromosome} \
-          -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
+          bcftools view temp.vcf ~{filters} ~{" -r " + chromosome} \
+          -o vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf.gz
           rm temp.vcf temp.vcf.tbi
-          echo vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz >> outputs.txt
+          echo vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf.gz >> outputs.txt
       done
 
   >>>

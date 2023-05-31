@@ -1,7 +1,7 @@
 # 1.2.4
 
 * runtimes adapted to run with Caper
-
+* perform the genotype calling with updog, SuperMASSA and polyRAD with complete data set (not only for the selected chromosome)
 
 # 1.2.3
 
