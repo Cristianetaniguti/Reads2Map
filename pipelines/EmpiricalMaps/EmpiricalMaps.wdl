@@ -39,10 +39,10 @@ workflow Maps {
         call utils.ApplyRandomFiltersArray {
             input:
                 vcfs = vcfs,
-                vcfs_software = vcfs_software,
-                vcfs_counts_source = vcfs_counts_source,
-                filters = filters,
-                chromosome = dataset.chromosome
+                vcfs_SNPCall_software = vcfs_software,
+                vcfs_Counts_source = vcfs_counts_source,
+                vcfs_GenoCall_software = range(length(vcfs_software)),
+                filters = filters
         }
     }
 

@@ -41,9 +41,18 @@ workflow onemapMapsEmp {
 
   File updated_vcf = select_first([JointMarkers.merged_vcf, ReGenotyping.regeno_vcf])
 
+  call utils.ApplyRandomFiltersArray {
+            input:
+                vcfs = [updated_vcf],
+                vcfs_SNPCall_software = [SNPCall_program],
+                vcfs_Counts_source = [CountsFrom],
+                vcfs_GenoCall_software = [GenotypeCall_program],
+                chromosome = chromosome
+  }
+
   call utilsR.SetProbs {
     input:
-      vcf_file = updated_vcf,
+      vcf_file = ApplyRandomFiltersArray.vcfs_filt[0],
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
