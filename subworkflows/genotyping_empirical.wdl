@@ -35,7 +35,10 @@ workflow onemapMapsEmp {
     call utils.JointMarkers {
       input:
         biallelic_vcf = ReGenotyping.regeno_vcf,
-        multiallelic_vcf = multiallelics_file
+        multiallelic_vcf = multiallelics_file,
+        SNPCall_program = SNPCall_program,
+        CountsFrom = CountsFrom,
+        GenotypeCall_program = GenotypeCall_program
     }
   }
 

@@ -251,6 +251,9 @@ task SplitMarkers {
 
 task JointMarkers {
   input{
+    String SNPCall_program
+    String CountsFrom
+    String GenotypeCall_program
     File biallelic_vcf
     File? multiallelic_vcf
   }
@@ -277,8 +280,8 @@ task JointMarkers {
 
     tabix -p vcf ~{multiallelic_vcf}
     bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf
-    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output merged.vcf
-    bgzip merged.vcf
+    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output ~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.vcf
+    bgzip ~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.vcf
 
   >>>
 
@@ -302,7 +305,7 @@ task JointMarkers {
   }
 
   output {
-    File merged_vcf = "merged.vcf.gz"
+    File merged_vcf = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.vcf.gz"
   }
 }
 
