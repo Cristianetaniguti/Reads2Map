@@ -13,7 +13,7 @@ task OneMCHap {
     }
 
     Int disk_size = ceil(size(bams, "GiB") * 1.5 + size(bed, "GiB") * 1.5 + size(vcf_file, "GiB") * 1.5 + size(reference, "GiB"))
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(bams, "MiB") * 1.5 + size(bed, "MiB") * 1.5 + size(vcf_file, "MiB") * 1.5 + size(reference, "MiB"))
 
     command <<<
 
@@ -46,6 +46,7 @@ task OneMCHap {
 
     runtime {
         docker: "cristaniguti/mchap:0.0.1"
+        singularity: "docker://cristaniguti/mchap:0.0.1"
         cpu: max_cores
         # Cloud
         memory:"~{memory_size} MiB"
@@ -53,7 +54,7 @@ task OneMCHap {
         # Slurm
         job_name: "MCHap"
         mem:"~{memory_size}M"
-        time:"24:00:00"
+        time: 24
     }
 
     meta {
@@ -77,7 +78,7 @@ task OneMCHap_recall {
     }
 
     Int disk_size = ceil(size(bams, "GiB") * 1.25 + size(vcf_file, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(bams, "MiB") * 1.25 + size(vcf_file, "MiB") * 1.5)
 
     command <<<
 
@@ -104,6 +105,7 @@ task OneMCHap_recall {
 
     runtime {
         docker: "cristaniguti/mchap:0.0.1"
+        singularity: "docker://cristaniguti/mchap:0.0.1"
         cpu: max_cores
         # Cloud
         memory:"~{memory_size} MiB"
@@ -111,7 +113,7 @@ task OneMCHap_recall {
         # Slurm
         job_name: "OneMCHap_recall"
         mem:"~{memory_size}M"
-        time:"24:00:00"
+        time: 24
     }
 
     meta {

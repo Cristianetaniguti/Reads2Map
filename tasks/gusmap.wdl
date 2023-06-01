@@ -47,6 +47,7 @@ task GusmapReport {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -54,7 +55,7 @@ task GusmapReport {
     # Slurm
     job_name: "GusmapReport"
     mem:"~{memory_size}G"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -154,6 +155,7 @@ task GusmapReportForSimulated {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -161,7 +163,7 @@ task GusmapReportForSimulated {
     # Slurm
     job_name: "GusmapReport"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -200,6 +202,7 @@ task CompressGusmap {
 
   runtime {
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -207,7 +210,7 @@ task CompressGusmap {
     # Slurm
     job_name: "CompressGusmap"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -244,6 +247,7 @@ task CompressGusmapSimu {
 
   runtime {
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -251,7 +255,7 @@ task CompressGusmapSimu {
     # Slurm
     job_name: "CompressGusmap"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {

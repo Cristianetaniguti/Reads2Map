@@ -45,6 +45,7 @@ task vcf2onemap {
 
     runtime {
       docker:"cristaniguti/reads2map:0.0.4"
+      singularity: "docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -52,7 +53,7 @@ task vcf2onemap {
       # Slurm
       job_name: "vcf2onemap"
       mem:"~{memory_size}M"
-      time:"10:00:00"
+      time: 10
     }
 
     meta {
@@ -99,6 +100,7 @@ task FiltersReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -106,7 +108,7 @@ task FiltersReport {
     # Slurm
     job_name: "Filters"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -151,6 +153,7 @@ task FiltersReportEmp {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -158,7 +161,7 @@ task FiltersReportEmp {
     # Slurm
     job_name: "Filters"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -257,6 +260,7 @@ task MapsReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -264,7 +268,7 @@ task MapsReport {
     # Slurm
     job_name: "MapsReport"
     mem:"~{memory_size}M"
-    time:"48:00:00"
+    time: 48
   }
 
   meta {
@@ -346,6 +350,7 @@ task ErrorsReport {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -353,7 +358,7 @@ task ErrorsReport {
     # Slurm
     job_name: "ErrorsReport"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -410,6 +415,7 @@ task CheckDepths {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -417,7 +423,7 @@ task CheckDepths {
     # Slurm
     job_name: "CheckDepths"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -473,6 +479,7 @@ task MapsReportEmp {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -480,7 +487,7 @@ task MapsReportEmp {
     # Slurm
     job_name: "MapsEmp"
     mem:"~{memory_size}M"
-    time:"48:00:00"
+    time: 48
   }
 
   meta {
@@ -500,6 +507,8 @@ task MapsReportEmp {
 # Exclusive for biallelic markers, input VCF file are normalized with -m-any
 task ReGenotyping {
   input {
+    String SNPCall_program
+    String CountsFrom
     String GenotypeCall_program
     File vcf_file
     String cross
@@ -526,7 +535,7 @@ task ReGenotyping {
         stop("Invalid crosstype")
        }
 
-       out_vcf <- "regeno.vcf.gz"
+       out_vcf <- "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_regeno.vcf.gz"
 
         if (method == "updog") {
           updog_genotype_vcf(vcf="~{vcf_file}",
@@ -560,7 +569,7 @@ task ReGenotyping {
                                out_vcf = out_vcf)                                                 
         }
 
-        system("gunzip regeno.vcf.gz")
+        system("gunzip ~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_regeno.vcf.gz")
 
 
      RSCRIPT
@@ -568,6 +577,7 @@ task ReGenotyping {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.5"
+    singularity:"docker://cristaniguti/reads2map:0.0.5"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -575,7 +585,7 @@ task ReGenotyping {
     # Slurm
     job_name: "ReGenotyping"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -585,7 +595,7 @@ task ReGenotyping {
   }
 
   output {
-    File regeno_vcf = "regeno.vcf"
+    File regeno_vcf = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_regeno.vcf"
   }
 }
 
@@ -654,6 +664,7 @@ task SetProbs {
   >>>
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -661,7 +672,7 @@ task SetProbs {
     # Slurm
     job_name: "SetProbs"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -745,6 +756,7 @@ task SetProbsDefault {
   >>>
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity:"docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -752,7 +764,7 @@ task SetProbsDefault {
     # Slurm
     job_name: "SetProbsDefault"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -778,7 +790,7 @@ task RemoveNonInformative {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(vcf_file, "MiB") * 2)
 
   command <<<
       R --vanilla --no-save <<RSCRIPT
@@ -796,6 +808,7 @@ task RemoveNonInformative {
 
   runtime {
       docker:"cristaniguti/reads2map:0.0.4"
+      singularity:"docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -803,7 +816,7 @@ task RemoveNonInformative {
       # Slurm
       job_name: "FilterSegregation"
       mem:"~{memory_size}M"
-      time:"10:00:00"
+      time: 10
   }
 
   meta {
@@ -823,8 +836,8 @@ task QualPlots {
         File Total
     }
 
-    Int disk_size = ceil(size(Total, "GB") + 1)
-    Int memory_size = 3000
+    Int disk_size = ceil(size(Total, "GiB") + 1)
+    Int memory_size = ceil(3000 + size(Total, "MiB") + 1)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -894,6 +907,7 @@ task QualPlots {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -901,7 +915,7 @@ task QualPlots {
         # Slurm
         job_name: "QualPlots"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -1007,6 +1021,7 @@ task QualPlotsForHardFilteringSimulated {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1014,7 +1029,7 @@ task QualPlotsForHardFilteringSimulated {
         # Slurm
         job_name: "QualPlots"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -1038,7 +1053,7 @@ task FilterMulti {
     }
 
     Int disk_size = ceil(size(multi_vcf, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(multi_vcf, "MiB") * 1.5)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -1053,6 +1068,7 @@ task FilterMulti {
 
     runtime {
         docker:"cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1060,7 +1076,7 @@ task FilterMulti {
         # Slurm
         job_name: "FilterMulti"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {

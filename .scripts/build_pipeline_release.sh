@@ -6,14 +6,16 @@ declare -r SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 &
 source ${SCRIPT_DIR}/common.sh
 
 declare ROOT_WDL=""
+declare ROOT_JSON=""
 declare VERSION=""
 declare OUTPUT_DIR=""
 declare ENV=""
 
-declare -r ZIP_SUFFIX=".zip" WDL_SUFFIX=".wdl" OPTIONS_SUFFIX=".options.json"
+declare -r ZIP_SUFFIX=".zip" WDL_SUFFIX=".wdl" OPTIONS_SUFFIX=".inputs.json"
 
 function make_release() {
   local -r rootWdl=${ROOT_WDL}
+  local -r rootJSON=${ROOT_JSON}
   local -r wdlBasename=$(basename ${rootWdl} ${WDL_SUFFIX})
 
   # Store the current working directory
@@ -37,7 +39,8 @@ function make_release() {
   # Strip the paths out of the root WDL imports
   sed -E '/http/! s/import "(.*)\/(.*\'${WDL_SUFFIX}')"/import "\2"/g' ${rootWdl} > ${outputVersionedPrefix}${WDL_SUFFIX}
 
-  write_options ${rootWdl} ${outputVersionedPrefix}
+  sed -E '/http/! s/import "(.*)\/(.*\'${OPTIONS_SUFFIX}')"/import "\2"/g' ${rootJSON} > ${outputVersionedPrefix}${OPTIONS_SUFFIX}
+  # write_options ${rootWdl} ${outputVersionedPrefix}
 
   versioned_dependencies_zip=${outputVersionedPrefix}${ZIP_SUFFIX}
 
@@ -91,6 +94,7 @@ function show_help() {
     echo ""
     echo "Arguments:"
     echo "  -w             The path to the workflow (.wdl) file"
+    echo "  -j             The path to the JSON input file template (.json) file"
     echo "  -v             The version of the workflow (used in building the release name)"
     echo "  -o             The directory into which the outputs will be written"
     echo "  -e             The environment (dev, staging, or prod)"
@@ -98,7 +102,7 @@ function show_help() {
     echo ""
 }
 
-while getopts "hw:v:o:e:" opt; do
+while getopts "hw:j:v:o:e:" opt; do
     case ${opt} in
 	    h)
 	      show_help
@@ -110,6 +114,13 @@ while getopts "hw:v:o:e:" opt; do
           exit 1
         fi
         ROOT_WDL=${OPTARG}
+        ;;
+      j)
+        if [[ ! -f ${OPTARG} ]]; then
+          echo >&2 Error: ${OPTARG} does not exist!
+          exit 1
+        fi
+        ROOT_JSON=${OPTARG}
         ;;
       v)
         VERSION=${OPTARG}

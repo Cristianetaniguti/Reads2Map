@@ -136,6 +136,7 @@ task MappolyReport {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.5"
+    singularity: "docker://cristaniguti/reads2map:0.0.5"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -143,7 +144,7 @@ task MappolyReport {
     # Slurm
     job_name: "MappolyReport"
     mem:"~{memory_size}G"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -153,6 +154,6 @@ task MappolyReport {
   }
 
   output {
-    File results = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_results.tar.gz"
+    File results = "~{SNPCall_program}_~{GenotypeCall_program}Poly_~{CountsFrom}_results.tar.gz"
   }
 }

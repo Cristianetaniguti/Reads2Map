@@ -26,6 +26,7 @@ task RunFreebayes {
 
   runtime {
     docker: "cristaniguti/freebayes:0.0.1"
+    singularity:"docker://cristaniguti/freebayes:0.0.1"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -33,7 +34,7 @@ task RunFreebayes {
     # Slurm
     job_name: "RunFreebayes"
     mem:"~{memory_size}M"
-    time:"48:00:00"
+    time: 48
   }
 
   meta {

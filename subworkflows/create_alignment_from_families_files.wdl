@@ -11,6 +11,7 @@ workflow CreateAlignmentFromFamilies {
         Int max_cores
         Boolean rm_dupli
         Boolean gatk_mchap
+        Boolean pair_end
         Int chunk_size
     }
 
@@ -24,11 +25,17 @@ workflow CreateAlignmentFromFamilies {
 
         Array[Array[String]] sample_file = read_tsv(chunk)
 
+        if(pair_end) {
+            Array[File] pair = sample_file[3]
+        }
+
         call alg.RunBwaAlignment {
             input:
                 sampleName  = sample_file[1],
-                reads       = sample_file[0],
+                reads1       = sample_file[0],
+                reads2       = pair,
                 libraries   = sample_file[2],
+                pair_end    = pair_end,
                 references  = references,
                 max_cores   = max_cores,
                 rm_dupli    = rm_dupli

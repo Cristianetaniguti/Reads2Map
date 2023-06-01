@@ -12,12 +12,13 @@ task HaplotypeCaller {
     Array[File] bams_index
     Int ploidy
     Int chunk_size
+    Int max_ram = 10000
   }
 
   Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
-  Int memory_max = 12000
-  Int memory_min = memory_max / 2
-  Int memory_size = ceil(memory_max * chunk_size + 5000)
+  Int memory_max = ceil(max_ram/chunk_size - 1000)
+  Int memory_min = ceil((max_ram/chunk_size)/5)
+  Int memory_size = max_ram
   Int max_cores = ceil(chunk_size * 4 + 2)
 
   command <<<
@@ -40,11 +41,12 @@ task HaplotypeCaller {
         --max-reads-per-alignment-start 0 &
     done
 
-    wait  # TODO: Why this line? Because of the &
+    wait  
   >>>
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -52,7 +54,7 @@ task HaplotypeCaller {
     # Slurm
     job_name: "HaplotypeCaller"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -75,12 +77,13 @@ task ImportGVCFs  {
     File reference_fai
     File reference_dict
     String interval
+    Int max_ram = 26000
   }
 
   Int disk_size = ceil(size(vcfs, "GiB") * 1.5 + size(reference_fasta, "GiB") * 1.5)
-  Int memory_max = 2300
-  Int memory_min = 2000
-  Int memory_size = 26000
+  Int memory_max = ceil(max_ram - 1000)
+  Int memory_min = ceil(max_ram/3.85)
+  Int memory_size = max_ram
 
   command <<<
     set -euo pipefail
@@ -103,6 +106,7 @@ task ImportGVCFs  {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -110,7 +114,7 @@ task ImportGVCFs  {
     # Slurm
     job_name: "ImportGVCFs"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -131,12 +135,13 @@ task GenotypeGVCFs   {
     File reference_fai
     File reference_dict
     String interval
+    Int max_ram = 26000
   }
 
   Int disk_size = ceil(size(reference_fasta, "GiB") * 1.5 + size(workspace_tar, "GiB") * 1.5)
-  Int memory_max = 2300
-  Int memory_min = 2000
-  Int memory_size = 26000
+  Int memory_max = ceil(max_ram - 1000)
+  Int memory_min = ceil(max_ram/3.85)
+  Int memory_size = max_ram
 
   command <<<
     set -euo pipefail
@@ -155,6 +160,7 @@ task GenotypeGVCFs   {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 2
     # Cloud
     memory:"~{memory_size} MiB"
@@ -162,7 +168,7 @@ task GenotypeGVCFs   {
     # Slurm
     job_name: "GenotypeGVCFs"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -185,8 +191,8 @@ task MergeVCFs {
   }
 
   Int disk_size = ceil(size(input_vcfs, "GiB") * 2.5) + 10
-  Int memory_max = 2800
-  Int memory_min = 2600
+  Int memory_max = 2600
+  Int memory_min = 2500
   Int memory_size = 3000
 
   command <<<
@@ -199,6 +205,7 @@ task MergeVCFs {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -206,7 +213,7 @@ task MergeVCFs {
     # Slurm
     job_name: "MergeVCFs"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {
@@ -231,7 +238,7 @@ task VariantsToTable {
     }
 
     Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + 2)
-    Int memory_size = 2500
+    Int memory_size = 2500 + ceil(size(reference, "MB") + size(vcf_file, "MB") + 2)
 
     command <<<
 
@@ -250,6 +257,7 @@ task VariantsToTable {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -257,7 +265,7 @@ task VariantsToTable {
         # Slurm
         job_name: "VariantsToTable"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -282,7 +290,7 @@ task VariantFiltration {
     }
 
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
-    Int memory_size = 3000
+    Int memory_size = 3000 + ceil(size(vcf_file, "MB") + size(reference, "MB") + 1)
 
     command <<<
         /usr/gitc/gatk4/./gatk VariantFiltration \
@@ -306,6 +314,7 @@ task VariantFiltration {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -313,7 +322,7 @@ task VariantFiltration {
         # Slurm
         job_name: "VariantFiltration"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {
@@ -339,7 +348,7 @@ task VariantsToTableForHardFilteringSimulated {
     }
 
      Int disk_size = ceil(size(reference, "GB") + size(vcf_file, "GB") + size(simu_vcf, "GB") + 2)
-     Int memory_size = 3000
+     Int memory_size = 3000 + ceil(size(reference, "MB") + size(vcf_file, "MB") + size(simu_vcf, "MB") + 2)
 
     command <<<
         /usr/gitc/./bgzip -c  ~{simu_vcf} > ~{simu_vcf}.gz
@@ -393,6 +402,7 @@ task VariantsToTableForHardFilteringSimulated {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -400,7 +410,7 @@ task VariantsToTableForHardFilteringSimulated {
         # Slurm
         job_name: "VariantsToTable"
         mem:"~{memory_size}M"
-        time:"01:40:00"
+        time: 2
     }
 
     meta {
@@ -428,7 +438,7 @@ task VariantEval {
   }
 
   Int disk_size = ceil(size(vcf_norm, "GiB") + size(reference, "GiB") + size(vcf_simu, "GiB") + 2)
-  Int memory_size = 3000
+  Int memory_size = 3000 + ceil(size(vcf_norm, "MiB") + size(reference, "MiB") + size(vcf_simu, "MiB") + 2)
 
   command <<<
     java -jar  /usr/gitc/GATK35.jar -T VariantEval -R ~{reference} -eval ~{vcf_norm} ~{"-D " + vcf_simu} -EV ValidationReport -EV CountVariants -ploidy ~{ploidy} -o vcfEval.txt
@@ -436,6 +446,7 @@ task VariantEval {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity: "docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -443,7 +454,7 @@ task VariantEval {
     # Slurm
     job_name: "VariantEval"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {

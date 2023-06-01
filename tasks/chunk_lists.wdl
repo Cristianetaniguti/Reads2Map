@@ -7,11 +7,14 @@ task SepareChunksFastqString {
     }
 
     Int disk_size = ceil(size(families_info, "GiB") * 2)
-    Int memory_size = 1000
+    Int memory_size = 4000 + ceil(size(families_info, "MiB") * 2)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
             df <- read.table("~{families_info}")
+            if(dim(df)[2] > 3) { #pair-end
+              df <- df[,c(1,3,4,2)]
+            } 
             split_df <- split.data.frame(df, df[,2])
 
             n_chunk <- as.integer(length(split_df)/~{chunk_size})
@@ -22,6 +25,7 @@ task SepareChunksFastqString {
             for(i in 1:length(chunk_sep)){
                 df <- do.call(rbind, unlist(chunk_sep[i], recursive = F))
                 df <- t(df)
+                print(df)
                 write.table(df, file = paste0("chunk_",i, ".txt"), quote = F, col.names = F, row.names = F, sep="\t")
             }
 
@@ -31,6 +35,7 @@ task SepareChunksFastqString {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu:1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -38,7 +43,7 @@ task SepareChunksFastqString {
         # Slurm
         job_name: "SepareChunksIndividuals"
         mem:"~{memory_size}M"
-        time:"00:10:00"
+        time: 1
     }
 
     meta {
@@ -60,7 +65,7 @@ task SepareChunksFastq {
   }
 
   Int disk_size = ceil(size(fastqs, "GiB") * 2)
-  Int memory_size = 1000
+  Int memory_size = 1000 + ceil(size(fastqs, "MiB") * 2)
 
   command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -85,6 +90,7 @@ task SepareChunksFastq {
 
   runtime {
       docker: "cristaniguti/reads2map:0.0.4"
+      singularity:"docker://cristaniguti/reads2map:0.0.4"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -92,7 +98,7 @@ task SepareChunksFastq {
       # Slurm
       job_name: "SepareChunksIndividuals"
       mem:"~{memory_size}M"
-      time:"00:10:00"
+      time: 1
   }
 
   meta {
@@ -130,6 +136,7 @@ task CreateChunksBam {
 
   runtime {
     docker: "ubuntu:20.04"
+    singularity:"docker://ubuntu:20.04"
     cpu: 1
     # Cloud
     memory:"1000 MiB"
@@ -137,7 +144,7 @@ task CreateChunksBam {
     # Slurm
     job_name: "CreateChunks"
     mem:"1G"
-    time:"00:05:00"
+    time: 1
   }
 
   meta {
@@ -160,7 +167,7 @@ task SepareChunksBed {
     }
 
     Int disk_size = ceil(size(bed_file, "GiB") * 1.5)
-    Int memory_size = 1000
+    Int memory_size = 1000 + ceil(size(bed_file, "MiB") * 1.5)
 
     command <<<
         R --vanilla --no-save <<RSCRIPT
@@ -182,6 +189,7 @@ task SepareChunksBed {
 
     runtime {
         docker: "cristaniguti/reads2map:0.0.4"
+        singularity:"docker://cristaniguti/reads2map:0.0.4"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -189,7 +197,7 @@ task SepareChunksBed {
         # Slurm
         job_name: "SepareChunksBed"
         mem:"~{memory_size}M"
-        time:"00:05:00"
+        time: 1
     }
 
     meta {
@@ -243,6 +251,7 @@ task CreateChunksBamByChr {
 
   runtime {
     docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+    singularity:"docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
     cpu: 1
     # Cloud
     memory:"1000 MiB"
@@ -250,7 +259,7 @@ task CreateChunksBamByChr {
     # Slurm
     job_name: "CreateChunks"
     mem:"1G"
-    time:"10:00:00"
+    time: 1
   }
 
   meta {

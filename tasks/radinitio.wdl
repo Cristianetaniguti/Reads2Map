@@ -99,6 +99,7 @@ task RADinitioSimulation {
 
   runtime {
     docker: "cristaniguti/radinitio:0.0.1"
+    singularity: "docker://cristaniguti/radinitio:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -108,7 +109,7 @@ task RADinitioSimulation {
     # Slurm
     job_name: "RADinitioSimulation"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {

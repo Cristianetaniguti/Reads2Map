@@ -6,7 +6,7 @@ task mergeVCFs {
     }
 
     Int disk_size = ceil(size(haplo_vcf, "GiB") * 2)
-    Int memory_size = 5000
+    Int memory_size =  ceil(3000 + size(haplo_vcf, "MiB") * 2)
 
     command <<<
 
@@ -32,6 +32,7 @@ task mergeVCFs {
 
     runtime {
         docker:"lifebitai/bcftools:1.10.2"
+        singularity: "docker://lifebitai/bcftools:1.10.2"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -39,7 +40,7 @@ task mergeVCFs {
         # Slurm
         job_name: "mergeVCFs"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {
@@ -62,7 +63,7 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
   }
 
   Int disk_size = ceil(size(simulated_vcf, "GiB") * 2) 
-  Int memory_size = 1000 
+  Int memory_size = ceil(1000 + size(simulated_vcf, "MiB") * 2)  
 
   command <<<
     export PATH=$PATH:/opt/conda/bin
@@ -80,6 +81,7 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
 
   runtime {
     docker: "cristaniguti/miniconda-alpine:0.0.1"
+    singularity: "docker://cristaniguti/miniconda-alpine:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -87,7 +89,7 @@ task GenerateSampleNames {  # TODO: probably a name like 'ReadSamplesNamesInVcf'
     # Slurm
     job_name: "GenerateSampleNames"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -112,7 +114,7 @@ task ApplyRandomFilters {
   }
 
   Int disk_size = ceil(size(gatk_vcf, "GiB") * 2 + size(freebayes_vcf, "GiB") * 2 + size(gatk_vcf_bam_counts, "GiB") * 2 + size(freebayes_vcf_bam_counts, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(gatk_vcf, "MiB") * 2 + size(freebayes_vcf, "MiB") * 2 + size(gatk_vcf_bam_counts, "MiB") * 2 + size(freebayes_vcf_bam_counts, "MiB") * 2)
 
   command <<<
     # Required update to deal with polyploids
@@ -128,6 +130,7 @@ task ApplyRandomFilters {
 
   runtime {
     docker:"cristaniguti/split_markers:0.0.1"
+    singularity: "docker://cristaniguti/split_markers:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -135,7 +138,7 @@ task ApplyRandomFilters {
     # Slurm
     job_name: "ApplyRandomFilters"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -155,34 +158,44 @@ task ApplyRandomFilters {
 task ApplyRandomFiltersArray {
   input{
     Array[File] vcfs
-    Array[String] vcfs_software
-    Array[String] vcfs_counts_source
+    Array[String] vcfs_SNPCall_software
+    Array[String] vcfs_Counts_source
+    Array[String] vcfs_GenoCall_software
     String? filters
     String? chromosome
   }
 
   Int disk_size = ceil(size(vcfs, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(vcfs, "MiB") * 2)
 
   command <<<
 
       vcfs=(~{sep = " " vcfs})
-      vcfs_software=(~{sep=" " vcfs_software})
-      vcfs_counts_source=(~{sep=" " vcfs_counts_source})
+      vcfs_snp_software=(~{sep=" " vcfs_SNPCall_software})
+      vcfs_counts_source=(~{sep=" " vcfs_Counts_source})
+      vcfs_geno_software=(~{sep=" " vcfs_GenoCall_software})
 
       for index in ${!vcfs[*]}; do
-          cp ${vcfs[$index]} temp.vcf
-          tabix -p vcf temp.vcf
-          bcftools view temp.vcf ~{filters} -r ~{chromosome} \
-          -o vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz
-          rm temp.vcf temp.vcf.tbi
-          echo vcf_filt_${vcfs_software[$index]}_${vcfs_counts_source[$index]}.vcf.gz >> outputs.txt
+          if [[ ${vcfs[$index]} != *.gz ]]; then
+            cp ${vcfs[$index]} temp.vcf
+            bgzip temp.vcf
+          else 
+            cp ${vcfs[$index]} temp.vcf.gz
+          fi
+          
+          tabix -p vcf temp.vcf.gz
+          bcftools view temp.vcf.gz ~{filters} ~{" -r " + chromosome} \
+          -o vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf
+          bgzip vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf
+          rm temp.vcf.gz temp.vcf.gz.tbi
+          echo vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf.gz >> outputs.txt
       done
 
   >>>
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -190,7 +203,7 @@ task ApplyRandomFiltersArray {
     # Slurm
     job_name: "ApplyRandomFilters"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -211,7 +224,7 @@ task SplitMarkers {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(vcf_file, "MiB") * 2)
 
   command <<<
     bcftools view --max-alleles 2 --min-alleles 2 --output-type z --output-file biallelics.vcf.gz  ~{vcf_file}
@@ -220,6 +233,7 @@ task SplitMarkers {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -227,7 +241,7 @@ task SplitMarkers {
     # Slurm
     job_name: "SplitMarkers"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -244,12 +258,15 @@ task SplitMarkers {
 
 task JointMarkers {
   input{
+    String SNPCall_program
+    String CountsFrom
+    String GenotypeCall_program
     File biallelic_vcf
     File? multiallelic_vcf
   }
 
    Int disk_size = ceil(size(biallelic_vcf, "GiB") * 2 + size(multiallelic_vcf, "GiB") * 2)
-  Int memory_size = 3000
+  Int memory_size = ceil(3000 + size(biallelic_vcf, "MiB") * 2 + size(multiallelic_vcf, "MiB") * 2)
 
   command <<<
 
@@ -270,13 +287,14 @@ task JointMarkers {
 
     tabix -p vcf ~{multiallelic_vcf}
     bcftools view -S samples.txt ~{multiallelic_vcf} > multiallelic_sort.vcf
-    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output merged.vcf
-    bgzip merged.vcf
+    bcftools concat biallelic_sort.vcf multiallelic_sort.vcf --output ~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.vcf
+    bgzip ~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.vcf
 
   >>>
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -284,7 +302,7 @@ task JointMarkers {
     # Slurm
     job_name: "JointMarkers"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -294,7 +312,7 @@ task JointMarkers {
   }
 
   output {
-    File merged_vcf = "merged.vcf.gz"
+    File merged_vcf = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.vcf.gz"
   }
 }
 
@@ -340,6 +358,7 @@ task ReplaceAD {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -347,7 +366,7 @@ task ReplaceAD {
     # Slurm
     job_name: "ReplaceAD"
     mem:"~{memory_size}M"
-    time:"24:00:00"
+    time: 24
   }
 
   meta {
@@ -375,7 +394,7 @@ task Compress {
     }
 
     Int disk_size = ceil(size(RDatas, "GiB") + size(maps_report, "GiB") + size(times, "GiB") + size(filters_report, "GiB") + size(errors_report, "GiB"))
-    Int memory_size = 1000
+    Int memory_size = ceil(2000 + size(RDatas, "MiB") + size(maps_report, "MiB") + size(times, "MiB") + size(filters_report, "MiB") + size(errors_report, "MiB"))
 
     command <<<
 
@@ -391,6 +410,7 @@ task Compress {
 
   runtime {
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -398,7 +418,7 @@ task Compress {
     # Slurm
     job_name: "Compress"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -425,7 +445,7 @@ task GetMarkersPos {
   }
 
   Int disk_size = ceil(size(true_vcf, "GiB") * 1.5 + size(filtered_gatk_vcf, "GiB") * 1.5 + size(filtered_gatk_vcf_bamcounts, "GiB") + size(filtered_freebayes_vcf, "GiB") + size(filtered_freebayes_vcf_bamcounts, "GiB"))
-  Int memory_size = 5000
+  Int memory_size = ceil(3000 + size(true_vcf, "MiB") * 1.5 + size(filtered_gatk_vcf, "MiB") * 1.5 + size(filtered_gatk_vcf_bamcounts, "MiB") + size(filtered_freebayes_vcf, "MiB") + size(filtered_freebayes_vcf_bamcounts, "MiB"))
 
   command <<<
 
@@ -442,6 +462,7 @@ task GetMarkersPos {
 
   runtime {
     docker:"lifebitai/bcftools:1.10.2"
+    singularity: "docker://lifebitai/bcftools:1.10.2"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -449,7 +470,7 @@ task GetMarkersPos {
     # Slurm
     job_name: "GetMarkerPos"
     mem:"~{memory_size}M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {
@@ -469,7 +490,7 @@ task MergeBams{
     }
 
     Int disk_size = ceil(size(bam_files, "GiB") * 2)
-    Int memory_size = ceil(size(bam_files, "MiB") * 2)
+    Int memory_size = ceil(3000 + size(bam_files, "MiB") * 2)
 
     command <<<
         samtools merge merged.bam ~{sep=" " bam_files}
@@ -477,6 +498,7 @@ task MergeBams{
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity: "docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu:1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -484,7 +506,7 @@ task MergeBams{
         # Slurm
         job_name: "MergeBams"
         mem:"~{memory_size}M"
-        time:"10:00:00"
+        time: 10
     }
 
     meta {
@@ -505,7 +527,7 @@ task TarFiles {
   }
 
   Int disk_size = ceil(size(sequences, "GiB") * 2)
-  Int memory_size = 6000
+  Int memory_size = ceil(4000 + size(sequences, "MiB") * 2)
   
   command <<<
     mkdir results
@@ -515,6 +537,7 @@ task TarFiles {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    singularity: "docker://kfdrc/cutadapt"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -522,7 +545,7 @@ task TarFiles {
     # Slurm
     job_name: "TarFiles"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   output {
@@ -540,7 +563,7 @@ task VariantFiltration {
     }
 
     Int disk_size = ceil(size(vcf_file, "GB") + size(reference, "GB") + 1)
-    Int memory_size = 5000
+    Int memory_size = ceil(5000 + size(vcf_file, "MiB") * 2)
 
     command <<<
         /usr/gitc/gatk4/./gatk VariantFiltration \
@@ -564,6 +587,7 @@ task VariantFiltration {
 
     runtime {
         docker: "us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
+        singularity: "docker://us.gcr.io/broad-gotc-prod/genomes-in-the-cloud:2.5.7-2021-06-09_16-47-48Z"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -571,7 +595,7 @@ task VariantFiltration {
         # Slurm
         job_name: "VariantFiltration"
         mem:"~{memory_size}M"
-        time:"01:00:00"
+        time: 1
     }
 
     meta {
@@ -592,7 +616,7 @@ task BamToBed {
     }
 
     Int disk_size = ceil(size(merged_bams, "GiB") * 1.5)
-    Int memory_size = 3000
+    Int memory_size = ceil(3000 + size(merged_bams, "MiB") * 1.5)
 
     command <<<
         bamToBed -i ~{merged_bams} > file.bed
@@ -601,6 +625,7 @@ task BamToBed {
 
     runtime {
         docker: "biocontainers/bedtools:v2.27.1dfsg-4-deb_cv1"
+        singularity: "docker://biocontainers/bedtools:v2.27.1dfsg-4-deb_cv1"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -608,7 +633,7 @@ task BamToBed {
         # Slurm
         job_name: "BamToBed"
         mem:"~{memory_size}M"
-        time:"05:00:00"
+        time: 5
     }
 
     meta {

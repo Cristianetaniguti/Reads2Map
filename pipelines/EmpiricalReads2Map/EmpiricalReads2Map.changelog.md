@@ -1,3 +1,24 @@
+# 1.4.0
+
+* STACKs included
+* support to pair-end reads
+* defined defaults
+* runtimes adapted to run with Caper
+* [new tutorial](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
+
+# 1.3.0
+
+* TASSEL 5.0 included
+* releases include the input files template
+* new parameter to control maximum ram memory used by GATK and TASSEL
+
+# 1.2.0
+
+* Add MAPpoly to build linkage maps for polyploid species
+* Run freebayes parallelizing in nodes according to chromosomes and cores splitting in genomic regions
+* Adjust runtimes 
+* Add polyploid dataset for tests
+
 # 1.0.0
 
 Initial release

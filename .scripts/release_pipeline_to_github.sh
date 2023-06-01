@@ -103,9 +103,10 @@ function build_and_release_to_github() {
   local -r prerelease=${5}
   local -r pipelineName=$(basename ${pipeline} .wdl)
   local -r changelog=$(dirname ${pipeline})/${pipelineName}.changelog.md
+  local -r inputsName=$(dirname ${pipeline})/${pipelineName}.inputs.json
 
   stderr "Building artifacts for ${releaseName}"
-  ${SCRIPT_DIR}/build_pipeline_release.sh -w ${pipeline} -e prod -v ${version} -o ${localReleaseDir}
+  ${SCRIPT_DIR}/build_pipeline_release.sh -w ${pipeline} -j ${inputsName} -e prod -v ${version} -o ${localReleaseDir}
 
   stderr "Building release notes for ${releaseName}"
   local previousEntryStart
@@ -197,8 +198,8 @@ function upload_to_github_as_draft() {
     ${pipelineName} \
     ${version} \
     ${releaseName} \
-    "options.json" \
-    "application/json"
+    "inputs.json" \
+    "text/json"
 
   local -r dependenciesZip=${localReleaseDir}/${pipelineName}/${pipelineName}_${version}.zip
 

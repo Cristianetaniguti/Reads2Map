@@ -37,6 +37,7 @@ task SimuscopProfile {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -44,7 +45,7 @@ task SimuscopProfile {
     # Slurm
     job_name: "SimuscopProfile"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {
@@ -114,6 +115,7 @@ task SimuscopSimulation {
 
   runtime {
     docker: "cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -121,7 +123,7 @@ task SimuscopSimulation {
     # Slurm
     job_name: "SimuscopSimulation"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 10
   }
 
   meta {

@@ -28,6 +28,8 @@ workflow onemapMaps {
       input:
           vcf_file = vcf_file,
           GenotypeCall_program = genotyping_program,
+          SNPCall_program = SNPCall_program,
+          CountsFrom = CountsFrom,
           cross = cross,
           parent1 = "P1",
           parent2 = "P2",
@@ -39,7 +41,10 @@ workflow onemapMaps {
     call utils.JointMarkers {
       input:
         biallelic_vcf = ReGenotyping.regeno_vcf,
-        multiallelic_vcf = multiallelics_file
+        multiallelic_vcf = multiallelics_file,
+        SNPCall_program = SNPCall_program,
+        CountsFrom = CountsFrom,
+        GenotypeCall_program = genotyping_program
     }
   }
 

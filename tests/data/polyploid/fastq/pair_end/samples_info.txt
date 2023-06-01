@@ -1,0 +1,4 @@
+tests/data/polyploid/fastq/pair_end/S1.1.fq.gz   tests/data/polyploid/fastq/pair_end/S1.2.fq.gz   1   1
+tests/data/polyploid/fastq/pair_end/S2.1.fq.gz   tests/data/polyploid/fastq/pair_end/S2.2.fq.gz   2    2
+tests/data/polyploid/fastq/pair_end/P1.1.fq.gz   tests/data/polyploid/fastq/pair_end/P1.2.fq.gz   P1    P1
+tests/data/polyploid/fastq/pair_end/P2.1.fq.gz   tests/data/polyploid/fastq/pair_end/P2.2.fq.gz   P2    P2

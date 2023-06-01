@@ -1,16 +1,171 @@
 version 1.0
 
+
+task JointAllReports{
+  input{
+    Array[File]? SNPCallerMapsEmp
+    Array[File]? updogMaps
+    Array[File]? polyradMaps
+    Array[File]? supermassaMaps
+    Array[File]? gusmapMapsEmp
+    Array[File]? SNPCallerPolyMapsEmp
+    Array[File]? updogPolyMaps
+    Array[File]? polyradPolyMaps
+    Array[File]? supermassaPolyMaps
+    Int max_cores
+    Int ploidy
+  }
+
+  Int memory_size = 4000
+
+  command <<<
+     R --vanilla --no-save <<RSCRIPT
+
+      library(tidyr)
+      library(stringr)
+      library(vroom)
+      library(largeList)
+
+      if(~{ploidy} > 2){
+
+        SNPCallerPolyMapsEmp <- str_split("~{sep=';' SNPCallerPolyMapsEmp}", ";", simplify = TRUE)
+        updogPolyMaps        <- str_split("~{sep=';' updogPolyMaps}", ";", simplify = TRUE)
+        polyradPolyMaps      <- str_split("~{sep=';' polyradPolyMaps}", ";", simplify = TRUE)
+        supermassaPolyMaps   <- str_split("~{sep=';' supermassaPolyMaps}", ";", simplify = TRUE)
+
+        all_files <- c(SNPCallerPolyMapsEmp, updogPolyMaps, polyradPolyMaps, supermassaPolyMaps)
+        all_files <- all_files[-which(all_files == "")]
+
+        system("mkdir results_all")
+        
+        for(i in 1:length(all_files)) {
+          system(paste("tar -xvf ", all_files[i]))
+          system("mv results/* results_all")
+          system("rm -r results")
+        }
+        
+        system("tar -czvf EmpiricalReads_results.tar.gz results_all")
+
+      } else {
+        
+        SNPCallerMapsEmp <- str_split("~{sep=';' SNPCallerMapsEmp}", ";", simplify = TRUE)
+        updogMaps        <- str_split("~{sep=';' updogMaps}", ";", simplify = TRUE)
+        polyradMaps      <- str_split("~{sep=';' polyradMaps}", ";", simplify = TRUE)
+        supermassaMaps   <- str_split("~{sep=';' supermassaMaps}", ";", simplify = TRUE)
+        gusmapMapsEmp   <- str_split("~{sep=';' gusmapMapsEmp}", ";", simplify = TRUE)
+
+        files <- list(SNPCallerMapsEmp, updogMaps, polyradMaps, supermassaMaps, gusmapMapsEmp)
+        files <- files[-which(files == "")]
+
+        path_dir <- tempdir()
+        system(paste0("mkdir ", paste0(path_dir, c("/maps", "/filters", "/errors", "/times", "/RDatas"), collapse = " ")))
+        for(i in 1:length(files)){
+          for(j in 1:length(files[[i]])){
+            untar(files[[i]][[j]], exdir = path_dir)
+            list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
+            system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
+            if(!grepl("gusmap", list_files[1])){
+              system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
+              system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
+            }
+          }
+        }
+
+        files <- system(paste0("ls ", path_dir, "/maps/"), intern = T)
+        files <- paste0(path_dir, "/maps/", files)
+        maps <- vroom(files, num_threads = ~{max_cores})
+
+        files <- system(paste0("ls ", path_dir, "/filters/"), intern = T)
+        files <- paste0(path_dir, "/filters/", files)
+        filters <- vroom(files, num_threads = ~{max_cores})
+
+        files <- system(paste0("ls ", path_dir, "/errors/"), intern = T)
+        files <- paste0(path_dir, "/errors/", files)
+        errors <- vroom(files, num_threads = ~{max_cores})
+
+        files <- system(paste0("ls ", path_dir, "/times/"), intern = T)
+        files <- paste0(path_dir, "/times/", files)
+        times <- vroom(files, num_threads = ~{max_cores})
+
+        files <- system(paste0("ls ", path_dir, "/RDatas/"), intern = T)
+        files <- paste0(path_dir, "/RDatas/", files)
+
+        all_RDatas <- list()
+        for(i in 1:length(files)){
+          map_temp <- load(files[i])
+          all_RDatas[[i]] <- get(map_temp)
+        }
+
+        names(all_RDatas) <- basename(files)
+
+        if(any(grepl("gusmap", names(all_RDatas)))){
+          gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
+          save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+          RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
+        } else RDatas <- all_RDatas
+        
+        #   # Converting onemap sequencig objects to list. LargeList do not accept other class
+        #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
+        for(i in 1:length(RDatas)){
+          class(RDatas[[i]]) <- "list"
+        }
+
+        saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
+
+        new_names <- names(all_RDatas)
+        vroom_write(as.data.frame(new_names), "names.tsv.gz")
+
+        # Outputs
+        vroom_write(errors, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
+        vroom_write(maps, "data2_maps.tsv.gz", num_threads = ~{max_cores})
+        vroom_write(filters, "data3_filters.tsv.gz", num_threads = ~{max_cores})
+        vroom_write(times, "data4_times.tsv.gz", num_threads = ~{max_cores})
+
+        system("mkdir EmpiricalReads_results")
+
+        if(any(grepl("gusmap", names(all_RDatas)))){
+          system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
+        } else system("mv sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
+
+        system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
+
+      }
+
+     RSCRIPT
+  >>>
+
+  runtime{
+    docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
+    cpu: max_cores
+    # Cloud
+    memory:"~{memory_size} MiB"
+    disks:"local-disk 2 GiB HDD"
+    # Slurm
+    job_name: "JointAllReports"
+    mem:"~{memory_size}M"
+    time: 2
+  }
+
+  output {
+    File EmpiricalReads_results = "EmpiricalReads_results.tar.gz"
+  }
+}
+
+
 task JointReports{
   input{
-    Array[File?] SNPCaller
-    Array[File?] updog
-    Array[File?] polyrad
-    Array[File?] supermassa
-    Array[File?] gusmap
+    Array[File]? SNPCaller
+    Array[File]? updog
+    Array[File]? polyrad
+    Array[File]? supermassa
+    Array[File]? gusmap
     Int max_cores
   }
 
-  Int disk_size = ceil(size(SNPCaller, "GiB") * 1.5 + size(updog, "GiB") * 1.5 + size(polyrad, "GiB") * 1.5 + size(supermassa, "GiB") * 1.5 + size(gusmap, "GiB") * 1.5)
+  Int disk_size = 4000
   Int memory_size = 4000
 
   command <<<
@@ -104,6 +259,7 @@ task JointReports{
 
   runtime{
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -111,7 +267,7 @@ task JointReports{
     # Slurm
     job_name: "JointReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   output{
@@ -247,6 +403,7 @@ task JointReportsSimu {
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -254,7 +411,7 @@ task JointReportsSimu {
     # Slurm
     job_name: "JointReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   meta {
@@ -370,6 +527,7 @@ task JointTablesSimu{
 
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
+    singularity: "docker://cristaniguti/reads2map:0.0.4"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -377,7 +535,7 @@ task JointTablesSimu{
     # Slurm
     job_name: "JointTables"
     mem:"~{memory_size}M"
-    time:"01:40:00"     
+    time: 2   
   }
 
   output {
@@ -435,6 +593,7 @@ task JointReportsPoly{
 
   runtime{
     docker:"ubuntu:20.04"
+    singularity: "docker://ubuntu:20.04"
     cpu: 1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -442,7 +601,7 @@ task JointReportsPoly{
     # Slurm
     job_name: "JointReports"
     mem:"~{memory_size}M"
-    time:"01:40:00"
+    time: 2
   }
 
   output{

@@ -86,8 +86,9 @@ workflow SimulatedSingleFamily {
         call utils.ApplyRandomFiltersArray {
             input:
                 vcfs = flatten(vcfs_sele),
-                vcfs_software = flatten(software_sele),
-                vcfs_counts_source = flatten(source_sele),
+                vcfs_SNPCall_software = flatten(software_sele),
+                vcfs_Counts_source = flatten(source_sele),
+                vcfs_GenoCall_software = range(length(flatten(software_sele))),
                 filters = filters,
                 chromosome = sequencing.chromosome
         }

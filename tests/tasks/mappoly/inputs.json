@@ -2,6 +2,8 @@
     "vcf_file": "tests/data/polyploid/ReGenotyping_out/polyrad/regeno.vcf",
     "GenotypeCall_program": "polyrad",
     "SNPCall_program":"gatk",
+    "CountsFrom": "vcf",
+    "ploidy": 4,
     "parent1": "P1",
     "parent2": "P2",
     "max_cores": 2

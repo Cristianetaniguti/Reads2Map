@@ -1,0 +1,4 @@
+- name: SNP and genotype calling with GATK
+  tags:
+    - gatk
+  command: miniwdl run -i tests/subworkflows/gatk_genotyping/inputs.json subworkflows/gatk_genotyping.wdl

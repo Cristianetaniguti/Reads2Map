@@ -1,3 +1,7 @@
+# 1.0.1
+
+* runtimes adapted to run with Caper
+
 # 1.0.0
 
 Initial release

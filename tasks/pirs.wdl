@@ -16,6 +16,7 @@ task GenerateAlternativeGenome {
 
   runtime {
     docker: "cristaniguti/pirs-ddrad-cutadapt:0.0.1"
+    singularity: "docker://cristaniguti/pirs-ddrad-cutadapt:0.0.1"
     cpu:1
     # Cloud
     memory:"3000 MiB"
@@ -23,7 +24,7 @@ task GenerateAlternativeGenome {
     # Slurm
     job_name: "GenerateAlternativeGenome"
     mem:"3000M"
-    time:"01:00:00"
+    time: 1
   }
 
   meta {

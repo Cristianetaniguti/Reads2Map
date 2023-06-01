@@ -20,6 +20,7 @@ task RunVcf2diploid {
 
   runtime {
     docker: "cristaniguti/java-in-the-cloud:0.0.1"
+    singularity:"docker://cristaniguti/java-in-the-cloud:0.0.1"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -27,7 +28,7 @@ task RunVcf2diploid {
     # Slurm
     job_name: "RunVcf2diploid"
     mem:"~{memory_size}M"
-    time:"05:00:00"
+    time: 5
   }
 
   meta {

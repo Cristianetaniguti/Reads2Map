@@ -8,7 +8,7 @@ task RemoveAdapt {
   }
 
   Int disk_size = ceil(size(sequence, "GiB") * 2)
-  Int memory_size = 6000
+  Int memory_size = 4000 + ceil(size(sequence, "MiB") * 2)
 
   command <<<
     cutadapt -a ~{adapter} -o ~{sequence_name}_trim.fastq.gz ~{sequence} --minimum-length 64
@@ -16,6 +16,7 @@ task RemoveAdapt {
 
   runtime {
     docker:"kfdrc/cutadapt"
+    singularity:"docker://kfdrc/cutadapt"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -23,7 +24,7 @@ task RemoveAdapt {
     # Slurm
     job_name: "RemoveAdapt"
     mem:"~{memory_size}M"
-    time:"10:00:00"
+    time: 1
   }
 
   output {
