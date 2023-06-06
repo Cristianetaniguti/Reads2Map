@@ -1,11 +1,13 @@
 version 1.0
 
+import "../structs/dna_seq_structs.wdl"
 import "../tasks/stacks.wdl"
 
 import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
 
 workflow StacksGenotyping {
     input {
+        ReferenceFasta references
         Array[File] bams
         File? pop_map
         Int max_cores
