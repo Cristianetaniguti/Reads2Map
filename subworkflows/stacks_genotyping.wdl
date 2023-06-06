@@ -2,6 +2,7 @@ version 1.0
 
 import "../tasks/stacks.wdl"
 
+import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
 
 workflow StacksGenotyping {
     input {
