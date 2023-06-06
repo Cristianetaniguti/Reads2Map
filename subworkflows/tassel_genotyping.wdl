@@ -5,6 +5,7 @@ import "../tasks/tassel.wdl"
 import "../tasks/BWA.wdl"
 import "../tasks/utils.wdl" as utils
 
+import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
 
 workflow TasselGenotyping {
     input {
@@ -57,8 +58,19 @@ workflow TasselGenotyping {
             fastq = BarcodeFaker.barcode_fastq
     }
 
+    call norm_filt.Normalization {
+        input:
+            vcf_in= TasselAfterAlign.tassel_vcf,
+            reference = references.ref_fasta,
+            reference_idx = references.ref_fasta_index,
+            reference_dict = references.ref_dict,
+            program = "tassel",
+            counts_source = "vcf",
+            ploidy = "2"
+    }
+    
     output {
-        Array[File] vcfs = [TasselAfterAlign.tassel_vcf]
+        Array[File] vcfs = [Normalization.vcf_norm]
         Array[String] software_sele = ["tassel"]
         Array[String] source_sele = ["vcf"]
     }

@@ -25,7 +25,7 @@ workflow Maps {
         Boolean run_polyrad = true
         Boolean run_gusmap = false
         Boolean filter_noninfo
-        String replaceADbyMissing
+        String replaceADbyMissing 
         File? gatk_vcf_multi
         String gatk_mchap
         String? filters

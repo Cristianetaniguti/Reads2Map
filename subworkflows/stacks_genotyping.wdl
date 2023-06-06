@@ -26,6 +26,17 @@ workflow StacksGenotyping {
             max_cores = max_cores
     }
 
+    call norm_filt.Normalization {
+        input:
+            vcf_in= RefMap.stacks_vcf,
+            reference = references.ref_fasta,
+            reference_idx = references.ref_fasta_index,
+            reference_dict = references.ref_dict,
+            program = "stacks",
+            counts_source = "vcf",
+            ploidy = "2"
+    }
+
     output {
         Array[File] vcfs = [RefMap.stacks_vcf]
         File stacks_multiallelics = RefMap.stacks_multiallelics
