@@ -623,9 +623,9 @@ task SetProbs {
       library(vcfR)
 
       cross <- "~{cross}"
-      global_errors <- unlist(strsplit("~{sep="," global_errors}"), ",")
+      global_errors <- unlist(strsplit("~{sep="," global_errors}", ","))
       genoprob_error <- ~{genoprob_error}
-      genoprob_global_errors <- unlist(strsplit("~{sep="," genoprob_global_errors}"), ",")
+      genoprob_global_errors <- unlist(strsplit("~{sep="," genoprob_global_errors}", ","))
       probs_onemap_obj <- list()
       idx <- 1
 
