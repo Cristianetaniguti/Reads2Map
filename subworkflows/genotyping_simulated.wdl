@@ -21,6 +21,10 @@ workflow onemapMaps {
     String multiallelics
     File? multiallelics_file
     Int ploidy
+    Float prob_thres
+    Array[String] global_errors
+    String genoprob_error
+    Array[String] genoprob_global_errors
   }
 
 
@@ -57,20 +61,21 @@ workflow onemapMaps {
       parent1 = "P1",
       parent2 = "P2",
       multiallelics = multiallelics,
-      SNPCall_program = SNPCall_program
+      SNPCall_program = SNPCall_program,
+      global_errors = global_errors,
+      genoprob_error = genoprob_error,
+      prob_thres = prob_thres,
+      genoprob_global_errors = genoprob_global_errors,
+      GenotypeCall_program = genotyping_program
   }
 
-  Array[String] methods                         = [genotyping_program, genotyping_program + "0.05"]
-  Array[File] objects                           = [SetProbs.probs_onemap_obj, SetProbs.globalerror_onemap_obj]
-  Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
-
-  scatter (item in methods_and_objects) {
+  scatter (item in range(length(SetProbs.probs_onemap_obj))) {
 
        call utilsR.FiltersReport {
             input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               seed = seed,
               depth = depth
@@ -78,30 +83,30 @@ workflow onemapMaps {
 
         call utilsR.MapsReport {
           input:
-            onemap_obj = FiltersReport.onemap_obj_filtered,
+            onemap_obj = SetProbs.probs_onemap_obj[item],
             ref_alt_alleles = ref_alt_alleles,
             simu_onemap_obj = simu_onemap_obj,
             SNPCall_program = SNPCall_program,
-            GenotypeCall_program = item.left,
+            GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
             CountsFrom = CountsFrom,
             simulated_phases = simulated_phases,
             seed = seed,
             depth = depth,
             max_cores = max_cores
-          }
+        }
 
         call utilsR.ErrorsReport {
             input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               simu_vcfR = simu_vcfR,
               vcfR_obj = SetProbs.vcfR_obj,
               seed = seed,
               depth = depth,
               max_cores = max_cores
-          }
+        }
 
    }
 

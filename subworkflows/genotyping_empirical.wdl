@@ -18,9 +18,9 @@ workflow onemapMapsEmp {
     Boolean multiallelics
     File? multiallelics_file
     Int ploidy
-    String prob_filt
+    Float prob_thres 
     Array[String] global_errors
-    String genoprob_error
+    Boolean genoprob_error
     Array[String] genoprob_global_errors
   }
 
@@ -81,7 +81,7 @@ workflow onemapMapsEmp {
       SNPCall_program = SNPCall_program,
       global_errors = global_errors,
       genoprob_error = genoprob_error,
-      prob_filt = prob_filt,
+      prob_thres = prob_thres,
       genoprob_global_errors = genoprob_global_errors,
       GenotypeCall_program = GenotypeCall_program
   }

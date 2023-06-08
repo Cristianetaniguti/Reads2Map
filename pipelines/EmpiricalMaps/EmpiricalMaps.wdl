@@ -31,8 +31,11 @@ workflow Maps {
         String? filters
         Int max_cores
         Int ploidy
-        Float? prob_thres
+        Float prob_thres = 0.8
         String? filt_segr
+        Array[String] global_errors = [0.05]
+        Boolean genoprob_error = true
+        Array[String] genoprob_global_errors = [0.05]
     }
 
     if (defined(filters)) {
@@ -84,7 +87,11 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         multiallelics_file = splitgeno.multiallelics,
                         max_cores = max_cores,
-                        ploidy = ploidy
+                        ploidy = ploidy,
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
 
@@ -102,7 +109,11 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         multiallelics_file = splitgeno.multiallelics,
                         max_cores = max_cores,
-                        ploidy = ploidy
+                        ploidy = ploidy,
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
 
@@ -120,7 +131,11 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         multiallelics_file = splitgeno.multiallelics,
                         max_cores = max_cores,
-                        ploidy = ploidy
+                        ploidy = ploidy,
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
             

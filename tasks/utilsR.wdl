@@ -608,9 +608,9 @@ task SetProbs {
     String multiallelics
     String SNPCall_program
     String GenotypeCall_program
-    String prob_filt
+    Float prob_thres
     Array[String] global_errors
-    String genoprob_error
+    Boolean genoprob_error
     Array[String] genoprob_global_errors
   }
 
@@ -673,8 +673,8 @@ task SetProbs {
         }
       }
 
-      if("~{prob_filt}" != "false" & genoprob_error != "false"){
-        onemap_prob <- filter_prob(probs_onemap_obj[[1]], threshold = as.numeric("~{prob_filt}"))
+      if("~{prob_thres}" != "0" & genoprob_error != "false"){
+        onemap_prob <- filter_prob(probs_onemap_obj[[1]], threshold = as.numeric("~{prob_thres}"))
         onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
       } else {
         onemap_mis <- onemap.obj
