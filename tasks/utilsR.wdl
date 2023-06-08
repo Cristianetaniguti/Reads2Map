@@ -665,7 +665,7 @@ task SetProbs {
         }
 
         if(any(genoprob_global_errors != "false")){
-          for(i in geno_global_errors){
+          for(i in genoprob_global_errors){
             probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap.obj, genotypes_errors=probs*(1 - as.numeric(i)))
             names(probs_onemap_obj)[[idx]] <- paste0("genoprob_global_error", i)
             idx <- idx + 1
@@ -681,7 +681,7 @@ task SetProbs {
       }
 
       if(any(global_errors != "false")){
-        for(i in geno_global_errors){
+        for(i in genoprob_global_errors){
           probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap_mis, global_error = i)
           names(probs_onemap_obj)[[idx]] <- paste0("global_error", i)
           idx <- idx + 1
