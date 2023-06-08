@@ -694,11 +694,12 @@ task SetProbs {
                                           names(probs_onemap_obj)[i], ".RData"))
       }
 
-      cat(names(probs_onemap_obj[[i]]))
+      cat(names(probs_onemap_obj))
 
       write.table(paste0("~{GenotypeCall_program}_",
-                  names(probs_onemap_obj[[i]])), 
-                  file = "names.txt")
+                  names(probs_onemap_obj)), 
+                  file = "names.txt", row.names = FALSE, 
+                  col.names = FALSE, quote = FALSE)
 
     RSCRIPT
 
