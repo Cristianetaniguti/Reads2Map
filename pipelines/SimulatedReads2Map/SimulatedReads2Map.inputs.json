@@ -1,5 +1,7 @@
 {
+  "SimulatedReads.SimulatedSingleFamily.global_errors": "Array[String]",
   "SimulatedReads.filters": "String? (optional)",
+  "SimulatedReads.SimulatedSingleFamily.genoprob_global_errors": "Array[String]",
   "SimulatedReads.hardfilters": "Boolean (optional, default = true)",
   "SimulatedReads.family": {
     "cmBymb": "Float? (optional)",
@@ -22,6 +24,8 @@
   "SimulatedReads.n_chrom": "Int",
   "SimulatedReads.chunk_size": "Int (optional, default = 5)",
   "SimulatedReads.max_cores": "Int",
+  "SimulatedReads.SimulatedSingleFamily.genoprob_error": "String",
+  "SimulatedReads.SimulatedSingleFamily.prob_thres": "Float",
   "SimulatedReads.number_of_families": "Int",
   "SimulatedReads.gatk_mchap": "Boolean (optional, default = false)",
   "SimulatedReads.global_seed": "Int",
