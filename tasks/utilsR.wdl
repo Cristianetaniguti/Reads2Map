@@ -680,9 +680,11 @@ task SetProbs {
         onemap_mis <- onemap.obj
       }
 
+      cat(global_errors)
+      
       if(any(global_errors != "false")){
-        for(i in genoprob_global_errors){
-          probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap_mis, global_error = i)
+        for(i in global_errors){
+          probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap_mis, global_error = as.numeric(i))
           names(probs_onemap_obj)[[idx]] <- paste0("global_error", i)
           idx <- idx + 1
         }
