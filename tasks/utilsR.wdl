@@ -649,7 +649,7 @@ task SetProbs {
 
       # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
       
-      if(genoprob_global_errors != "false" | genoprob_error != "false") {
+      if(any(genoprob_global_errors != "false") | genoprob_error != "false") {
         probs <- extract_depth(vcfR.object=vcf,
                                 onemap.object=onemap.obj,
                                 vcf.par= "GQ",
@@ -658,7 +658,7 @@ task SetProbs {
                                 f1 = f1,
                                 recovering=FALSE)
 
-        if(genoprob_error != "false"){
+        if(any(genoprob_error != "false")){
           probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
           names(probs_onemap_obj)[[idx]] <- "genoprob_error"
           idx <- idx + 1
@@ -692,6 +692,8 @@ task SetProbs {
         save(probs_onemap_obj[[i]], file= paste0("probs_onemap_", 
                                           names(probs_onemap_obj)[i], ".RData"))
       }
+
+      cat(names(probs_onemap_obj[[i]]))
 
       write.table(paste0("~{GenotypeCall_program}_",
                   names(probs_onemap_obj[[i]])), 
