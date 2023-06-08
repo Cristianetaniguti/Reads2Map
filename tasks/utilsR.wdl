@@ -607,6 +607,11 @@ task SetProbs {
     String parent2
     String multiallelics
     String SNPCall_program
+    String GenotypeCall_program
+    String prob_filt
+    Array[String] global_errors
+    String genoprob_error
+    Array[String] genoprob_global_errors
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 3)
@@ -618,6 +623,11 @@ task SetProbs {
       library(vcfR)
 
       cross <- "~{cross}"
+      global_errors <- unlist(strsplit("~{sep="," global_errors}"), ",")
+      genoprob_error <- ~{genoprob_error}
+      genoprob_global_errors <- unlist(strsplit("~{sep="," genoprob_global_errors}"), ",")
+      probs_onemap_obj <- list()
+      idx <- 1
 
       if(cross == "F1"){
          cross <- "outcross"
@@ -638,30 +648,59 @@ task SetProbs {
                                      f1 = f1, only_biallelic = only_biallelic)
 
       # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
+      
+      if(genoprob_global_errors != "false" | genoprob_error != "false") {
+        probs <- extract_depth(vcfR.object=vcf,
+                                onemap.object=onemap.obj,
+                                vcf.par= "GQ",
+                                parent1="~{parent1}",
+                                parent2="~{parent2}",
+                                f1 = f1,
+                                recovering=FALSE)
 
-      probs <- extract_depth(vcfR.object=vcf,
-                               onemap.object=onemap.obj,
-                               vcf.par= "GQ",
-                               parent1="~{parent1}",
-                               parent2="~{parent2}",
-                               f1 = f1,
-                               recovering=FALSE)
+        if(genoprob_error != "false"){
+          probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+          names(probs_onemap_obj)[[idx]] <- "genoprob_error"
+          idx <- idx + 1
+        }
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+        if(any(genoprob_global_errors != "false")){
+          for(i in geno_global_errors){
+            probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap.obj, genotypes_errors=probs*(1 - as.numeric(i)))
+            names(probs_onemap_obj)[[idx]] <- paste0("genoprob_global_error", i)
+            idx <- idx + 1
+          }
+        }
+      }
 
-      # If filter by genotype probability
-      # onemap_prob <- filter_prob(probs_onemap_obj, threshold = threshold)
-      # onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
-      # globalerror_onemap_obj <- create_probs(input.obj = onemap_mis, global_error = 0.05)
+      if("~{prob_filt}" != "false" & genoprob_error != "false"){
+        onemap_prob <- filter_prob(probs_onemap_obj[[1]], threshold = ~{"prob_filt"})
+        onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
+      } else {
+        onemap_mis <- onemap.obj
+      }
 
-      globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
+      if(any(global_errors != "false")){
+        for(i in geno_global_errors){
+          probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap_mis, global_error = i)
+          names(probs_onemap_obj)[[idx]] <- paste0("global_error", i)
+          idx <- idx + 1
+        }
+      }
 
-      save(probs_onemap_obj, file="probs_onemap_obj.RData")
-      save(globalerror_onemap_obj, file="globalerror_onemap_obj.RData")
+      for(i in 1:length(probs_onemap_obj)){
+        save(probs_onemap_obj[[i]], file= paste0("probs_onemap_", 
+                                          names(probs_onemap_obj)[i], ".RData"))
+      }
+
+      write.table(paste0("~{GenotypeCall_program}_",
+                  names(probs_onemap_obj[[i]])), 
+                  file = "names.txt")
 
     RSCRIPT
 
   >>>
+
   runtime {
     docker:"cristaniguti/reads2map:0.0.4"
     singularity:"docker://cristaniguti/reads2map:0.0.4"
@@ -682,8 +721,8 @@ task SetProbs {
   }
 
   output {
-    File probs_onemap_obj = "probs_onemap_obj.RData"
-    File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
+    File probs_onemap_obj = glob("probs_onemap_*.RData")
+    Array[String] probs_onemap_obj_names = read_lines("names.txt")
     File vcfR_obj = "vcfR.RData"
   }
 }

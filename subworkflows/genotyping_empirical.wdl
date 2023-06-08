@@ -74,31 +74,31 @@ workflow onemapMapsEmp {
       parent1 = parent1,
       parent2 = parent2,
       multiallelics = multiallelics,
-      SNPCall_program = SNPCall_program
+      SNPCall_program = SNPCall_program,
+      global_errors = global_errors,
+      geno_error = geno_error,
+      prob_filt = prob_filt,
+      geno_global_errors = geno_global_errors
   }
 
-  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05"]
-  Array[File] objects                           = [SetProbs.probs_onemap_obj, SetProbs.globalerror_onemap_obj]
-  Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
-
-  scatter (item in methods_and_objects) {
+  scatter (item in range(length(SetProbs.probs_onemap_obj))) {
        call utilsR.CheckDepths {
            input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               vcfR_obj = SetProbs.vcfR_obj,
               parent1 = parent1,
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               max_cores = max_cores
        }
 
        call utilsR.FiltersReportEmp {
             input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               chromosome = chromosome
         }
@@ -107,7 +107,7 @@ workflow onemapMapsEmp {
           input:
             sequence_obj = FiltersReportEmp.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
-            GenotypeCall_program = item.left,
+            GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
             CountsFrom = CountsFrom,
             max_cores = max_cores
           }
