@@ -82,7 +82,8 @@ workflow onemapMapsEmp {
       global_errors = global_errors,
       genoprob_error = genoprob_error,
       prob_filt = prob_filt,
-      genoprob_global_errors = genoprob_global_errors
+      genoprob_global_errors = genoprob_global_errors,
+      GenotypeCall_program = GenotypeCall_program
   }
 
   scatter (item in range(length(SetProbs.probs_onemap_obj))) {
