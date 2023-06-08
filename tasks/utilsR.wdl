@@ -680,8 +680,6 @@ task SetProbs {
         onemap_mis <- onemap.obj
       }
 
-      cat(global_errors)
-      
       if(any(global_errors != "false")){
         for(i in global_errors){
           probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap_mis, global_error = as.numeric(i))
@@ -691,7 +689,8 @@ task SetProbs {
       }
 
       for(i in 1:length(probs_onemap_obj)){
-        save(probs_onemap_obj[[i]], file= paste0("probs_onemap_", 
+        probs_onemap <- probs_onemap_obj[[i]]
+        save(probs_onemap, file= paste0("probs_onemap_", 
                                           names(probs_onemap_obj)[i], ".RData"))
       }
 
