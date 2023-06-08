@@ -17,12 +17,7 @@ task BiallelicNormalization {
 
   command <<<
 
-    #if [ ~{ploidy} -gt 2 ] && [ "~{software}" == "freebayes" ] # GATK returns an error when trying to split by row saying that PL has wrong number of fields
-    #then
-    #  bcftools norm ~{vcf_file} -m - -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
-    #else
-      bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
-    #fi
+    bcftools norm ~{vcf_file} --rm-dup all -Ov --check-ref w -f ~{reference} > vcf_norm.vcf
 
     bgzip vcf_norm.vcf
     tabix -p vcf vcf_norm.vcf.gz

@@ -58,19 +58,12 @@ workflow TasselGenotyping {
             fastq = BarcodeFaker.barcode_fastq
     }
 
-    call norm_filt.Normalization {
-        input:
-            vcf_in= TasselAfterAlign.tassel_vcf,
-            reference = references.ref_fasta,
-            reference_idx = references.ref_fasta_index,
-            reference_dict = references.ref_dict,
-            program = "tassel",
-            counts_source = "vcf",
-            ploidy = "2"
-    }
-    
+    # I tried to include the normalization sub-workflow here, but 
+    # TASSEL VCF does not has the standard header format, then 
+    # BCFtools does not work
+
     output {
-        Array[File] vcfs = [Normalization.vcf_norm]
+        Array[File] vcfs = [TasselAfterAlign.tassel_vcf]
         Array[String] software_sele = ["tassel"]
         Array[String] source_sele = ["vcf"]
     }
