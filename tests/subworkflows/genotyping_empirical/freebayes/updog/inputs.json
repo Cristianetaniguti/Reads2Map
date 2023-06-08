@@ -11,7 +11,7 @@
     "onemapMapsEmp.parent1": "PT_F",
     "onemapMapsEmp.chromosome": "Chr10",
     "onemapMapsEmp.vcf_file": "tests/data/Ptremula_PRJNA395596_subset/splitted_vcfs/biallelics_gatk.vcf.gz",
-    "onemapMapsEmp.prob_filt": "0.8",
+    "onemapMapsEmp.prob_thres": "0.8",
     "onemapMapsEmp.global_errors": ["0.001", "0.05"],
     "onemapMapsEmp.genoprob_error": "true",
     "onemapMapsEmp.genoprob_global_errors": ["0.0001", "0.01"]
