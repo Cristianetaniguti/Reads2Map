@@ -33,9 +33,9 @@ workflow Maps {
         Int ploidy
         Float prob_thres = 0.8
         String? filt_segr
-        Array[String] global_errors = [0.05]
+        Array[String] global_errors = ["0.05"]
         Boolean genoprob_error = true
-        Array[String] genoprob_global_errors = [0.05]
+        Array[String] genoprob_global_errors = ["0.05"]
     }
 
     if (defined(filters)) {
