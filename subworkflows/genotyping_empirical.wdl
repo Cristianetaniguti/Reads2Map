@@ -18,6 +18,10 @@ workflow onemapMapsEmp {
     Boolean multiallelics
     File? multiallelics_file
     Int ploidy
+    String prob_filt
+    Array[String] global_errors
+    String genoprob_error
+    Array[String] genoprob_global_errors
   }
 
   call utilsR.ReGenotyping {
@@ -76,9 +80,9 @@ workflow onemapMapsEmp {
       multiallelics = multiallelics,
       SNPCall_program = SNPCall_program,
       global_errors = global_errors,
-      geno_error = geno_error,
+      genoprob_error = genoprob_error,
       prob_filt = prob_filt,
-      geno_global_errors = geno_global_errors
+      genoprob_global_errors = genoprob_global_errors
   }
 
   scatter (item in range(length(SetProbs.probs_onemap_obj))) {

@@ -721,7 +721,7 @@ task SetProbs {
   }
 
   output {
-    File probs_onemap_obj = glob("probs_onemap_*.RData")
+    Array[File] probs_onemap_obj = glob("probs_onemap_*.RData")
     Array[String] probs_onemap_obj_names = read_lines("names.txt")
     File vcfR_obj = "vcfR.RData"
   }
