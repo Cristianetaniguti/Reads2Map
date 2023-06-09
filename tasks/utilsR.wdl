@@ -133,7 +133,7 @@ task FiltersReportEmp {
   }
 
   Int disk_size = ceil(size(onemap_obj, "GiB") * 2)
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 2 + 3000)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 5 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -448,7 +448,7 @@ task MapsReportEmp {
   }
 
   Int disk_size = ceil((size(sequence_obj, "GiB") * 2))
-  Int memory_size = ceil(size(sequence_obj, "MiB") * 3 + 4000)
+  Int memory_size = ceil(size(sequence_obj, "MiB") * 3 * max_cores + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
