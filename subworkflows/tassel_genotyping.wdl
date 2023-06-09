@@ -26,7 +26,7 @@ workflow TasselGenotyping {
     call tassel.BarcodeFaker {
         input:
             fastq = sample_file[0],
-            FullSampleName = sample_file[2]
+            FullSampleName = sample_file[1] # Tassel does not consider replicates variances, we simple joint the reads
     }
 
     call tassel.TasselBeforeAlign {

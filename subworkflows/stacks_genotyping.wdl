@@ -41,7 +41,7 @@ workflow StacksGenotyping {
     }
 
     output {
-        Array[File] vcfs = [RefMap.stacks_vcf]
+        Array[File] vcfs = [Normalization.vcf_norm]
         File stacks_multiallelics = RefMap.stacks_multiallelics
         Array[String] software_sele = ["stacks"]
         Array[String] source_sele = ["vcf"]

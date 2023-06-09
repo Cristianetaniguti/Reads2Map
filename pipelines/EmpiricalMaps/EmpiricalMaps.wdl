@@ -45,7 +45,8 @@ workflow Maps {
                 vcfs_SNPCall_software = vcfs_software,
                 vcfs_Counts_source = vcfs_counts_source,
                 vcfs_GenoCall_software = range(length(vcfs_software)),
-                filters = filters
+                filters = filters,
+                chromosome = dataset.chromosome
         }
     }
 
