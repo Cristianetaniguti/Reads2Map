@@ -161,7 +161,7 @@ task ApplyRandomFiltersArray {
     Array[String] vcfs_SNPCall_software
     Array[String] vcfs_Counts_source
     Array[String] vcfs_GenoCall_software
-    String? filters
+    String? filters = "-r " + chromosome 
     String? chromosome
   }
 
@@ -184,7 +184,7 @@ task ApplyRandomFiltersArray {
           fi
           
           tabix -p vcf temp.vcf.gz
-          bcftools view temp.vcf.gz ~{filters} ~{" -r " + chromosome} \
+          bcftools view temp.vcf.gz ~{filters} \
           -o vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf
           bgzip vcf_filt_${vcfs_snp_software[$index]}_${vcfs_counts_source[$index]}_${vcfs_geno_software[$index]}.vcf
           rm temp.vcf.gz temp.vcf.gz.tbi

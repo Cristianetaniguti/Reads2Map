@@ -448,7 +448,7 @@ task MapsReportEmp {
   }
 
   Int disk_size = ceil((size(sequence_obj, "GiB") * 2))
-  Int memory_size = ceil(size(sequence_obj, "MiB") * 3 * max_cores + 4000)
+  Int memory_size = ceil(size(sequence_obj, "MiB") * 12 + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -480,7 +480,7 @@ task MapsReportEmp {
   runtime {
     docker:"cristaniguti/reads2map:0.0.6"
     singularity:"docker://cristaniguti/reads2map:0.0.6"
-    cpu:max_cores
+    cpu: if max_cores > 4 then 4 else max_cores 
     # Cloud
     memory:"~{memory_size} MiB"
     disks:"local-disk " + disk_size + " HDD"
