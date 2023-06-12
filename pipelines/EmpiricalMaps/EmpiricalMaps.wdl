@@ -167,8 +167,10 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         max_cores = max_cores,
                         multiallelics_file = splitgeno.multiallelics,
-                        multiallelics_mchap = gatk_vcf_multi,
-                        mchap = gatk_mchap
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
         }

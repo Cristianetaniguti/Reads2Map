@@ -15,9 +15,11 @@ workflow SNPCallerMapsEmp {
      String chromosome
      String multiallelics
      File? multiallelics_file
-     File? multiallelics_mchap
-     String mchap
      Int max_cores
+     Float prob_thres 
+     Array[String] global_errors
+     Boolean genoprob_error
+     Array[String] genoprob_global_errors
 
     }
 
@@ -34,40 +36,39 @@ workflow SNPCallerMapsEmp {
 
   File updated_vcf = select_first([JointMarkers.merged_vcf, vcf_file])
 
-  call utilsR.SetProbsDefault {
+  call utilsR.SetProbs {
     input:
       vcf_file = updated_vcf,
       cross = cross,
       parent1 = parent1,
       parent2 = parent2,
-      SNPCall_program = SNPCall_program,
       multiallelics = multiallelics,
-      multiallelics_mchap = multiallelics_mchap,
-      mchap = mchap
+      SNPCall_program = SNPCall_program,
+      global_errors = global_errors,
+      genoprob_error = genoprob_error,
+      prob_thres = prob_thres,
+      genoprob_global_errors = genoprob_global_errors,
+      GenotypeCall_program = GenotypeCall_program
   }
 
-  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05", GenotypeCall_program + "default"]
-  Array[File] objects                           = [SetProbsDefault.probs_onemap_obj, SetProbsDefault.globalerror_onemap_obj, SetProbsDefault.default_onemap_obj]
-  Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
-
-  scatter (item in methods_and_objects) {
+    scatter (item in range(length(SetProbs.probs_onemap_obj))) {
        call utilsR.CheckDepths {
            input:
-              onemap_obj = item.right,
-              vcfR_obj = SetProbsDefault.vcfR_obj,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
+              vcfR_obj = SetProbs.vcfR_obj,
               parent1 = parent1,
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               max_cores = max_cores
        }
 
        call utilsR.FiltersReportEmp {
             input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               chromosome = chromosome
         }
@@ -76,7 +77,7 @@ workflow SNPCallerMapsEmp {
           input:
             sequence_obj = FiltersReportEmp.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
-            GenotypeCall_program = item.left,
+            GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
             CountsFrom = CountsFrom,
             max_cores = max_cores
           }
