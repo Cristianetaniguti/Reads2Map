@@ -24,7 +24,6 @@ task JointAllReports{
       library(tidyr)
       library(stringr)
       library(vroom)
-      library(largeList)
 
       if(~{ploidy} > 2){
 
@@ -89,32 +88,10 @@ task JointAllReports{
         files <- paste0(path_dir, "/times/", files)
         times <- vroom(files, num_threads = ~{max_cores})
 
-        files <- system(paste0("ls ", path_dir, "/RDatas/"), intern = T)
-        files <- paste0(path_dir, "/RDatas/", files)
-
-        all_RDatas <- list()
-        for(i in 1:length(files)){
-          map_temp <- load(files[i])
-          all_RDatas[[i]] <- get(map_temp)
-        }
-
-        names(all_RDatas) <- basename(files)
-
-        if(any(grepl("gusmap", names(all_RDatas)))){
-          gusmap_RDatas <- all_RDatas[grep("gusmap", names(all_RDatas))]
-          save(gusmap_RDatas, file = "gusmap_RDatas.RData")
-          RDatas <- all_RDatas[-grep("gusmap", names(all_RDatas))]
-        } else RDatas <- all_RDatas
-        
-        #   # Converting onemap sequencig objects to list. LargeList do not accept other class
-        #   # Also because of this gusmap is separated, because the developers worked with enviroments, not classes
-        for(i in 1:length(RDatas)){
-          class(RDatas[[i]]) <- "list"
-        }
-
-        saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
-
-        new_names <- names(all_RDatas)
+        system("mkdir sequences_emp")
+        new_names <- system(paste0("ls ", path_dir, "/RDatas/"), intern = T)
+        files <- system(paste0("cp ", path_dir, "/RDatas/* sequences_emp"))
+      
         vroom_write(as.data.frame(new_names), "names.tsv.gz")
 
         # Outputs
@@ -125,9 +102,7 @@ task JointAllReports{
 
         system("mkdir EmpiricalReads_results")
 
-        if(any(grepl("gusmap", names(all_RDatas)))){
-          system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
-        } else system("mv sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
+        system("mv sequences_emp data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
 
         system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
 
