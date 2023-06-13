@@ -659,30 +659,38 @@ task SetProbs {
                                 recovering=FALSE)
 
         if(any(genoprob_error != "false")){
-          probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+          temp <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+
+          if("~{prob_thres}" != "0"){
+            onemap_prob <- filter_prob(temp, threshold = as.numeric("~{prob_thres}"))
+            probs_onemap_obj[[idx]] <- filter_missing(onemap_prob, threshold = 0.25)
+          } else {
+            probs_onemap_obj[[idx]] <- temp
+          }
           names(probs_onemap_obj)[[idx]] <- "genoprob_error"
           idx <- idx + 1
         }
 
         if(any(genoprob_global_errors != "false")){
           for(i in genoprob_global_errors){
-            probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap.obj, genotypes_errors= 1- (1-probs)*(1 - as.numeric(i)))
+            temp <- create_probs(input.obj = onemap.obj, genotypes_errors= 1- (1-probs)*(1 - as.numeric(i)))
+            
+            if("~{prob_thres}" != "0"){
+              onemap_prob <- filter_prob(temp, threshold = as.numeric("~{prob_thres}"))
+              probs_onemap_obj[[idx]] <- filter_missing(onemap_prob, threshold = 0.25)
+            } else {
+              probs_onemap_obj[[idx]] <- temp
+            }
+            
             names(probs_onemap_obj)[[idx]] <- paste0("genoprob_global_error", i)
             idx <- idx + 1
           }
         }
       }
 
-      if("~{prob_thres}" != "0" & genoprob_error != "false"){
-        onemap_prob <- filter_prob(probs_onemap_obj[[1]], threshold = as.numeric("~{prob_thres}"))
-        onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
-      } else {
-        onemap_mis <- onemap.obj
-      }
-
       if(any(global_errors != "false")){
         for(i in global_errors){
-          probs_onemap_obj[[idx]] <- create_probs(input.obj = onemap_mis, global_error = as.numeric(i))
+          probs_onemap_obj[[idx]] <- create_probs(input.obj = probs_onemap_obj[[1]], global_error = as.numeric(i))
           names(probs_onemap_obj)[[idx]] <- paste0("global_error", i)
           idx <- idx + 1
         }
