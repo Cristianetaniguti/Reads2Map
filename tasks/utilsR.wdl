@@ -519,7 +519,7 @@ task ReGenotyping {
   }
 
   Int disk_size = ceil((size(vcf_file, "GiB") * 4))
-  Int memory_size = ceil(size(vcf_file, "MiB") * 3 + 4000)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 5 + 4000)
 
   command <<<
      R --vanilla --no-save <<RSCRIPT

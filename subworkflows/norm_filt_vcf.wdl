@@ -19,9 +19,7 @@ workflow Normalization {
     input:
       vcf_file = vcf_in,
       reference = reference,
-      reference_idx = reference_idx,
-      ploidy = ploidy,
-      software = program
+      reference_idx = reference_idx
   }
 
   call gatk.VariantEval {
