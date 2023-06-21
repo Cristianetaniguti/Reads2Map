@@ -70,7 +70,10 @@ task FixTasselVCF {
     sed -i 's/Chr//' chrs_tassel
     sed -i 's/scaffold/SCAFFOLD/' chrs_tassel
     paste -d'\t' chrs_tassel chrs > fix_chrom
-    bcftools annotate --rename-chrs fix_chrom tassel_fix.vcf > tassel_fix_chr.vcf
+
+    bgzip tassel_fix.vcf
+    tabix -p vcf tassel_fix.vcf.gz
+    bcftools annotate --rename-chrs fix_chrom tassel_fix.vcf.gz > tassel_fix_chr.vcf.gz
 
   >>>
 
