@@ -161,7 +161,7 @@ task ApplyRandomFiltersArray {
     Array[String] vcfs_SNPCall_software
     Array[String] vcfs_Counts_source
     Array[String] vcfs_GenoCall_software
-    String? filters = "-r " + chromosome 
+    String? filters 
     String? chromosome
   }
 
