@@ -16,7 +16,7 @@ RUN apt update \
    libxml2-dev \
    libnlopt-dev=2.4.2+dfsg-4 \
    devscripts=2.17.12ubuntu1.1 \
-   software-properties-common=0.96.24.32.18 \
+   software-properties-common=0.96.24.32.22 \
    libgit2-dev=0.26.0+dfsg.1-1.1ubuntu0.2 \
    && pip install matplotlib==2.0.2 numpy 
 
@@ -53,7 +53,7 @@ RUN Rscript -e 'remotes::install_version("gsalib",upgrade="never", version = "2.
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSbase", ref = "92119b9c57faa7abeede8236d24a4a8e85fb3df7")'
 
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSMap", ref = "4d7d4057049819d045750d760a45976c8f30dac6")'
-RUN Rscript -e 'remotes::install_github("dcgerard/updog")'
+RUN Rscript -e 'remotes::install_github("dcgerard/updog", ref="f1")'
 
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap")'
 

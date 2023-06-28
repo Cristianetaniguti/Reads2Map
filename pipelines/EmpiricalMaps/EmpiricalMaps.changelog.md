@@ -1,3 +1,12 @@
+# 1.2.5
+
+* more flexibility to choose the probability to be used in the HMM: 
+
+* new parameters:
+- global_errors: array with global errors to be tested
+- genoprob_error: boolean defining if software probabilities should be tested
+- genoprob_global_errors: array with global errors to be tested together with the software probabilities following: 1 - (1 - global error) x (1 - software error probability)
+
 # 1.2.4
 
 * runtimes adapted to run with Caper

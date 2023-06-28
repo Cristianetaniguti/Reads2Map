@@ -10,16 +10,10 @@
   "EmpiricalReads.chunk_size": "Int",
   "EmpiricalReads.Maps.run_gusmap": "Boolean (optional, default = false)",
   "EmpiricalReads.gatk_mchap": "Boolean (optional, default = false)",
+  "EmpiricalReads.Maps.global_errors": "Array[String] (optional, default = [\"0.05\"])",
   "EmpiricalReads.rm_dupli": "Boolean (optional, default = false)",
   "EmpiricalReads.SNPCalling.max_ram": "Int",
-  "EmpiricalReads.dataset": {
-    "parent2": "String",
-    "name": "String",
-    "parent1": "String",
-    "chromosome": "String",
-    "cross": "String",
-    "multiallelics": "Boolean"
-  },
+  "EmpiricalReads.Maps.genoprob_error": "Boolean (optional, default = true)",
   "EmpiricalReads.ploidy": "Int (optional, default = 2)",
   "EmpiricalReads.n_chrom": "Int",
   "EmpiricalReads.SNPCalling.chunk_size": "Int",
@@ -43,6 +37,15 @@
   "EmpiricalReads.Maps.filter_noninfo": "Boolean",
   "EmpiricalReads.SNPCalling.pop_map": "File? (optional)",
   "EmpiricalReads.samples_info": "File",
+  "EmpiricalReads.dataset": {
+    "parent2": "String",
+    "name": "String",
+    "parent1": "String",
+    "chromosome": "String",
+    "cross": "String",
+    "multiallelics": "Boolean"
+  },
+  "EmpiricalReads.Maps.genoprob_global_errors": "Array[String] (optional, default = [\"0.05\"])",
   "EmpiricalReads.pair_end": "Boolean (optional, default = false)",
   "EmpiricalReads.run_gatk": "Boolean (optional, default = true)"
 }

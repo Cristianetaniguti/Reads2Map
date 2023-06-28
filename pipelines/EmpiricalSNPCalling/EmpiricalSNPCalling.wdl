@@ -92,6 +92,7 @@ workflow SNPCalling {
   if(run_stacks) {
     call stacks.StacksGenotyping {
       input:
+        references = references,
         bams = CreateAlignmentFromFamilies.bam,
         pop_map = pop_map,
         max_cores = max_cores

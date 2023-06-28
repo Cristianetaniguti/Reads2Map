@@ -44,8 +44,8 @@ task vcf2onemap {
     >>>
 
     runtime {
-      docker:"cristaniguti/reads2map:0.0.4"
-      singularity: "docker://cristaniguti/reads2map:0.0.4"
+      docker:"cristaniguti/reads2map:0.0.8"
+      singularity: "docker://cristaniguti/reads2map:0.0.8"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -99,8 +99,8 @@ task FiltersReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker: "cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -133,7 +133,7 @@ task FiltersReportEmp {
   }
 
   Int disk_size = ceil(size(onemap_obj, "GiB") * 2)
-  Int memory_size = ceil(size(onemap_obj, "MiB") * 2 + 3000)
+  Int memory_size = ceil(size(onemap_obj, "MiB") * 5 + 3000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -152,8 +152,8 @@ task FiltersReportEmp {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker: "cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -259,8 +259,8 @@ task MapsReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker: "cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu:4
     # Cloud
     memory:"~{memory_size} MiB"
@@ -349,8 +349,8 @@ task ErrorsReport {
   >>>
 
   runtime {
-    docker: "cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker: "cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -414,8 +414,8 @@ task CheckDepths {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker:"cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -448,7 +448,7 @@ task MapsReportEmp {
   }
 
   Int disk_size = ceil((size(sequence_obj, "GiB") * 2))
-  Int memory_size = ceil(size(sequence_obj, "MiB") * 3 + 4000)
+  Int memory_size = ceil(size(sequence_obj, "MiB") * 12 + 4000)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -478,9 +478,9 @@ task MapsReportEmp {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
-    cpu:max_cores
+    docker:"cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
+    cpu: if max_cores > 4 then 4 else max_cores 
     # Cloud
     memory:"~{memory_size} MiB"
     disks:"local-disk " + disk_size + " HDD"
@@ -519,7 +519,7 @@ task ReGenotyping {
   }
 
   Int disk_size = ceil((size(vcf_file, "GiB") * 4))
-  Int memory_size = ceil(size(vcf_file, "MiB") * 3 + 4000)
+  Int memory_size = ceil(size(vcf_file, "MiB") * 5 + 4000)
 
   command <<<
      R --vanilla --no-save <<RSCRIPT
@@ -576,8 +576,8 @@ task ReGenotyping {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.5"
-    singularity:"docker://cristaniguti/reads2map:0.0.5"
+    docker:"cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
@@ -607,6 +607,11 @@ task SetProbs {
     String parent2
     String multiallelics
     String SNPCall_program
+    String GenotypeCall_program
+    Float prob_thres
+    Array[String] global_errors
+    Boolean genoprob_error
+    Array[String] genoprob_global_errors
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 3)
@@ -618,6 +623,11 @@ task SetProbs {
       library(vcfR)
 
       cross <- "~{cross}"
+      global_errors <- unlist(strsplit("~{sep="," global_errors}", ","))
+      genoprob_error <- "~{genoprob_error}"
+      genoprob_global_errors <- unlist(strsplit("~{sep="," genoprob_global_errors}", ","))
+      probs_onemap_obj <- list()
+      idx <- 1
 
       if(cross == "F1"){
          cross <- "outcross"
@@ -638,33 +648,74 @@ task SetProbs {
                                      f1 = f1, only_biallelic = only_biallelic)
 
       # if("~{SNPCall_program}" == "freebayes") par <- "GL" else par <- "PL"
+      
+      if(any(genoprob_global_errors != "false") | genoprob_error != "false") {
+        probs <- extract_depth(vcfR.object=vcf,
+                                onemap.object=onemap.obj,
+                                vcf.par= "GQ",
+                                parent1="~{parent1}",
+                                parent2="~{parent2}",
+                                f1 = f1,
+                                recovering=FALSE)
 
-      probs <- extract_depth(vcfR.object=vcf,
-                               onemap.object=onemap.obj,
-                               vcf.par= "GQ",
-                               parent1="~{parent1}",
-                               parent2="~{parent2}",
-                               f1 = f1,
-                               recovering=FALSE)
+        if(any(genoprob_error != "false")){
+          temp <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
 
-      probs_onemap_obj <- create_probs(input.obj = onemap.obj, genotypes_errors=probs)
+          if("~{prob_thres}" != "0"){
+            onemap_prob <- filter_prob(temp, threshold = as.numeric("~{prob_thres}"))
+            probs_onemap_obj[[idx]] <- filter_missing(onemap_prob, threshold = 0.25)
+          } else {
+            probs_onemap_obj[[idx]] <- temp
+          }
+          names(probs_onemap_obj)[[idx]] <- "genoprob_error"
+          idx <- idx + 1
+        }
 
-      # If filter by genotype probability
-      # onemap_prob <- filter_prob(probs_onemap_obj, threshold = threshold)
-      # onemap_mis <- filter_missing(onemap_prob, threshold = 0.25)
-      # globalerror_onemap_obj <- create_probs(input.obj = onemap_mis, global_error = 0.05)
+        if(any(genoprob_global_errors != "false")){
+          for(i in genoprob_global_errors){
+            temp <- create_probs(input.obj = onemap.obj, genotypes_errors= 1- (1-probs)*(1 - as.numeric(i)))
+            
+            if("~{prob_thres}" != "0"){
+              onemap_prob <- filter_prob(temp, threshold = as.numeric("~{prob_thres}"))
+              probs_onemap_obj[[idx]] <- filter_missing(onemap_prob, threshold = 0.25)
+            } else {
+              probs_onemap_obj[[idx]] <- temp
+            }
+            
+            names(probs_onemap_obj)[[idx]] <- paste0("genoprob_global_error", i)
+            idx <- idx + 1
+          }
+        }
+      }
 
-      globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
+      if(any(global_errors != "false")){
+        for(i in global_errors){
+          probs_onemap_obj[[idx]] <- create_probs(input.obj = probs_onemap_obj[[1]], global_error = as.numeric(i))
+          names(probs_onemap_obj)[[idx]] <- paste0("global_error", i)
+          idx <- idx + 1
+        }
+      }
 
-      save(probs_onemap_obj, file="probs_onemap_obj.RData")
-      save(globalerror_onemap_obj, file="globalerror_onemap_obj.RData")
+      for(i in 1:length(probs_onemap_obj)){
+        probs_onemap <- probs_onemap_obj[[i]]
+        save(probs_onemap, file= paste0("probs_onemap_", 
+                                          names(probs_onemap_obj)[i], ".RData"))
+      }
+
+      cat(names(probs_onemap_obj))
+
+      write.table(paste0("~{GenotypeCall_program}_",
+                  names(probs_onemap_obj)), 
+                  file = "names.txt", row.names = FALSE, 
+                  col.names = FALSE, quote = FALSE)
 
     RSCRIPT
 
   >>>
+
   runtime {
-    docker:"cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker:"cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -682,8 +733,8 @@ task SetProbs {
   }
 
   output {
-    File probs_onemap_obj = "probs_onemap_obj.RData"
-    File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
+    Array[File] probs_onemap_obj = glob("probs_onemap_*.RData")
+    Array[String] probs_onemap_obj_names = read_lines("names.txt")
     File vcfR_obj = "vcfR.RData"
   }
 }
@@ -755,8 +806,8 @@ task SetProbsDefault {
 
   >>>
   runtime {
-    docker:"cristaniguti/reads2map:0.0.4"
-    singularity:"docker://cristaniguti/reads2map:0.0.4"
+    docker:"cristaniguti/reads2map:0.0.8"
+    singularity:"docker://cristaniguti/reads2map:0.0.8"
     cpu:1
     # Cloud
     memory:"~{memory_size} MiB"
@@ -807,8 +858,8 @@ task RemoveNonInformative {
   >>>
 
   runtime {
-      docker:"cristaniguti/reads2map:0.0.4"
-      singularity:"docker://cristaniguti/reads2map:0.0.4"
+      docker:"cristaniguti/reads2map:0.0.8"
+      singularity:"docker://cristaniguti/reads2map:0.0.8"
       cpu:1
       # Cloud
       memory:"~{memory_size} MiB"
@@ -906,8 +957,8 @@ task QualPlots {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.4"
-        singularity:"docker://cristaniguti/reads2map:0.0.4"
+        docker: "cristaniguti/reads2map:0.0.8"
+        singularity:"docker://cristaniguti/reads2map:0.0.8"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1020,8 +1071,8 @@ task QualPlotsForHardFilteringSimulated {
     >>>
 
     runtime {
-        docker: "cristaniguti/reads2map:0.0.4"
-        singularity:"docker://cristaniguti/reads2map:0.0.4"
+        docker: "cristaniguti/reads2map:0.0.8"
+        singularity:"docker://cristaniguti/reads2map:0.0.8"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"
@@ -1067,8 +1118,8 @@ task FilterMulti {
     >>>
 
     runtime {
-        docker:"cristaniguti/reads2map:0.0.4"
-        singularity:"docker://cristaniguti/reads2map:0.0.4"
+        docker:"cristaniguti/reads2map:0.0.8"
+        singularity:"docker://cristaniguti/reads2map:0.0.8"
         cpu: 1
         # Cloud
         memory:"~{memory_size} MiB"

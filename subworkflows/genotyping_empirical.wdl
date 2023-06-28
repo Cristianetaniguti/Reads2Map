@@ -18,6 +18,10 @@ workflow onemapMapsEmp {
     Boolean multiallelics
     File? multiallelics_file
     Int ploidy
+    Float prob_thres 
+    Array[String] global_errors
+    Boolean genoprob_error
+    Array[String] genoprob_global_errors
   }
 
   call utilsR.ReGenotyping {
@@ -74,31 +78,32 @@ workflow onemapMapsEmp {
       parent1 = parent1,
       parent2 = parent2,
       multiallelics = multiallelics,
-      SNPCall_program = SNPCall_program
+      SNPCall_program = SNPCall_program,
+      global_errors = global_errors,
+      genoprob_error = genoprob_error,
+      prob_thres = prob_thres,
+      genoprob_global_errors = genoprob_global_errors,
+      GenotypeCall_program = GenotypeCall_program
   }
 
-  Array[String] methods                         = [GenotypeCall_program, GenotypeCall_program + "0.05"]
-  Array[File] objects                           = [SetProbs.probs_onemap_obj, SetProbs.globalerror_onemap_obj]
-  Array[Pair[String, File]] methods_and_objects = zip(methods, objects)
-
-  scatter (item in methods_and_objects) {
+  scatter (item in range(length(SetProbs.probs_onemap_obj))) {
        call utilsR.CheckDepths {
            input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               vcfR_obj = SetProbs.vcfR_obj,
               parent1 = parent1,
               parent2 = parent2,
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               max_cores = max_cores
        }
 
        call utilsR.FiltersReportEmp {
             input:
-              onemap_obj = item.right,
+              onemap_obj = SetProbs.probs_onemap_obj[item],
               SNPCall_program = SNPCall_program,
-              GenotypeCall_program = item.left,
+              GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
               CountsFrom = CountsFrom,
               chromosome = chromosome
         }
@@ -107,7 +112,7 @@ workflow onemapMapsEmp {
           input:
             sequence_obj = FiltersReportEmp.onemap_obj_filtered,
             SNPCall_program = SNPCall_program,
-            GenotypeCall_program = item.left,
+            GenotypeCall_program = SetProbs.probs_onemap_obj_names[item],
             CountsFrom = CountsFrom,
             max_cores = max_cores
           }

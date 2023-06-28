@@ -27,6 +27,10 @@ workflow SimulatedSingleFamily {
     Boolean gatk_mchap
     Boolean hardfilters
     Int n_chrom
+    Float prob_thres
+    Array[String] global_errors
+    String genoprob_error
+    Array[String] genoprob_global_errors
   }
 
   call simulation.CreateAlignmentFromSimulation {
@@ -148,7 +152,11 @@ workflow SimulatedSingleFamily {
             depth = sequencing.depth,
             multiallelics = sequencing.multiallelics,
             multiallelics_file = splitgeno.multiallelics,
-            ploidy = ploidy
+            ploidy = ploidy,
+            global_errors = global_errors,
+            genoprob_error = genoprob_error,
+            prob_thres = prob_thres,
+            genoprob_global_errors = genoprob_global_errors
         }
 
         call genotyping.onemapMaps as supermassaMaps {
@@ -168,7 +176,11 @@ workflow SimulatedSingleFamily {
             depth = sequencing.depth,
             multiallelics = sequencing.multiallelics,
             multiallelics_file = splitgeno.multiallelics,
-            ploidy = ploidy
+            ploidy = ploidy,
+            global_errors = global_errors,
+            genoprob_error = genoprob_error,
+            prob_thres = prob_thres,
+            genoprob_global_errors = genoprob_global_errors
         }
 
         call genotyping.onemapMaps as polyradMaps {
@@ -188,7 +200,11 @@ workflow SimulatedSingleFamily {
             depth = sequencing.depth,
             multiallelics = sequencing.multiallelics,
             multiallelics_file = splitgeno.multiallelics,
-            ploidy = ploidy
+            ploidy = ploidy,
+            global_errors = global_errors,
+            genoprob_error = genoprob_error,
+            prob_thres = prob_thres,
+            genoprob_global_errors = genoprob_global_errors
         }
     }
 

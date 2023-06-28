@@ -213,18 +213,19 @@ task TasselBeforeAlign {
 
     Int disk_size = ceil(size(fastq, "GiB"))
     Int memory_min = ceil(max_ram/2)
+    Int memory_max = max_ram - 5000
 
   command <<<
 
     mkdir fastqs
     ln -s ~{sep=" " fastq} fastqs
 
-    /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{max_ram}m -fork1 -GBSSeqToTagDBPlugin -e ~{enzyme} -i fastqs \
+    /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{memory_max}m -fork1 -GBSSeqToTagDBPlugin -e ~{enzyme} -i fastqs \
                              -db GBSV2.db \
                              -k ~{key_file} \
                              -kmerLength 64 -minKmerL 20 -mnQS 20 -mxKmerNum 100000000 -endPlugin -runfork1
 
-    /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{max_ram}m -fork1 -TagExportToFastqPlugin -db GBSV2.db \
+    /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{memory_max}m -fork1 -TagExportToFastqPlugin -db GBSV2.db \
       -o tagsForAlign.fa.gz -c 1 -endPlugin -runfork1
 
   >>>
@@ -266,29 +267,30 @@ task TasselAfterAlign {
 
     Int disk_size = ceil(size(tassel_database, "GiB"))
     Int memory_min = ceil(max_ram/2)
+    Int memory_max = max_ram - 5000
 
     command <<<
 
       samtools view -h ~{bam} > file.sam 
       mv ~{tassel_database} .
 
-      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{max_ram}m -fork1 -SAMToGBSdbPlugin \
+      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{memory_max}m -fork1 -SAMToGBSdbPlugin \
       -i file.sam  \
       -db GBSV2.db \
       -aProp 0.0 -aLen 0 -endPlugin -runfork1
 
-      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{max_ram}m -fork1 -DiscoverySNPCallerPluginV2 \
+      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{memory_max}m -fork1 -DiscoverySNPCallerPluginV2 \
       -db GBSV2.db \
       -mnLCov 0.1 -mnMAF 0.01 -deleteOldData true -endPlugin -runfork1
 
-      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{max_ram}m  -fork1 -SNPQualityProfilerPlugin \
+      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{memory_max}m  -fork1 -SNPQualityProfilerPlugin \
       -db GBSV2.db \
       -deleteOldData true -endPlugin -runfork1
 
       mkdir fastqs
       ln -s ~{sep=" " fastq} fastqs
 
-      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{max_ram}m -fork1 -ProductionSNPCallerPluginV2 \
+      /usr/tassel/run_pipeline.pl -Xms~{memory_min}m -Xmx~{memory_max}m -fork1 -ProductionSNPCallerPluginV2 \
       -db GBSV2.db \
       -e ~{enzyme} -i fastqs \
       -k ~{key_file} \
