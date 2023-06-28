@@ -837,7 +837,7 @@ task RemoveNonInformative {
     File vcf_file
     String parent1
     String parent2
-    String replaceADbyMissing
+    Boolean replaceADbyMissing
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
@@ -851,7 +851,7 @@ task RemoveNonInformative {
         remove_non_informative("~{vcf_file}", 
                                 P1 = "~{parent1}", 
                                 P2 = "~{parent2}",
-                                replaceAD = "~{replaceADbyMissing}",
+                                replaceAD = "~{replaceADbyMissing}" == "true",
                                 out.vcf = "filtered.vcf.gz")
 
       RSCRIPT
