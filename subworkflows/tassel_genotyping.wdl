@@ -3,8 +3,10 @@ version 1.0
 import "../structs/dna_seq_structs.wdl"
 import "../tasks/tassel.wdl"
 import "../tasks/BWA.wdl"
+import "../tasks/bcftools.wdl"
 import "../tasks/utils.wdl" as utils
 
+import "../subworkflows/norm_filt_vcf.wdl" as norm_filt
 
 workflow TasselGenotyping {
     input {
@@ -25,7 +27,7 @@ workflow TasselGenotyping {
     call tassel.BarcodeFaker {
         input:
             fastq = sample_file[0],
-            FullSampleName = sample_file[2]
+            FullSampleName = sample_file[1] # Tassel does not consider replicates variances, we simple joint the reads
     }
 
     call tassel.TasselBeforeAlign {
@@ -57,8 +59,31 @@ workflow TasselGenotyping {
             fastq = BarcodeFaker.barcode_fastq
     }
 
+    # I tried to include the normalization sub-workflow here, but 
+    # TASSEL VCF does not has the standard header format, then 
+    # BCFtools does not work
+    # I included a new tast to fix the VCF before normalization
+
+    call bcftools.FixTasselVCF{
+        input:
+            vcf_file = TasselAfterAlign.tassel_vcf,
+            reference = references.ref_fasta,
+            reference_idx = references.ref_fasta_index
+    }
+
+    call norm_filt.Normalization {
+        input:
+            vcf_in= FixTasselVCF.vcf_fixed,
+            reference = references.ref_fasta,
+            reference_idx = references.ref_fasta_index,
+            reference_dict = references.ref_dict,
+            program = "tassel",
+            counts_source = "vcf",
+            ploidy = "2"
+    }
+
     output {
-        Array[File] vcfs = [TasselAfterAlign.tassel_vcf]
+        Array[File] vcfs = [Normalization.vcf_norm]
         Array[String] software_sele = ["tassel"]
         Array[String] source_sele = ["vcf"]
     }

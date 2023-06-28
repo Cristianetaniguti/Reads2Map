@@ -7,17 +7,24 @@
     "cross": "String",
     "multiallelics": "Boolean"
   },
+  "Maps.run_supermassa": "Boolean (optional, default = false)",
   "Maps.max_cores": "Int",
   "Maps.gatk_vcf_multi": "File? (optional)",
   "Maps.gatk_mchap": "String",
   "Maps.vcfs_counts_source": "Array[String]",
-  "Maps.filters": "String? (optional)",
-  "Maps.filt_segr": "String? (optional)",
-  "Maps.prob_thres": "Float? (optional)",
+  "Maps.run_gusmap": "Boolean (optional, default = false)",
+  "Maps.genoprob_error": "Boolean (optional, default = true)",
+  "Maps.prob_thres": "Float (optional, default = 0.8)",
   "Maps.ploidy": "Int",
   "Maps.vcfs_software": "Array[String]",
   "Maps.filter_noninfo": "Boolean",
+  "Maps.filters": "String? (optional)",
+  "Maps.global_errors": "Array[String] (optional, default = [\"0.05\"])",
+  "Maps.run_polyrad": "Boolean (optional, default = true)",
   "Maps.vcfs": "Array[File]",
-  "Maps.replaceADbyMissing": "String"
+  "Maps.replaceADbyMissing": "String",
+  "Maps.genoprob_global_errors": "Array[String] (optional, default = [\"0.05\"])",
+  "Maps.filt_segr": "String? (optional)",
+  "Maps.run_updog": "Boolean (optional, default = true)"
 }
 

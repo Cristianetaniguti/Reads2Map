@@ -1,3 +1,7 @@
+# 1.4.1
+
+*  Use BCFtools norm to left-align indel marker positions identified by GATK, STACKs and freebayes
+
 # 1.4.0
 
 * STACKs included

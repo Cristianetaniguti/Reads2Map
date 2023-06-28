@@ -25,14 +25,17 @@ workflow Maps {
         Boolean run_polyrad = true
         Boolean run_gusmap = false
         Boolean filter_noninfo
-        String replaceADbyMissing
+        Boolean replaceADbyMissing 
         File? gatk_vcf_multi
         String gatk_mchap
         String? filters
         Int max_cores
         Int ploidy
-        Float? prob_thres
+        Float prob_thres = 0.8
         String? filt_segr
+        Array[String] global_errors = ["0.05"]
+        Boolean genoprob_error = true
+        Array[String] genoprob_global_errors = ["0.05"]
     }
 
     if (defined(filters)) {
@@ -42,7 +45,8 @@ workflow Maps {
                 vcfs_SNPCall_software = vcfs_software,
                 vcfs_Counts_source = vcfs_counts_source,
                 vcfs_GenoCall_software = range(length(vcfs_software)),
-                filters = filters
+                filters = filters,
+                chromosome = dataset.chromosome
         }
     }
 
@@ -84,7 +88,11 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         multiallelics_file = splitgeno.multiallelics,
                         max_cores = max_cores,
-                        ploidy = ploidy
+                        ploidy = ploidy,
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
 
@@ -102,7 +110,11 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         multiallelics_file = splitgeno.multiallelics,
                         max_cores = max_cores,
-                        ploidy = ploidy
+                        ploidy = ploidy,
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
 
@@ -120,7 +132,11 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         multiallelics_file = splitgeno.multiallelics,
                         max_cores = max_cores,
-                        ploidy = ploidy
+                        ploidy = ploidy,
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
             
@@ -151,8 +167,10 @@ workflow Maps {
                         multiallelics = dataset.multiallelics,
                         max_cores = max_cores,
                         multiallelics_file = splitgeno.multiallelics,
-                        multiallelics_mchap = gatk_vcf_multi,
-                        mchap = gatk_mchap
+                        global_errors = global_errors,
+                        genoprob_error = genoprob_error,
+                        prob_thres = prob_thres,
+                        genoprob_global_errors = genoprob_global_errors
                 }
             }
         }
