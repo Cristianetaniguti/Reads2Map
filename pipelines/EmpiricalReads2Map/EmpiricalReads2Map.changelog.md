@@ -1,3 +1,7 @@
+# 1.4.3
+
+* Update example for pair-end reads inputs
+
 # 1.4.2
 
 * more flexibility to choose the probability to be used in the HMM: 

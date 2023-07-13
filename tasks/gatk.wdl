@@ -16,8 +16,8 @@ task HaplotypeCaller {
   }
 
   Int disk_size = ceil((size(bams, "GiB") + 30) + size(reference_fasta, "GiB")) + 20
-  Int memory_max = ceil(max_ram/chunk_size - 1000)
   Int memory_min = ceil((max_ram/chunk_size)/5)
+  Int memory_max = ceil(max_ram/chunk_size - memory_min)
   Int memory_size = max_ram
   Int max_cores = ceil(chunk_size * 4 + 2)
 
@@ -81,8 +81,8 @@ task ImportGVCFs  {
   }
 
   Int disk_size = ceil(size(vcfs, "GiB") * 1.5 + size(reference_fasta, "GiB") * 1.5)
-  Int memory_max = ceil(max_ram - 1000)
   Int memory_min = ceil(max_ram/3.85)
+  Int memory_max = ceil(max_ram - memory_min)
   Int memory_size = max_ram
 
   command <<<
@@ -139,8 +139,8 @@ task GenotypeGVCFs   {
   }
 
   Int disk_size = ceil(size(reference_fasta, "GiB") * 1.5 + size(workspace_tar, "GiB") * 1.5)
-  Int memory_max = ceil(max_ram - 1000)
   Int memory_min = ceil(max_ram/3.85)
+  Int memory_max = ceil(max_ram - memory_min)
   Int memory_size = max_ram
 
   command <<<

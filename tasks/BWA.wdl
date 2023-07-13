@@ -40,7 +40,7 @@ task RunBwaAlignment {
       fi
 
       bwa_header="@RG\tID:${sampleName_list[$index]}.${lib_list[$index]}\tLB:lib-${lib_list[$index]}\tPL:illumina\tSM:${sampleName_list[$index]}\tPU:FLOWCELL1.LANE1.${lib_list[$index]}"
-      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} "$reads" | \
+      /usr/gitc/./bwa mem -t ~{max_cores} -R "${bwa_header}" ~{references.ref_fasta} $reads | \
           java -jar /usr/gitc/picard.jar SortSam \
             I=/dev/stdin \
             O="${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam" \
