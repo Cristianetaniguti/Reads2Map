@@ -1,3 +1,7 @@
+# 1.4.2
+
+* Update example for pair-end reads inputs
+
 # 1.4.1
 
 *  Use BCFtools norm to left-align indel marker positions identified by GATK, STACKs and freebayes
