@@ -100,7 +100,7 @@ task MappolyReport {
         system("mkdir results")
         system("mv *.rds  results")
 
-        system(paste0("tar -czvf ", "~{SNPCall_program}", "_", "~{GenotypeCall_program}", "_", "~{CountsFrom}","_results.tar.gz results"))
+        system(paste0("tar -czvf ", "~{SNPCall_program}", "_", "~{GenotypeCall_program}", "_", "~{CountsFrom}","_poly_results.tar.gz results"))
 
     RSCRIPT
 
@@ -126,6 +126,6 @@ task MappolyReport {
   }
 
   output {
-    File results = "~{SNPCall_program}_~{GenotypeCall_program}Poly_~{CountsFrom}_results.tar.gz"
+    File results = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_poly_results.tar.gz"
   }
 }
