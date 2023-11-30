@@ -53,10 +53,11 @@ RUN Rscript -e 'remotes::install_version("gsalib",upgrade="never", version = "2.
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSbase", ref = "92119b9c57faa7abeede8236d24a4a8e85fb3df7")'
 
 RUN Rscript -e 'remotes::install_github("tpbilton/GUSMap", ref = "4d7d4057049819d045750d760a45976c8f30dac6")'
-RUN Rscript -e 'remotes::install_github("dcgerard/updog", ref="f1")'
+RUN Rscript -e 'remotes::install_github("dcgerard/updog")'
 
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap")'
 
 # Still privates
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/simuscopR")'
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/Reads2MapTools")'
+RUN Rscript -e 'remotes::install_github("mmollin/MAPpoly")'

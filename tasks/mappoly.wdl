@@ -29,14 +29,13 @@ task MappolyReport {
                         parent.2 = "~{parent2}", 
                         verbose = FALSE, 
                         read.geno.prob = TRUE, 
-                        prob.thres = prob.thres, ploidy = ~{ploidy})
-
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_raw_data.png"))
-        plot(dat)
-        dev.off()
+                        prob.thres = prob.thres, 
+                        ploidy = ~{ploidy})
 
         dat <- filter_missing(input.data = dat, type = "marker", 
                             filter.thres = 0.25, inter = FALSE)
+
+        dat <- filter_missing(dat, type = 'individual', filter.thres = 0.1, inter = FALSE)
 
         if("~{filt_segr}"){
           pval.bonf <- 0.05/dat[[3]]
@@ -48,85 +47,58 @@ task MappolyReport {
         } else {
           seq.init <- make_seq_mappoly(dat, "all")
         }
+        
+        # Estimate two-point recombination fraction
+        tpt <- est_pairwise_rf(input.seq = seq.init, ncpus = ~{max_cores})
+        mat <- rf_list_to_matrix(input.twopt = tpt)
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_","filters.png"))
-        plot(seq.init)
-        dev.off()
+        # Filter markers by recombination fraction values
+        seq.filt <- rf_snp_filter(input.twopt = tpt, diagnostic.plot = FALSE, probs = c(0.05, 0.95))
+        mat2 <- make_mat_mappoly(mat, seq.filt)
 
-        all.rf.pairwise <- est_pairwise_rf(input.seq = seq.init, ncpus = ~{max_cores})
-        mat <- rf_list_to_matrix(input.twopt = all.rf.pairwise)
+        # Run MDS for ordering according to recombination fractions
+        seq_test_mds <- mds_mappoly(mat2)
+        seq_mds <- make_seq_mappoly(seq_test_mds)
 
-        id<-get_genomic_order(seq.init)
-        s.o <- make_seq_mappoly(id)
+        # Sequence with genomic order
+        geno_order <- get_genomic_order(seq_mds)
+        seq_geno_order <- make_seq_mappoly(geno_order)
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_","rf.png"))
-        plot(mat, ord = s.o[[3]])
-        dev.off()
+        init.map.list <- framework_map(input.seq = seq_geno_order,
+                                       twopt = tpt,
+                                       start.set = 5,
+                                       inflation.lim.p1 = 10,
+                                       inflation.lim.p2 = 10,
+                                       verbose = FALSE)
 
-        tpt <- make_pairs_mappoly(all.rf.pairwise, input.seq = s.o)
-        temp2 <- rf_snp_filter(input.twopt = tpt, diagnostic.plot = FALSE)
-        lgtemp <- get_genomic_order(temp2)
-        s.o <- make_seq_mappoly(lgtemp)
+        res <- update_framework_map(input.map.list = init.map.list,
+                                    input.seq = seq_geno_order,
+                                    twopt = tpt,
+                                    thres.twopt = 5,
+                                    init.LOD = 100,
+                                    max.rounds = 3,
+                                    size.rem.cluster = 3,
+                                    gap.threshold = 3,
+                                    verbose = FALSE)
 
-        png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_","rf.filt.png"))
-        plot(mat, ord = s.o[[3]])
-        dev.off()
+        # Get last interaction
+        iter <- length(res[[2]][[1]])
+        map_error <- est_full_hmm_with_global_error(res[[2]][[1]][[iter]], error = 0.05, verbose = FALSE)
+        map_prob <- est_full_hmm_with_prior_prob(res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
 
-        # est.map <- est_rf_hmm_sequential(input.seq = s.o,
-        #                                 start.set = 5,
-        #                                 thres.twopt = 10,
-        #                                 thres.hmm = 50,
-        #                                 extend.tail = 30,
-        #                                 twopt =  all.rf.pairwise,
-        #                                 verbose = F,
-        #                                 phase.number.limit = 20,
-        #                                 sub.map.size.diff.limit = 5)
+        # Diagnostic graphics - overall from plot(dat)
+        # Heatmap of mds with plot(mat2, ord=seq_mds)
+        # Heatmap of genomic order order plot(mat2, ord = map_error$info$mk.names)
+        # Relation between mds and genome plot(seq_mds$genome.pos)
 
-        # map.err <- est_full_hmm_with_global_error(input.map = est.map, error = 0.05)
-        # map.prob <- est_full_hmm_with_prior_prob(input.map = est.map, dat.prob = dat)
-
-        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_no_error_cMbyMb.png"))
-        # plot_genome_vs_map(est.map, same.ch.lg = TRUE)
-        # dev.off()
-
-        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"global_error_cMbyMb.png"))
-        # plot_genome_vs_map(map.err, same.ch.lg = TRUE)
-        # dev.off()
-
-        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_probs_cMbyMb.png"))
-        # plot_genome_vs_map(map.prob, same.ch.lg = TRUE)
-        # dev.off()
-
-        # summary <- summary_maps(list(est.map, map.err, map.prob))
-        # summary <- cbind(method = c("no_error", "global_error", "probs", "-"), summary)
-
-        # write.csv(summary, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_map_summary.csv"))
-
-        # export_map_list(est.map, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_no_error_","map_file.csv"))
-        # export_map_list(map.err, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_global_error_","map_file.csv"))
-        # export_map_list(map.prob, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_probs_","map_file.csv"))
-
-        # png(paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"_map_draw.png"))
-        # plot_map_list(list(default = est.map, 
-        #                 global = map.err,
-        #                 probs = map.prob), col = "ggstyle")
-        # dev.off()
-
-        # genoprob <- calc_genoprob_error(input.map = est.map, error = 0)
-        # genoprob.err <- calc_genoprob_error(input.map = map.err, error = 0.05)
-        # genoprob.prob <- calc_genoprob_dist(input.map = map.prob, dat.prob = dat)
-
-        # homoprobs = calc_homologprob(genoprob)
-        # homoprobs.err = calc_homologprob(genoprob.err)
-        # homoprobs.prob = calc_homologprob(genoprob.prob)
-
-        # save(homoprobs, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.RData"))
-        # save(homoprobs.err, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.err.RData"))
-        # save(homoprobs.prob, file = paste0("~{SNPCall_program}", "_","~{GenotypeCall_program}", "_", "~{CountsFrom}" ,"homoprobs.prob.RData"))
+        saveRDS(dat, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_dat.rds")
+        saveRDS(mat2, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_mat2.rds")
+        saveRDS(seq_mds, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_seq_mds.rds")
+        saveRDS(map_error, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_error.rds")
+        saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_prob.rds")
 
         system("mkdir results")
-        #system("mv *.png *.RData *csv results")
-        system("mv *.png  results")
+        system("mv *.rds  results")
 
         system(paste0("tar -czvf ", "~{SNPCall_program}", "_", "~{GenotypeCall_program}", "_", "~{CountsFrom}","_results.tar.gz results"))
 
@@ -135,8 +107,8 @@ task MappolyReport {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.5"
-    singularity: "docker://cristaniguti/reads2map:0.0.5"
+    docker:"cristaniguti/reads2map:0.0.9"
+    singularity: "docker://cristaniguti/reads2map:0.0.9"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"

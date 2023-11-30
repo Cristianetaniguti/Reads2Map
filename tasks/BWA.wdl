@@ -48,7 +48,7 @@ task RunBwaAlignment {
             SORT_ORDER=coordinate \
             CREATE_INDEX=true;
       mv "${sampleName_list[$index]}.${lib_list[$index]}.sorted.bai" "${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam.bai";
-      BAMS+=("I=${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam")
+      BAMS+=("I=${sampleName_list[$index]}.${lib_list[$index]}.sorted.bam")x`
     done
 
     sampleName_unique=($(echo "${sampleName_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
