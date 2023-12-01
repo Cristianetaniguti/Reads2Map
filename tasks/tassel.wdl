@@ -212,8 +212,8 @@ task TasselBeforeAlign {
     }
 
     Int disk_size = ceil(size(fastq, "GiB"))
-    Int memory_min = ceil(max_ram/2)
-    Int memory_max = max_ram - 5000
+    Int memory_min = ceil(max_ram/3)
+    Int memory_max = max_ram
 
   command <<<
 
@@ -266,8 +266,8 @@ task TasselAfterAlign {
     }
 
     Int disk_size = ceil(size(tassel_database, "GiB"))
-    Int memory_min = ceil(max_ram/2)
-    Int memory_max = max_ram - 5000
+    Int memory_min = ceil(max_ram/3)
+    Int memory_max = max_ram 
 
     command <<<
 
