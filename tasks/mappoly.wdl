@@ -12,6 +12,7 @@ task MappolyReport {
     Int max_cores
     Int ploidy
     String filt_segr = "TRUE"
+    Array[String] global_errors = ["0.05"]
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
@@ -22,14 +23,14 @@ task MappolyReport {
 
         library(mappoly)
 
-        if("~{GenotypeCall_program}" == "supermassa") prob.thres = ~{prob_thres} - 0.3 else prob.thres = ~{prob_thres}
+        if("~{GenotypeCall_program}" == "supermassa") prob.thres = ~{prob_thres} - ~{prob_thres}*0.3 else prob.thres = ~{prob_thres}
         
         dat <- read_vcf(file = "~{vcf_file}", 
                         parent.1 = "~{parent1}", 
                         parent.2 = "~{parent2}", 
                         verbose = FALSE, 
                         read.geno.prob = TRUE, 
-                        prob.thres = prob.thres, 
+                        prob.thres = ~{prob.thres}, 
                         ploidy = ~{ploidy})
 
         dat <- filter_missing(input.data = dat, type = "marker", 
@@ -83,7 +84,13 @@ task MappolyReport {
 
         # Get last interaction
         iter <- length(res[[2]][[1]])
-        map_error <- est_full_hmm_with_global_error(res[[2]][[1]][[iter]], error = 0.05, verbose = FALSE)
+
+        global_errors <- unlist(strsplit("~{sep="," global_errors}", ","))
+        map_error <- list()
+        for(i in 1:length(global_errors)){
+             map_error[[i]] <- est_full_hmm_with_global_error(res[[2]][[1]][[iter]], error = as.numeric(global_errors[i]), verbose = FALSE)
+             saveRDS(map_error, file= paste0("~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_error_",global_errors[i],".rds"))
+        }
         map_prob <- est_full_hmm_with_prior_prob(res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
 
         # Diagnostic graphics - overall from plot(dat)
@@ -94,7 +101,6 @@ task MappolyReport {
         saveRDS(dat, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_dat.rds")
         saveRDS(mat2, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_mat2.rds")
         saveRDS(seq_mds, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_seq_mds.rds")
-        saveRDS(map_error, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_error.rds")
         saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_prob.rds")
 
         system("mkdir results")
