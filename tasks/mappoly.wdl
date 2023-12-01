@@ -30,7 +30,7 @@ task MappolyReport {
                         parent.2 = "~{parent2}", 
                         verbose = FALSE, 
                         read.geno.prob = TRUE, 
-                        prob.thres = ~{prob.thres}, 
+                        prob.thres = prob.thres, 
                         ploidy = ~{ploidy})
 
         dat <- filter_missing(input.data = dat, type = "marker", 
@@ -79,7 +79,7 @@ task MappolyReport {
                                     init.LOD = 100,
                                     max.rounds = 3,
                                     size.rem.cluster = 3,
-                                    gap.threshold = 3,
+                                    gap.threshold = 20,
                                     verbose = FALSE)
 
         # Get last interaction
@@ -113,8 +113,8 @@ task MappolyReport {
   >>>
 
   runtime {
-    docker:"cristaniguti/reads2map:0.0.9"
-    singularity: "docker://cristaniguti/reads2map:0.0.9"
+    docker:"cristaniguti/reads2map:0.1.0"
+    singularity: "docker://cristaniguti/reads2map:0.1.0"
     cpu: max_cores
     # Cloud
     memory:"~{memory_size} MiB"
