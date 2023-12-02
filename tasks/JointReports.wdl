@@ -33,7 +33,7 @@ task JointAllReports{
         supermassaPolyMaps   <- str_split("~{sep=';' supermassaPolyMaps}", ";", simplify = TRUE)
 
         all_files <- c(SNPCallerPolyMapsEmp, updogPolyMaps, polyradPolyMaps, supermassaPolyMaps)
-        all_files <- all_files[-which(all_files == "")]
+        if(length(which(all_files == "")) > 0) all_files <- all_files[-which(all_files == "")]
 
         system("mkdir results_all")
         
