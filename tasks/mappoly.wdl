@@ -89,7 +89,7 @@ task MappolyReport {
         map_error <- list()
         for(i in 1:length(global_errors)){
              map_error[[i]] <- est_full_hmm_with_global_error(res[[2]][[1]][[iter]], error = as.numeric(global_errors[i]), verbose = FALSE)
-             saveRDS(map_error, file= paste0("~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_error_",global_errors[i],".rds"))
+             saveRDS(map_error, file= paste0("~{SNPCall_program}_~{GenotypeCall_program}",global_errors[i], "_~{CountsFrom}_map.rds"))
         }
         map_prob <- est_full_hmm_with_prior_prob(res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
 
@@ -101,7 +101,7 @@ task MappolyReport {
         saveRDS(dat, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_dat.rds")
         saveRDS(mat2, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_mat2.rds")
         saveRDS(seq_mds, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_seq_mds.rds")
-        saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map_prob.rds")
+        saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map.rds")
 
         system("mkdir results")
         system("mv *.rds  results")

@@ -39,7 +39,7 @@ task GusmapReport {
       vroom::vroom_write(info[[2]], "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz", num_threads = ~{max_cores})
       vroom::vroom_write(times, "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz", num_threads = ~{max_cores})
       map_out <- info[[1]]
-      save(map_out, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
+      saveRDS(map_out, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.rds")
 
     RSCRIPT
 
@@ -66,7 +66,7 @@ task GusmapReport {
 
   output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz"
-    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
+    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.rds"
     File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz"
   }
 }
@@ -94,8 +94,7 @@ task GusmapReportForSimulated {
       library(GUSMap)
       library(Reads2MapTools)
 
-      simu_onemap_obj <- load("~{simu_onemap_obj}")
-      simu_onemap_obj <- get(simu_onemap_obj)
+      simu_onemap_obj <- readRDS("~{simu_onemap_obj}")
 
       if(tail(strsplit("~{vcf_file}", "[.]")[[1]],1) =="gz") {
           vcf.temp <- paste0("~{SNPCall_program}",".vcf")
@@ -139,7 +138,7 @@ task GusmapReportForSimulated {
       RDatas_joint[[2]] <- info_correct[[1]]
       names(RDatas_joint) <- c("map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE",
                                "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
-      save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData")
+      saveRDS(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.rds")
 
       # Joint times data.frames
       times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}",
@@ -174,7 +173,7 @@ task GusmapReportForSimulated {
 
   output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_map_report.tsv.gz"
-    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData"
+    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.rds"
     File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_times_report.tsv.gz"
   }
 }
