@@ -22,7 +22,7 @@ The Reads2Map workflows perform the SNP and genotype/dosage calling for your com
 
 Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, and dxWDL. See further information in the [openwdl documentation](https://github.com/openwdl/wdl#execution-engines). 
 
-In addition, we also suggest two wrappers: [cromwell-cli](https://github.com/lmtani/cromwell-cli) and [Caper](https://github.com/ENCODE-DCC/caper). Here is a tutorial on how to setup these tools and one example running the EmpiricalReads2Map:
+In addition, we also suggest two wrappers: [pumbaa](https://github.com/lmtani/pumbaa) and [Caper](https://github.com/ENCODE-DCC/caper). Here is a tutorial on how to setup these tools and one example running the EmpiricalReads2Map:
 
 * [Setup and run Reads2Map workflows](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
 

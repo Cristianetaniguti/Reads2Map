@@ -1,3 +1,9 @@
+# 1.5.0
+
+* Add MAPpoly new functions framework_map and update_framework_map
+* Polyploid analysis output compatible with Reads2MapApp v0.0.1
+* Remove LargeList deprecated package as dependency
+
 # 1.4.3
 
 * Update example for pair-end reads inputs

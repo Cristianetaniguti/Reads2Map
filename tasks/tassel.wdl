@@ -167,7 +167,11 @@ task BarcodeFaker {
      file_names <- "~{sep=',' fastq}"
      file_names <- unlist(strsplit(file_names, ","))
      is_gz <- basename(file_names[1])
-     if(grepl("gz", is_gz)) system(paste("gunzip", file_names))
+     if(grepl(".gz", is_gz)) {
+        for(i in 1:length(file_names)){
+           system(paste("gunzip", file_names[i]))
+        }
+     }
      dir_name <- dirname(file_names[1])
      
      sample_names <- "~{sep=',' FullSampleName}"
@@ -188,7 +192,7 @@ task BarcodeFaker {
     # Slurm
     job_name: "BarcodeFaker"
     mem:"2G"
-    time: 4
+    time: 24
   }
 
   meta {
