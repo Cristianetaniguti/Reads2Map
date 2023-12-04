@@ -22,7 +22,7 @@ The Reads2Map workflows perform the SNP and genotype/dosage calling for your com
 
 Multiple systems are available to run WDL workflows such as Cromwell, miniWDL, and dxWDL. See further information in the [openwdl documentation](https://github.com/openwdl/wdl#execution-engines). 
 
-In addition, we also suggest two wrappers: [cromwell-cli](https://github.com/lmtani/cromwell-cli) and [Caper](https://github.com/ENCODE-DCC/caper). Here is a tutorial on how to setup these tools and one example running the EmpiricalReads2Map:
+In addition, we also suggest two wrappers: [pumbaa](https://github.com/lmtani/pumbaa) and [Caper](https://github.com/ENCODE-DCC/caper). Here is a tutorial on how to setup these tools and one example running the EmpiricalReads2Map:
 
 * [Setup and run Reads2Map workflows](https://cristianetaniguti.github.io/Tutorials/Reads2Map/Setup_and_run_Reads2Map_workflows.html)
 
@@ -72,6 +72,10 @@ Taniguti, C. H.; Taniguti, L. M.; Amadeu, R. R.; Lau, J.; de Siqueira Gesteira, 
 - [Reads2MapApp](https://github.com/Cristianetaniguti/Reads2MapApp) in [cristaniguti/reads2mapApp:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Shiny app to evaluate Reads2Map workflows results
 - [simuscopR](https://github.com/Cristianetaniguti/simuscopR) in [cristaniguti/reads2map:0.0.1](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Wrap-up R package for SimusCop simulations
 - [MAPpoly](https://github.com/mmollina/MAPpoly) in [cristaniguti/reads2map:0.0.5](https://hub.docker.com/repository/docker/cristaniguti/reads2map): Build linkage maps for autopolyploid species
+
+### How to cite
+
+Taniguti, C. H.; Taniguti, L. M.; Amadeu, R. R.; Lau, J.; de Siqueira Gesteira, G.; Oliveira, T. de P.; Ferreira, G. C.; Pereira, G. da S.;  Byrne, D.;  Mollinari, M.; Riera-Lizarazu, O.; Garcia, A. A. F. Developing best practices for genotyping-by-sequencing analysis in the construction of linkage maps. GigaScience, 12, giad092. https://doi.org/10.1093/gigascience/giad092
 
 ### Funding
 

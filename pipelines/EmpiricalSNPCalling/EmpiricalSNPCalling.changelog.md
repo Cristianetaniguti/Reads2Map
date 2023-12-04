@@ -1,3 +1,8 @@
+# 1.4.3
+
+* Adapt tassel and stacks tasks also for polyploids
+* Update tests
+
 # 1.4.2
 
 * Update example for pair-end reads inputs

@@ -33,7 +33,7 @@ task JointAllReports{
         supermassaPolyMaps   <- str_split("~{sep=';' supermassaPolyMaps}", ";", simplify = TRUE)
 
         all_files <- c(SNPCallerPolyMapsEmp, updogPolyMaps, polyradPolyMaps, supermassaPolyMaps)
-        all_files <- all_files[-which(all_files == "")]
+        if(length(which(all_files == "")) > 0) all_files <- all_files[-which(all_files == "")]
 
         system("mkdir results_all")
         
@@ -64,7 +64,7 @@ task JointAllReports{
             list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
             system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
             system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
-            system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*.rds ", path_dir, "/RDatas"))
             if(!grepl("gusmap", list_files[1])){
               system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
               system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
@@ -150,7 +150,6 @@ task JointReports{
       library(tidyr)
       library(stringr)
       library(vroom)
-      library(largeList)
 
       SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
       updog      <- str_split("~{sep=";" updog}", ";", simplify = T)
@@ -168,7 +167,7 @@ task JointReports{
           list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
           system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
           system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
-          system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
+          system(paste0("mv ",path_dir, "/",list_files[1], "*.rds ", path_dir, "/RDatas"))
           if(!grepl("gusmap", list_files[1])){
             system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
             system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
@@ -212,11 +211,11 @@ task JointReports{
         class(RDatas[[i]]) <- "list"
       }
 
-      saveList(RDatas, file = "sequences_emp.llo", append=FALSE, compress=TRUE)
+      saveRDS(RDatas, file = "sequences_emp.rds")
 
       new_names <- names(all_RDatas)
       vroom_write(as.data.frame(new_names), "names.tsv.gz")
-      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+      saveRDS(gusmap_RDatas, file = "gusmap_RDatas.rds")
 
       # Outputs
       vroom_write(errors, "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
@@ -225,7 +224,7 @@ task JointReports{
       vroom_write(times, "data4_times.tsv.gz", num_threads = ~{max_cores})
 
       system("mkdir EmpiricalReads_results")
-      system("mv gusmap_RDatas.RData sequences_emp.llo data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
+      system("mv gusmap_RDatas.rds sequences_emp.rds data1_depths_geno_prob.tsv.gz data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz names.tsv.gz EmpiricalReads_results")
       system("tar -czvf EmpiricalReads_results.tar.gz EmpiricalReads_results")
 
      RSCRIPT
@@ -275,7 +274,6 @@ task JointReportsSimu {
       library(tidyr)
       library(stringr)
       library(vroom)
-      library(largeList)
       library(vcfR)
 
       SNPCaller  <- str_split("~{sep=";" SNPCaller}", ";", simplify = T)
@@ -296,7 +294,7 @@ task JointReportsSimu {
             list_files <- untar(files[[i]][[j]], exdir = path_dir, list = T)
             system(paste0("mv ",path_dir, "/",list_files[1], "*_map_report.tsv.gz ", path_dir, "/maps"))
             system(paste0("mv ",path_dir, "/",list_files[1], "*_times_report.tsv.gz ", path_dir, "/times"))
-            system(paste0("mv ",path_dir, "/",list_files[1], "*.RData ", path_dir, "/RDatas"))
+            system(paste0("mv ",path_dir, "/",list_files[1], "*.rds ", path_dir, "/RDatas"))
             if(!grepl("gusmap", list_files[1])){
               system(paste0("mv ",path_dir, "/",list_files[1], "*_filters_report.tsv.gz ", path_dir, "/filters"))
               system(paste0("mv ",path_dir, "/",list_files[1], "*_errors_report.tsv.gz ", path_dir, "/errors"))
@@ -361,11 +359,11 @@ task JointReportsSimu {
         class(RDatas[[i]]) <- "list"
       }
 
-      saveList(RDatas, file = "data6_RDatas.llo", append=FALSE, compress=TRUE)
+      saveRDS(RDatas, file = "data6_RDatas.rds")
 
       new_names <- names(all_RDatas)
       vroom_write(as.data.frame(new_names), "names.tsv.gz")
-      save(gusmap_RDatas, file = "gusmap_RDatas.RData")
+      saveRDS(gusmap_RDatas, file = "gusmap_RDatas.rds")
 
       # Outputs
       vroom_write(tsvs[[3]], "data1_depths_geno_prob.tsv.gz", num_threads = ~{max_cores})
@@ -401,8 +399,8 @@ task JointReportsSimu {
     File data3_filters = "data3_filters.tsv.gz"
     File data4_times   = "data4_times.tsv.gz"
     File data5_SNPCall_efficiency = "data5_SNPCall_efficiency.tsv.gz"
-    File data6_RDatas  = "data6_RDatas.llo"
-    File data7_gusmap  = "gusmap_RDatas.RData"
+    File data6_RDatas  = "data6_RDatas.rds"
+    File data7_gusmap  = "gusmap_RDatas.rds"
     File data8_names   = "names.tsv.gz"
     File data10_counts  = "data10_CountVariants.tsv.gz"
   }
@@ -432,7 +430,6 @@ task JointTablesSimu{
 
     R --vanilla --no-save <<RSCRIPT
     library(tidyverse)
-    library(largeList)
     library(vroom)
 
     datas <- list()
@@ -456,9 +453,9 @@ task JointTablesSimu{
         for(i in 1:length(datas[[j]])){
           temp <- readList(datas[[j]][i])
           if(i == 1){
-            saveList(temp, file="sequences.llo", append = F, compress = T)
+            saveRDS(temp, file="sequences.rds", append = F, compress = T)
           } else {
-            saveList(temp, file="sequences.llo", append = T, compress = T)
+            saveRDS(temp, file="sequences.rds", append = T, compress = T)
           }
         }
       } else  if(j == 7){
@@ -467,7 +464,7 @@ task JointTablesSimu{
           Rdata_lst[[i]] <- get(temp)
         }
         Rdatas <- do.call(c, Rdata_lst)
-        save(Rdatas, file = "gusmap_RDatas.RData")
+        saveRDS(Rdatas, file = "gusmap_RDatas.rds")
       } else {
         for(i in 1:length(datas[[j]])){
           data_lst[[i]] <- vroom(datas[[j]][i], delim = "\t")
@@ -492,7 +489,7 @@ task JointTablesSimu{
     vroom_write(data.names, "names.tsv.gz")
 
     system("mkdir SimulatedReads_results_depth~{depth}")
-    system("mv gusmap_RDatas.RData sequences.llo data1_depths_geno_prob.tsv.gz \
+    system("mv gusmap_RDatas.rdssequences.rds data1_depths_geno_prob.tsv.gz \
             data2_maps.tsv.gz data3_filters.tsv.gz data4_times.tsv.gz data5_SNPCall_efficiency.tsv.gz data10_counts.tsv.gz \
             simu_haplo.tsv.gz  names.tsv.gz ~{sep=" " plots} ~{sep=" " positions} SimulatedReads_results_depth~{depth}")
     system("tar -czvf SimulatedReads_results_depth~{depth}.tar.gz SimulatedReads_results_depth~{depth}")

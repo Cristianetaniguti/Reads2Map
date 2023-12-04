@@ -2,7 +2,7 @@
     "CreateAlignmentFromFamilies.max_cores": 2,
     "CreateAlignmentFromFamilies.rm_dupli": false,
     "CreateAlignmentFromFamilies.gatk_mchap": false,
-    "CreateAlignmentFromFamilies.families_info": "tests/data/polyploid/fastq/pair_end/samples_info.txt",
+    "CreateAlignmentFromFamilies.families_info": "tests/data/polyploid/fastq/single_end/samples_info.txt",
     "CreateAlignmentFromFamilies.chunk_size": 2,
     "CreateAlignmentFromFamilies.pair_end": false,
     "CreateAlignmentFromFamilies.references": {

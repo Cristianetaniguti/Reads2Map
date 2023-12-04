@@ -1,4 +1,0 @@
-tests/data/polyploid/fastq/1.fastq.gz   1   1
-tests/data/polyploid/fastq/98.fastq.gz   98    98
-tests/data/polyploid/fastq/P1.fastq.gz   P1    P1
-tests/data/polyploid/fastq/P2.fastq.gz   P2    P2

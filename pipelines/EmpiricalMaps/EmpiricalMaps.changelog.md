@@ -1,3 +1,10 @@
+# 1.3.0
+
+* Add MAPpoly new functions framework_map and update_framework_map
+* Update tests
+* Polyploid analysis output compatible with Reads2MapApp v0.0.1
+* Remove LargeList deprecated package as dependency
+
 # 1.2.5
 
 * more flexibility to choose the probability to be used in the HMM: 

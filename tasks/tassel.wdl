@@ -167,7 +167,11 @@ task BarcodeFaker {
      file_names <- "~{sep=',' fastq}"
      file_names <- unlist(strsplit(file_names, ","))
      is_gz <- basename(file_names[1])
-     if(grepl("gz", is_gz)) system(paste("gunzip", file_names))
+     if(grepl(".gz", is_gz)) {
+        for(i in 1:length(file_names)){
+           system(paste("gunzip", file_names[i]))
+        }
+     }
      dir_name <- dirname(file_names[1])
      
      sample_names <- "~{sep=',' FullSampleName}"
@@ -188,7 +192,7 @@ task BarcodeFaker {
     # Slurm
     job_name: "BarcodeFaker"
     mem:"2G"
-    time: 4
+    time: 24
   }
 
   meta {
@@ -212,8 +216,8 @@ task TasselBeforeAlign {
     }
 
     Int disk_size = ceil(size(fastq, "GiB"))
-    Int memory_min = ceil(max_ram/2)
-    Int memory_max = max_ram - 5000
+    Int memory_min = ceil(max_ram/3)
+    Int memory_max = max_ram
 
   command <<<
 
@@ -266,8 +270,8 @@ task TasselAfterAlign {
     }
 
     Int disk_size = ceil(size(tassel_database, "GiB"))
-    Int memory_min = ceil(max_ram/2)
-    Int memory_max = max_ram - 5000
+    Int memory_min = ceil(max_ram/3)
+    Int memory_max = max_ram 
 
     command <<<
 
