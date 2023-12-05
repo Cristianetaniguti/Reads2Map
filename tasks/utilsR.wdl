@@ -29,7 +29,7 @@ task vcf2onemap {
 
           ## READING VCF FROM PIPELINE
           vcfR.obj <- read.vcfR("~{vcf_file}")
-          save(vcfR.obj, file="vcfR_obj.RData")
+          saveRDS(vcfR.obj, file="vcfR_obj.rds")
 
           onemap.obj <- onemap_read_vcfR(vcfR.object= vcfR.obj,
                                          cross= cross,
@@ -37,7 +37,7 @@ task vcf2onemap {
                                          parent2="~{parent2}",
                                          f1 = f1)
 
-          save(onemap.obj, file=paste0("vcf_onemap.obj.RData"))
+          saveRDS(onemap.obj, file=paste0("vcf_onemap.obj.rds"))
 
         RSCRIPT
 
@@ -63,8 +63,8 @@ task vcf2onemap {
     }
 
     output {
-      File onemap_obj = "vcf_onemap.obj.RData"
-      File vcfR_obj = "vcfR_obj.RData"
+      File onemap_obj = "vcf_onemap.obj.rds"
+      File vcfR_obj = "vcfR_obj.rds"
     }
 }
 
@@ -86,13 +86,12 @@ task FiltersReport {
       library(onemap)
       library(Reads2MapTools)
 
-      temp <- load("~{onemap_obj}")
-      temp.obj <- get(temp)
+      temp.obj <- readRDS("~{onemap_obj}")
       onemap_obj_filtered <- create_filters_report_simu(temp.obj, "~{SNPCall_program}",
                                                   "~{CountsFrom}", "~{GenotypeCall_program}",
                                                    ~{seed}, ~{depth}, threshold = NULL) # Threshold define the genotype probability filter
 
-      save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
+      saveRDS(onemap_obj_filtered, file="onemap_obj_filtered.rds")
 
     RSCRIPT
 
@@ -119,7 +118,7 @@ task FiltersReport {
 
   output {
     File filters_report = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_~{seed}_~{depth}_filters_report.tsv.gz"
-    File onemap_obj_filtered = "onemap_obj_filtered.RData"
+    File onemap_obj_filtered = "onemap_obj_filtered.rds"
   }
 }
 
@@ -140,12 +139,12 @@ task FiltersReportEmp {
       library(onemap)
       library(Reads2MapTools)
 
-      temp <- load("~{onemap_obj}")
-      temp.obj <- get(temp)
+      temp.obj <- readRDS("~{onemap_obj}")
+      
       onemap_obj_filtered <- create_filters_report_emp(temp.obj, "~{SNPCall_program}",
                                            "~{CountsFrom}", "~{GenotypeCall_program}",
                                            "~{chromosome}", threshold = NULL)
-      save(onemap_obj_filtered, file="onemap_obj_filtered.RData")
+      saveRDS(onemap_obj_filtered, file="onemap_obj_filtered.rds")
 
     RSCRIPT
 
@@ -172,7 +171,7 @@ task FiltersReportEmp {
 
   output {
     File filters_report = "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_filters_report.tsv.gz"
-    File onemap_obj_filtered = "onemap_obj_filtered.RData"
+    File onemap_obj_filtered = "onemap_obj_filtered.rds"
   }
 }
 
@@ -200,11 +199,10 @@ task MapsReport {
 
       if(~{max_cores} > 4) cores = 4 else cores = ~{max_cores}
 
-      filtered_onemap <- load("~{onemap_obj}")
-      filtered_onemap <- get(filtered_onemap)
-
-      simu_onemap_obj <- load("~{simu_onemap_obj}")
-      simu_onemap_obj <- get(simu_onemap_obj)
+      filtered_onemap <- readRDS("~{onemap_obj}")
+      
+      simu_onemap_obj <- readRDS("~{simu_onemap_obj}")
+      
       ref_alt_alleles <- read.table("~{ref_alt_alleles}")
       simulated_phases <- read.table("~{simulated_phases}")
 
@@ -244,7 +242,7 @@ task MapsReport {
       RDatas_joint[[2]] <- info_correct[[1]]
       names(RDatas_joint) <- c("map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_TRUE",
                                "map_~{seed}_~{depth}_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_FALSE")
-      save(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData")
+      saveRDS(RDatas_joint, file= "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.rds")
 
       # Joint times data.frames
       times_temp <- data.frame(seed = ~{seed}, depth = ~{depth}, SNPCall = "~{SNPCall_program}",
@@ -279,7 +277,7 @@ task MapsReport {
 
   output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_map_report.tsv.gz"
-    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.RData"
+    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}.rds"
     File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_~{seed}_~{depth}_times_report.tsv.gz"
   }
 }
@@ -306,12 +304,10 @@ task ErrorsReport {
         library(onemap)
         library(tidyverse)
 
-        temp <- load("~{onemap_obj}")
-        df <- get(temp)
-
-        temp <- load("~{vcfR_obj}")
-        vcf <- get(temp)
-
+        df <- readRDS("~{onemap_obj}")
+        
+        vcf <- readRDS("~{vcfR_obj}")
+        
         p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "P1",
                                    parent2 = "P2", vcf.par = "AD",recovering = FALSE,
                                    GTfrom = "onemap", alpha=0.1,
@@ -321,8 +317,7 @@ task ErrorsReport {
         df <- cbind(seed = "~{seed}"  , depth = "~{depth}", SNPCall = "~{SNPCall_program}", CountsFrom = "~{CountsFrom}",
                     GenoCall="~{GenotypeCall_program}", df)
 
-        simu <- load("~{simu_vcfR}")
-        vcf_simu <- get(simu)
+        vcf_simu <- readRDS("~{simu_vcfR}")
 
         gt.simu <- vcf_simu@gt[,-1]
         gt.simu <- as.data.frame(cbind(mks = vcf_simu@fix[,3], gt.simu))
@@ -393,12 +388,10 @@ task CheckDepths {
     R --vanilla --no-save <<RSCRIPT
       library(onemap)
 
-      temp <- load("~{onemap_obj}")
-      df <- get(temp)
-
-      temp <- load("~{vcfR_obj}")
-      vcf <- get(temp)
-
+      df <- readRDS("~{onemap_obj}")
+      
+      vcf <- readRDS("~{vcfR_obj}")
+      
       p <- create_depths_profile(onemap.obj = df, vcfR.object = vcf, parent1 = "~{parent1}",
       parent2 = "~{parent2}", vcf.par = "AD",recovering = FALSE, GTfrom = "vcf", alpha=0.1,
       rds.file = paste0("vcf_depths.rds"))
@@ -455,9 +448,8 @@ task MapsReportEmp {
       library(onemap)
       library(Reads2MapTools)
 
-      temp <- load("~{sequence_obj}")
-      sequence <- get(temp)
-
+      sequence <- readRDS("~{sequence_obj}")
+      
       if(~{max_cores} > 4) cores = 4 else cores = ~{max_cores}
 
       times_temp <- system.time(df <- create_map_report_emp(input.seq = sequence, CountsFrom = "~{CountsFrom}",
@@ -465,7 +457,7 @@ task MapsReportEmp {
 
       vroom::vroom_write(df[[2]], "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz", num_threads = ~{max_cores})
       map_out <- df[[1]]
-      save(map_out,  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData")
+      saveRDS(map_out,  file = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.rds")
 
       times <- data.frame(SNPCall = "~{SNPCall_program}",
                           CountsFrom = "~{CountsFrom}",
@@ -498,7 +490,7 @@ task MapsReportEmp {
 
   output {
     File maps_report = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_map_report.tsv.gz"
-    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.RData"
+    File maps_RData = "map_~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}.rds"
     File times = "~{SNPCall_program}_~{CountsFrom}_~{GenotypeCall_program}_times_report.tsv.gz"
   }
 }
@@ -637,7 +629,7 @@ task SetProbs {
       }
 
       vcf <- read.vcfR("~{vcf_file}")
-      save(vcf, file = "vcfR.RData")
+      saveRDS(vcf, file = "vcfR.rds")
 
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
 
@@ -698,8 +690,8 @@ task SetProbs {
 
       for(i in 1:length(probs_onemap_obj)){
         probs_onemap <- probs_onemap_obj[[i]]
-        save(probs_onemap, file= paste0("probs_onemap_", 
-                                          names(probs_onemap_obj)[i], ".RData"))
+        saveRDS(probs_onemap, file= paste0("probs_onemap_", 
+                                          names(probs_onemap_obj)[i], ".rds"))
       }
 
       cat(names(probs_onemap_obj))
@@ -733,9 +725,9 @@ task SetProbs {
   }
 
   output {
-    Array[File] probs_onemap_obj = glob("probs_onemap_*.RData")
+    Array[File] probs_onemap_obj = glob("probs_onemap_*.rds")
     Array[String] probs_onemap_obj_names = read_lines("names.txt")
-    File vcfR_obj = "vcfR.RData"
+    File vcfR_obj = "vcfR.rds"
   }
 }
 
@@ -770,7 +762,7 @@ task SetProbsDefault {
       }
 
       if(as.logical("~{mchap}") & "~{SNPCall_program}" == "gatk") vcf <- read.vcfR("~{multiallelics_mchap}") else  vcf <- read.vcfR("~{vcf_file}")
-      save(vcf, file = "vcfR.RData")
+      saveRDS(vcf, file = "vcfR.rds")
 
       if("~{multiallelics}") only_biallelic = FALSE else only_biallelic = TRUE
 
@@ -798,9 +790,9 @@ task SetProbsDefault {
       globalerror_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 0.05)
 
       default_onemap_obj <- create_probs(input.obj = onemap.obj, global_error = 10^(-5))
-      save(default_onemap_obj, file="default_onemap_obj.RData")
-      save(probs_onemap_obj, file="probs_onemap_obj.RData")
-      save(globalerror_onemap_obj, file="globalerror_onemap_obj.RData")
+      saveRDS(default_onemap_obj, file="default_onemap_obj.rds")
+      saveRDS(probs_onemap_obj, file="probs_onemap_obj.rds")
+      saveRDS(globalerror_onemap_obj, file="globalerror_onemap_obj.rds")
 
     RSCRIPT
 
@@ -825,10 +817,10 @@ task SetProbsDefault {
   }
 
   output {
-    File probs_onemap_obj = "probs_onemap_obj.RData"
-    File globalerror_onemap_obj = "globalerror_onemap_obj.RData"
-    File default_onemap_obj = "default_onemap_obj.RData"
-    File vcfR_obj = "vcfR.RData"
+    File probs_onemap_obj = "probs_onemap_obj.rds"
+    File globalerror_onemap_obj = "globalerror_onemap_obj.rds"
+    File default_onemap_obj = "default_onemap_obj.rds"
+    File vcfR_obj = "vcfR.rds"
   }
 }
 

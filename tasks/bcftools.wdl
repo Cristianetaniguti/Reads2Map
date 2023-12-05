@@ -60,9 +60,9 @@ task FixTasselVCF {
   command <<<
 
     sed 's/PL,Number=./PL,Number=G/g' ~{vcf_file} > tassel_fix.vcf
-    sed 's/AD,Number=./AD,Number=R/g' tassel_fix.vcf > tassel_fix.vcf
-    sed 's/AF,Number=./AF,Number=A/g' tassel_fix.vcf > tassel_fix.vcf
-    sed '/INFO=<ID=AF/a ##INFO=<ID=QualityScore,Number=1,Type=Float,Description="Tassel specific score">' tassel_fix.vcf > tassel_fix.vcf
+    sed -i 's/AD,Number=./AD,Number=R/g' tassel_fix.vcf
+    sed -i 's/AF,Number=./AF,Number=A/g' tassel_fix.vcf 
+    sed -i '/INFO=<ID=AF/a ##INFO=<ID=QualityScore,Number=1,Type=Float,Description="Tassel specific score">' tassel_fix.vcf 
 
     grep ">" ~{reference} > chrs
     sed -i 's/>//' chrs
@@ -97,6 +97,6 @@ task FixTasselVCF {
   }
 
   output {
-    File vcf_fixed = "tassel_fix_chr.vcf"
+    File vcf_fixed = "tassel_fix_chr.vcf.gz"
   }
 }

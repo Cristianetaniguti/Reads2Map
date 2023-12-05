@@ -17,6 +17,7 @@ workflow MappolyMapsEmp {
     Int max_cores
     Int ploidy
     String? filt_segr
+    Array[String] global_errors
   }
 
   call utilsR.ReGenotyping {
@@ -43,7 +44,8 @@ workflow MappolyMapsEmp {
       max_cores = max_cores,
       ploidy = ploidy,
       prob_thres = prob_thres,
-      filt_segr = filt_segr
+      filt_segr = filt_segr,
+      global_errors = global_errors
   }
 
    output {
