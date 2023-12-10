@@ -16,7 +16,7 @@ task MappolyReport {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") + 2000)
+  Int memory_size = ceil(size(vcf_file, "MiB") * max_cores + 5000*max_cores)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -57,12 +57,8 @@ task MappolyReport {
         seq.filt <- rf_snp_filter(input.twopt = tpt, diagnostic.plot = FALSE, probs = c(0.05, 0.95))
         mat2 <- make_mat_mappoly(mat, seq.filt)
 
-        # Run MDS for ordering according to recombination fractions
-        seq_test_mds <- mds_mappoly(mat2)
-        seq_mds <- make_seq_mappoly(seq_test_mds)
-
         # Sequence with genomic order
-        geno_order <- get_genomic_order(seq_mds)
+        geno_order <- get_genomic_order(seq.filt)
         seq_geno_order <- make_seq_mappoly(geno_order)
 
         init.map.list <- framework_map(input.seq = seq_geno_order,
@@ -91,16 +87,14 @@ task MappolyReport {
              map_error[[i]] <- est_full_hmm_with_global_error(res[[2]][[1]][[iter]], error = as.numeric(global_errors[i]), verbose = FALSE)
              saveRDS(map_error, file= paste0("~{SNPCall_program}_~{GenotypeCall_program}",global_errors[i], "_~{CountsFrom}_map.rds"))
         }
-        map_prob <- est_full_hmm_with_prior_prob(res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
 
-        # Diagnostic graphics - overall from plot(dat)
-        # Heatmap of mds with plot(mat2, ord=seq_mds)
-        # Heatmap of genomic order order plot(mat2, ord = map_error$info$mk.names)
-        # Relation between mds and genome plot(seq_mds$genome.pos)
-
+	if(!is.null(dat[["geno"]])){
+ 	 map_prob <- est_full_hmm_with_prior_prob(input.map = res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
+    	 saveRDS(map_prob, file= "freebayes_SNPCaller_vcf_map.rds")
+        }
+	
         saveRDS(dat, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_dat.rds")
         saveRDS(mat2, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_mat2.rds")
-        saveRDS(seq_mds, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_seq_mds.rds")
         saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map.rds")
 
         system("mkdir results")

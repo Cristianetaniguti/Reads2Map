@@ -103,6 +103,10 @@ task RefMap {
         
     populations -P stacks/ -M ~{pop_map} --vcf -t ~{max_cores}
 
+    # Fix sample names
+    sed  -i -e 's/.sorted.merged.filtered//g' stacks/populations.snps.vcf
+    sed  -i -e 's/.sorted.merged.filtered//g' stacks/populations.haps.vcf
+
   >>>
 
    runtime {
