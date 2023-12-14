@@ -36,10 +36,10 @@ task MappolyReport {
         dat <- filter_missing(input.data = dat, type = "marker", 
                             filter.thres = 0.25, inter = FALSE)
 
-        dat <- filter_missing(dat, type = 'individual', filter.thres = 0.1, inter = FALSE)
+        dat <- filter_missing(dat, type = 'individual', filter.thres = 0.25, inter = FALSE)
 
         if("~{filt_segr}"){
-          pval.bonf <- 0.05/dat[[3]]
+          pval.bonf <- 0.05/dat[["n.mrk"]]
           mrks.chi.filt <- filter_segregation(dat, 
                                               chisq.pval.thres =  pval.bonf, 
                                               inter = FALSE)
@@ -64,8 +64,8 @@ task MappolyReport {
         init.map.list <- framework_map(input.seq = seq_geno_order,
                                        twopt = tpt,
                                        start.set = 5,
-                                       inflation.lim.p1 = 10,
-                                       inflation.lim.p2 = 10,
+                                       inflation.lim.p1 = 100,
+                                       inflation.lim.p2 = 100,
                                        verbose = FALSE)
 
         res <- update_framework_map(input.map.list = init.map.list,
@@ -75,7 +75,7 @@ task MappolyReport {
                                     init.LOD = 100,
                                     max.rounds = 3,
                                     size.rem.cluster = 3,
-                                    gap.threshold = 20,
+                                    gap.threshold = 30,
                                     verbose = FALSE)
 
         # Get last interaction
@@ -88,14 +88,13 @@ task MappolyReport {
              saveRDS(map_error, file= paste0("~{SNPCall_program}_~{GenotypeCall_program}",global_errors[i], "_~{CountsFrom}_map.rds"))
         }
 
-	if(!is.null(dat[["geno"]])){
- 	 map_prob <- est_full_hmm_with_prior_prob(input.map = res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
-    	 saveRDS(map_prob, file= "freebayes_SNPCaller_vcf_map.rds")
+        if(!is.null(dat[["geno"]])){
+         map_prob <- est_full_hmm_with_prior_prob(input.map = res[[2]][[1]][[iter]], dat.prob = dat, verbose = FALSE)
+         saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map.rds")
         }
-	
+        
         saveRDS(dat, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_dat.rds")
         saveRDS(mat2, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_mat2.rds")
-        saveRDS(map_prob, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_map.rds")
 
         system("mkdir results")
         system("mv *.rds  results")

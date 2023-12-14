@@ -169,7 +169,8 @@ task BarcodeFaker {
      is_gz <- basename(file_names[1])
      if(grepl(".gz", is_gz)) {
         for(i in 1:length(file_names)){
-           system(paste("gunzip", file_names[i]))
+           cat(paste("Uncompressing",file_names[i]))
+           system(paste("gunzip -f", file_names[i]))
         }
      }
      dir_name <- dirname(file_names[1])
@@ -191,8 +192,8 @@ task BarcodeFaker {
     disks:"local-disk 3 GiB HDD"
     # Slurm
     job_name: "BarcodeFaker"
-    mem:"2G"
-    time: 24
+    mem:"5G"
+    time: 50
   }
 
   meta {
