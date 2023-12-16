@@ -1,10 +1,10 @@
 version 1.0
 
+
 import "../tasks/utilsR.wdl" as utilsR
 import "../tasks/mappoly.wdl" as mappolyTasks
 
 workflow MappolyMapsEmp {
-
   input {
     File vcf_file
     String SNPCall_program

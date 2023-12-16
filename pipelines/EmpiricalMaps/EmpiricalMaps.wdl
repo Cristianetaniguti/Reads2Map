@@ -226,7 +226,7 @@ workflow Maps {
                         ploidy = ploidy,
                         prob_thres = prob_thres,
                         filt_segr = filt_segr,
-			global_errors = global_errors
+                        global_errors = global_errors
                 }
             }
 
@@ -243,7 +243,9 @@ workflow Maps {
                         ploidy = ploidy,
                         prob_thres = prob_thres,
                         filt_segr = filt_segr,
-                        global_errors = global_errors
+                        global_errors = global_errors,
+                        repetitions = repetitions,
+                        sample_size = sample_size
                 }
             }
         }

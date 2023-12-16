@@ -60,4 +60,4 @@ RUN Rscript -e 'remotes::install_github("Cristianetaniguti/onemap")'
 # Still privates
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/simuscopR")'
 RUN Rscript -e 'remotes::install_github("Cristianetaniguti/Reads2MapTools")'
-RUN Rscript -e 'remotes::install_github("Cristianetaniguti/MAPpoly")'
+RUN Rscript -e 'remotes::install_github("Cristianetaniguti/MAPpoly" )'
