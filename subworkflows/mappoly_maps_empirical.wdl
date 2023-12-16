@@ -14,6 +14,8 @@ workflow MappolyMapsEmp {
     String parent1
     String parent2
     Float? prob_thres
+    Int? repetitions 
+    Int? sample_size 
     Int max_cores
     Int ploidy
     String? filt_segr
@@ -45,7 +47,9 @@ workflow MappolyMapsEmp {
       ploidy = ploidy,
       prob_thres = prob_thres,
       filt_segr = filt_segr,
-      global_errors = global_errors
+      global_errors = global_errors,
+      repetitions = repetitions,
+      sample_size = sample_size
   }
 
    output {

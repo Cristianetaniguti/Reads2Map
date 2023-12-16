@@ -9,8 +9,8 @@ task MappolyReport {
     String parent1
     String parent2
     Float prob_thres = 0.8
-    Int? repetitions = 100
-    Int? sample_size = 30
+    Int repetitions = 100
+    Int sample_size = 30
     Int max_cores
     Int ploidy
     String filt_segr = "TRUE"
