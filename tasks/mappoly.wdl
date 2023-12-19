@@ -28,9 +28,10 @@ task MappolyReport {
       run_tests <- function(seed, s_all, sample_size, dat){
         set.seed(seed[1])
         library(mappoly)
+        i <- 1
         res.p1 <- res.p2 <- res.prob.p1 <- res.prob.p2 <- NULL
         map.err.p1 <- map.err.p2 <- map.prob.p1 <- map.prob.p2 <- vector("list", length(seed))
-        for(i in 1:length(seed)){
+        while(i < length(seed)){
           tryCatch({
             mrk.id<-sample(s_all[["seq.mrk.names"]], sample_size)
             s<-get_genomic_order(make_seq_mappoly(s_all,mrk.id))
@@ -54,7 +55,7 @@ task MappolyReport {
             
             # Global error
             map2 <- est_full_hmm_with_global_error(map, error = 0.05, tol = 10e-3)
-            map3 <- split_and_rephase(map2, gap.threshold = 20, size.rem.cluster = 2, twopt = tpt)
+            map3 <- split_and_rephase(map2, gap.threshold = 20, size.rem.cluster = 3, twopt = tpt)
             map.err.p1[[i]] <- est_full_hmm_with_global_error(map3, error = 0.05, tol = 10e-4)
             x<-summary_maps(list(map.err.p1[[i]]))
             res.p1 <-rbind(res.p1,x[1,])
@@ -62,7 +63,7 @@ task MappolyReport {
             # Prob error
             if(!is.null(dat[["geno"]])){
               map2 <- est_full_hmm_with_prior_prob(map, tol = 10e-3)
-              map3 <- split_and_rephase(map2, gap.threshold = 20, size.rem.cluster = 2, twopt = tpt)
+              map3 <- split_and_rephase(map2, gap.threshold = 20, size.rem.cluster = 3, twopt = tpt)
               map.prob.p1[[i]] <- est_full_hmm_with_prior_prob(map3, tol = 10e-4)
               x<-summary_maps(list(map.prob.p1[[i]]))
               res.prob.p1 <-rbind(res.prob.p1,x[1,])
@@ -100,6 +101,7 @@ task MappolyReport {
               x<-summary_maps(list(map.prob.p2[[i]]))
               res.prob.p2 <-rbind(res.prob.p2,x[1,])
             }
+            i <- i + 1
           }, error=function(e){})
         }
         return(list(map.err.p1, map.err.p2, map.prob.p1, map.prob.p2, 
