@@ -18,7 +18,7 @@ task MappolyReport {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") * max_cores + 5000*max_cores)
+  Int memory_size = ceil(size(vcf_file, "MiB") * max_cores + 12000*max_cores)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT

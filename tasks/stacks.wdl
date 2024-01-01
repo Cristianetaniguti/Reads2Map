@@ -92,7 +92,7 @@ task RefMap {
   }
 
     Int disk_size = ceil(size(bams, "GiB") * 2)
-    Int memory_size = 3000 + ceil(size(bams, "MiB") * 2)
+    Int memory_size = 2000*max_cores + ceil(size(bams, "MiB") * 2)
 
   command <<<
 
