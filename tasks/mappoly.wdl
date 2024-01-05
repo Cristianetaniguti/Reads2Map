@@ -18,7 +18,7 @@ task MappolyReport {
   }
 
   Int disk_size = ceil(size(vcf_file, "GiB") * 2)
-  Int memory_size = ceil(size(vcf_file, "MiB") * max_cores + 12000*max_cores)
+  Int memory_size = ceil(size(vcf_file, "MiB") * max_cores + 18000*max_cores)
 
   command <<<
     R --vanilla --no-save <<RSCRIPT
@@ -117,8 +117,19 @@ task MappolyReport {
       
       if("~{GenotypeCall_program}" == "supermassa") 
         prob.thres = ~{prob_thres} - ~{prob_thres}*0.3 else prob.thres = ~{prob_thres}
+
+      library(vcfR)
+      bugfix <- read.vcfR("~{vcf_file}")
+      idx <- which(bugfix@fix[,1] == "NA")
+
+      if(length(idx) > 0){
+       bugfix@fix <- bugfix@fix[-idx,]
+       bugfix@gt <- bugfix@gt[-idx,]
+      }
       
-      dat <- read_vcf(file = "~{vcf_file}", 
+      write.vcf(bugfix, file = "bugfix.vcf")
+      
+      dat <- read_vcf(file = "bugfix.vcf", 
                       parent.1 = "~{parent1}", 
                       parent.2 = "~{parent2}", 
                       verbose = FALSE, 
@@ -190,62 +201,70 @@ task MappolyReport {
       tpt <- est_pairwise_rf(input.seq = seq.init, ncpus = ~{max_cores})
       mat <- rf_list_to_matrix(input.twopt = tpt)
       
-      sample_size <- if(length(seq.init[["seq.mrk.names"]]) <= ~{sample_size}) length(seq.init[["seq.mrk.names"]]) else ~{sample_size}
-      seeds <- split(1:~{repetitions}, rep(1:~{max_cores}, each=~{repetitions}/~{max_cores}))
+      if(length(seq.init[["seq.mrk.names"]]) > ~{sample_size}) {
+       sample_size <- ~{sample_size}
+       seeds <- split(1:~{repetitions}, rep(1:~{max_cores}, each=~{repetitions}/~{max_cores}))
       
-      clust <- makeCluster(~{max_cores})
-      clusterExport(clust, c("seq.init", "sample_size", "dat", "run_tests"))
-      results <- parLapply(clust, seeds, function(x) run_tests(seed = x, s_all = seq.init, 
+       clust <- makeCluster(~{max_cores})
+       clusterExport(clust, c("seq.init", "sample_size", "dat", "run_tests"))
+       results <- parLapply(clust, seeds, function(x) run_tests(seed = x, s_all = seq.init, 
                                                                sample_size = sample_size, dat = dat))
-      stopCluster(clust)
+       stopCluster(clust)
       
-      map.err.p1 <- sapply(results, "[[", 1)
-      idx <- sapply(map.err.p1, is.null)
-      map.err.p1 <- map.err.p1[which(!idx)]
+       map.err.p1 <- sapply(results, "[[", 1)
+       idx <- sapply(map.err.p1, is.null)
+       map.err.p1 <- map.err.p1[which(!idx)]
       
-      map.err.p2 <- sapply(results, "[[", 2)
-      idx <- sapply(map.err.p2, is.null)
-      map.err.p2 <- map.err.p2[which(!idx)]
+       map.err.p2 <- sapply(results, "[[", 2)
+       idx <- sapply(map.err.p2, is.null)
+       map.err.p2 <- map.err.p2[which(!idx)]
       
-      if(!is.null(dat[["geno"]])){
-        map.prob.p1 <- sapply(results, "[[", 3)
-        idx <- sapply(map.prob.p1, is.null)
-        map.prob.p1 <- map.prob.p1[which(!idx)]
+       if(!is.null(dat[["geno"]])){
+         map.prob.p1 <- sapply(results, "[[", 3)
+         idx <- sapply(map.prob.p1, is.null)
+         map.prob.p1 <- map.prob.p1[which(!idx)]
         
-        map.prob.p2 <- sapply(results, "[[", 4)
-        idx <- sapply(map.prob.p2, is.null)
-        map.prob.p2 <- map.prob.p2[which(!idx)]
+         map.prob.p2 <- sapply(results, "[[", 4)
+         idx <- sapply(map.prob.p2, is.null)
+         map.prob.p2 <- map.prob.p2[which(!idx)]
         
-        maps <- list(map.err.p1 = map.err.p1, 
+         maps <- list(map.err.p1 = map.err.p1, 
                      map.err.p2 = map.err.p2, 
                      map.prob.p1 = map.prob.p1, 
                      map.prob.p2 = map.prob.p2)
-      } else {
-        maps <- list(map.err.p1 = map.err.p1, 
+       } else {
+         maps <- list(map.err.p1 = map.err.p1, 
                      map.err.p2 = map.err.p2) 
-      }
+       }
       
-      res.p1 <- lapply(results, "[[", 5)
-      res.p1 <- do.call(rbind, res.p1)
-      res.p1[["map"]] <- "error.p1"
+       res.p1 <- lapply(results, "[[", 5)
+       res.p1 <- do.call(rbind, res.p1)
+       res.p1[["map"]] <- "error.p1"
       
-      res.p2 <- lapply(results, "[[", 6)
-      res.p2 <- do.call(rbind, res.p2)
-      res.p2[["map"]] <- "error.p2"
+       res.p2 <- lapply(results, "[[", 6)
+       res.p2 <- do.call(rbind, res.p2)
+       res.p2[["map"]] <- "error.p2"
       
-      if(!is.null(dat[["geno"]])){
-        res.prob.p1 <- lapply(results, "[[", 7)
-        res.prob.p1 <- do.call(rbind, res.prob.p1)
-        res.prob.p1[["map"]] <- "prob.p1"
+       if(!is.null(dat[["geno"]])){
+         res.prob.p1 <- lapply(results, "[[", 7)
+         res.prob.p1 <- do.call(rbind, res.prob.p1)
+         res.prob.p1[["map"]] <- "prob.p1"
         
-        res.prob.p2 <- lapply(results, "[[", 8)
-        res.prob.p2 <- do.call(rbind, res.prob.p2)
-        res.prob.p2[["map"]] <- "prob.p2"
-        summaries <- rbind(res.p1, res.p2, res.prob.p1, res.prob.p2)
-      } else summaries <- rbind(res.p1, res.p2)
+         res.prob.p2 <- lapply(results, "[[", 8)
+         res.prob.p2 <- do.call(rbind, res.prob.p2)
+         res.prob.p2[["map"]] <- "prob.p2"
+         summaries <- rbind(res.p1, res.p2, res.prob.p1, res.prob.p2)
+       } else summaries <- rbind(res.p1, res.p2)
       
-      summaries[["data"]] <- "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}"
-      
+       summaries[["data"]] <- "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}"
+      } else {
+       summaries <- 1
+       info <- 1
+       dat <- 1
+       mat <- 1
+       maps <- 1
+      }
+
       saveRDS(summaries, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_summaries.rds")
       saveRDS(info, file="~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_info.rds")
       saveRDS(dat, file= "~{SNPCall_program}_~{GenotypeCall_program}_~{CountsFrom}_dat.rds")
