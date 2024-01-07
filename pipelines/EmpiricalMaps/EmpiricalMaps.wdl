@@ -36,6 +36,8 @@ workflow Maps {
         Array[String] global_errors = ["0.05"]
         Boolean genoprob_error = true
         Array[String] genoprob_global_errors = ["0.05"]
+        Int? repetitions 
+        Int? sample_size 
     }
 
     if (defined(filters)) {
@@ -190,7 +192,9 @@ workflow Maps {
                         ploidy = ploidy,
                         prob_thres = prob_thres,
                         filt_segr = filt_segr,
-                        global_errors = global_errors
+                        global_errors = global_errors,
+                        repetitions = repetitions,
+                        sample_size = sample_size
                 }
             }
 
@@ -208,7 +212,9 @@ workflow Maps {
                         ploidy = ploidy,
                         prob_thres = prob_thres,
                         filt_segr = filt_segr,
-                        global_errors = global_errors
+                        global_errors = global_errors,
+                        repetitions = repetitions,
+                        sample_size = sample_size
                 }
             }
             
@@ -226,7 +232,9 @@ workflow Maps {
                         ploidy = ploidy,
                         prob_thres = prob_thres,
                         filt_segr = filt_segr,
-			global_errors = global_errors
+                        global_errors = global_errors,
+                        repetitions = repetitions,
+                        sample_size = sample_size
                 }
             }
 
@@ -243,7 +251,9 @@ workflow Maps {
                         ploidy = ploidy,
                         prob_thres = prob_thres,
                         filt_segr = filt_segr,
-                        global_errors = global_errors
+                        global_errors = global_errors,
+                        repetitions = repetitions,
+                        sample_size = sample_size
                 }
             }
         }

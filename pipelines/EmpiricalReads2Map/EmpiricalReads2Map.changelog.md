@@ -1,3 +1,12 @@
+# 1.5.1
+
+* Make EmpiricalMaps for polyploids compatible with Reads2MapApp v0.0.2
+* Polyploid map quality diagnostic by resampling
+* Adapt regenotyping memory usage
+* Make BarcodeFaker task work for input files that do not finish with .fasta or .fq
+* Adapt BarcodeFaker required memory and time
+* Adapt STACKs required memory
+
 # 1.5.0
 
 * Adapt tassel and stacks tasks also for polyploids

@@ -1,3 +1,9 @@
+# 1.4.4
+
+* Make BarcodeFaker task work for input files that do not finish with .fasta or .fq
+* Adapt BarcodeFaker required memory and time
+* Adapt STACKs required memory
+
 # 1.4.3
 
 * Adapt tassel and stacks tasks also for polyploids
@@ -32,7 +38,7 @@
 # 1.2.0
 
 * Run freebayes parallelizing in nodes according to chromosomes and cores splitting in genomic regions
-* Adjust runtimes 
+* Adjust runtimes
 * Add polyploid dataset for tests
 
 # 1.1.0

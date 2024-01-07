@@ -1,3 +1,9 @@
+# 1.3.1
+
+* Make EmpiricalMaps for polyploids compatible with Reads2MapApp v0.0.2
+* Polyploid map quality diagnostic by resampling
+* Adapt regenotyping memory usage
+
 # 1.3.0
 
 * Add MAPpoly new functions framework_map and update_framework_map
@@ -7,7 +13,7 @@
 
 # 1.2.5
 
-* more flexibility to choose the probability to be used in the HMM: 
+* more flexibility to choose the probability to be used in the HMM:
 
 * new parameters:
 - global_errors: array with global errors to be tested

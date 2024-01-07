@@ -51,7 +51,7 @@ task BarcodeFaker {
       # Marlee's functions
       #this function recursively makes a vector of unique fake barcodes to ensure no non-unique barcodes are generated
       #this step does not protect against enzyme cut site being found in the barcode
-      barcode_inventor <- function(fake_barcodes, r, fastqs){
+      barcode_inventor <- function(r, fastqs){
         fake_barcodes <- c()
         
         # make some barcodes of the length needed to ensure unique barcodes for all files are possible
@@ -78,25 +78,8 @@ task BarcodeFaker {
           
           #get the fastq file paths
           fastqs <- list.files(path = fastq_dir, full.names = TRUE)
-          fastqs <- fastqs[which(grepl(".fastq", fastqs) | grepl(".fq", fastqs))]
           fastq.check <- list.files(path = fastq_dir, full.names = FALSE)
-          fastq.check <- fastq.check[which(grepl(".fastq", fastq.check) | grepl(".fq", fastq.check))]
-          if(length(fastqs) == 0) stop("Files not fount.")
-          
-          #check that all files in dir are fastqs         #bug fixed 28 July 2020- reported by Dr. Smit Dhakal
-          long <- length(grep(".fastq", fastq.check))
-          short <- length(grep(".fq", fastq.check))
-          if(long != 0){
-            if(length(fastq.check) != long){
-              stop("Not all of the files in your input folder seem to have .fq or .fastq extensions. Please move or delete such files.")
-            }
-          }
-          if(short != 0){
-            if(length(fastq.check) != short){
-              stop("Not all of the files in your input folder seem to have .fq or .fastq extensions. Please move or delete such files.")
-            }
-          }
-          
+          if(length(fastqs) == 0) stop("Files not fount.")          
           
           # new method: given a number of input files, determine the min barcode length needed to ensure enough unique barcodes are generated
           # the old way failed if a lot of files had short barcodes of the same length- reported 18 Aug 2022 by Meghan Brady
@@ -111,7 +94,7 @@ task BarcodeFaker {
           r <- ceiling(Re(r)[Re(r) > 0]) # subset the real and positive roots, and round up
           if(r < 4){r <- 4} # keep a minimum barcode length of 4, probably unnecessary
 
-          fake_barcodes <- barcode_inventor(fake_barcodes, r, fastqs)
+          fake_barcodes <- barcode_inventor(r, fastqs)
           
           #make the fake perfect quality scores matching the barcode length
           fake_quals <- rep(paste(rep("E", times = r), collapse = ""), times = length(fastqs))
@@ -169,7 +152,8 @@ task BarcodeFaker {
      is_gz <- basename(file_names[1])
      if(grepl(".gz", is_gz)) {
         for(i in 1:length(file_names)){
-           system(paste("gunzip", file_names[i]))
+           cat(paste("Uncompressing",file_names[i]))
+           system(paste("gunzip -f", file_names[i]))
         }
      }
      dir_name <- dirname(file_names[1])
@@ -191,8 +175,8 @@ task BarcodeFaker {
     disks:"local-disk 3 GiB HDD"
     # Slurm
     job_name: "BarcodeFaker"
-    mem:"2G"
-    time: 24
+    mem:"5G"
+    time: 50
   }
 
   meta {

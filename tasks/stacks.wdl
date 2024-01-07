@@ -92,7 +92,7 @@ task RefMap {
   }
 
     Int disk_size = ceil(size(bams, "GiB") * 2)
-    Int memory_size = 3000 + ceil(size(bams, "MiB") * 2)
+    Int memory_size = 2000*max_cores + ceil(size(bams, "MiB") * 2)
 
   command <<<
 
@@ -102,6 +102,10 @@ task RefMap {
     gstacks -I aligned/ -M ~{pop_map} -O stacks/ -t ~{max_cores}
         
     populations -P stacks/ -M ~{pop_map} --vcf -t ~{max_cores}
+
+    # Fix sample names
+    sed  -i -e 's/.sorted.merged.filtered//g' stacks/populations.snps.vcf
+    sed  -i -e 's/.sorted.merged.filtered//g' stacks/populations.haps.vcf
 
   >>>
 
