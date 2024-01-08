@@ -9,14 +9,14 @@
     "multiallelics": "false"
   },
   "Maps.max_cores": "2",
-  "Maps.run_supermassa":true,
+  "Maps.run_supermassa":false,
   "Maps.run_updog":true,
   "Maps.run_polyrad":true,
   "Maps.gatk_mchap": "FALSE",
   "Maps.vcfs_counts_source": ["vcf"],
   "Maps.vcfs_software": ["gatk"],
   "Maps.filter_noninfo": "true",
-  "Maps.vcfs": ["tests/data/polyploid/vcfs_norm/gatk_Chr04_filt_example.vcf.gz"],
+    "Maps.vcfs": ["/home/rose_lab/Reads2Map/tests/data/polyploid/vcfs_norm/gatk_Chr04_filt_example.vcf.gz"],
     "Maps.replaceADbyMissing": "TRUE",
     "Maps.global_errors":["0.05"]
 }
